@@ -290,6 +290,10 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 - **Gate G1**：训练/评测入口在 conda `falcon` 环境可跑通（不依赖论文/大数据）。
 
 ### Phase 2 —— RealSSA-Sim 数据管线 + L2 评测（3–7 天 + 审批等待）
+
+> **状态（2026-10-22）**：RealSSA-Sim / RealSSA-Real 访问申请已提交（待批）；LRS2-2Mix 已下载解压，
+> Phase 2 并行执行：① 7 dB 差距排查（falcon-big/协议变体）；② LRS2-2Mix 全量转换 + 训练复现；
+> ③ RealSSA 数据管线/DNSMOS 工具预置；④ Phase 2 QA。详见 `docs/REPRODUCTION_PHASE1_REPORT.md` 与后续 Phase 2 报告。
 1. 申请 RealSSA-Sim 访问；下载 1 个 test shard 验证转换器；再下 tt（19 shards）做评测。
 2. 转换器落地（4ch→mono、mouths.pt 直用、meta.json→near.json）。
 3. 用官方权重在 RealSSA-Sim test 上跑：

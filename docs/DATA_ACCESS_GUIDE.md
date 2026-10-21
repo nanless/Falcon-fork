@@ -15,7 +15,7 @@
 | 数据集 | HF 仓库 | gated | 本机可下载？ | 体积 | 含什么 | 能支撑的复现 |
 |---|---|---|---|---|---|---|
 | **LRS2-2Mix** | `JusperLee/LRS2-2Mix` | ❌ 公开 | ✅ **是（已下载完成并核实）** | **16.47 GB 压缩 / 17.39 GB 解压**（单文件 `lrs2.tar.gz`） | **完整 2 s AV 重构包**：`mix/s1/s2`（16k+8k，tr 20000/cv 5000/tt 3000）+ `mouths` npz(50,96,96) + `faces` mp4 + `landmarks` + 混音脚本/清单 | L2 的 LRS2-2Mix 列（AV，完整）+ 训练数据转换；**无需 LRS2 原始视频** |
-| **RealSSA-Sim** | `JusperLee/RealSSA-Sim` | ✅ manual | ❌ 未获批（403） | **521.53 GB**（**242 files / 240 shards**：tr 202 + cv 19 + tt 19；tr 441.42 / cv 39.97 / tt 40.14 GB；另 2 个文件为 README/.gitattributes） | 4ch 16k mix/target、`mouths.pt`（uint8 RGB [T,96,96,3]）、scene JSON；**没有 near 源波形** | L2 RealSSA-Sim 评测 + L3 训练（需转换；对比损失负样本需替代方案） |
+| **RealSSA-Sim** | `JusperLee/RealSSA-Sim` | ✅ manual | 🟡 **申请已提交（2026-10-22，账号 `nanless`/USTC/CN），待人工审批；数据文件仍 403** | **521.53 GB**（**242 files / 240 shards**：tr 202 + cv 19 + tt 19；tr 441.42 / cv 39.97 / tt 40.14 GB；另 2 个文件为 README/.gitattributes） | 4ch 16k mix/target、`mouths.pt`（uint8 RGB [T,96,96,3]）、scene JSON；**没有 near 源波形** | L2 RealSSA-Sim 评测 + L3 训练（需转换；对比损失负样本需替代方案） |
 | **RealSSA-Real** | `JusperLee/RealSSA-Real` | ✅ manual | ❌ 未获批（403） | **12.84 GB**（422 文件） | 真实场景 AV 输入（stereo 16k）、face MP4/mouth NPZ/landmarks、10 条 enrollment、40 条 recording GT；**无 SI-SDR 参考** | L2 RealSSA-Real：DNSMOS / WER / speaker-similarity；**不能算 SI-SDR** |
 | **LRS3-2Mix** | `JusperLee/LRS3-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 622 B） | 只有数据卡 | ❌ 不能复现该列；需联系作者或自建 |
 | **VoxCeleb2-2Mix** | `JusperLee/VoxCeleb2-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 756 B） | 只有数据卡 | ❌ 同上 |

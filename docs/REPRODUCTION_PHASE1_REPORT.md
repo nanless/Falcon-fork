@@ -152,7 +152,7 @@ target convention 用 speaker1）；`mouths/<s1_id>.npz` 的 `uint8 (50,96,96)` 
 ## 6. 遗留与风险（Phase 2 前置）
 
 1. **真实数据状态（Phase 1 结束时）**：
-   - RealSSA-Sim / RealSSA-Real：仍为人工审批 gated（尚无 token 授权），见 `docs/DATA_ACCESS_GUIDE.md`；
+   - RealSSA-Sim / RealSSA-Real：**访问申请已于 2026-10-22 提交（账号 `nanless`/USTC/CN）**，等待人工审批；数据文件当前仍 403（见 `docs/DATA_ACCESS_GUIDE.md` 附录）；
    - **LRS2-2Mix：已下载完成**（16,470,508,590 B，sha256 校验通过）。
      **重大发现**：发布包不是纯音频，而是完整 AV 重建数据集——含 `audio/wav16k/min/{tr,cv,tt}/mix/*.wav`（2 s，16 kHz）、
      **`mouths/<id>.npz`（uint8 (50,96,96)，正好是 Falcon 输入格式）**、`faces/<id>.mp4`、`landmark/*.npz`、
