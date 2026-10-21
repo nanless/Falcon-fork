@@ -1,0 +1,381 @@
+{
+  "task": "task-17 Phase1 regression + docs consistency",
+  "snapshot_utc": "2026-10-21T17:42:00Z",
+  "branch": "repro/phase1",
+  "head": "689555c",
+  "env": {
+    "python": "/root/miniforge3/envs/falcon/bin/python 3.11.17",
+    "torch": "2.8.0+cu128",
+    "cuda_available": true,
+    "device_count": 2
+  },
+  "regression": {
+    "pytest_studio": {
+      "cmd": "pytest studio/tests -q",
+      "result": "35 passed, 2 skipped",
+      "at": "2026-10-21T16:38Z",
+      "pass": true
+    },
+    "studio_node_tests": {
+      "cmd": "for f in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs; do node $f; done",
+      "result": "8/8 rc=0",
+      "notes": {
+        "check_i18n": "363 dictionary entries audited",
+        "check_tracking_ui": "23 checks",
+        "check_spectrum": "PASS",
+        "check_capture_dsp": "PASS",
+        "playback/mouth/worklet/video-worker": "PASS"
+      },
+      "pass": true
+    },
+    "space_build_i18n": {
+      "cmd": "python space/build.py --out /root/tmp/space-verify && node space/tests/check_i18n.mjs /root/tmp/space-verify",
+      "result": "Assembled /root/tmp/space-verify; i18n: 226 Chinese strings translated; rc=0",
+      "pass": true
+    },
+    "imports": {
+      "modules": [
+        "look2hear.models",
+        "look2hear.layers",
+        "look2hear.system",
+        "look2hear.metrics",
+        "look2hear.losses",
+        "look2hear.datas",
+        "look2hear.videomodels",
+        "look2hear.utils",
+        "audio_train",
+        "audio_visual_test"
+      ],
+      "result": "10/10 OK",
+      "pass": true
+    },
+    "pytest_tools_repro": {
+      "cmd": "pytest tools/repro/tests -q",
+      "history": [
+        {
+          "at": "2026-10-21T16:35Z",
+          "result": "70 passed",
+          "collected": 70
+        },
+        {
+          "at": "2026-10-21T16:52Z",
+          "result": "77 passed",
+          "collected": 77,
+          "seconds": 56.4
+        }
+      ],
+      "current_result": "77 passed, rc=0",
+      "note": "并发写入期间曾出现瞬时失败（见 docs/verification/phase1/T2-combined-suite-note.log：5 failed/65 passed），文件稳定后 QA 与我均全绿",
+      "pass": true,
+      "final": {
+        "at": "2026-10-21T16:58Z",
+        "result": "77 passed",
+        "seconds": 62.2
+      }
+    },
+    "space_tests_env": {
+      "cmd": "pytest space/tests -q (in falcon conda env)",
+      "result": "24 passed, 4 errors (RuntimeError: gradio/spaces 缺失)",
+      "note": "与 REPRODUCTION_PLAN §1.2/§9 R11 的“需独立 Space 环境”一致；不作为 regression 失败",
+      "pass": true
+    }
+  },
+  "dataset_facts_hf_api": {
+    "method": "https://huggingface.co/api/datasets/<id>?full=true and /tree/main?recursive=true via local mihomo proxy http://127.0.0.1:17897 (2026-10-21 ~16:45Z); card READMEs saved by T6 under /tmp/ds_cards (sha256 matches independent copies)",
+    "JusperLee/RealSSA-Sim": {
+      "gated": "manual",
+      "private": false,
+      "files": 242,
+      "used_storage_bytes": 521532631040,
+      "tree_total_bytes": 521532645652,
+      "splits": {
+        "tr": {
+          "shards": 202,
+          "bytes": 441423738880,
+          "gb": 441.42
+        },
+        "cv": {
+          "shards": 19,
+          "bytes": 39968010240,
+          "gb": 39.97
+        },
+        "tt": {
+          "shards": 19,
+          "bytes": 40140881920,
+          "gb": 40.14
+        }
+      },
+      "license": "cc-by-nc-nd-4.0",
+      "card_sha256": "32562d019ea4f68b5d9071f273d9981f52aaf6747799fa6d6e3ec4c660444448",
+      "facts": [
+        "4-channel 16 kHz PCM16 mix/target",
+        "mouths.pt uint8 RGB [T,96,96,3]",
+        "no original near-speaker waveforms",
+        "500 examples per shard",
+        "240 WebDataset TAR shards (README 2Mix/RealSSA section line 85)"
+      ]
+    },
+    "JusperLee/RealSSA-Real": {
+      "gated": "manual",
+      "private": false,
+      "files": 422,
+      "used_storage_bytes": 12842268608,
+      "tree_total_bytes": 12843097039,
+      "license": null,
+      "card_sha256": "d4c25fa9ba192028b3da952abced36d68ea5e6ef74371ede6b6ca195d36d7542",
+      "facts": [
+        "54 inference segments / 40 logical recordings / 10 speakers / 8 scenes / 83.9905 min",
+        "stereo PCM16 16 kHz inference audio",
+        "face MP4 224x224 25fps",
+        "mouth NPZ uint8 [T,96,96]",
+        "landmarks NPZ float32 [T,68,2]",
+        "10 enrollment references",
+        "no clean target -> SI-SDR unsupported",
+        "raw/videos 11.28 GB of the 12.84 GB"
+      ]
+    },
+    "JusperLee/LRS2-2Mix": {
+      "gated": false,
+      "private": false,
+      "files": 3,
+      "used_storage_bytes": 16470508590,
+      "siblings": [
+        ".gitattributes",
+        "README.md",
+        "lrs2.tar.gz"
+      ],
+      "license_tag": "apache-2.0",
+      "card_sha256": "3c58481242a3706524d6b2fe3b99210f00ad6ad4ed479c20abd47cda948fcc65",
+      "lrs2_tar_bytes": 16470508590
+    },
+    "JusperLee/LRS3-2Mix": {
+      "gated": false,
+      "private": false,
+      "files": 2,
+      "used_storage_bytes": 0,
+      "siblings": [
+        ".gitattributes",
+        "README.md"
+      ],
+      "README_bytes": 622,
+      "license_tag": "apache-2.0",
+      "card_sha256": "850a10b7f5e05098ec1c2c3a2815fd96a6519e28fab9c0b846ce2deeca74fd32"
+    },
+    "JusperLee/VoxCeleb2-2Mix": {
+      "gated": false,
+      "private": false,
+      "files": 2,
+      "used_storage_bytes": 0,
+      "siblings": [
+        ".gitattributes",
+        "README.md"
+      ],
+      "README_bytes": 756,
+      "license_tag": "apache-2.0",
+      "card_sha256": "b897f8723a0db45f94b32aa15cecb3966531d25e892e40b9e6f85aa2d6f152a2"
+    }
+  },
+  "dry_run_fetch_data": {
+    "cmd": "python tools/repro/fetch_data.py --dataset all --dry-run --proxy http://127.0.0.1:17897",
+    "result": "lrs2-2mix OK 1 file 16.47GB; realssa-sim GatedRepoError 403, 242 files 521.5GB, default README+tt/tt-000000.tar 2.33GB; realssa-real GatedRepoError 403, 422 files 12.84GB; exit rc=0",
+    "token": "whoami = nanless (user); token file 37B"
+  },
+  "lrs2_partial_tar_listing": {
+    "path": "/root/tmp/lrs2-list.txt",
+    "sha256": "cac369f895a1adafbc72418db27fbd0e35e26d711f6aa019b08d771247676cf8",
+    "entries": 7258,
+    "wav": 7234,
+    "py": 8,
+    "observations": [
+      "top-level files: crop_mouth_from_video.py, dev.txt, filename_input.csv, redev.txt, retest.txt",
+      "mix_2_spk_{tr,cv,tt}.txt are under audio_process/",
+      "no root-level tr.txt / mix_2_spk_tr.txt observed in the partial listing"
+    ],
+    "note": "partial streamed listing from first ~400MB of 16.47GB tar; full listing pending T6-report"
+  },
+  "independent_checks": {
+    "baseline_video_fingerprint_convention": {
+      "claim": "baseline video sha256 2afcea08… generated with FRCNN default training=True (no .eval()), torch.manual_seed(1), frames randn(1,1,50,88,88)",
+      "reproduced": {
+        "training_true_sha": "2afcea082697fdd8",
+        "sum": 7832.25634765625,
+        "eval_sha": "41e79f0d346fdda9",
+        "eval_sum": 5955.73388671875
+      },
+      "verdict": "PASS - baseline reproducible; T5 video mismatch is a convention mismatch (documented in QA-report.md P2-3)"
+    },
+    "guide_external_links": {
+      "checked": 5,
+      "http_200": 5,
+      "via": "proxy 127.0.0.1:17897"
+    },
+    "card_snapshot_sha_match": {
+      "detail": "/tmp/ds_cards/*/README.md sha256 equals independent copies for all 5 datasets"
+    }
+  },
+  "doc_hashes": {
+    "docs/DATA_ACCESS_GUIDE.md": "1683e943297e307558639ba4b1a24756b153239aa52a9b00ee7a090df8bd19a2",
+    "docs/REPRODUCTION_PLAN.md": "933077bec0c63b8d0c5ee6703c4f2d6f77640183ef7e98bbdeb21a52bed5abc0",
+    "docs/REPRODUCTION_PHASE1_REPORT.md": "92c64d5856863f4ac2ddb66b0b1860f902b16893366e2cff28d1d308fe921d93",
+    "docs/verification/phase1/T6-report.md": "2c56a2d0a70163f034220dafe5a8ed679f4b7bc3e071db5f1b2ce446ef0f749a",
+    "docs/verification/phase1/T6-lrs2-structure.txt": "3f8bd1fc4e141c2f517dba40156dd20f39fb03c3dc8f5923945264c6dfb74bbe",
+    "docs/verification/phase1/README.md": "0a003dff08c8e0664f9bf2d0bac06c76e35a0c9f570e4f5fa8a568e7da268939",
+    "docs/verification/phase1/T5-report.md": "ed270313a5e53deea15025af9f6401fb1f2e05e0aaf1217e3518759d4b61ee3c",
+    "docs/verification/phase1/QA-report.md": "e00eea0a618f638b52c3a156e97b05281b73e4cce2889d1682ad0286d244dd31",
+    "docs/verification/phase1/T1-report.md": "c64bdcc7bd7f86111decd9d2ffba7ca3ed57598d7f2b03f1ec94a3c21400cf65",
+    "docs/verification/phase1/baseline-fingerprint.json": "df78be2995e5e38b4a1382e5100df44e99117adcd284d70760aac2d5062e7595",
+    "docs/verification/phase1/T5-post-fix-fingerprint.json": "7340e8630b137c4d6d125cb2a08865fbfc7ead8a5594183cc62a9e999c628879",
+    "docs/verification/phase1/REGRESSION-docs.md": "41fee4da59495ade58f37177459ef523e02131cee1c7455174e04fd8a0235b42"
+  },
+  "pending": [],
+  "lrs2_download": {
+    "status": "COMPLETE",
+    "bytes": 16470508590,
+    "sha256": "ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e",
+    "hf_lfs_oid": "ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e",
+    "match": true,
+    "completed_utc": "2026-10-21T16:54:08Z",
+    "status_file": "/root/data/lrs2_2mix/.download_status",
+    "log": "docs/verification/phase1/T6-data-fetch.log"
+  },
+  "lrs2_full_tar": {
+    "tar_sha256": "ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e",
+    "tar_bytes": 16470508590,
+    "listing_file": "/root/tmp/lrs2-full-list.txt",
+    "listing_sha256": "2b1ba30dec82cffb40f928cbeec9a7c760400189e8443cc41d52d481fae0a598",
+    "entries": 249670,
+    "uncompressed_total_bytes": 17390672317,
+    "uncompressed_total_gb": 17.39,
+    "ext": {
+      "": 58,
+      "txt": 11,
+      "csv": 1,
+      "py": 13,
+      "pyc": 3,
+      "ipynb_checkpoints": 1,
+      "wav": 188392,
+      "png": 2,
+      "npy": 1,
+      "npz": 40784,
+      "mp4": 20392,
+      "mat": 6,
+      "scp": 3,
+      "m": 3
+    },
+    "counts": {
+      "mouths_npz": 20392,
+      "faces_mp4": 20392,
+      "landmark_npz": 20392,
+      "audio_wav16k": {
+        "tr": {
+          "mix": 20000,
+          "s1": 20000,
+          "s2": 20000
+        },
+        "cv": {
+          "mix": 5000,
+          "s1": 5000,
+          "s2": 5000
+        },
+        "tt": {
+          "mix": 3000,
+          "s1": 3000,
+          "s2": 3000
+        }
+      },
+      "audio_wav8k": {
+        "total_files": 84017
+      },
+      "raw_audio_wav": {
+        "train": 19649,
+        "val": 476,
+        "test": 267,
+        "total": 20392
+      },
+      "filename_input_csv_lines": 20392,
+      "train_txt_lines": 20779,
+      "video_path_txt_lines": 20468,
+      "mix_2_spk_tr_txt_lines": 50000
+    },
+    "samples": {
+      "mouth": {
+        "shape": [
+          50,
+          96,
+          96
+        ],
+        "dtype": "uint8"
+      },
+      "landmark": {
+        "shape": [
+          50,
+          1,
+          68,
+          2
+        ],
+        "dtype": "float32"
+      },
+      "scp_head": "../raw_audio/train/<id>.wav 0.06817 ../raw_audio/train/<id>.wav -0.06817",
+      "mix_name_example": "6261660309214448793_00028_0.81423_5933122369233932002_00068_-0.81423.wav"
+    },
+    "scripts": [
+      "crop_mouth_from_video.py",
+      "detectface.py",
+      "transform.py",
+      "utils.py",
+      "resave.py",
+      "load_npz.py",
+      "audio_process/{create_mixtures,audio_cut,audio_check,check_file,activlev,audio_path}.py"
+    ],
+    "create_mix_files": [
+      "create_wav_2speakers.m",
+      "activlev.m",
+      "maxfilt.m",
+      "mix_2_spk_{tr,cv,tt}.scp",
+      "mix_2_spk_min_{tr,cv,tt}_{1,2,mix}"
+    ],
+    "key_findings": [
+      "LRS2-2Mix has FULL AV data: mouths npz uint8 (50,96,96), faces mp4, landmarks float32 (50,1,68,2), audio mixes + s1/s2 references, scalp lists, MATLAB mix scripts",
+      "uncompressed total 17.39 GB (NOT 40-60 GB as PLAN says)",
+      "raw_audio count 20,392 (PLAN says 20,396)",
+      "audio/{tr,cv,tt}/s1,s2 exist (PLAN §5.2 says only mix/ seen)",
+      "video_path.txt = 20,468 lines, train.txt = 20,779 lines (match PLAN)",
+      "mouths/faces/landmark each 20,392"
+    ]
+  },
+  "status": "FINAL (fifth round): regressions green; GUIDE and PLAN have no P1/P2; only 2 old-doc P2 evidence paths + minor P3 remain",
+  "final_regression": {
+    "at": "2026-10-21T17:28-17:30Z",
+    "studio_pytest": "35 passed, 2 skipped (15.3s @17:30Z)",
+    "studio_node": "8/8 rc=0",
+    "space_build_i18n": "Assembled; i18n: 226 Chinese strings translated; rc=0",
+    "imports": "10/10 OK",
+    "tools_repro_pytest": {
+      "result": "82 passed (82 collected; 66.1s @17:28Z)",
+      "failed": null,
+      "history": "70 @16:35Z -> 77 @16:58Z -> 76 passed/1 failed @17:15Z (configs/Falcon.yml out-of-scope guard) -> 82 passed @17:28Z (QA allowlist + comment-only test added)"
+    },
+    "space_tests_in_falcon_env": "24 passed, 4 errors (expected, separate Space env)",
+    "config_resolution": {
+      "file": "configs/Falcon.yml",
+      "change": "+2 comment lines (training.logger / training.gpus examples), keys unchanged",
+      "authorized_by_lead": true,
+      "qa_allowlist": "tools/repro/tests/test_phase1_regression.py:428-438 now includes configs/Falcon.yml (comment: authorized by Lead)",
+      "qa_new_test": "test_config_tracked_changes_are_comment_only() at tools/repro/tests/test_phase1_regression.py:529-549 (yaml keys must equal main)",
+      "evidence": "QA-report.md:214-225; QA-report sha e00eea0a...; T1-report sha c64bdcc7..."
+    }
+  },
+  "final_residuals": {
+    "P1": [],
+    "P2": [
+      "docs/verification/model-core.md:16 missing runs/model-core-verify5.log (pre-existing)",
+      "docs/understanding/05-data-pipeline.md changelog path docs/verification/data_pipe missing (pre-existing)"
+    ],
+    "P3": [
+      "GUIDE:327 LRS3 Oxford link 404 (upstream)",
+      "GUIDE:394 partial tar tzf wording and /tmp/ds_cards ephemeral evidence",
+      "PLAN:107-109/112 asset-table status snapshot wording / original-corpora row",
+      "REPRODUCTION_PHASE1_REPORT.md:3 date timezone remark"
+    ]
+  }
+}

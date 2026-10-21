@@ -1,120 +1,148 @@
+"""Metrics tracker used by the evaluation entry point (``audio_visual_test.py``).
+
+Fixes (Phase1/T3, see docs/REPRODUCTION_PLAN.md §6.2 F7/F8):
+
+* the old ``sdr`` / ``sdr_i`` columns were actually ``-SNR`` / ``SNRi`` computed
+  with ``PairwiseNegSDR("snr")``; they are now real SDR / SDRi computed with
+  ``fast_bss_eval.sdr_pit_loss(..., filter_length=512)``;
+* the old per-utterance rows and the ``avg`` / ``std`` rows had opposite signs
+  (the row wrote ``sdr.item()`` while accumulation stored ``-sdr.item()``);
+  now **all values are positive, higher-is-better, and row == aggregation**;
+* PESQ was called as ``pesq(estimate, clean, fs)`` while ``pypesq`` is
+  ``pesq(ref, deg, fs)``; the call is now ``pesq(clean, estimate, fs)``;
+* SI-SDR uses the standard zero-mean definition through
+  :mod:`look2hear.metrics.core` (the old tracker used ``zero_mean=False``).
+
+CSV schema is unchanged for downstream compatibility::
+
+    snt_id, sdr, sdr_i, si-snr, si-snr_i, pesq, stoi        (+ avg/std rows)
+
+All values in the CSV are positive dB scores (higher is better), including the
+per-utterance rows and the ``avg`` / ``std`` rows.
+"""
 
 import csv
-import torch
 import logging
-import numpy as np
 
-from pypesq import pesq
-from pystoi import stoi
-from ..losses import PITLossWrapper, pairwise_neg_sisdr, pairwise_neg_snr
+import numpy as np
+import torch
+
+from . import core
 
 logger = logging.getLogger(__name__)
 
+CSV_COLUMNS = ["snt_id", "sdr", "sdr_i", "si-snr", "si-snr_i", "pesq", "stoi"]
+
 
 class ALLMetricsTracker:
-    def __init__(self, save_file: str = ""):
+    """Accumulate per-utterance separation metrics and write a CSV.
+
+    ``__call__(mix, clean, estimate, key)`` accepts ``[T]`` / ``[S, T]`` (or
+    ``[1, S, T]``) tensors or numpy arrays. All reported values are positive
+    dB scores (higher is better); PESQ/STOI are only computed for ``n_src == 1``
+    and are ``nan`` otherwise.
+    """
+
+    def __init__(self, save_file: str = "", sample_rate: int = core.PESQ_SAMPLE_RATE,
+                 sdr_filter_length: int = core.SDR_FILTER_LENGTH):
+        self.sample_rate = int(sample_rate)
+        self.sdr_filter_length = int(sdr_filter_length)
         self.all_sdrs = []
         self.all_sdrs_i = []
         self.all_sisnrs = []
         self.all_sisnrs_i = []
         self.all_pesqs = []
         self.all_stois = []
+        self._warned_multisrc = False
 
-        csv_columns = ["snt_id", "sdr", "sdr_i", "si-snr", "si-snr_i", "pesq", "stoi"]
-        self.results_csv = open(save_file, "w")
-        self.writer = csv.DictWriter(self.results_csv, fieldnames=csv_columns)
+        self.results_csv = open(save_file, "w", newline="")
+        self.writer = csv.DictWriter(self.results_csv, fieldnames=CSV_COLUMNS)
         self.writer.writeheader()
-        self.pit_snr = PITLossWrapper(pairwise_neg_snr, pit_from="pw_mtx")
-        self.pit_sisnr = PITLossWrapper(pairwise_neg_sisdr, pit_from="pw_mtx")
 
-    def __call__(self, mix, clean, estimate, key):
-        # sisnr
-        sisnr = self.pit_sisnr(estimate.unsqueeze(0), clean.unsqueeze(0))
-        mix = torch.stack([mix] * clean.shape[0], dim=0)
-        sisnr_baseline = self.pit_sisnr(mix.unsqueeze(0), clean.unsqueeze(0))
-        sisnr_i = sisnr - sisnr_baseline
+    # -- metric computation -------------------------------------------------
+    def _compute(self, mix, clean, estimate):
+        clean_src = core._as_source_matrix(clean)
+        est_src = core._as_source_matrix(estimate)
+        n_src = clean_src.shape[0]
 
-        # sdr
-        sdr = self.pit_snr(
-            estimate.unsqueeze(0),
-            clean.unsqueeze(0),
-        )
-        sdr_baseline = self.pit_snr(
-            mix.unsqueeze(0),
-            clean.unsqueeze(0),
-        )
-        sdr_i = sdr - sdr_baseline
+        si_sdr = core.si_sdr(est_src, clean_src)
+        si_sdr_mix = core.si_sdr(core._mixture_sources(mix, n_src), clean_src)
+        sisnr_i = si_sdr - si_sdr_mix
 
-        # stoi pesq
-        # PESQ
-        _pesq = pesq(estimate.squeeze(0).cpu().numpy(), clean.squeeze(0).cpu().numpy(), 16000)
+        sdr = core.sdr(est_src, clean_src, filter_length=self.sdr_filter_length)
+        sdr_mix = core.sdr(core._mixture_sources(mix, n_src), clean_src,
+                           filter_length=self.sdr_filter_length)
+        sdr_i = sdr - sdr_mix
 
-        # STOI
-        _stoi = stoi(
-            clean.squeeze(0).cpu().numpy(),
-            estimate.squeeze(0).cpu().numpy(),
-            16000,
-            extended=False,
-        )
-
-        row = {
-            "snt_id": key,
-            "sdr": sdr.item(),
-            "sdr_i": sdr_i.item(),
-            "si-snr": -sisnr.item(),
-            "si-snr_i": -sisnr_i.item(),
-            "pesq": _pesq,
-            "stoi": _stoi,
+        if n_src == 1:
+            pesq = core.pesq_metric(clean_src[0], est_src[0], self.sample_rate)
+            stoi = core.stoi_metric(clean_src[0], est_src[0], self.sample_rate)
+        else:
+            if not self._warned_multisrc:
+                logger.warning("PESQ/STOI are only defined for n_src=1; recording nan for n_src=%d", n_src)
+                self._warned_multisrc = True
+            pesq = stoi = float("nan")
+        return {
+            "sdr": sdr,
+            "sdr_i": sdr_i,
+            "si-snr": si_sdr,
+            "si-snr_i": sisnr_i,
+            "pesq": pesq,
+            "stoi": stoi,
         }
-        self.key = key
+
+    # -- public API ---------------------------------------------------------
+    def __call__(self, mix, clean, estimate, key):
+        metrics = self._compute(mix, clean, estimate)
+        row = {"snt_id": str(key), **metrics}
         self.writer.writerow(row)
-        # Metric Accumulation
-        self.all_sdrs.append(-sdr.item())
-        self.all_sdrs_i.append(-sdr_i.item())
-        self.all_sisnrs.append(-sisnr.item())
-        self.all_sisnrs_i.append(-sisnr_i.item())
-        self.all_pesqs.append(_pesq)
-        self.all_stois.append(_stoi)
+        self.all_sdrs.append(metrics["sdr"])
+        self.all_sdrs_i.append(metrics["sdr_i"])
+        self.all_sisnrs.append(metrics["si-snr"])
+        self.all_sisnrs_i.append(metrics["si-snr_i"])
+        self.all_pesqs.append(metrics["pesq"])
+        self.all_stois.append(metrics["stoi"])
+        return row
+
+    @staticmethod
+    def _mean(values):
+        arr = np.asarray(values, dtype=np.float64)
+        if arr.size == 0 or np.all(np.isnan(arr)):
+            return float("nan")
+        return float(np.nanmean(arr))
+
+    @staticmethod
+    def _std(values):
+        arr = np.asarray(values, dtype=np.float64)
+        if arr.size == 0 or np.all(np.isnan(arr)):
+            return float("nan")
+        return float(np.nanstd(arr))
 
     def get_mean(self):
-        return {
-            "sdr": np.mean(self.all_sdrs),
-            "sdr_i": np.mean(self.all_sdrs_i),
-            "si-snr": np.mean(self.all_sisnrs),
-            "si-snr_i": np.mean(self.all_sisnrs_i),
-            "pesq": np.mean(self.all_pesqs),
-            "stoi": np.mean(self.all_stois),
-        }
+        return {k: self._mean(getattr(self, attr)) for k, attr in (
+            ("sdr", "all_sdrs"), ("sdr_i", "all_sdrs_i"),
+            ("si-snr", "all_sisnrs"), ("si-snr_i", "all_sisnrs_i"),
+            ("pesq", "all_pesqs"), ("stoi", "all_stois"),
+        )}
 
     def get_std(self):
-        return {
-            "sdr": np.std(self.all_sdrs),
-            "sdr_i": np.std(self.all_sdrs_i),
-            "si-snr": np.std(self.all_sisnrs),
-            "si-snr_i": np.std(self.all_sisnrs_i),
-            "pesq": np.std(self.all_pesqs),
-            "stoi": np.std(self.all_stois),
-        }
+        return {k: self._std(getattr(self, attr)) for k, attr in (
+            ("sdr", "all_sdrs"), ("sdr_i", "all_sdrs_i"),
+            ("si-snr", "all_sisnrs"), ("si-snr_i", "all_sisnrs_i"),
+            ("pesq", "all_pesqs"), ("stoi", "all_stois"),
+        )}
 
     def final(self):
-        row = {
-            "snt_id": "avg",
-            "sdr": np.array(self.all_sdrs).mean(),
-            "sdr_i": np.array(self.all_sdrs_i).mean(),
-            "si-snr": np.array(self.all_sisnrs).mean(),
-            "si-snr_i": np.array(self.all_sisnrs_i).mean(),
-            "pesq": np.array(self.all_pesqs).mean(),
-            "stoi": np.array(self.all_stois).mean(),
-        }
-        self.writer.writerow(row)
-        row = {
-            "snt_id": "std",
-            "sdr": np.array(self.all_sdrs).std(),
-            "sdr_i": np.array(self.all_sdrs_i).std(),
-            "si-snr": np.array(self.all_sisnrs).std(),
-            "si-snr_i": np.array(self.all_sisnrs_i).std(),
-            "pesq": np.array(self.all_pesqs).std(),
-            "stoi": np.array(self.all_stois).std(),
-        }
-        self.writer.writerow(row)
+        avg = self.get_mean()
+        std = self.get_std()
+        self.writer.writerow({"snt_id": "avg", **avg})
+        self.writer.writerow({"snt_id": "std", **std})
         self.results_csv.close()
+
+    # convenience for callers that forget to close explicitly
+    def close(self):
+        if not self.results_csv.closed:
+            self.final()
+
+
+__all__ = ["ALLMetricsTracker", "CSV_COLUMNS"]

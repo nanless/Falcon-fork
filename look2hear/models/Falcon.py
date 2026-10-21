@@ -1461,6 +1461,11 @@ class Falcon(BaseModel):
         # weighted sum over K, then mean over B
         return (weights * penalties).sum(dim=0).mean()
 
+    # Backwards-compatible alias: ``Falcon.forward`` calls ``self._mdcl_loss(...)`` when
+    # ``near_audio`` is provided, but the implementation has always been ``_mdcl_loss_hard``.
+    # Aliasing keeps the historical public name working without changing any numerics.
+    _mdcl_loss = _mdcl_loss_hard
+
     def forward(self, audio_mixture: torch.Tensor, mouth_embedding: torch.Tensor = None,
                 target_audio: torch.Tensor = None, near_audio: torch.Tensor = None):
         audio_mixture_embedding = self.encoder(audio_mixture)  # B, 1, L -> B, N, T, (F)

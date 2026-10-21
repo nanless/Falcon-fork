@@ -1,0 +1,64 @@
+{
+  "env": {
+    "python": "3.11.17",
+    "torch": "2.8.0+cu128"
+  },
+  "weights": {
+    "path": "/root/.cache/falcon_weights/falcon.pt",
+    "audio_keys": 525,
+    "video_keys": 137
+  },
+  "inputs": {
+    "audio": "torch.manual_seed(0); torch.randn(1, 32000)",
+    "mouth_emb": "torch.manual_seed(0); torch.randn(1, 512, 50)",
+    "video_frames": "torch.manual_seed(0); torch.randn(1, 1, 50, 88, 88)"
+  },
+  "modes": {
+    "audio_model_eval_forward": "model.eval()",
+    "audio_model_train_forward": "model.train() -> (est, sep_emb)",
+    "video_model": "video_model.eval() — BatchNorm uses running stats"
+  },
+  "mode_notes": "baseline-fingerprint.json 的 video 指纹由 QA 定位为『FRCNNVideoModel 默认 training=True、未调用 .eval()』（BatchNorm3d 用批内统计，sum=7832.2563）；本文件使用显式 eval()（sum=5965.4599609375）。两者属模式约定差异，不能跨口径比较；T5 数值不变性只比较本文件 pre/post 的同名条目（sha256 逐位相同）。",
+  "params": {
+    "audio": 537697,
+    "video": 11186688
+  },
+  "eval_forward": {
+    "shape": [
+      1,
+      1,
+      32000
+    ],
+    "sum": 0.3195921778678894,
+    "mean": 9.98725590761751e-06,
+    "sha256": "ad0f20a0e67e8e750058bfea69946ca1ee5ff9d7ec6d3caa1f212cb0e8f40757"
+  },
+  "train_forward": {
+    "est_shape": [
+      1,
+      1,
+      32000
+    ],
+    "est_sum": 1.641971230506897,
+    "est_sha256": "5f01a59658471af0955cf6c18c09bb7c0788f844c9e0db334db36fa0a7e7545a",
+    "sep_shape": [
+      1,
+      1,
+      112,
+      251,
+      129
+    ],
+    "sep_sum": -25794.09765625,
+    "sep_sha256": "8a8e5c2a77eb0d78efd1ee1e9106b7b709326658fc13b1be3c67003c60bddc16"
+  },
+  "video_forward": {
+    "shape": [
+      1,
+      512,
+      50
+    ],
+    "sum": 5965.4599609375,
+    "mean": 0.23302577435970306,
+    "sha256": "1b7255f36d926d44448da023eb634d4cc3d82d2f5ba35823929c47135ea1ff3f"
+  }
+}

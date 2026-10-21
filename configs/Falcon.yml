@@ -127,6 +127,8 @@ loss:
 
 # Training config
 training:
+  # logger: csv        # csv | tensorboard | comet | none (default: csv)
+  # gpus: [0, 1]       # list = GPU indices; int = GPU count; 0 = CPU; -1 = all visible GPUs
   system: AudioVisualLightningModuleNASSv2
   gpus: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   parallel: ddp

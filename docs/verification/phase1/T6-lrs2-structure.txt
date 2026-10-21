@@ -1,0 +1,72 @@
+# T6 · LRS2-2Mix 下载与 tar 结构核实（实测证据）
+# 生成时间：2026-10-21（Phase1 T6, ops-tests-docs）
+# 数据位置（仓库外）：/root/data/lrs2_2mix/lrs2.tar.gz（+ 解压目录 lrs2_rebuild/）
+# 环境：/root/miniforge3/envs/falcon/bin/python (3.11)；网络：huggingface.co 经本机 mihomo 代理 127.0.0.1:17897
+
+## 1. 下载（已完成）
+repo:      JusperLee/LRS2-2Mix（HF dataset，公开；HF API dataset_info: gated=False）
+url:       https://huggingface.co/datasets/JusperLee/LRS2-2Mix/resolve/main/lrs2.tar.gz
+file:      /root/data/lrs2_2mix/lrs2.tar.gz
+bytes:     16470508590 (= HF API size，与仓库元数据一致)
+sha256:    ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e
+HF 校验:   HEAD resolve 返回 x-linked-etag="ebdfdf31...767e" → 与本地 sha256 一致（LFS sha256）
+时间:      2026-10-21T16:31:18Z 开始 → 2026-10-21T16:54:08Z 完成（≈22m50s，平均 ≈12 MB/s；断点续传 curl -C -）
+日志:      docs/verification/phase1/T6-data-fetch.log；PID 记录 T6-download.pid
+命令:      bash docs/verification/phase1/run_lrs2_download.sh（setsid nohup 后台；HF_ENDPOINT=hf-mirror TLS 不可达，改 huggingface.co+代理）
+
+## 2. 完整流式清单（未解压即列；tar tzvf，249,670 行）
+entries:   249,670（files 249,621 + dirs 49）
+成员总大小: 17,390,672,317 B ≈ 17.39 GB（解压后），压缩包 16.47 GB
+顶层组件（files/bytes）：
+  audio/                 168,006 files  8.073 GB   （16k+8k 的 mix/s1/s2）
+  raw_audio/              20,392 files  1.306 GB   （train 19,649 / val 476 / test 267）
+  faces/                  20,392 files  1.899 GB   （<id>.mp4，224×224、25 fps、50 帧）
+  landmark/               20,392 files  0.195 GB   （<id>.npz）
+  mouths/                 20,392 files  5.888 GB   （<id>.npz，uint8 [50,96,96]）
+  create_mix/                 15 files  0.008 GB   （create_wav_2speakers.m/activlev.m/maxfilt.m + scp/lists）
+  audio_process/              12 files  0.018 GB   （create_mixtures.py + mix_2_spk_*.txt 等）
+  crop_mouth_from_video.py/detectface.py/utils.py/transform.py/20words_mean_face.npy/load_npz.py/resave.py
+  filename_input.csv / video_path.txt / train.txt / retrain.txt / dev.txt / retest.txt / redev.txt / test.txt
+扩展名统计：.wav 188,392 (9.377 GB) / .npz 40,784 (6.084 GB) / .mp4 20,392 (1.899 GB) / .py 13 / .txt 11 / .mat 6 / .scp 3 …
+
+## 3. 音频：split / 命名 / 2 s / 16bit / 8k 版本
+wav16k/min/{tr,cv,tt}/{mix,s1,s2}: tr 20000 / cv 5000 / tt 3000（各目录同样数量；共 28,000 组）
+wav8k/min/{tr,cv,tt}/{mix,s1,s2}:  同上（8 kHz 版本，与 16k 一一对应）
+文件名：<id1>_<snr1>_<id2>_<snr2>.wav；snr2 = -snr1，snr1 ∈ (0,5]（28000 条全部可解析；|snr| mean≈2.504）
+样例：5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav
+格式：16 kHz 或 8 kHz、mono、PCM_16、**恰好 2.000 s**（16k=32,000 样本；8k=16,000 样本）
+验证：随机 tr/cv 各 100 + tt 全部 3000 个 mix 均 2.000 s / 16 kHz / 1ch；mix == s1+s2（20/组×3 split，max|Δ|=3.05e-5，纯 16bit 量化）
+split 无泄漏：tr→raw train（18,691/19,649 ids）、cv→raw val（476/476）、tt→raw test（267/267）
+
+## 4. 视觉：mouth / landmark / face
+mouths/<id>.npz：key='data'，np.uint8，shape (50,96,96)（2 s@25 fps，灰度 0..246）——即 Falcon 的 2 s 窗口输入（需转 .pt 时补 channel 维）
+landmark/<id>.npz：key='data'，object array len=50；每帧为 list，含 1 个（少数帧 2 个）float32 (68,2) 人脸关键点（≈[50,1,68,2]）
+faces/<id>.mp4：50 帧、25 fps、224×224 RGB（cv2 读取），20,392 个；与 mouths/landmark/raw_audio 的 id 集合完全一致（20,392）
+crop_mouth_from_video.py：脚本仍在（依赖 utils/transform/20words_mean_face.npy），但**本数据包已带 mouths**，训练/评测无需再裁剪
+
+## 5. 混音/参考重建（MATLAB 原逻辑，create_mix/create_wav_2speakers.m）
+1) 读 raw wav → 8k/16k：s1_16k = weight1*s1/sqrt(lev1), s2_16k = weight2*s2/sqrt(lev2)，
+   weight=10^(snr/20)，(lev1,lev2)=activlev 归一化因子；min 模式按较短长度截断；
+2) mix = s1+s2；取 max_amp=max(|mix|,|s1|,|s2|)，同一 mix_scaling=0.9/max_amp 乘到 s1,s2,mix；
+3) 写 s1/s2/mix 的 PCM16 wav；scaling.mat 保存 scaling_16k(N,2) 与 scaling16bit_16k(N,1)（8k 同）。
+实测 mix == s1+s2（16bit 误差内）→ **s1/s2 已是精确的 scaled target 参考，无需再从 raw_audio 重建**；
+若需重建 target（例如换目标说话人 convention），用 create_wav_2speakers.m 公式 + scaling.mat 可逐样本精确复算。
+
+## 6. 文本清单（辅助）
+create_mix/mix_2_spk_{tr,cv,tt}.scp：20,000 / 5,000 / 3,000 行，每行 `wav1 snr1 wav2 snr2`（相对 ../raw_audio/{train,val,test}）
+create_mix/mix_2_spk_min_{tr,cv,tt}_{1,2,mix}：各 split 的 s1/s2/mix 名称列表
+audio_process/mix_2_spk_{tr,cv,tt}.txt：绝对路径历史清单；tr 为 50,000 行（与 scp 20,000 对不重合，属旧版/遗留，勿用）
+train.txt 20,779 / retrain.txt 19,649 / dev.txt 492 / retest.txt 267 / redev.txt 476 / test.txt 296
+video_path.txt 20,469（/home/likai/.../mvlrs_v1/main/<clip>/<utt>.mp4）；filename_input.csv 20,392（<id>,<subject>）
+辅助脚本 load_npz.py/resave.py 等含作者机绝对路径（历史痕迹，不影响数据使用）
+
+## 7. 对复现的含义
+- LRS2-2Mix 已是**完整 2 s AV 数据**：mix/s1/s2（16k+8k）+ mouths + faces + landmarks + 混音脚本与清单；
+  不需要 LRS2 原始视频即可做 LRS2-2Mix 的 AV 训练/评测（旧计划“无视频/嘴部”的结论需更正）。
+- 构建 Falcon folder 数据：mix 取 `audio/wav16k/min/<split>/mix/*.wav`，target 取同 split 的 `s1`（或 `s2`，需固定 convention）；
+  mouths npz → `.pt`：`torch.save(torch.from_numpy(np.load(npz)['data']).unsqueeze(-1), id.pt)` → uint8 [50,96,96,1]，
+  以匹配 load2hear loader 的 `.permute(0,3,1,2)`；JSON 索引用 DataPreProcess/process_lrs23.py；near 源不存在（用 use_near=false 或替代负样本）。
+- 评测：tt 3,000 组，全部 2.000 s → 模型输入窗口=整句（window=2 s），可直接按 clip 计算 SI-SNRi/SDRi；
+  固定 target convention（s1 或 s2）并在报告声明。
+- 许可：tar 内含 LRS2 派生 faces/mouths/音频，受 LRS2（BBC 来源）与源视频条款约束；HF 卡片的 apache-2.0 标签不能覆盖源数据条款；**不得再分发**。
+- 空间：压缩包 16.47 GB + 解压 17.39 GB；建议预留 ≥40GB（含转换后的 2mix 副本，保守 60GB）。

@@ -150,12 +150,18 @@ class AudioVisualLightningModule(pl.LightningModule):
             prog_bar=True,
             sync_dist=True,
         )
-        self.logger.experiment.log(
-            {"learning_rate": self.optimizer.param_groups[0]["lr"], "epoch": self.current_epoch}
-        )
-        self.logger.experiment.log(
-            {"val_pit_sisnr": -val_loss, "epoch": self.current_epoch}
-        )
+
+        # NOTE (phase1 / F2): these epoch-end metrics used to be pushed through a
+        # Comet-only logging API (``logger.experiment.log(dict)``), which raised
+        # AttributeError for CSVLogger/TensorBoardLogger and for ``logger=None``.
+        # They are now emitted with the generic ``self.log_dict`` (CSVLogger /
+        # TensorBoardLogger / CometLogger all work, and no-logger is safe).
+        # Keys and values are unchanged; the old ``"epoch"`` entry was only
+        # Comet's x-axis, now provided natively by ``on_epoch=True``.
+        metrics = {
+            "learning_rate": float(self.optimizer.param_groups[0]["lr"]),
+            "val_pit_sisnr": -val_loss,
+        }
 
         # per-bucket val_pit_sisnr (K=0,1,2,3,4+)
         _bucket_names = {0: "val_pit_sisnr_0near", 1: "val_pit_sisnr_1near",
@@ -166,7 +172,8 @@ class AudioVisualLightningModule(pl.LightningModule):
             if outputs:
                 avg = torch.mean(torch.stack(outputs))
                 avg = torch.mean(self.all_gather(avg))
-                self.logger.experiment.log({name: -avg.item(), "epoch": self.current_epoch})
+                # already all-gathered above -> no extra sync_dist needed
+                metrics[name] = -avg
         for bucket in self._val_bucket_outputs:
             self._val_bucket_outputs[bucket].clear()
 
@@ -174,9 +181,9 @@ class AudioVisualLightningModule(pl.LightningModule):
         if (self.trainer.current_epoch) % 10 == 0:
             avg_loss = torch.stack(self.test_step_outputs).mean()
             test_loss = torch.mean(self.all_gather(avg_loss))
-            self.logger.experiment.log(
-                {"test_pit_sisnr": -test_loss, "epoch": self.current_epoch}
-            )
+            metrics["test_pit_sisnr"] = -test_loss
+
+        self.log_dict(metrics, on_step=False, on_epoch=True, logger=True)
         self.validation_step_outputs.clear()  # free memory
         self.test_step_outputs.clear()  # free memory
 

@@ -1,0 +1,111 @@
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+audioread==3.1.0
+certifi==2026.10.19
+cffi==2.1.1
+charset-normalizer==3.5.2
+click==8.5.0
+cloudpickle==3.1.2
+contourpy==1.3.3
+cycler==0.12.1
+decorator==5.3.1
+einops==0.8.2
+fast_bss_eval==0.1.4
+fastapi==0.156.8
+filelock==4.2.4
+fonttools==4.67.0
+fsspec==2026.9.0
+h11==0.16.0
+hf-xet==1.7.0
+httpcore==1.0.9
+httpcore2==2.16.0
+httptools==0.9.0
+httpx==0.28.1
+httpx2==2.16.0
+huggingface_hub==2.2.0
+idna==3.20
+iniconfig==2.3.1
+Jinja2==3.1.6
+joblib==1.6.0
+kiwisolver==1.5.1
+lazy-loader==0.6
+librosa==0.11.0
+lightning-utilities==0.15.3
+llvmlite==0.50.0
+markdown-it-py==4.2.0
+MarkupSafe==3.0.4
+matplotlib==3.11.2
+mdurl==0.1.2
+mpmath==1.3.0
+msgpack==1.2.3
+narwhals==2.27.1
+networkx==3.6.1
+numba==0.68.0
+numpy==2.2.6
+nvidia-cublas-cu12 @ file:///root/wheelhouse/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_x86_64.whl#sha256=8ac4e771d5a348c551b2a426eda6193c19aa630236b418086020df5ba9667142
+nvidia-cuda-cupti-cu12 @ file:///root/wheelhouse/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_x86_64.whl#sha256=ea0cb07ebda26bb9b29ba82cda34849e73c166c18162d3913575b0c9db9a6182
+nvidia-cuda-nvrtc-cu12 @ file:///root/wheelhouse/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.whl#sha256=a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994
+nvidia-cuda-runtime-cu12 @ file:///root/wheelhouse/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_x86_64.whl#sha256=adade8dcbd0edf427b7204d480d6066d33902cab2a4707dcfc48a2d0fd44ab90
+nvidia-cudnn-cu12 @ file:///root/wheelhouse/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl#sha256=949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8
+nvidia-cufft-cu12 @ file:///root/wheelhouse/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_x86_64.whl#sha256=4d2dd21ec0b88cf61b62e6b43564355e5222e4a3fb394cac0db101f2dd0d4f74
+nvidia-cufile-cu12 @ file:///root/wheelhouse/nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux2014_x86_64.whl#sha256=1d069003be650e131b21c932ec3d8969c1715379251f8d23a1860554b1cb24fc
+nvidia-curand-cu12 @ file:///root/wheelhouse/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl#sha256=b32331d4f4df5d6eefa0554c565b626c7216f87a06a4f56fab27c3b68a830ec9
+nvidia-cusolver-cu12 @ file:///root/wheelhouse/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_x86_64.whl#sha256=4376c11ad263152bd50ea295c05370360776f8c3427b30991df774f9fb26c450
+nvidia-cusparse-cu12 @ file:///root/wheelhouse/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_x86_64.whl#sha256=1ec05d76bbbd8b61b06a80e1eaf8cf4959c3d4ce8e711b65ebd0443bb0ebb13b
+nvidia-cusparselt-cu12 @ file:///root/wheelhouse/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl#sha256=f1bb701d6b930d5a7cea44c19ceb973311500847f81b634d802b7b539dc55623
+nvidia-nccl-cu12 @ file:///root/wheelhouse/nvidia_nccl_cu12-2.27.3-py3-none-manylinux2014_x86_64.whl#sha256=adf27ccf4238253e0b826bce3ff5fa532d65fc42322c8bfdfaf28024c0fbe039
+nvidia-nvjitlink-cu12 @ file:///root/wheelhouse/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.whl#sha256=81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88
+nvidia-nvtx-cu12==12.8.90
+opencv-python==5.0.0.93
+opentelemetry-api==1.45.1
+packaging==26.3
+pandas==3.0.6
+pesq==0.0.4
+pillow==13.0.0
+platformdirs==4.13.5
+pluggy==1.7.0
+pooch==1.9.0
+ptflops==0.7.5
+pycparser==3.11
+pydantic==2.14.1
+pydantic_core==2.50.1
+Pygments==2.21.0
+pyparsing==3.3.3
+pystoi==0.4.1
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.4
+pytorch-lightning @ file:///root/wheelhouse/pytorch_lightning-2.6.6-py3-none-any.whl#sha256=71f95c7b22f25c4f91cc659e1734bcdc6c69c8b66543f2ed2d78dbe29ce2f167
+pytorch-ranger==0.1.1
+PyYAML==6.0.3
+requests==2.34.2
+rich==15.0.0
+safetensors==0.8.0
+scikit-learn==1.9.1
+scipy==1.17.1
+six==1.17.0
+soundfile==0.14.0
+soxr==1.1.0
+starlette==1.9.0
+sympy==1.14.0
+threadpoolctl==3.7.0
+timm==1.0.30
+torch @ file:///root/wheelhouse/torch-2.8.0%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl#sha256=039b9dcdd6bdbaa10a8a5cd6be22c4cb3e3589a341e5f904cbb571ca28f55bed
+torch-complex==0.4.4
+torch-mir-eval==0.4
+torch-optimizer==0.3.0
+torchaudio @ file:///root/wheelhouse/torchaudio-2.8.0%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl#sha256=f4409df567d0723a7a3a89d32c7552a17e0ff6f137ea26a0d268c665259b2995
+torchmetrics==1.9.0
+torchvision @ file:///root/wheelhouse/torchvision-0.23.0%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl#sha256=93f1b5f56b20cd6869bca40943de4fd3ca9ccc56e1b57f47c671de1cdab39cdb
+tqdm==4.70.1
+triton @ file:///root/wheelhouse/triton-3.4.0-cp311-cp311-manylinux_2_27_x86_64.whl#sha256=e2b0afe420d202d96f50b847d744a487b780567975455e56f64b061152ee9554
+truststore==0.10.5
+typeguard==2.13.3
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+urllib3==2.8.0
+uvicorn==0.54.0
+uvloop==0.23.0
+watchfiles==1.3.0
+websockets==17.3

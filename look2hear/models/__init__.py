@@ -2,7 +2,10 @@ from .Falcon import Falcon
 from .Falcon_Contrastive import FalconSpeakerContrastive
 
 __all__ = [
-    "AVTIGER_causal",
+    "Falcon",
+    "FalconSpeakerContrastive",
+    "get",
+    "register_model",
 ]
 
 

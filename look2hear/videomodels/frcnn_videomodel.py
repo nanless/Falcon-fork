@@ -88,11 +88,18 @@ class FRCNNVideoModel(nn.Module):
         update_frcnn_parameter(self, pretrained_dict)
 
     def train(self, mode=True):
+        """Set training mode while keeping BatchNorm statistics frozen.
+
+        Returns ``self`` so that the standard ``model.train()`` / ``model.eval()`` contract
+        holds (``nn.Module.eval`` is implemented as ``return self.train(False)``; without this
+        return value ``FRCNNVideoModel(...).eval()`` would evaluate to ``None``).
+        """
         super().train(mode)
         if mode:  # freeze BN stats
             for m in self.modules():
                 if isinstance(m, _BatchNorm):
                     m.eval()
+        return self
 
 
 def check_parameters(net):

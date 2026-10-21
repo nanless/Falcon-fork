@@ -111,8 +111,13 @@ class AVSpeechTrainDataset(Dataset):
             self.transform(torch.load(self.sources[mix_index][1], weights_only=True).permute(0,3,1,2)).squeeze(1).numpy()
         )[mouth_start : self.fps_len + mouth_start]
 
-        source = torch.from_numpy(source).mean(-1)
-        mixture = torch.from_numpy(mix_source).mean(-1)
+        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): `sf.read` returns (samples,) for mono
+        # wavs and (samples, channels) for multi-channel wavs. A bare ``mean(-1)`` on a
+        # mono array averages over *time* and collapses the waveform to a 0-dim tensor,
+        # which later makes ``torch.stft`` fail. Only average over the channel axis when
+        # it exists; keep mono 1-D as-is (same guard as the training set, near.py:176-177).
+        source = torch.from_numpy(source).mean(-1) if source.ndim > 1 else torch.from_numpy(source)
+        mixture = torch.from_numpy(mix_source).mean(-1) if mix_source.ndim > 1 else torch.from_numpy(mix_source)
 
         if self.normalize_audio:
             m_std = mixture.std(-1, keepdim=True)
@@ -190,8 +195,10 @@ class AVSpeechEvalDataset(Dataset):
             self.transform(torch.load(self.sources[idx][1], weights_only=True).permute(0,3,1,2)).squeeze(1).numpy()
         )
         
-        source = torch.from_numpy(source).mean(-1)
-        mixture = torch.from_numpy(mix_source).mean(-1)
+        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): mono wav -> keep 1-D; multi-channel -> channel mean.
+        # See the identical guard in AVSpeechTrainDataset.__getitem__ above.
+        source = torch.from_numpy(source).mean(-1) if source.ndim > 1 else torch.from_numpy(source)
+        mixture = torch.from_numpy(mix_source).mean(-1) if mix_source.ndim > 1 else torch.from_numpy(mix_source)
 
         if self.normalize_audio:
             m_std = mixture.std(-1, keepdim=True)

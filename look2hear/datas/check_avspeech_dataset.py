@@ -118,8 +118,9 @@ class AVSpeechTrainDataset(Dataset):
             self.transform(torch.load(self.sources[mix_index][1], weights_only=True).permute(0,3,1,2)).squeeze(1).numpy()
         )[mouth_start : self.fps_len + mouth_start]
         
-        source = torch.from_numpy(source).mean(-1)
-        mixture = torch.from_numpy(mix_source).mean(-1)
+        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): keep mono 1-D; only average channels when present.
+        source = torch.from_numpy(source).mean(-1) if source.ndim > 1 else torch.from_numpy(source)
+        mixture = torch.from_numpy(mix_source).mean(-1) if mix_source.ndim > 1 else torch.from_numpy(mix_source)
 
         if self.normalize_audio:
             m_std = mixture.std(-1, keepdim=True)
@@ -198,8 +199,9 @@ class AVSpeechEvalDataset(Dataset):
             self.transform(torch.load(self.sources[idx][1], weights_only=True).permute(0,3,1,2)).squeeze(1).numpy()
         )
         
-        source = torch.from_numpy(source).mean(-1)
-        mixture = torch.from_numpy(mix_source).mean(-1)
+        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): keep mono 1-D; only average channels when present.
+        source = torch.from_numpy(source).mean(-1) if source.ndim > 1 else torch.from_numpy(source)
+        mixture = torch.from_numpy(mix_source).mean(-1) if mix_source.ndim > 1 else torch.from_numpy(mix_source)
 
         if self.normalize_audio:
             m_std = mixture.std(-1, keepdim=True)
