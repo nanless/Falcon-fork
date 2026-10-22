@@ -82,6 +82,16 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
   （`tools/repro/phase2/realssa_sim_tt_pipeline.sh`，dry-run 已验证；1 shard 2.33 GB，tt 19 shards≈40.1 GB）。
 - 批准后执行清单：Sim 用官方权重测 SI-SNRi/SDRi（目标 7.7/8.2，ch mean/0 两套）；Real 测 DNSMOS（目标 3.276±0.05，mean/0/1 三套）。
 
+## 5.1 RealSSA 数据已获批并转换（2026-10-22）
+
+- **审批**：RealSSA-Sim / RealSSA-Real 访问已获批（此前 403 → 可下载）。
+- **RealSSA-Real**：已下载 12.8 GB（422 文件）；DNSMOS 评测运行中
+  （修正：整段推理会 OOM → 已改为 Studio 等价的 2 s 窗/0.5 s hop 窗口化推理，评测脚本 `eval_realssa_real.py`）。
+- **RealSSA-Sim tt**：19 shards（38 GB）已下载；转换完成 **9,169 条**
+  （`/root/data/falcon_realssa_sim/tt`，4ch→mono mean、target/mix/mouths + JSON），
+  官方权重评测运行中（论文目标 SI-SNRi **7.7** / SDRi **8.2**）。
+- 这是验证“官方权重在其训练分布上是否达到论文主结果”的关键实验。
+
 ## 6. 遗留与风险
 
 1. LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库无数据文件 → 两列不可复现（需作者或原始语料）。

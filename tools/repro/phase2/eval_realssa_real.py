@@ -38,6 +38,9 @@ import os
 import statistics
 import sys
 import time
+
+import numpy as np
+import torch
 from pathlib import Path
 
 import numpy as np
@@ -375,10 +378,63 @@ def load_runtime(model: str, device: str, checkpoint: str | None):
     return runtime
 
 
-def separate(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarray:
-    from infer_file import extract
+def _extract_windowed(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarray:
+    """窗口化推理（2 s 窗 / 0.5 s hop / 80 ms guard），内存有界；等价于 Studio 推理协议。
 
-    return extract(runtime, audio, mouth)
+    长录音（RealSSA-Real 单段可达数分钟）整段前向会产生 O(T) 大特征图导致 OOM；这里按 Studio 调度：
+    每个窗口取 pred[LEFT:LEFT+HOP]（绝对 [endpoint-9280, endpoint-1280)），首窗左补零、末窗右补零。
+    边界不做 20 ms crossfade（评测指标对拼接不敏感；报告已声明，Phase 3 可加）。
+    """
+    from infer_file import preprocess                # noqa: E402
+    try:
+        from infer_file import VIDEO_FPS as _VIDEO_FPS
+        _V = int(_VIDEO_FPS)
+    except Exception:
+        _V = 25
+    globals().setdefault("VIDEO_FPS", _V)
+    WINDOW, HOP, GUARD = 32000, 8000, 1280
+    LEFT = WINDOW - HOP - GUARD                       # 22720
+    FRAMES = WINDOW // 640                            # 50
+    frames = min(len(mouth), int(len(audio) * VIDEO_FPS // SAMPLE_RATE))
+    if frames < VIDEO_FPS:
+        raise SystemExit("Need at least 1 s of synchronized audio and mouth frames.")
+    samples = frames * SAMPLE_RATE // VIDEO_FPS
+    audio = np.asarray(audio[:samples], dtype=np.float32)
+    mouth = np.asarray(mouth[:frames])
+    out = np.zeros(samples, dtype=np.float32)
+    endpoint = LEFT + HOP                              # 首块绝对起点 = 0
+    with runtime._lock, torch.inference_mode():
+        while endpoint - (WINDOW - LEFT) < samples:
+            wstart = endpoint - WINDOW
+            win = np.zeros(WINDOW, dtype=np.float32)
+            lo, hi = max(0, wstart), min(samples, endpoint)
+            if hi > lo:
+                win[lo - wstart:hi - wstart] = audio[lo:hi]
+            mstart = wstart // 640
+            mframes = np.zeros((FRAMES,) + mouth.shape[1:], dtype=np.uint8)
+            tlo, thi = max(0, mstart), min(frames, mstart + FRAMES)
+            if thi > tlo:
+                mframes[tlo - mstart:thi - mstart] = mouth[tlo:thi]
+            if thi - tlo < FRAMES:
+                last = mouth[min(frames - 1, max(0, thi - 1))]
+                mframes[max(0, thi - mstart):] = last
+            wav = torch.from_numpy(np.ascontiguousarray(win)).unsqueeze(0).to(runtime.device)
+            emb = runtime.video_model(preprocess(mframes).to(runtime.device))
+            pred = runtime.audio_model(wav, emb)[0, 0].float().cpu().numpy()
+            abs_start = endpoint - (WINDOW - LEFT)
+            chunk = pred[LEFT:LEFT + HOP]
+            lo2, hi2 = max(0, abs_start), min(samples, abs_start + HOP)
+            if hi2 > lo2:
+                out[lo2:hi2] = chunk[lo2 - abs_start:hi2 - abs_start]
+            endpoint += HOP
+    if not np.isfinite(out).all():
+        raise SystemExit("Falcon produced non-finite output.")
+    return out
+
+
+def separate(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarray:
+    """窗口化推理（长录音整段前向 OOM；与 Studio 的 2 s 窗/0.5 s hop 一致）。"""
+    return _extract_windowed(runtime, audio, mouth)
 
 
 # ---------------------------------------------------------------------------
