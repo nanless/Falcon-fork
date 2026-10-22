@@ -2,7 +2,9 @@
 
 目标：验证 Phase1（T1–T5）修复**不改变**官方权重下的模型数值/既有结论，且入口、Studio、
 指标实现维持可运行。全部证据可从 `docs/verification/phase1/baseline-fingerprint.json`
-（Lead 在未改动 main worktree 上生成）与 `/root/wt-main` 复现。
+（Lead 在未改动 main worktree 上生成）与 pristine 基线 worktree 复现。
+基线 worktree 选择：优先 `/root/wt-base`（689555c，Phase1 前的原始 main；Phase2 起由 QA 维护），
+fallback `/root/wt-main`（Phase1 合并后的 main，数值仍应一致）。
 
 运行（在仓库根）：
 
@@ -35,7 +37,11 @@ REPO = Path(__file__).resolve().parents[3]
 PY = sys.executable
 WEIGHTS = Path("/root/.cache/falcon_weights/falcon.pt")
 BASELINE_PATH = REPO / "docs/verification/phase1/baseline-fingerprint.json"
-MAIN_WT = Path("/root/wt-main")
+#: pristine 基线 worktree 的候选路径（按优先级）。
+#: `/root/wt-base` = detach 在 689555c 的原始 main（Phase2 起由 QA 维护）；
+#: `/root/wt-main` = Phase1 合并后的 main（ac91800，数值应与基线一致，作为 fallback）。
+BASELINE_WT_CANDIDATES = [Path("/root/wt-base"), Path("/root/wt-main")]
+MAIN_WT = BASELINE_WT_CANDIDATES[0]  # 兼容旧引用；实际使用 _baseline_worktree()
 
 EXPECTED_AUDIO_PARAMS = 537_697
 EXPECTED_VIDEO_PARAMS = 11_186_688
@@ -82,13 +88,40 @@ def _git_untracked_names() -> list[str]:
     return out
 
 
+def _baseline_worktree() -> Path:
+    """返回可用的 pristine 基线 worktree（优先 /root/wt-base，fallback /root/wt-main）。"""
+    for candidate in BASELINE_WT_CANDIDATES:
+        if (candidate / "look2hear/models/Falcon.py").is_file():
+            return candidate
+    return BASELINE_WT_CANDIDATES[0]
+
+
+def _phase1_merge_base() -> str | None:
+    """Phase1 合并提交 `main`（ac91800）的父提交 = 原始 upstream 基线（689555c）。"""
+    r = _run(["git", "rev-parse", "main^"])
+    return r.stdout.strip() or None
+
+
 def _landed(path_prefix: str) -> bool:
-    """该文件相对 main 是否已发生改动（含新文件），用于分阶段 skip。"""
+    """该文件是否已落地，用于分阶段 skip。
+
+    Phase2 分支上 `main` 已包含 Phase1 合并提交（ac91800），因此“已落地”有两种来源：
+      1) Phase2 未提交改动：工作区 vs `main`（原行为）；
+      2) Phase1 已合并改动：`main` vs `main^`（= upstream 689555c）——否则 Phase1 验收测试
+         在合并后会全部 skip，丢失回归覆盖（Phase2-QA 2026-10-21 修正）。
+    """
     diffs = _git_diff_names()
     if any(d == path_prefix or d.startswith(path_prefix.rstrip("/") + "/") for d in diffs):
         return True
-    return any(u == path_prefix or u.startswith(path_prefix.rstrip("/") + "/")
-               for u in _git_untracked_names())
+    if any(u == path_prefix or u.startswith(path_prefix.rstrip("/") + "/")
+           for u in _git_untracked_names()):
+        return True
+    base = _phase1_merge_base()
+    if base:
+        r = _run(["git", "diff", "--name-only", base, "--", path_prefix])
+        if any(x.strip() for x in r.stdout.splitlines()):
+            return True
+    return False
 
 
 # ------------------------------------------------------------------- session fixtures
@@ -211,7 +244,7 @@ def test_video_forward_fingerprint_unchanged(fingerprints, baseline):
     )
 
 
-# =============================================================== 4) 与 main worktree 对比
+# ================================================ 4) 与 pristine 基线 worktree 对比
 _MAIN_WT_SCRIPT = r'''
 import copy, hashlib, json, sys
 import torch, yaml
@@ -265,14 +298,16 @@ print(json.dumps({{
 
 
 def test_numeric_invariance_vs_main_worktree(fingerprints, baseline, tmp_path):
-    """在干净 main worktree（/root/wt-main）复算指纹，验证 T1–T5 修复与 main 数值逐位一致。"""
-    if not (MAIN_WT / "look2hear/models/Falcon.py").is_file():
-        pytest.skip("干净 main worktree /root/wt-main 不存在，跳过跨分支数值对比")
-    script = tmp_path / "fp_main.py"
-    script.write_text(_MAIN_WT_SCRIPT.format(repo=str(MAIN_WT), weights=str(WEIGHTS)))
-    env = {"PYTHONPATH": str(MAIN_WT)}
-    r = _run([PY, str(script)], cwd=MAIN_WT, env=env, timeout=900)
-    assert r.returncode == 0, f"main worktree 指纹脚本失败:\nSTDOUT={r.stdout[-3000:]}\nSTDERR={r.stderr[-3000:]}"
+    """在 pristine 基线 worktree（优先 /root/wt-base，fallback /root/wt-main）复算指纹，
+    验证当前分支（Phase1/Phase2 修复）与原始 main 数值逐位一致。"""
+    wt = _baseline_worktree()
+    if not (wt / "look2hear/models/Falcon.py").is_file():
+        pytest.skip(f"基线 worktree 不存在（候选 {[str(p) for p in BASELINE_WT_CANDIDATES]}），跳过跨分支数值对比")
+    script = tmp_path / "fp_baseline.py"
+    script.write_text(_MAIN_WT_SCRIPT.format(repo=str(wt), weights=str(WEIGHTS)))
+    env = {"PYTHONPATH": str(wt)}
+    r = _run([PY, str(script)], cwd=wt, env=env, timeout=900)
+    assert r.returncode == 0, f"基线 worktree({wt}) 指纹脚本失败:\nSTDOUT={r.stdout[-3000:]}\nSTDERR={r.stderr[-3000:]}"
     got = json.loads(r.stdout.strip().splitlines()[-1])
     # main 侧自身应与基线一致（验证基线 JSON 可复现）
     assert got["eval_sha"] == baseline["eval_forward"]["sha256"]
@@ -431,6 +466,14 @@ ALLOWED_TRACKED = [
     # T1 (authorized by Lead): comment-only semantics docs for logger/gpus.
     # Non-comment changes are rejected by test_config_tracked_changes_are_comment_only().
     "configs/Falcon.yml",
+    # Phase2 起：docs/ 与 tools/repro/ 已被 Phase1 提交跟踪；Phase2 的文档提交与 QA 测试维护
+    # 会以 tracked-modified 形式出现。源码（audio_*/look2hear/studio/configs/Falcon.yml）仍受保护，
+    # 由 test_phase2_pipeline.py::test_phase2_diff_scope_guard 额外断言。
+    "docs/*",
+    "tools/repro/*",
+    # authorized (env compliance): AGENTS.md §2/§4 新增 Phase2 依赖说明 + lock 更新（19:16Z），
+    # 属文档/环境合规改动，非 Phase1 源码改动。
+    "AGENTS.md",
     "look2hear/system/*",
     "look2hear/metrics/*",
     "look2hear/datas/*",
@@ -442,6 +485,7 @@ ALLOWED_UNTRACKED = [
     "look2hear/metrics/core.py",
     "tools/repro/*",
     "docs/*",
+    "configs/LRS2_2Mix.yml",   # Phase2 P2-D 新增训练配置（不是 Phase1 源码改动）
     "AGENTS.md",
     "agents.md",
     "space/*",

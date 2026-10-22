@@ -1,0 +1,76 @@
+{
+  "tool": "tools/repro/phase2/eval_realssa_real.py",
+  "timestamp_utc": "20261021T190344Z",
+  "data_root": "/root/data/falcon_eval/smoke_realssa_like_lrs2_20261021T190344Z",
+  "loader_kind": "fallback:metadata-jsonl",
+  "is_smoke": true,
+  "smoke_source": "LRS2-2Mix tt (mock RealSSA-Real layout)",
+  "channel": "mean",
+  "align_tail": true,
+  "model": "JusperLee/Falcon",
+  "checkpoint": null,
+  "device": "auto",
+  "skip_model": false,
+  "limit": 2,
+  "baseline": true,
+  "speechmos_version": "0.0.1.1",
+  "onnxruntime_version": "1.31.0",
+  "note": "RealSSA-Real has no clean target: DNSMOS only, SI-SDR is not computed.",
+  "segments_total": 2,
+  "summary": {
+    "segments_total": 2,
+    "segments_ok": 2,
+    "segments_error": 0,
+    "metrics": {
+      "sig_mos": {
+        "n": 2,
+        "mean": 3.1747,
+        "std": 0.093
+      },
+      "bak_mos": {
+        "n": 2,
+        "mean": 2.6642,
+        "std": 0.0854
+      },
+      "ovrl_mos": {
+        "n": 2,
+        "mean": 2.246,
+        "std": 0.1178
+      },
+      "p808_mos": {
+        "n": 2,
+        "mean": 3.1468,
+        "std": 0.0236
+      },
+      "mix_sig_mos": {
+        "n": 2,
+        "mean": 2.7171,
+        "std": 0.3153
+      },
+      "mix_bak_mos": {
+        "n": 2,
+        "mean": 1.5506,
+        "std": 0.0419
+      },
+      "mix_ovrl_mos": {
+        "n": 2,
+        "mean": 1.5353,
+        "std": 0.012
+      },
+      "mix_p808_mos": {
+        "n": 2,
+        "mean": 2.6578,
+        "std": 0.1081
+      }
+    },
+    "by_scene": {
+      "smoke": {
+        "n": 2,
+        "sig_mos": 3.1747,
+        "bak_mos": 2.6642,
+        "ovrl_mos": 2.246,
+        "p808_mos": 3.1468
+      }
+    }
+  }
+}

@@ -1,0 +1,2 @@
+inference_id,recording_id,scene,channel,align_tail,audio_s,mouth_frames,used_frames,used_s,discarded_samples,inference_ms,rtf,sig_mos,bak_mos,ovrl_mos,p808_mos,mix_sig_mos,mix_bak_mos,mix_ovrl_mos,mix_p808_mos,error
+synth-000,synth,synth,mean,True,2.0,50,50,2.0,0,,,1.9708,2.829,1.6463,2.2125,,,,,

@@ -16,7 +16,7 @@
 |---|---|---|---|---|---|---|
 | **LRS2-2Mix** | `JusperLee/LRS2-2Mix` | ❌ 公开 | ✅ **是（已下载完成并核实）** | **16.47 GB 压缩 / 17.39 GB 解压**（单文件 `lrs2.tar.gz`） | **完整 2 s AV 重构包**：`mix/s1/s2`（16k+8k，tr 20000/cv 5000/tt 3000）+ `mouths` npz(50,96,96) + `faces` mp4 + `landmarks` + 混音脚本/清单 | L2 的 LRS2-2Mix 列（AV，完整）+ 训练数据转换；**无需 LRS2 原始视频** |
 | **RealSSA-Sim** | `JusperLee/RealSSA-Sim` | ✅ manual | 🟡 **申请已提交（2026-10-22，账号 `nanless`/USTC/CN），待人工审批；数据文件仍 403** | **521.53 GB**（**242 files / 240 shards**：tr 202 + cv 19 + tt 19；tr 441.42 / cv 39.97 / tt 40.14 GB；另 2 个文件为 README/.gitattributes） | 4ch 16k mix/target、`mouths.pt`（uint8 RGB [T,96,96,3]）、scene JSON；**没有 near 源波形** | L2 RealSSA-Sim 评测 + L3 训练（需转换；对比损失负样本需替代方案） |
-| **RealSSA-Real** | `JusperLee/RealSSA-Real` | ✅ manual | ❌ 未获批（403） | **12.84 GB**（422 文件） | 真实场景 AV 输入（stereo 16k）、face MP4/mouth NPZ/landmarks、10 条 enrollment、40 条 recording GT；**无 SI-SDR 参考** | L2 RealSSA-Real：DNSMOS / WER / speaker-similarity；**不能算 SI-SDR** |
+| **RealSSA-Real** | `JusperLee/RealSSA-Real` | ✅ manual | 🟡 **申请已提交（2026-10-22，账号 `nanless`/USTC/CN），待人工审批；数据文件仍 403** | **12.84 GB**（422 文件） | 真实场景 AV 输入（stereo 16k）、face MP4/mouth NPZ/landmarks、10 条 enrollment、40 条 recording GT；**无 SI-SDR 参考** | L2 RealSSA-Real：DNSMOS / WER / speaker-similarity；**不能算 SI-SDR** |
 | **LRS3-2Mix** | `JusperLee/LRS3-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 622 B） | 只有数据卡 | ❌ 不能复现该列；需联系作者或自建 |
 | **VoxCeleb2-2Mix** | `JusperLee/VoxCeleb2-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 756 B） | 只有数据卡 | ❌ 同上 |
 
@@ -25,18 +25,18 @@
 
 ---
 
-## 1. 本机 HF 账号、token 与网络现状（只读核查，未提交任何申请）
+## 1. 本机 HF 账号、token 与网络现状（只读核查；访问申请已由用户另行提交，见 §11）
 
 | 项 | 实测结果 | 证据/命令 |
 |---|---|---|
 | token 文件 | 存在：`/root/.cache/huggingface/token`（37 B） | `ls -l /root/.cache/huggingface/token` |
 | 登录身份 | `whoami()` → **`nanless`（type=user）**，token 有效 | `python -c "from huggingface_hub import HfApi; print(HfApi().whoami()['name'])"` |
-| RealSSA-Sim 授权 | ❌ **未获批**：dry-run 探测 `tt/tt-000000.tar` → `GatedRepoError 403` | `python tools/repro/fetch_data.py --dataset realssa-sim --dry-run` |
-| RealSSA-Real 授权 | ❌ **未获批**：dry-run 探测 `INFERENCE.md` → `GatedRepoError 403` | 同上 `--dataset realssa-real` |
+| RealSSA-Sim 授权 | 🟡 **申请已提交待批（2026-10-22）**；仍**未获批**：dry-run 探测 `tt/tt-000000.tar` → `GatedRepoError 403` | `python tools/repro/fetch_data.py --dataset realssa-sim --dry-run` |
+| RealSSA-Real 授权 | 🟡 **申请已提交待批（2026-10-22）**；仍**未获批**：dry-run 探测 `INFERENCE.md` → `GatedRepoError 403` | 同上 `--dataset realssa-real` |
 | gated 元数据可见性 | ✅ 可读：数据集卡/文件清单/大小对未获批账号可见（HF 设计），但**数据文件不可下载** | `HfApi().dataset_info(...)` 成功；非 README 文件 403 |
 | LRS2-2Mix | ✅ 公开，可下载 | `--dataset lrs2-2mix --dry-run` 列出 `lrs2.tar.gz` 16.47 GB |
 | LRS3/VoxCeleb2-2Mix | ✅ 公开但只有 README（文件数 2） | `dataset_info` 文件清单 |
-| **未做** | 未提交任何访问申请、未修改账号、未分享 token | 只读探测 |
+| **未做** | 未修改账号、未分享 token（访问申请由用户于 2026-10-22 自行提交，见 §11） | 只读探测 |
 
 **网络（本机特殊点，重要）**：
 - `HF_ENDPOINT=https://hf-mirror.com` 在本沙箱 **TLS 握手失败**（`SSL_ERROR_SYSCALL`；TCP 443 可连但无 HTTP 响应），
@@ -215,7 +215,7 @@ tt 3,000 组、每组 2 s → 模型 2 s 窗口正好覆盖整段，可按 clip 
 | 项 | 值 |
 |---|---|
 | HF 数据集 | <https://huggingface.co/datasets/JusperLee/RealSSA-Sim> |
-| gated | **manual**（人工审批）；本机账号 `nanless` **未获批**（403） |
+| gated | **manual**（人工审批）；本机账号 `nanless` 申请已提交（2026-10-22）**待批**，当前仍 **403** |
 | 许可证 | **CC BY-NC-ND 4.0**（TED 内容），另有各噪声源条款；仅限**非商业学术研究** |
 | 规模 | **242 个文件 / 240 个 shard**：**521.53 GB**；`tr/` 202 shards=441.42 GB、`cv/` 19 shards=39.97 GB、`tt/` 19 shards=40.14 GB；另有 README/.gitattributes 2 个文件 |
 | 样例数 | train 100,826 / validation 9,133 / test 9,169（shard 500 条；4 个训练样本缺 JSON/mouth 被排除） |
@@ -241,7 +241,7 @@ WebDataset tar shards `{tr,cv,tt}/{tr,cv,tt}-NNNNNN.tar`，每个例 `<id>` 为�
 
 ### 4.3 本机现状与获批后操作
 
-- 当前：可读 README/文件清单/大小；下载数据返回 403（`GatedRepoError`）。
+- 当前：可读 README/文件清单/大小；访问申请已提交（2026-10-22，待批），下载数据仍返回 403（`GatedRepoError`）。
 - 获批后：
   ```bash
   hf auth login                     # 用获批账号；或 export HF_TOKEN=...
@@ -270,7 +270,7 @@ WebDataset tar shards `{tr,cv,tt}/{tr,cv,tt}-NNNNNN.tar`，每个例 `<id>` 为�
 | 项 | 值 |
 |---|---|
 | HF 数据集 | <https://huggingface.co/datasets/JusperLee/RealSSA-Real> |
-| gated | **manual**（人工审批）；本机未获批（403） |
+| gated | **manual**（人工审批）；申请已提交（2026-10-22）**待批**，当前仍 **403** |
 | 许可证 | **没有单独的通用数据集 license**；按 card 的 “Access, consent and permitted use” 研究用途条款（个人数据、参与者授权） |
 | 规模 | 422 个文件，**12.84 GB**（其中 `raw/` 11.38 GB 原始视频/参考录音，`mouth/` 0.74 GB，`audio/` 0.60 GB 等） |
 | 内容 | 两个 view：`inference`（54 个物理段/40 个逻辑录音/10 speakers/8 scenes/83.99 min）与 `original_recordings`（34 个逻辑录音/71.12 min）；无 train/dev split（只有 test） |
@@ -300,7 +300,7 @@ scripts/                    load_inference.py 等 loader
 
 ### 5.3 本机现状与获批后操作
 
-- 当前：metadata/card 可读；数据文件 403。
+- 当前：metadata/card 可读；访问申请已提交（2026-10-22，待批），数据文件仍 403。
 - 获批后：
   ```bash
   hf auth login
@@ -324,7 +324,8 @@ scripts/                    load_inference.py 等 loader
 1. 联系作者/数据集所有者索取（不在本仓库可控范围）；
 2. 用原始 LRS3 / VoxCeleb2 语料按卡片描述自建（随机两人、SNR −5~5 dB、按相同 split 规模）——但**混合随机种子/说话人对未知**，
    只能做“同分布复现”，不能宣称与论文测试集一致；
-3. 原始语料本身也要申请：LRS3 <https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs3.html>（TED，研究用途；
+3. 原始语料本身也要申请：LRS3 <https://www.robots.ox.ac.uk/~vgg/data/lip_reading/>（TED，研究用途；深链
+   `lrs3.html` 实测 404，改用该入口页；
    LRS3 terms），VoxCeleb2 <https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html>（YouTube 条款，研究用途）。
    LRS2 <https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html>（BBC，需签署研究用途协议）。
 
@@ -391,8 +392,15 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
 
 - 生成时间：2026-10-21（Phase 1 · T6）。
 - 依据：HF API 实测（`HfApi().dataset_info` 文件/大小/gated）、`hf_hub_download(dry_run=True)` 授权探测、
-  `whoami()` 身份、LRS2-2Mix 流式下载与部分 `tar tzf` 结构、各数据集 README（已保存到 `/tmp/ds_cards/`，
-  关键内容摘入本文）。
+  `whoami()` 身份、LRS2-2Mix 流式下载与**完整 `tar tzf` 清单**（249,670 条，见
+  `docs/verification/phase1/T6-lrs2-structure.txt`）、各数据集 README（原文已复制到仓库内
+  `docs/verification/phase1/dataset-cards/`，关键内容摘入本文）。
 - 下载执行与 tar 完整结构分析见 `docs/verification/phase1/T6-report.md` 与 `docs/verification/phase1/T6-lrs2-structure.txt`；下载日志 `docs/verification/phase1/T6-data-fetch.log`；
   数据集卡原文与 tar 清单样本已复制到 `docs/verification/phase1/dataset-cards/` 与 `docs/verification/phase1/T6-lrs2-listing-sample.txt`（完整 `tar tzvf` 清单另存 `/root/data/lrs2_2mix/lrs2.tar.list`）（已完成：16,470,508,590 B，sha256 `ebdfdf31…767e`，与 HF x-linked-etag 一致）。
 - 对照文档：`docs/REPRODUCTION_PLAN.md` §5（数据方案）/§11（可得性核实）；`AGENTS.md`（环境/网络约定）。
+- 更新记录：
+  - 2026-10-22（Phase 2 · task-25）：修正 §6.2 的 LRS3 深链（`lrs3.html` 实测 404 → 入口页）、§11 证据措辞
+    （“部分 `tar tzf`” → 完整清单；“`/tmp/ds_cards/`” → 仓库内 `dataset-cards/` 副本）。未改动任何数据结论。
+  - 2026-10-22（Phase 2 · task-25）：同步 RealSSA 访问申请状态（§0 汇总表 RealSSA-Real 行、§1 表、§4.2/§5.2
+    gated 行、§4.3/§5.3 现状行）：Sim/Real 均为“申请已提交（2026-10-22，`nanless`/USTC/CN）待批，数据文件仍 403”，
+    与 `REPRODUCTION_PLAN.md` Phase 2 状态、`REPRODUCTION_PHASE1_REPORT.md` §6 一致。数据集大小/许可/格式数字未变。

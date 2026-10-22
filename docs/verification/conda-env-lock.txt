@@ -14,6 +14,7 @@ einops==0.8.2
 fast_bss_eval==0.1.4
 fastapi==0.156.8
 filelock==4.2.4
+flatbuffers==25.12.19
 fonttools==4.67.0
 fsspec==2026.9.0
 h11==0.16.0
@@ -57,6 +58,7 @@ nvidia-cusparselt-cu12 @ file:///root/wheelhouse/nvidia_cusparselt_cu12-0.7.1-py
 nvidia-nccl-cu12 @ file:///root/wheelhouse/nvidia_nccl_cu12-2.27.3-py3-none-manylinux2014_x86_64.whl#sha256=adf27ccf4238253e0b826bce3ff5fa532d65fc42322c8bfdfaf28024c0fbe039
 nvidia-nvjitlink-cu12 @ file:///root/wheelhouse/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.whl#sha256=81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88
 nvidia-nvtx-cu12==12.8.90
+onnxruntime==1.31.0
 opencv-python==5.0.0.93
 opentelemetry-api==1.45.1
 packaging==26.3
@@ -66,6 +68,7 @@ pillow==13.0.0
 platformdirs==4.13.5
 pluggy==1.7.0
 pooch==1.9.0
+protobuf==7.36.2
 ptflops==0.7.5
 pycparser==3.11
 pydantic==2.14.1
@@ -87,6 +90,7 @@ scipy==1.17.1
 six==1.17.0
 soundfile==0.14.0
 soxr==1.1.0
+speechmos==0.0.1.1
 starlette==1.9.0
 sympy==1.14.0
 threadpoolctl==3.7.0

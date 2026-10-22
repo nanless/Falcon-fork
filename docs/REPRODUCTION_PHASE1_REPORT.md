@@ -104,6 +104,12 @@ target convention 用 speaker1）；`mouths/<s1_id>.npz` 的 `uint8 (50,96,96)` 
 | SDR / SDRi | 12.813 / **7.713** |
 | PESQ / STOI | 2.196 / 0.916 |
 
+**Phase 2 已归因（2026-10-22，P2-A/B/F 三路独立同向）**：这 7.03/7.71 是
+**“LRS3-trained 官方权重在 LRS2-2Mix 上的跨语料结果”**，不是论文 LRS2 列的复现：
+`Experiments/checkpoint/Falcon/conf.yml:99-102` 的训练 datamodule 为 `LRS3_complex_nonmoving`，
+`README:211/228` 说明表格结果是 “under our training protocol”（按 benchmark 分别训练）；
+协议/指标变体最多解释 ~0.4 dB（P2-A 14 变体、P2-F 独立对拍 4.8e-8 dB）、big 仅 +0.97 dB（P2-B）、
+窗口化 −1.9~−2.3 dB。要复现 14.1/14.7 需 **LRS2-2Mix-trained ckpt**（P2-D 训练中）。
 与论文 LRS2-2Mix 的 14.1 / 14.7 相比差 ~7 dB。可能原因（Phase 2 需逐项排除）：
 ① **发布权重与论文 LRS2 列可能不是同一训练集**（配置快照是 LRS3/RealSSA 风格；论文不同 benchmark 列可能各自训练）；
 ② 评测协议差异（目标源约定 s1 已由 s1/s2 对照确认；分段/缩放/指标实现对 SDRi 影响可达数 dB）；

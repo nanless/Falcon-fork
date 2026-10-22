@@ -1,0 +1,7 @@
+[p2d] 2026-10-21T19:26:41Z GPU snapshot before launch:
+index, name, memory.used [MiB], memory.total [MiB], utilization.gpu [%]
+0, NVIDIA A800-SXM4-80GB, 55657 MiB, 81920 MiB, 0 %
+1, NVIDIA A800-SXM4-80GB, 71927 MiB, 81920 MiB, 0 %
+pid, used_gpu_memory [MiB]
+2514085, 55648 MiB
+2514085, 71918 MiB

@@ -135,7 +135,7 @@
 - 人工审批（时间未知）；批准后 `hf auth login`。
 - 建议先只下 1 个 test shard 验证管线（`tt/tt-000000.tar`），再下全量（522 GB）。
 
-**Step 2：写转换脚本 `DataPreProcess/realssa_to_falcon.py`**（新增，不改上游逻辑）：
+**Step 2：写转换脚本 `tools/repro/realssa_to_falcon.py`**（新增，不改上游逻辑；Phase 1 已落地该脚本）：
 ```
 输入：RealSSA-Sim/{tr,cv,tt}/*.tar
 输出：<DATA>/{tr,cv,tt}/mix/<id>.wav        # mono 16k（通道策略见 Step 3）
@@ -294,6 +294,25 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 > **状态（2026-10-22）**：RealSSA-Sim / RealSSA-Real 访问申请已提交（待批）；LRS2-2Mix 已下载解压，
 > Phase 2 并行执行：① 7 dB 差距排查（falcon-big/协议变体）；② LRS2-2Mix 全量转换 + 训练复现；
 > ③ RealSSA 数据管线/DNSMOS 工具预置；④ Phase 2 QA。详见 `docs/REPRODUCTION_PHASE1_REPORT.md` 与后续 Phase 2 报告。
+>
+> **Phase 2 执行状态（2026-10-21T19:55Z，task-25 维护）**：索引与复跑命令见
+> [`docs/verification/phase2/README.md`](verification/phase2/README.md)，回归/一致性见
+> [`docs/verification/phase2/REGRESSION-docs.md`](verification/phase2/REGRESSION-docs.md)。**P2-A/B/C/E/F 报告已落盘**：
+> P2-A（7 dB 排查：指标/协议变体 ≤0.4 dB）、P2-B（big +0.97 dB、窗口化 −1.9~−2.3 dB、视觉分支刚需）、
+> P2-C（LRS2-2Mix 全量 28000 条 → `/root/data/falcon_lrs2_2mix`，23.36 GiB）、P2-E（DNSMOS/RealSSA 工具预置，
+> **RealSSA 仍 403 待批、无指标结论**）、P2-F（独立对拍 ≤1.8e-7 dB；**归因：发布 `falcon.pt` 训练集为
+> `LRS3_complex_nonmoving`（`Experiments/checkpoint/Falcon/conf.yml:99-102`）→ 7.03/7.71 属跨语料结果**）。
+> **P2-D 正式训练 19:26:41Z 已启动**（单卡 bs4，日志 `docs/verification/phase2/P2D-train.log`，PID 4002894），
+> **LRS2-2Mix 数据转换完成（P2-C）**：28000 条（tr 20000 / cv 5000 / tt 3000，target=s1）→
+> `/root/data/falcon_lrs2_2mix`，**23.36 GiB**，JSON/near 齐全（`docs/verification/phase2/P2C-report.md`）。
+> **单卡正式训练已启动**（19:26:41Z，bs4；epoch 0 完成：`val_pit_sisnr` 6.732 / `test_pit_sisnr` 6.815，
+> 为**绝对 SI-SDR**（非 SI-SDRi；epoch0 在 tt 300 条的 SI-SNRi≈1.52，见 `P2D-eval-epoch_0.csv`）；
+> 100 epoch 预计 **≈30 h**（单卡 ~18 min/epoch），结果由 P2-D 报告 v1 更新）。
+> **RealSSA-Sim/Real 仍待审批**（数据 403，本 Phase 不产出 RealSSA 指标）；P2-G QA **v1 终检通过**
+> （`pytest tools/repro/tests` 111 passed/1 skipped，无源码改动，见 `docs/verification/phase2/QA-report.md`）。
+> 已知起点不变：官方 `falcon.pt` 在 LRS2-2Mix tt 全量 3000 条 SI-SNRi **7.03** / SDRi **7.71**
+> （`REPRODUCTION_PHASE1_REPORT.md` §3.5）；**P2-F 归因：该权重训练集为 LRS3 派生数据 → 7.03/7.71 属跨语料结果**，
+> 论文 14.1/14.7 需 LRS2-trained ckpt。
 1. 申请 RealSSA-Sim 访问；下载 1 个 test shard 验证转换器；再下 tt（19 shards）做评测。
 2. 转换器落地（4ch→mono、mouths.pt 直用、meta.json→near.json）。
 3. 用官方权重在 RealSSA-Sim test 上跑：
@@ -310,6 +329,12 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
    SI-SNRi **7.03** / SDRi **7.71**（20 条子集 7.91/8.55；target=s1 已确证），与论文差 ~7 dB，需排查
    发布权重训练集匹配度/评测协议/嘴部对齐（详见 `docs/REPRODUCTION_PHASE1_REPORT.md` §3.5）。
 3. LRS3-2Mix / VoxCeleb2-2Mix：仓库无数据 → 列为“不可复现”，或向作者申请；不要用自行混合的数据冒充。
+- **Phase 3 状态（2026-10-21T19:45Z，task-25 维护）**：LRS2-2Mix 已完成下载/解压、首轮全量评测（官方 `falcon.pt`：
+  SI-SNRi 7.03 / SDRi 7.71，`REPRODUCTION_PHASE1_REPORT.md` §3.5）与全量转换（P2-C，28000 条/23.36 GiB）；
+  **P2-F 归因**：发布权重为 LRS3 派生数据训练，7.03/7.71 是跨语料结果；复现 14.1/14.7 需 P2-D 训练 ckpt 或
+  作者 benchmark-specific ckpt（P2-D 训练中）。RealSSA-Real 的 DNSMOS 工具已在 P2-E 预置（**待数据审批**，
+  审批前不产出 RealSSA 结果）；LRS3-2Mix / VoxCeleb2-2Mix 维持“仓库无数据文件”。
+  任务索引：[`docs/verification/phase2/README.md`](verification/phase2/README.md)。
 - **Gate G3**：LRS2-2Mix 指标复现（或明确记录阻塞原因）。
 
 ### Phase 4 —— 训练复现（1–2 周，含调参）

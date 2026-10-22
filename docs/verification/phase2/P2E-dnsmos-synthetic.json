@@ -1,0 +1,62 @@
+{
+  "backend": "speechmos",
+  "speechmos_version": "0.0.1.1",
+  "onnxruntime_version": "1.31.0",
+  "model_type": "dnsmos",
+  "models": {
+    "model_dir": "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/speechmos/dnsmos_models",
+    "files": {
+      "bak_ovr.onnx": {
+        "bytes": 742375,
+        "sha256": "5f335c90994618150192a656a474bcf8a9cbcedbc47965494ba8da79605d1308"
+      },
+      "model_v8.onnx": {
+        "bytes": 224860,
+        "sha256": "9246480c58567bc6affd4200938e77eef49468c8bc7ed3776d109c07456f6e91"
+      },
+      "sig.onnx": {
+        "bytes": 742203,
+        "sha256": "d2fbdb293bc2366dfbae2b7477c490f981d24a8b4405efd3c11787569c6549d7"
+      },
+      "sig_bak_ovr.onnx": {
+        "bytes": 1157965,
+        "sha256": "269fbebdb513aa23cddfbb593542ecc540284a91849ac50516870e1ac78f6edd"
+      }
+    }
+  },
+  "cases": [
+    {
+      "case": "synthetic_harmonic",
+      "sig_mos": 1.4959,
+      "bak_mos": 1.2545,
+      "ovrl_mos": 1.3371,
+      "p808_mos": 2.1821,
+      "elapsed_s": 3.06
+    },
+    {
+      "case": "synthetic_harmonic_noise",
+      "sig_mos": 1.2582,
+      "bak_mos": 1.0453,
+      "ovrl_mos": 1.0809,
+      "p808_mos": 2.1735,
+      "elapsed_s": 1.03
+    },
+    {
+      "case": "synthetic_silence",
+      "sig_mos": 2.5136,
+      "bak_mos": 3.4724,
+      "ovrl_mos": 1.8399,
+      "p808_mos": 2.1468,
+      "elapsed_s": 1.0
+    },
+    {
+      "case": "synthetic_noise",
+      "sig_mos": 1.1369,
+      "bak_mos": 1.0949,
+      "ovrl_mos": 1.1093,
+      "p808_mos": 2.0762,
+      "elapsed_s": 1.21
+    }
+  ],
+  "all_finite_in_range": true
+}

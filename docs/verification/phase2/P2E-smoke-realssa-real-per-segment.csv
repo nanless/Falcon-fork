@@ -1,0 +1,3 @@
+inference_id,recording_id,scene,channel,align_tail,audio_s,mouth_frames,used_frames,used_s,discarded_samples,inference_ms,rtf,sig_mos,bak_mos,ovrl_mos,p808_mos,mix_sig_mos,mix_bak_mos,mix_ovrl_mos,mix_p808_mos,error
+smoke-000,smoke,smoke,mean,True,2.0,50,50,2.0,0,194.4,0.097,3.2677,2.7496,2.3637,3.1704,2.4018,1.5087,1.5232,2.7659,
+smoke-001,smoke,smoke,mean,True,2.0,50,50,2.0,0,120.9,0.06,3.0818,2.5788,2.1282,3.1232,3.0324,1.5925,1.5473,2.5496,

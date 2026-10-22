@@ -666,6 +666,12 @@ PY
   **LRS2-2Mix test（3000 条，官方 `falcon.pt`）SI-SNRi 7.03 / SDRi 7.71**（20 条子集 7.91/8.55；target=s1 约定已确证），
   与论文 14.1/14.7 仍有 ~7 dB 差距，需 Phase 2 排查（训练集匹配度/评测协议/嘴部对齐）。
   详见 [`docs/REPRODUCTION_PHASE1_REPORT.md`](../REPRODUCTION_PHASE1_REPORT.md)。
+- **Phase 2 结论（2026-10-22）**：官方 `falcon.pt` 在 LRS2-2Mix 全量 test 的 **7.03/7.71 属“跨语料”结果**
+  （训练 datamodule 为 LRS3_complex_nonmoving；README 明示论文表格按 benchmark 训练），
+  协议/指标/对齐变体最多解释 ~0.4 dB、falcon-big 仅 +0.97 dB、Studio 窗口化 −1.9 dB；
+  视觉分支贡献 +4.8~+15 dB（置零 mouth 后显著下降）。要复现论文 LRS2 列需按 LRS2 配方训练（进行中）。
+  LRS2-2Mix 已全量转换（28,000 条，target=s1），单卡训练已启动；RealSSA 访问申请已提交待批。
+  详见 [`docs/REPRODUCTION_PHASE2_REPORT.md`](../REPRODUCTION_PHASE2_REPORT.md)。
 - 详细的复现步骤、缺口清单、分阶段计划与验收标准：**[`docs/REPRODUCTION_PLAN.md`](../REPRODUCTION_PLAN.md)**。
 
 

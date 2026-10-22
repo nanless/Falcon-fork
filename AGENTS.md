@@ -45,6 +45,9 @@
   - **typeguard 2.13.3**、timm 1.0.30、torch-optimizer 0.3.0、opencv-python 5.0.0.93、matplotlib 3.11.2；
   - fast-bss-eval 0.1.4、torch-mir-eval 0.4、pystoi 0.4.1、ptflops 0.7.5、rich 15.0.0、tqdm 4.70.1；
   - Studio：fastapi 0.156.8、uvicorn 0.54.0、Pillow 13.0.0、huggingface_hub 2.2.0、einops 0.8.2、pytest 9.1.1、httpx 0.28.1。
+  - Phase 2 评测依赖（2026-10-22 增装，用于 RealSSA-Real DNSMOS）：**speechmos 0.0.1.1**（MIT，wheel 自带 DNSMOS P.835/P.808 ONNX 模型）、
+    **onnxruntime 1.31.0**（MIT）、protobuf 7.36.2、flatbuffers 25.12.19；安装命令/许可见 `docs/verification/phase2/P2E-env-delta.txt`；DNSMOS ONNX 模型 sha256 见
+    `docs/verification/phase2/P2E-dnsmos-synthetic.json` 与 `P2E-report.md`。
 - 训练/评测侧：`torch 2.8.0+cu128`（CUDA 12.8 构建，CPU 同样可用）、`torchaudio`、`torchvision`、`pytorch-lightning`、
   `numpy 2.2.6`、`scipy`、`pandas`、`pyyaml`、`soundfile`、`librosa`、`torch-complex`、**`typeguard<3`**、`timm`、
   `torch-optimizer`、`opencv-python`、`matplotlib`、`fast-bss-eval`、`torch-mir-eval`、`pypesq`、`pystoi`、`ptflops`、`rich`、`tqdm`

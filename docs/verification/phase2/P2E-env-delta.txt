@@ -1,0 +1,17 @@
+flatbuffers==25.12.19
+onnxruntime==1.31.0
+protobuf==7.36.2
+speechmos==0.0.1.1
+
+# 安装命令（2026-10-21, conda falcon, tsinghua 镜像）
+# /root/miniforge3/envs/falcon/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple "onnxruntime==1.31.0"
+# /root/miniforge3/envs/falcon/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-deps "speechmos==0.0.1.1"
+# 来源/许可：
+#   onnxruntime 1.31.0  MIT License      （pip metadata）
+#   speechmos   0.0.1.1 MIT License, Microsoft AEC/DNS/PLC Challenge organizers
+#                       （wheel 自带 DNSMOS P.835 + P.808 ONNX 模型，离线推理）
+#   protobuf    7.36.2  3-Clause BSD License（onnxruntime 依赖）
+#   flatbuffers 25.12.19 Apache 2.0        （onnxruntime 依赖）
+# 说明：AGENTS.md §4 要求安装后更新 docs/verification/conda-env-lock.txt 并在 §2 记录；
+#       本 task（task-22）写 scope 仅为 tools/repro/phase2 + docs/verification/phase2，
+#       因此把 delta 放在本文件，请 Lead/Phase2-QA 合并进 lock 与 AGENTS §2。
