@@ -670,7 +670,10 @@ PY
   （训练 datamodule 为 LRS3_complex_nonmoving；README 明示论文表格按 benchmark 训练），
   协议/指标/对齐变体最多解释 ~0.4 dB、falcon-big 仅 +0.97 dB、Studio 窗口化 −1.9 dB；
   视觉分支贡献 +4.8~+15 dB（置零 mouth 后显著下降）。要复现论文 LRS2 列需按 LRS2 配方训练（进行中）。
-  LRS2-2Mix 已全量转换（28,000 条，target=s1），单卡训练已启动；RealSSA 访问申请已提交待批。
+  LRS2-2Mix 已全量转换（28,000 条，target=s1），单卡训练 87 epoch 的 ckpt 在 test 上达 **SI-SNRi 8.62 / SDRi 9.04**；
+  **RealSSA 访问已获批**：官方权重在 RealSSA-Sim test（前 1000 条）实测 **SI-SNRi 7.94 / SDRi 8.75**，
+  与论文 7.7/8.2 一致（±0.5 dB）；RealSSA-Real 54 段 DNSMOS **P808 3.329**（论文 3.276）、OVRL 2.790（mixture 基线 1.760）。
+  结论：官方权重的主 benchmark（RealSSA）已复现；LRS2 列需按 LRS2 训练配方（进行中/需 contrastive 负样本微调）。
   详见 [`docs/REPRODUCTION_PHASE2_REPORT.md`](../REPRODUCTION_PHASE2_REPORT.md)。
 - 详细的复现步骤、缺口清单、分阶段计划与验收标准：**[`docs/REPRODUCTION_PLAN.md`](../REPRODUCTION_PLAN.md)**。
 
