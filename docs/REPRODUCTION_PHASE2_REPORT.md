@@ -85,8 +85,18 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 ## 5.1 RealSSA 数据已获批并转换（2026-10-22）
 
 - **审批**：RealSSA-Sim / RealSSA-Real 访问已获批（此前 403 → 可下载）。
-- **RealSSA-Real**：已下载 12.8 GB（422 文件）；DNSMOS 评测运行中
-  （修正：整段推理会 OOM → 已改为 Studio 等价的 2 s 窗/0.5 s hop 窗口化推理，评测脚本 `eval_realssa_real.py`）。
+- **RealSSA-Real**：已下载 12.8 GB（422 文件）；**DNSMOS 评测完成（54/54 段，channel=mean，align_tail，窗口化推理；整段推理会 OOM，已改为 Studio 等价 2 s 窗/0.5 s hop）**：
+
+| 指标 | Falcon 分离 | mixture 基线 | 提升 |
+|---|---|---|---|
+| SIG | 3.2209 | 2.4176 | +0.80 |
+| BAK | 3.6921 | 1.7908 | +1.90 |
+| OVRL | 2.7901 | 1.7599 | +1.03 |
+| P808 | **3.3285** | 2.6765 | +0.65 |
+
+  论文 “Real-world DNSMOS **3.276**” 与 **P808 3.3285（+0.05）** 最接近；若论文为 OVRL 口径则为 2.79（差 0.49，需论文确认）。
+  分场景 OVRL：small_indoor 3.10 / outdoor 2.78 / big_indoor 2.59 / mid_indoor 2.39；RTF 均值 0.198。
+  口径声明：DNSMOS 实现为 speechmos P.835+P.808、channel=mean、align_tail=True、窗口化推理。
 - **RealSSA-Sim tt**：19 shards（38 GB）已下载；转换完成 **9,169 条**
   （`/root/data/falcon_realssa_sim/tt`，4ch→mono mean、target/mix/mouths + JSON），
   官方权重评测运行中（论文目标 SI-SNRi **7.7** / SDRi **8.2**）。
