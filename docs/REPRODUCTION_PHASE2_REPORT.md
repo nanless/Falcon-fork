@@ -55,6 +55,9 @@
 | 配置 | `tools/repro/phase2/LRS2_2Mix_1gpu.yml`（基于 `configs/LRS2_2Mix.yml`）：AdamW 1e-3/wd 0.01、ReduceLROnPlateau(15,0.5)、grad clip 5、epochs 100、early stop 30、train_samples 10000、CSVLogger |
 | 吞吐 | ~5.5 it/s → 2500 step/epoch；**~18 min/epoch（含 cv 5000 + tt 3000 验证）**；GPU0 增量显存 ~7.8 GB（与外部进程共享，未 OOM） |
 | epoch 0 | val_pit_sisnr **6.7325 dB**（cv）、test_pit_sisnr **6.8147 dB**（tt 3000），ckpt `epoch=0.ckpt`（19:44Z） |
+| epoch 86（最佳 val 13.118） | **LRS2-2Mix test 全量（3000）：SI-SNRi 8.618 / SDRi 9.042 / SI-SNR 13.612 / SDR 14.142 / PESQ 2.547 / STOI 0.941** |
+| 对照 | 官方跨语料权重 7.03/7.71；论文 14.1/14.7（本训练仅 87 epoch、单卡 bs4、无对比损失负样本） |
+| 下一步（已准备） | 用 **s2 干扰说话人**构造 near 负样本（`near.json` 已生成，K=1，Dataset 验证通过），训练完成后做 contrastive 微调（论文的 NASS 损失） |
 | 预计 | 100 epoch ≈ 30 h 单卡；若 GPU1 空闲可切双卡（~15 h）；early stop 可能更早 |
 | 产物 | `/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/`（metrics.csv/ckpt） |
 
