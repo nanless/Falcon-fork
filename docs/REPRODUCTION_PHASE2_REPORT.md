@@ -58,6 +58,16 @@
 | epoch 86（最佳 val 13.118） | **LRS2-2Mix test 全量（3000）：SI-SNRi 8.618 / SDRi 9.042 / SI-SNR 13.612 / SDR 14.142 / PESQ 2.547 / STOI 0.941** |
 | 对照 | 官方跨语料权重 7.03/7.71；论文 14.1/14.7（本训练仅 87 epoch、单卡 bs4、无对比损失负样本） |
 | 下一步（已准备） | 用 **s2 干扰说话人**构造 near 负样本（`near.json` 已生成，K=1，Dataset 验证通过），训练完成后做 contrastive 微调（论文的 NASS 损失） |
+
+**contrastive 微调已完成（2026-10-22/23，100→130 epoch，`LRS2_2Mix_near_s2`）**：
+
+| 模型 | val_pit_sisnr（cv） | test_pit_sisnr | LRS2-2Mix test SI-SNRi / SDRi |
+|---|---|---|---|
+| 无 near（87 epoch，最佳 val 13.118） | 13.118 | 13.370（ep80） | 8.618 / 9.042 |
+| **contrastive 微调（epoch 124，最佳 val 13.391）** | **13.391** | 13.762（ep120） | **8.858 / 9.270**（PESQ 2.576 / STOI 0.943） |
+
+contrastive 带来 +0.24/+0.23 dB；仍低于论文 14.1/14.7（~5 dB），主要差距应在训练规模/配方
+（论文 10×A800、bs 40、1000 epoch；我们是单卡 bs4、130 epoch）。
 | 预计 | 100 epoch ≈ 30 h 单卡；若 GPU1 空闲可切双卡（~15 h）；early stop 可能更早 |
 | 产物 | `/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/`（metrics.csv/ckpt） |
 
@@ -107,10 +117,30 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 | SI-SNRi | **7.935** | 7.7 | +0.24 |
 | SDRi | **8.754** | 8.2 | +0.55 |
 
-  **结论：官方发布权重在 RealSSA-Sim 上复现了论文主结果（在 ±0.5 dB 容差内）**。
+- **RealSSA-Sim 全量 test（9,169 条）已完成（2026-10-22）**：
+
+| 指标 | 实测（全量 9169） | 论文 | 差异 |
+|---|---|---|---|
+| SI-SNRi | **7.774** | 7.7 | +0.07 |
+| SDRi | **8.479** | 8.2 | +0.28 |
+| SI-SNR / SDR | 9.980 / 10.645 | — | — |
+| PESQ / STOI | 2.094 / 0.817 | — | — |
+
+  **结论：官方发布权重在 RealSSA-Sim 上完整复现了论文主结果（±0.3 dB 内）**。
   这同时验证了：(a) 我们的评测/指标实现正确；(b) 官方权重就是 RealSSA 训练分布；
   (c) 之前 LRS2-2Mix 的 7.03/7.71 确实是跨语料结果，而不是评测 bug。
-  全量 9169 条测试仍在后台跑（PESQ/SDR 计算较慢），用于给出精确全量数字。
+
+## 5.2 数据集归档到共享存储/TOS（2026-10-23 执行中）
+
+按用户指令把 **RealSSA-Sim / RealSSA-Real** 下载到共享存储并归档 TOS：
+- 目标（下载）：`/root/group-shared/voiceprint/data/multimodal/{realssa_sim,realssa_real}`
+- 归档（下载完成后）：`/aispeech-cfs/voiceprint/data/multimodal/{realssa_sim,realssa_real}`
+- 网络：hf-mirror 对 gated 数据 redirect 不可用，huggingface.co 直连超时 ⇒ 走本机 mihomo 代理 `127.0.0.1:17897`；
+  实测 ~17 MiB/s（8 并发）、断点续传 + 重试。
+- 工具：`tools/repro/phase2/download_realssa_shared.py`（含 manifest/校验/rsync 归档/状态 JSON）；
+  监控：`_download/realssa_status.json` + `realssa_monitor.log`（每 30 min 自动汇报）。
+- 进度（2026-10-23 04:12 UTC）：RealSSA-Real 12.84 GB（422 文件）已完成；RealSSA-Sim 51.3/521.5 GB（9.8%），
+  ETA ~7 h；之后 rsync 到 TOS（预计 1–2 h）。
 
 ## 6. 遗留与风险
 
