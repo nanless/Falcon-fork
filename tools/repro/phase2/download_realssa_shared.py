@@ -133,7 +133,7 @@ def download_one(session, repo: str, rel: str, dest: Path, size: int) -> None:
     part = dest.with_suffix(dest.suffix + ".incomplete")
     url = f"{HF_ENDPOINT}/datasets/{repo}/resolve/main/{rel}?download=true"
     headers = {"Authorization": f"Bearer {token()}", "Accept-Encoding": "identity"}
-    for attempt in range(1, 8):
+    for attempt in range(1, 31):
         start = part.stat().st_size if part.exists() else 0
         if start > size:
             part.unlink(); start = 0
@@ -170,7 +170,7 @@ def download_one(session, repo: str, rel: str, dest: Path, size: int) -> None:
             return
         except Exception as e:  # noqa: BLE001
             log(f"retry {rel} attempt={attempt}: {type(e).__name__}: {str(e)[:160]}")
-            time.sleep(min(60, 3 * attempt))
+            time.sleep(min(30, 2 * attempt))
 
 
 def status_writer() -> None:
