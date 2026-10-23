@@ -358,8 +358,11 @@ def main(config, ckpt_path=""):
         f"num_devices={num_devices} strategy={strategy if isinstance(strategy, str) else type(strategy).__name__}"
     )
 
+    accumulate = int(config.get("training", {}).get("accumulate_grad_batches", 1) or 1)
+    print_only(f"[audio_train] accumulate_grad_batches = {accumulate}")
     trainer = pl.Trainer(
         max_epochs=config["training"]["epochs"],
+        accumulate_grad_batches=accumulate,
         callbacks=callbacks,
         default_root_dir=exp_dir,
         devices=devices,

@@ -33,3 +33,8 @@ pretrain_zoo/
 *.tar.gz
 *.rar
 *.7z
+
+# Reproduced experiment outputs (generated; do not commit)
+Experiments/checkpoint/LRS2_*/
+Experiments/checkpoint/Falcon/results/
+*.pid

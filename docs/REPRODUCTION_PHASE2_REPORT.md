@@ -142,6 +142,23 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 - 进度（2026-10-23 04:12 UTC）：RealSSA-Real 12.84 GB（422 文件）已完成；RealSSA-Sim 51.3/521.5 GB（9.8%），
   ETA ~7 h；之后 rsync 到 TOS（预计 1–2 h）。
 
+## 5.3 LRS2-2Mix 论文配方重训（8 卡方案，2026-10-23）
+
+- **GitHub 求助**：已向作者提交 issue 请求 LRS2-2Mix 列训练配置与 ckpt：
+  <https://github.com/JusperLee/Falcon/issues/1>（含我们 RealSSA 复现结果与跨语料证据）。
+- **论文配方数据已构建**：`/root/data/falcon_lrs2_2mix_paper`（26 GB）：
+  - **双向 target**：每条 mixture 生成 (s1 target, s1 mouth, near=s2) 与 (s2 target, s2 mouth, near=s1) 两条样本
+    ⇒ tr **40,000** / cv 10,000 / tt 6,000 条；mouths 18,691/476/267 个 `.pt`；
+  - near 负样本 = 另一说话人（LRS2-2Mix 无 near-field 源，报告中声明该差异）。
+- **8 卡配置**：`configs/LRS2_2Mix_Paper_8gpu.yml` —— 8×bs5=全局 40（论文 10×4=40）、lr 1e-3、1000 epoch、
+  early stop 30、β 0→1/200 epoch；启动脚本 `tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh`；
+  监控 `tools/repro/phase2/monitor_lrs2_paper.py`。
+- **火山引擎 runbook**：`docs/PHASE2_VOLCANO_LRS2_TRAINING.md`（数据/环境/骨干/启动/续训/评测/时间估算/差异声明）。
+- **本地 2 卡验证通过**（2026-10-23）：`configs/LRS2_2Mix_Paper_2gpu_smoke.yml`（2×bs4×accum5 = 有效 40）
+  3 epoch smoke 成功：DDP、grad accumulation、双向数据、near K=1、ckpt 保存全正常；val_loss 0.624→0.243→−0.125。
+  本机只有 2 卡，8 卡实验需在火山引擎节点执行。
+- **训练入口**：`audio_train.py` 新增 `training.accumulate_grad_batches` 支持（默认 1，无行为变化）。
+
 ## 6. 遗留与风险
 
 1. LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库无数据文件 → 两列不可复现（需作者或原始语料）。
