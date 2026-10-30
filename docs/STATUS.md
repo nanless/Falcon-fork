@@ -1,6 +1,6 @@
 # Falcon 复现状态总览（STATUS · 单一事实源）
 
-> 最后更新：2026-10-31 · 分支 `main` · HEAD `见 §2（本轮收尾提交）` · 环境 conda `falcon`（Py3.11 / torch 2.8.0+cu128 / 2×A800）
+> 最后更新：2026-10-31 · 分支 `main` · HEAD = `repro-freeze-20261031` 指向的提交（`git log -1`） · 环境 conda `falcon`（Py3.11 / torch 2.8.0+cu128 / 2×A800）
 > 本文件是“当前结论 + 证据位置 + 待办”的唯一事实源；历史规划/报告仅作过程记录。
 > 详细问题清单见 [`docs/understanding/THREE_ROUND_REVIEW_20261030.md`](../understanding/THREE_ROUND_REVIEW_20261030.md)；论文协议见 [`PAPER_ALIGNMENT_20261030.md`](../understanding/PAPER_ALIGNMENT_20261030.md)。
 
@@ -17,7 +17,7 @@
 | 项 | 值 |
 |---|---|
 | 分支 / 远端 | `main`；`origin = nanless/Falcon-fork`，`upstream = JusperLee/Falcon`（已合并 439cbe9） |
-| HEAD / tag | `（收尾提交后回填）`；tag `repro-freeze-20261031`（含本次 review 修复与证据） |
+| HEAD / tag | `repro-freeze-20261031`（tag 指向的提交；含本次 review 修复与证据） |
 | 环境 | `/root/miniforge3/envs/falcon/bin/python`：Python 3.11.17、torch 2.8.0+cu128、pytorch-lightning 2.6.6、typeguard 2.13.3 |
 | 依赖锁 | [`docs/verification/conda-env-lock.txt`](verification/conda-env-lock.txt)（115 行，无 `file://`；顶部含 cu128 两步重建命令） |
 | 权重 | `/root/.cache/falcon_weights/`：`falcon.pt`（small，epoch 714，525+137 keys）、`falcon-big.pt`（big，epoch 715，517+137）、导出的 `frcnn_128_512.backbone.pth.tar` |
