@@ -1,0 +1,30 @@
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f447333f710>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[setup] device=cuda test_dir=/root/tmp/lrs2_eval_tt_full/tt utterances=300
+
+=== run: variant=small protocol=whole visual=real n=300 ===
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[small] audio=537,697 video=11,186,688 total=11,724,385 | ckpt=falcon.pt epoch=714
+  [small/whole/real] 100/300 SI-SNRi=7.197 SDRi=7.678 (22s, eta 44s)
+  [small/whole/real] 200/300 SI-SNRi=6.956 SDRi=7.546 (199s, eta 99s)
+  [small/whole/real] 300/300 SI-SNRi=6.916 SDRi=7.492 (227s, eta 0s)
+[RESULT] {"variant": "small", "protocol": "whole", "visual": "real", "n": 300, "si_snr": 11.855827875388012, "si_snr_i": 6.9162400193407425, "sdr": 12.532947118198672, "sdr_i": 7.491614470806047, "si_snr_i_std": 2.9026603875464323, "sdr_i_std": 2.8826681432606645, "pesq": 2.276269017457962, "stoi": 0.9079353993475304, "wall_s": 227.1, "csv": "P2B-b300-small-whole-real.csv"}
+
+=== run: variant=small protocol=windowed visual=real n=300 ===
+[small] audio=537,697 video=11,186,688 total=11,724,385 | ckpt=falcon.pt epoch=714
+  [small/windowed/real] 100/300 SI-SNRi=5.629 SDRi=6.201 (110s, eta 220s)
+  [small/windowed/real] 200/300 SI-SNRi=4.901 SDRi=5.680 (201s, eta 100s)
+  [small/windowed/real] 300/300 SI-SNRi=5.004 SDRi=5.762 (261s, eta 0s)
+[RESULT] {"variant": "small", "protocol": "windowed", "visual": "real", "n": 300, "si_snr": 9.943795376122695, "si_snr_i": 5.0042075200754255, "sdr": 10.803739281015568, "sdr_i": 5.762406633622944, "si_snr_i_std": 3.347251307303489, "sdr_i_std": 3.179808248296842, "pesq": 1.9488195526599883, "stoi": 0.8844781646806806, "wall_s": 260.7, "csv": "P2B-b300-small-windowed-real.csv"}
+
+[summary] wrote /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2B-summary-b300.json
+| variant | protocol | visual | n | SI-SNRi | SDRi | PESQ | STOI | wall s |
+|---|---|---|---|---|---|---|---|---|
+| small | whole | real | 300 | 6.916 | 7.492 | 2.276 | 0.908 | 227.1 |
+| small | windowed | real | 300 | 5.004 | 5.762 | 1.949 | 0.884 | 260.7 |

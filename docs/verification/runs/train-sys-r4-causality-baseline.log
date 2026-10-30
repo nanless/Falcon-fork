@@ -1,0 +1,178 @@
+==============================================================================
+单采样点扰动: a2[20000] += 1.0  (win=256, hop=128)
+严格因果 => 输出中所有 index < s 的采样点不变
+==============================================================================
+
+[全模型 est] first_changed_sample=9612 last_changed_sample=31999 max|d|=7.757e-02
+  改动点 s=20000: 若 f >= s 则严格逐采样因果；实际 f-s = -10388 samples (-649.25 ms)
+  影响区间: [9612, 31999]  (相对改动点: -10388 .. 11999 samples)
+
+-- 逐 stage 的 first/last changed（时间维） --
+encoder          : frames [156, 159]  (samples [19968, 20352])  max|d|=3.103e-01
+audio_bottleneck : frames [156, 250]  (samples [19968, 32000])  max|d|=8.424e-02
+separator        : frames [0, 250]  (samples [0, 32000])  max|d|=1.263e-01
+mask_generator   : frames [0, 250]  (samples [0, 32000])  max|d|=3.541e-01
+
+-- 泄漏来源定位（改动点 s=20000，STFT 对称窗 ±8ms 本身的自然前瞻约 128 samples）--
+说明：torch.stft(center=True) 使每帧使用 [t-128, t+128]，因此编码器输出的“首变帧”
+      合法位置为 ceil((s-128)/hop) 附近；若 bottleneck 之后首变位置明显提前，即为归一化泄漏。
+encoder         : first_frame=156 (samples~19968)
+audio_bottleneck: first_frame=156 (samples~19968)
+separator       : first_frame=0 (samples~0)
+
+-- 关键结构常量 --
+torch.stft 默认 center: torch.Size([129, 3])
+encoder conv causal padding: 2 | decoder convT kernel: 3 | decoder causal pad: True
+sep.audio_net type: AudioBlock
+modules with .causal attr (cls, value): [('AudioBlock', True), ('ConvActNorm', False), ('ConvNormAct', False), ('DualPathRNN', False), ('DualPathRNN', True), ('InjectionMultiSum', False), ('MultiHeadSelfAttention2D', True), ('VideoBlock', True)]
+normalizations in model:
+  audio_bottleneck.pre_norm                                    <= LayerNormalizationHW
+  audio_bottleneck.pre_norm.global_layer_norm                  <= GlobalLayerNorm
+  audio_bottleneck.pre_norm.cumulate_ln                        <= CumulateLN4D
+  separator.audio_net.projection.norm                          <= LayerNormalizationHW
+  separator.audio_net.projection.norm.global_layer_norm        <= GlobalLayerNorm
+  separator.audio_net.projection.norm.cumulate_ln              <= CumulateLN4D
+  separator.audio_net.downsample_layers.0.norm                 <= LayerNormalizationHW
+  separator.audio_net.downsample_layers.0.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.downsample_layers.0.norm.cumulate_ln     <= CumulateLN4D
+  separator.audio_net.downsample_layers.1.norm                 <= LayerNormalizationHW
+  separator.audio_net.downsample_layers.1.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.downsample_layers.1.norm.cumulate_ln     <= CumulateLN4D
+  separator.audio_net.downsample_layers.2.norm                 <= LayerNormalizationHW
+  separator.audio_net.downsample_layers.2.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.downsample_layers.2.norm.cumulate_ln     <= CumulateLN4D
+  separator.audio_net.downsample_layers.3.norm                 <= LayerNormalizationHW
+  separator.audio_net.downsample_layers.3.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.downsample_layers.3.norm.cumulate_ln     <= CumulateLN4D
+  separator.audio_net.process_f_layers.0.norm                  <= LayerNormalization4D
+  separator.audio_net.process_f_layers.1.norm                  <= LayerNormalization4D
+  separator.audio_net.process_f_layers.2.norm                  <= LayerNormalization4D
+  separator.audio_net.process_f_layers.3.norm                  <= LayerNormalization4D
+  separator.audio_net.process_t_layers.0.norm                  <= LayerNormalization4D
+  separator.audio_net.process_t_layers.1.norm                  <= LayerNormalization4D
+  separator.audio_net.process_t_layers.2.norm                  <= LayerNormalization4D
+  separator.audio_net.process_t_layers.3.norm                  <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Queries.0.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Queries.1.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Queries.2.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Queries.3.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Keys.0.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Keys.1.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Keys.2.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Keys.3.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Values.0.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Values.1.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Values.2.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.Values.3.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.0.attn_concat_proj.norm <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Queries.0.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Queries.1.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Queries.2.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Queries.3.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Keys.0.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Keys.1.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Keys.2.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Keys.3.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Values.0.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Values.1.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Values.2.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.Values.3.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.1.attn_concat_proj.norm <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Queries.0.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Queries.1.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Queries.2.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Queries.3.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Keys.0.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Keys.1.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Keys.2.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Keys.3.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Values.0.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Values.1.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Values.2.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.Values.3.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.2.attn_concat_proj.norm <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Queries.0.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Queries.1.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Queries.2.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Queries.3.norm      <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Keys.0.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Keys.1.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Keys.2.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Keys.3.norm         <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Values.0.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Values.1.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Values.2.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.Values.3.norm       <= LayerNormalization4D
+  separator.audio_net.process_att_layers.3.attn_concat_proj.norm <= LayerNormalization4D
+  separator.audio_net.fusion_layers.0.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.0.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.0.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.0.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.0.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.0.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.0.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.0.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.0.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.1.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.1.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.1.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.1.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.1.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.1.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.1.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.1.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.1.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.2.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.2.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.2.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.2.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.2.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.2.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.2.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.2.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.2.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.3.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.3.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.3.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.global_gate.norm.cumulate_ln <= CumulateLN4D

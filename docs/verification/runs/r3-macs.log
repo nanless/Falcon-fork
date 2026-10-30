@@ -1,0 +1,24 @@
+==============================================================================
+[1] 参数量（与 README 表格 0.5M / 11.72M 对账）
+  FalconSpeakerContrastive (audio) = 537,697 = 0.538 M  (全部 requires_grad)
+  FRCNNVideoModel                  = 11,186,688 = 11.187 M  (加载 pretrain 后冻结)
+  audio + video                    = 11,724,385 = 11.72 M  -> README '11.72 M'
+
+[2] 复刻 evaluated_mac_params.py 的 ptflops 调用（input_constructor 字典）
+  video_model(randn(1,1,50,64,64)) -> (1, 512, 50)  (脚本第 82 行)
+Warning! No positional inputs found for a module, assuming batch size is 1.
+  ptflops(audio_model, input=(a,vemb)) -> MACs = 10.611 G, params = 0.538 M
+  -> 与 README 'Params 0.5 M / MACs 10.6 G' 对齐：10.61 G vs 10.6 G（README 取一位小数）
+
+[3] 视频编码器 MACs（脚本没有统计它；这里量化被排除的部分）
+  FRCNNVideoModel (1, 50, 64, 64): MACs=7.77 G, params=11.19 M
+  FRCNNVideoModel (1, 50, 88, 88): MACs=15.90 G, params=11.19 M
+  FRCNNVideoModel (1, 50, 96, 96): MACs=17.48 G, params=11.19 M
+  -> evaluated_mac_params.py 只对 audio_model 调 ptflops（第 88 行），故 10.6 G 不含视觉编码器；
+     且脚本喂给视觉编码器的是 64x64（第 81 行），而评测/训练实际是 88x88。
+
+[4] MACs 数量级复核（手算 audio_bottleneck 单层 vs ptflops 全模型）
+  audio_bottleneck: in (1, 112, 251, 129) -> out (1, 112, 251, 129); 该层 MACs ≈ 0.41 G（Conv2d 1x1）
+  说明：ptflops 的 10.6 G 是 '2 s 音频 + 50 帧视觉特征' 全模型一次前向的乘加数， 数量级与帧数/通道数开方一致；不能与视觉编码器 MACs 直接相加得到论文口径。
+
+DONE

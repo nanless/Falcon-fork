@@ -1,0 +1,14 @@
+[smoke] 构造 lrs2 风格 mock RealSSA-Real 目录：/root/data/falcon_eval/smoke_realssa_like_lrs2_20261021T190344Z（2 segments；仅接口验证，不代表 RealSSA 结果）
+[realssa-real] data=/root/data/falcon_eval/smoke_realssa_like_lrs2_20261021T190344Z  smoke=True (LRS2-2Mix tt (mock RealSSA-Real layout))  out=/root/data/falcon_eval/_smoke_lrs2
+[env] speechmos=0.0.1.1 onnxruntime=1.31.0 channel=mean align_tail=True device=auto model=JusperLee/Falcon
+[realssa-real] loader=fallback:metadata-jsonl  segments=2
+  - smoke-000                scene=smoke                audio=000.wav
+  - smoke-001                scene=smoke                audio=001.wav
+[model] FalconRuntime loaded in 17.2s device=cuda
+  [1/2] smoke-000  used=2.00s  SIG=3.268 BAK=2.750 OVRL=2.364 P808=3.170
+  [2/2] smoke-001  used=2.00s  SIG=3.082 BAK=2.579 OVRL=2.128 P808=3.123
+
+[realssa-real] CSV -> /root/data/falcon_eval/_smoke_lrs2/SMOKE_realssa_real_dnsmos_per_segment.csv
+[realssa-real] summary -> /root/data/falcon_eval/_smoke_lrs2/SMOKE_summary.json
+[realssa-real] N=2  SIG=3.1747 BAK=2.6642 OVRL=2.246 P808=3.1468
+[realssa-real] ⚠️ 这是接口冒烟（非 RealSSA-Real 数据），结果不代表论文数值。

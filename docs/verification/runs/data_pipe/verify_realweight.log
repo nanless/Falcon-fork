@@ -1,0 +1,37 @@
+==============================================================================
+[1] checkpoint format
+  torch.load type : dict
+  top-level keys  : ['state_dict', 'architecture', 'epoch']
+  architecture    : FalconSpeakerContrastive
+  epoch           : 714
+  state_dict size : 662 | audio_model.*: 525 | video_model.*: 137
+  other keys      : []
+  => audio_visual_test.py:119-120 的 ckpt['state_dict'] 兼容: True
+==============================================================================
+[2] build models from configs/Falcon.yml + strict load
+  audio load strict=True: OK
+  video load strict=True: OK
+  audio params: 537697 | video params: 11186688
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f281ff2b4c0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+==============================================================================
+[3] audio_visual_test.py:229-231 replication with real weights
+
+  sample[0] seg2s: T=32000, mouth_frames=50
+    dataset item : mix(32000,) torch.float32; mouth(50, 88, 88) float64; key=seg2s.wav; n_near=0
+    mouth_in     : (1, 1, 50, 88, 88) -> mouth_emb (1, 512, 50)
+    fusion calls : audio(1, 112, 251, 129) <- video(1, 512, 50)
+    est_sources  : (1, 1, 32000) torch.float32 | len==T: True | finite: True | CPU 1.80s
+
+  sample[1] odd: T=48513, mouth_frames=75
+    dataset item : mix(48513,) torch.float32; mouth(75, 88, 88) float64; key=odd.wav; n_near=0
+    mouth_in     : (1, 1, 75, 88, 88) -> mouth_emb (1, 512, 75)
+    fusion calls : audio(1, 112, 380, 129) <- video(1, 512, 75)
+    est_sources  : (1, 1, 48513) torch.float32 | len==T: True | finite: True | CPU 1.96s
+
+== DONE

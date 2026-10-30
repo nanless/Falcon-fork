@@ -8,6 +8,12 @@
 > 本文所有“可访问/已授权/大小”结论均为 **2026-10-21 本机实测**（HF API + dry-run + 只读探测）；数据卡内容摘自各
 > HF 数据集 README（`JusperLee/*`），链接与许可以数据集所有者页面为准。
 
+> **状态更新（2026-10-24）**：本文的“RealSSA 403/待审批”等结论停留在 2026-10-21。实际进展：RealSSA-Sim / RealSSA-Real
+> **已于 2026-10-22 获批并下载**（Sim 521,532,645,652 B / 242 文件；Real 12.84 GB），已 rsync 归档到 TOS
+> `/aispeech-cfs/voiceprint/data/multimodal/`；RealSSA-Sim test 9,169 条已转换并评测（**SI-SNRi 7.774 / SDRi 8.479**），
+> RealSSA-Real 54 段 DNSMOS 已完成（**P808 3.3285 / OVRL 2.7901**）。证据见
+> `docs/verification/phase2/P2E-report.md` §9、`P2E-realssa-sim-*.{log,csv}`、`DNSMOS-realssa-real-mean-full3/`。
+
 ---
 
 ## 0. TL;DR

@@ -1,0 +1,28 @@
+==============================================================================
+[1] audio_train.py 未定义全局名: [('main', 'comet_logger')]
+[1] look2hear/utils/lightning_utils.py 未定义全局名: [('_init_progress', 'CustomProgress'), ('_init_progress', 'MetricsTextColumn')]
+[2] CSVLogger.experiment 类型 = ExperimentWriter; hasattr(experiment,'log') = False
+    csv.experiment.log(dict) -> AttributeError: 'ExperimentWriter' object has no attribute 'log'
+    TensorBoardLogger 创建失败: ModuleNotFoundError: Neither `tensorboard` nor `tensorboardX` is available. Try `pip install`ing eith
+[3] Trainer(accelerator=None) -> ValueError: You selected an invalid accelerator name: `accelerator=None`. Available names are: auto, cuda, cpu, mps, tpu.
+    Trainer(devices=[0..9], accelerator='cuda') -> MisconfigurationException: You requested gpu: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+ But your machine only has: [0, 1]
+    torch.cuda.is_available()=True, device_count=2
+[4] round-trip top-level keys = ['audionet', 'datamodule', 'exp', 'loss', 'main_args', 'optimizer', 'options', 'scheduler', 'spk_contrast', 'training', 'videonet']
+    main_args == {} ? True; options keys = ['help']
+    loss.train is dict ? True; training.early_stop is dict ? True
+[5] shipped best_k_models: 7 行(无尾换行=True), 条目=5, 条目行前导空格={2}
+    json.dumps(..., indent=0) 的条目行前导空格 = 0, 是否与 shipped 同格式 = False
+    值 min = -9.984025001525879 @ epoch=714.ckpt; key 是否含 ${ROOT}: True
+    代码 audio_train.py:186 = json.dump(best_k, f, indent=0) —— shipped 为 indent=2 → 不是当前代码产出
+[6] Falcon 类方法含 _mdcl_loss_hard = True; 含 _mdcl_loss = False
+    方法清单中含 mdcl 的: ['_mdcl_loss_hard']
+[7] audionet_config 顶层键=11 叶子键=70（+sample_rate 后 kwargs=12）
+[8] import torch_optimizer -> ModuleNotFoundError: No module named 'pytorch_ranger'
+    torch-optimizer 依赖: ['torch (>=1.5.0)', 'pytorch-ranger (>=0.1.1)']
+[9] torch.load(默认) 微型 Lightning 风格 ckpt -> OK keys=['epoch', 'pytorch-lightning_version', 'state_dict', 'training_config']
+[10] mouth 形状静态证据: dataset 用 get_preprocessing_pipelines()[val] = Normalize→CenterCrop(88)→Normalize
+     transform.py:147-168；avspeech_dataset.py:138,189-192 -> 输出 [Tv,88,88]；
+     train DS avspeech_dataset_near.py:166-174 同样经 RandomCrop(88) -> [Tv,88,88]
+     （R1 已动态验证：伪造 1 s 样本 mouth=(25,88,88)，日志 runs/04-eval-flow.log §[8]）
+DONE

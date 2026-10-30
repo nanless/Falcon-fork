@@ -1,0 +1,181 @@
+/root/code/github_repos/Wav2TextGrid/.venv/lib/python3.10/site-packages/torch/functional.py:730: UserWarning: stft with return_complex=False is deprecated. In a future pytorch release, stft will return complex tensors for all inputs, and return_complex=False will raise an error.
+Note: you can still call torch.view_as_real on the complex output to recover the old return format. (Triggered internally at /pytorch/aten/src/ATen/native/SpectralOps.cpp:875.)
+  return _VF.stft(  # type: ignore[attr-defined]
+
+==============================================================================
+== [0] import look2hear.layers（顺带验证 __init__ 全量导入链）
+==============================================================================
+look2hear.layers.stft file : /root/code/github_repos/Falcon-fork/look2hear/layers/stft.py
+import look2hear.models 后已加载的模块:
+    look2hear.layers.stft -> look2hear/layers/stft.py
+    look2hear.layers.stft_tfgn -> look2hear/layers/stft_tfgn.py
+    look2hear.utils.stft -> look2hear/utils/stft.py
+    look2hear.utils.complex_utils -> look2hear/utils/complex_utils.py
+    look2hear.layers.enc_dec -> look2hear/layers/enc_dec.py
+    look2hear.layers.cnnlayers -> look2hear/layers/cnnlayers.py
+    look2hear.layers.rnnlayers -> look2hear/layers/rnnlayers.py
+    librosa -> <第三方> librosa/
+    librosa.filters -> <第三方> librosa/
+    torch_complex -> <第三方> torch_complex/
+    torch_complex.tensor -> <第三方> torch_complex/
+    typeguard -> docs/verification/stubs/typeguard.py
+    timm -> docs/verification/stubs/timm/__init__.py
+    timm.models.layers -> docs/verification/stubs/timm/models/layers.py
+config enc_dec_params: win=256 hop=128 out_chan=112 kernel=3 causal=True
+
+==============================================================================
+== [1] forward_stft(librosa 卷积实现) vs torch.stft
+==============================================================================
+center=True  shape got=(2, 129, 251, 2) ref=(2, 129, 251, 2) max|diff|=2.289e-05 dtype=torch.float32
+center=False shape got=(2, 129, 249, 2) ref=(2, 129, 249, 2) max|diff|=2.289e-05 dtype=torch.float32
+mode='torch' vs torch.stft: max|diff|=0.000e+00
+frame_len= 200 -> fft_size= 256, bins=129, frames=251 (expect 1+32000//128=251)
+frame_len= 256 -> fft_size= 256, bins=129, frames=251 (expect 1+32000//128=251)
+frame_len= 400 -> fft_size= 512, bins=257, frames=251 (expect 1+32000//128=251)
+
+==============================================================================
+== [2] inverse_stft(librosa 卷积实现) vs torch.istft + 重建误差
+==============================================================================
+librosa-iSTFT shape=(2, 32000)  torch.istft shape=(2, 32000)
+iSTFT 两条路径 max|diff| = 2.146e-06
+round-trip(librosa) max|diff| vs 原信号 = 2.384e-06
+round-trip(torch)   max|diff| vs 原信号 = 9.537e-07
+num_frames 公式：1+floor(L/hop) = 251 | 频点数 win//2+1 = 129
+STFTBase.num_frames(32000) = [251] | num_bins = 129 | win_length = 256 | K.shape = (512, 1, 256)
+
+==============================================================================
+== [3] torch.stft(center=True) 的 lookahead（编码器帧级因果性边界）
+==============================================================================
+脉冲位置 p=20000: 受影响帧区间 [156, 157]
+理论：帧 t 覆盖采样 [t*128-128, t*128+128) -> t_min=ceil((p-127)/128)=156, t_max=floor((p+128)/128)=157
+=> 帧 t 依赖未来采样最多 win/2=128 个（8.0 ms 的帧内 lookahead）
+
+==============================================================================
+== [4] 归一化精确语义
+==============================================================================
+-- 别名解析（normalizations.get）--
+  get('gLN'                   ) -> GlobalLayerNorm
+  get('cLN'                   ) -> CumulateLN
+  get('LN'                    ) -> CumulativeLayerNorm
+  get('LN4d'                  ) -> LayerNormalization4D
+  get('cLNhw'                 ) -> LayerNormalizationHW
+  get('BatchNorm1d'           ) -> BatchNorm1d
+  get('BatchNorm'             ) -> BatchNorm
+  get('LayerNormalization4D'  ) -> LayerNormalization4D
+  get('BatchNorm2d'           ) -> BatchNorm2d
+  get(None                    ) -> Identity
+
+-- GroupNorm/GlobalLayerNorm/cLNhw 的统计维度 --
+GlobalLayerNorm 是 nn.GroupNorm(1,C): True | 与手算 GroupNorm 一致: True
+  => 统计维度 = (C,H,W) = (4, 6, 3) 即跨时间全窗口，pytorch GroupNorm over all non-batch dims
+  手算 (mean over C,T,F) max|diff| = 2.384185791015625e-07
+CumulateLN4D 与手算(统计=跨 C 与 t'<=t，逐频点 f) 一致: True
+  H=0 步统计只含第 0 帧；H>0 步包含 <=H 的全部帧 => 时间上是因果累积
+  注意：统计量按 (C, t'<=t) 计算但对每个频点 f 独立（cum_sum 保留 W 维）
+LayerNormalization4D((C,1)) -> dim = (1,) gamma (1, 4, 1, 1) | 等价 per-channel LN(dim=1): True
+LayerNormalization4D((C,F)) -> dim = (1, 3) gamma (1, 4, 1, 3) | 等价 LN(dim=(1,3)): True （跨 C 与 F 统计，逐帧独立）
+cLN=CumulateLN(输入 (B,C,T)) 与手算一致: True | 增益/偏置参数: (1, 4, 1) (1, 4, 1)
+
+-- LayerNormalizationHW(cLNhw) 复合语义 --
+cLNhw == CumulateLN4D(GroupNorm(1,C)(x)): True （先全窗口 GN，再沿时间累积 LN）
+
+-- BatchNorm 解析 --
+get('BatchNorm1d') is nn.BatchNorm1d: True | get('BatchNorm') is 本文件包装类: True | get('BatchNorm2d') is nn.BatchNorm2d: True
+=> 配置里 norm_type: BatchNorm1d 实际用 torch 原生 BatchNorm1d（非本项目包装类）
+
+==============================================================================
+== [5] 激活解析
+==============================================================================
+  activations.get(None      ) -> Identity     实例: Identity
+  activations.get('PReLU'   ) -> PReLU        实例: PReLU
+  activations.get('ReLU'    ) -> ReLU         实例: ReLU
+  activations.get('Tanh'    ) -> Tanh         实例: Tanh
+  activations.get('Sigmoid' ) -> Sigmoid      实例: Sigmoid
+  activations.get('GELU'    ) -> GELU         实例: GELU
+  activations.get('prelu'   ) -> prelu        实例: PReLU
+  activations.get('relu'    ) -> relu         实例: ReLU
+  activations.get('tanh'    ) -> tanh         实例: Tanh
+=> config 用 'PReLU'/'ReLU'/'Tanh'/'Sigmoid'（大小写敏感，走 hasattr(nn,...)）；小写别名 prelu/relu 走 globals()
+
+==============================================================================
+== [6] Falcon 前向形状（configs/Falcon.yml）
+==============================================================================
+STFTEncoder 参数 = 3,024 | bottleneck = 13104 | separator = 492312 | mask_gen = 12657 | decoder = 2016
+video_bottleneck 参数 = 0 (kernel_size<0 -> conv=Identity, out_chan=in_chan)
+video_bottleneck.module: Identity
+audio 子模块参数合计 = 523,113
+  input [1,32000] ->
+    STFTEncoder            (1, 112, 251, 129)   (T=1+L/hop=251, F=win/2+1=129)
+    audio_bottleneck(cLNhw)(1, 112, 251, 129)
+    video_bottleneck       (1, 512, 50)
+    Separator(AudioBlock)  (1, 112, 251, 129)
+    MaskGenerator          (1, 1, 112, 251, 129)
+    STFTDecoder            (1, 1, 32000)
+
+==============================================================================
+== [6b] STFTDecoder 内部帧数记账（T 方向）
+==============================================================================
+  mask 帧数=251 -> causal pad 后 T=253
+  ConvTranspose2d(k=3,s=1,p=1) -> T=253, F=129; crop[:-1] -> T=252
+  crop 后 T=252（输入 mask 251 帧）
+  torch.istft 收到 252 帧 -> (T-1)*hop = 32128 采样 >= 32000；length= 截断到 32000
+
+==============================================================================
+== [7] 因果性探测 1：扰动后半段音频，看各层输出哪些部分变化
+==============================================================================
+  STFTEncoder              T<120 / T>=120         early max|d|=0.000e+00  late max|d|=1.139e+02
+  audio_bottleneck         T<120 / T>=120         early max|d|=4.739e-05  late max|d|=8.530e+00
+  Separator                T<120 / T>=120         early max|d|=1.706e+00  late max|d|=1.345e+01
+  MaskGenerator            [...,:120] / [...,120:] early max|d|=1.948e+02  late max|d|=1.325e+02
+  decoder 输出按采样段:
+     samples[    0: 8000] max|d|=9.679e-04
+     samples[ 8000:16000] max|d|=1.651e-01
+     samples[16000:24000] max|d|=6.624e+00
+     samples[24000:32000] max|d|=5.632e+00
+
+==============================================================================
+== [7b] 因果性探测 1b：STFTDecoder 自身的时间因果性
+==============================================================================
+  decoder samples[    0: 8000] max|d|=0.000e+00
+  decoder samples[ 8000:15360] max|d|=0.000e+00
+  decoder samples[15360:16000] max|d|=6.298e-01
+  decoder samples[16000:24000] max|d|=1.001e+00
+  => center=True 的 iSTFT 使帧级扰动扩散 ±win/2 采样；解码器卷积本身为 causal 裁剪
+
+==============================================================================
+== [8] 因果性探测 2：逐层子模块（DualPathRNN / MHSA2D / cLNhw）
+==============================================================================
+  DualPathRNN dim=4    out(1, 64, 8, 65) early t<5 max|d|=0.000e+00 late t>=5 max|d|=5.646e+00
+  DualPathRNN dim=3    out(1, 64, 8, 65) early t<5 max|d|=0.000e+00 late t>=5 max|d|=5.661e+00
+  MHSA2D causal=True   out(1, 64, 8, 65) early t<5 max|d|=0.000e+00 late t>=5 max|d|=7.186e+00
+  MHSA2D causal=False  out(1, 64, 8, 65) early t<5 max|d|=5.100e+00 late t>=5 max|d|=7.547e+00
+  cLNhw(LayerNormHW)   out(1, 64, 8, 65) early t<5 max|d|=1.202e-03 late t>=5 max|d|=5.608e+00
+  => GroupNorm(1,C) 跨 T 统计 => t<5 的输出也变化：cLNhw 不是时间因果的（但其后的 CumulateLN4D 是）
+
+==============================================================================
+== [9] DualPathRNN 参数化/out_proj/Comba 默认值
+==============================================================================
+dim=4 config: {'hid_chan': 24, 'dim': 4, 'kernel_size': 8, 'stride': 1, 'rnn_type': 'LSTM', 'num_layers': 1, 'bidirectional': True} | out_proj: Linear(in_features=48, out_features=64, bias=False)
+dim=3 config: {'hid_chan': 72, 'dim': 3, 'kernel_size': 8, 'stride': 1, 'rnn_type': 'LSTM', 'num_layers': 1, 'bidirectional': False} | out_proj: Linear(in_features=72, out_features=64, bias=False)
+  rnn: 64 24 True | num_direction: 2
+  默认 rnn_type='Comba' 构造失败: AttributeError: module 'torch.nn' has no attribute 'Comba'
+
+==============================================================================
+== [10] Separator 会 pop 配置字典（studio deep-copy 的原因）
+==============================================================================
+  [fresh yaml] audio_params 原始 keys: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'repeats', 'shared', 'stride', 'upsampling_depth']
+  [fresh yaml] video_params 原始 keys: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'repeats', 'shared', 'stride']
+  audio_params keys before: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'repeats', 'shared', 'stride', 'upsampling_depth']
+  audio_params keys after : ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'stride', 'upsampling_depth']
+  video_params keys after : ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'stride']
+  => pop('repeats'/'shared') 破坏调用方配置；studio/falcon_runtime.py 用 deep-copy 规避
+
+==============================================================================
+== [11] layers/enc_dec.py（Asteroid filterbank）是否被 Falcon 使用
+==============================================================================
+  models.Falcon 的 encoder 类型: STFTEncoder | module: look2hear.models.Falcon
+  decoder: STFTDecoder | look2hear.models.Falcon
+  => Falcon 用的是 models/Falcon.py 内部定义的 STFTEncoder/STFTDecoder（torch.stft），
+     不是 layers/enc_dec.py 的 Encoder/Decoder/FreeFB（后者全仓无调用方）
+
+DONE

@@ -1,0 +1,30 @@
+==============================================================================
+[1] falcon.pt（小模型 FalconSpeakerContrastive）
+  top-level type=dict; keys=['architecture', 'epoch', 'state_dict']
+  含 'state_dict'? True
+  meta[architecture] = 'FalconSpeakerContrastive'
+  meta[epoch] = 714
+  state_dict 键数=662; audio_model.*=525, video_model.*=137, 其他前缀=0
+  audio 参数量=537,762; video 参数量=11,196,308
+  audio_model: 参考 525 键 / ckpt 525 键 | 仅 ckpt=0 仅参考=0 形状不符=0
+  video_model: 参考 137 键 / ckpt 137 键 | 仅 ckpt=0 仅参考=0 形状不符=0
+  strict=True 回环加载: audio OK / video OK; 本地模型参数量 audio=537,697, video=11,186,688
+
+[2] audio_visual_test._load_models_from_ckpt(falcon.pt, configs/Falcon.yml) 真实函数路径
+   ✓ audio_model loaded: 525 keys from ckpt
+   ✓ video_model loaded: 137 keys from ckpt
+  返回模型类型: FalconSpeakerContrastive / FRCNNVideoModel
+  参数量: 537,697 / 11,186,688
+
+[3] falcon-big.pt（Big 模型 SpeakerContrastiveV2，studio 代码）
+  top-level type=dict; keys=['architecture', 'epoch', 'state_dict']
+  meta[architecture] = 'SpeakerContrastiveV2'
+  meta[epoch] = 715
+  state_dict 键数=654; audio_model.*=517, video_model.*=137, 其他=0
+  audio 参数量=1,158,746; video 参数量=11,196,308
+  big audio_model: 参考 517 键 / ckpt 517 键 | 仅 ckpt=0 仅参考=0 形状不符=0
+  big video_model: 参考 137 键 / ckpt 137 键 | 仅 ckpt=0 仅参考=0 形状不符=0
+  strict=True 加载: audio OK / video OK; 本地 big audio 参数量=1,158,617
+  big 顶层键=('',)
+
+DONE

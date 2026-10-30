@@ -1,0 +1,31 @@
+[PASS] 1 process_lrs23.py exits 0
+[PASS] 2 re-run is idempotent (byte-identical JSONs, overwrite in place)  -> 9 files
+[PASS] 3 mix.json schema [[abs_wav_path, n_samples], ...]  -> ['/tmp/dp-verify/data/tr/mix/u0.wav', 48000]
+[PASS] 4 target.json schema [[abs_wav_path, abs_mouth_pt_path, n_samples], ...]  -> ['/tmp/dp-verify/data/tr/target/u0.wav', '/tmp/dp-verify/data/tr/mouths/u0.pt', 48000]
+[PASS] 5 near.json schema [ [[near_path, n_samples], ...], ... ] aligned to mix.json  -> len=8; per-sample K=[2, 1, 1, 1, 1, 1, 2, 1]
+[PASS] 6 only type=='near' components indexed (far-field excluded)  -> [['/tmp/dp-verify/data/tr/near/u0_n1.wav', 48000], ['/tmp/dp-verify/data/tr/near/u0_n2.wav', 48000]]
+[PASS] 7 missing meta / missing file / only-far -> fallback entry == [mix_path, mix_n]  -> fallback indices=[1, 2, 3, 4, 5, 7] (u0copy,u0grad,u1,u2,u3,u5)
+[PASS] 8 target mouth path = in_audio_dir/tr/mouths/<stem>.pt (string replace target->mouths)
+[PASS] 9 missing input dir -> uncaught FileNotFoundError (non-zero exit)  -> FileNotFoundError: [Errno 2] No such file or directory: '/tmp/dp-verify/no_such_dir/tr/mix'
+[PASS] 10 empty split dirs: JSONs written as [] but script crashes on min([]) in stats print  -> rc=1, mix.json exists=True, near.json exists=True
+[PASS] 11 standalone generate_near_json exits 0
+[PASS] 12 standalone output identical to process_lrs23-embedded generation
+[PASS] 13 --sample_rate is accepted but unused (output unchanged)
+[PASS] 14 missing <split>/mix.json -> prints 'Skipping <split>' and continues
+[PASS] 15 dir-name mismatch with equal file count -> separate sorted orders -> silent index misalignment (no check that mix[i] and target[i] share the stem)  -> mix[0]=a.wav, target[0]=b.wav, rc=0
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f3f0822cc10>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 2 entries.
+Drop 0 utts(0.00 h) from 2 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 2/2 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/dp-verify/data_mismatch/tr/mix/c.wav
+[PASS] 16 dataset loads misaligned index without any error (pairing silently wrong)  -> mix=['c', 'a'], target=['c', 'b']
+[PASS] 17 check_avspeech_dataset.py is not runnable as-is: hard-coded '${DATA_ROOT}/...' path  -> FileNotFoundError: [Errno 2] No such file or directory: '${DATA_ROOT}/av-tiger-lrs3/DataPreProcess/LRS3_multi/tr/mix.json'
+[PASS] 18 process_lrs23.py --help lists --in_audio_dir/--out_dir (defaults '--' NOT shown by argparse)  -> ['usage: WHAM data preprocessing [-h] [--in_audio_dir IN_AUDIO_DIR]', '[--out_dir OUT_DIR]', '-h, --help            show this help message and exit', '--in_audio_dir IN_AUDIO_DIR']
+[PASS] 19 generate_near_json.py --help lists --data_root/--out_root/--sample_rate
+
+== TOTAL FAILURES: 0

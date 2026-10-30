@@ -1,0 +1,227 @@
+================================================================
+ Phase-2 QA 回归日志 · v0（task-24 / owner: layers-dsp）
+ 生成时间: 2026-10-21T19:02:40+00:00
+ 分支: repro/phase2 @ af74cca   main=ac91800
+ 环境: /root/miniforge3/envs/falcon/bin/python 3.11.17
+ 说明: v0 = 基线 worktree 修复 + QA 框架 + 初始回归；P2-A..F 报告/转换数据落盘后做终检（v1）。
+================================================================
+
+## 0. pristine 基线 worktree
+$ git worktree add /root/wt-base 689555c
+/root/code/github_repos/Falcon-fork  af74cca [repro/phase2]
+/root/wt-base                        689555c (detached HEAD)
+/root/wt-main                        ac91800 [main]
+
+## 1. test_phase1_regression.py 跨分支基线路径（优先 wt-base，fallback wt-main）
+43:BASELINE_WT_CANDIDATES = [Path("/root/wt-base"), Path("/root/wt-main")]
+44:MAIN_WT = BASELINE_WT_CANDIDATES[0]  # 兼容旧引用；实际使用 _baseline_worktree()
+91:def _baseline_worktree() -> Path:
+93:    for candidate in BASELINE_WT_CANDIDATES:
+96:    return BASELINE_WT_CANDIDATES[0]
+286:        pytest.skip(f"基线 worktree 不存在（候选 {[str(p) for p in BASELINE_WT_CANDIDATES]}），跳过跨分支数值对比")
+
+## 2. 初始全量回归（94 collected；并发训练/评测导致耗时 296s）
+=========================== short test summary info ============================
+FAILED tools/repro/tests/test_phase1_regression.py::test_diff_scope_only_allowed_files
+1 failed, 81 passed, 12 skipped, 43 warnings in 296.01s (0:04:56)
+=== studio ===
+....ss...............................                                    [100%]
+35 passed, 2 skipped in 22.59s
+
+  失败项 = test_phase1_regression.py::test_diff_scope_only_allowed_files（Phase2 时代白名单过时）
+  越界项原文（Phase1 守卫旧白名单）:
+    tracked modified: docs/DATA_ACCESS_GUIDE.md / docs/REPRODUCTION_PHASE1_REPORT.md / docs/REPRODUCTION_PLAN.md
+    tracked modified: tools/repro/tests/test_phase1_regression.py
+    untracked new: configs/LRS2_2Mix.yml
+  修复：ALLOWED_TRACKED += docs/*, tools/repro/*；ALLOWED_UNTRACKED += configs/LRS2_2Mix.yml
+        （源码保护不变；Phase2 守卫另行断言 audio_train.py/audio_visual_test.py/look2hear/studio/configs/Falcon.yml 与 main 一致）
+  复验:
+1 passed, 1 skipped, 19 deselected in 9.71s
+
+## 3. Phase2 QA 框架初始结果（数据未转换/报告未落盘 → 部分 skip）
+6 passed, 6 skipped, 5 warnings in 36.39s
+
+## 4. 官方权重 4 条指纹（Phase1 基线；Phase2 分支上重算一致）
+eval            ad0f20a0e67e8e750058bfea69946ca1ee5ff9d7ec6d3caa1f212cb0e8f40757
+train est       5f01a59658471af0955cf6c18c09bb7c0788f844c9e0db334db36fa0a7e7545a
+train sep_emb   8a8e5c2a77eb0d78efd1ee1e9106b7b709326658fc13b1be3c67003c60bddc16
+video frontend  2afcea082697fdd859b28e4abbcf854abc942b074e9107a96bba9d636c19dd40  (training=True 口径)
+params: audio 537,697 / video 11,186,688 / total 11,724,385
+
+## 5. LRS2-2Mix rebuild 输入侧统计（P2-C 数据源）
+  tr mix wav = 20000
+  cv mix wav = 5000
+  tt mix wav = 3000
+  mouths npz = 20392（命名 = <s1_id>.npz）
+  Phase2 转换输出 /root/data/falcon_lrs2_2mix: 0 个 split（0 = 尚未生成）
+
+## 6. Phase2 工作区状态（范围守卫输入）
+--- tracked modified vs main ---
+docs/DATA_ACCESS_GUIDE.md
+docs/REPRODUCTION_PHASE1_REPORT.md
+docs/REPRODUCTION_PLAN.md
+tools/repro/tests/test_phase1_regression.py
+--- untracked (new) ---
+configs/LRS2_2Mix.yml
+docs/verification/phase2/P2A-anchor-first20.json
+docs/verification/phase2/P2B-b300-big-whole-real.csv
+docs/verification/phase2/P2B-b300-big-windowed-real.csv
+docs/verification/phase2/P2B-b300-small-whole-real.csv
+docs/verification/phase2/P2B-b300-small-windowed-real.csv
+docs/verification/phase2/P2B-summary-b300.json
+docs/verification/phase2/P2E-dnsmos-lrs2-smoke.csv
+docs/verification/phase2/P2E-dnsmos-lrs2-smoke.json
+docs/verification/phase2/P2E-dnsmos-synthetic.json
+docs/verification/phase2/P2E-env-delta.txt
+docs/verification/phase2/P2E-smoke-realssa-real-metadata.json
+docs/verification/phase2/P2E-smoke-realssa-real-per-segment.csv
+docs/verification/phase2/P2E-smoke-realssa-real-summary.json
+docs/verification/phase2/P2E-smoke-synthetic-per-segment.csv
+docs/verification/phase2/QA-report.md
+docs/verification/phase2/README.md
+tools/repro/lrs2_2mix_to_falcon.py
+tools/repro/phase2/analyze_p2b.py
+tools/repro/phase2/compare_variants.py
+tools/repro/phase2/eval_dnsmos.py
+tools/repro/phase2/eval_realssa_real.py
+tools/repro/phase2/gap_analysis.py
+tools/repro/phase2/protocol_check.py
+tools/repro/phase2/realssa_sim_tt_pipeline.sh
+
+## 7. Phase2 产出落盘快照（QA 待终检对象）
+docs/verification/phase2/P2A-anchor-first20.json
+docs/verification/phase2/P2A-anchor-first20.log
+docs/verification/phase2/P2B-b300-big-whole-real.csv
+docs/verification/phase2/P2B-b300-big-windowed-real.csv
+docs/verification/phase2/P2B-b300-small-whole-real.csv
+docs/verification/phase2/P2B-b300-small-windowed-real.csv
+docs/verification/phase2/P2B-summary-b300.json
+docs/verification/phase2/P2D-smoke-bs8.log
+docs/verification/phase2/P2D-smoke.log
+docs/verification/phase2/P2E-dnsmos-lrs2-smoke.csv
+docs/verification/phase2/P2E-dnsmos-lrs2-smoke.json
+docs/verification/phase2/P2E-dnsmos-synthetic.json
+docs/verification/phase2/P2E-dnsmos-synthetic.log
+docs/verification/phase2/P2E-env-delta.txt
+docs/verification/phase2/P2E-sim-pipeline.log
+docs/verification/phase2/P2E-smoke-realssa-real-metadata.json
+docs/verification/phase2/P2E-smoke-realssa-real-per-segment.csv
+docs/verification/phase2/P2E-smoke-realssa-real-summary.json
+docs/verification/phase2/P2E-smoke-synthetic-per-segment.csv
+docs/verification/phase2/QA-regression.log
+docs/verification/phase2/QA-report.md
+docs/verification/phase2/README.md
+docs/verification/phase2/logs/P2B-big-b300.log
+docs/verification/phase2/logs/P2B-small-b300.log
+tools/repro/phase2/analyze_p2b.py
+tools/repro/phase2/compare_variants.py
+tools/repro/phase2/eval_dnsmos.py
+tools/repro/phase2/eval_realssa_real.py
+tools/repro/phase2/gap_analysis.py
+tools/repro/phase2/protocol_check.py
+tools/repro/phase2/realssa_sim_tt_pipeline.sh
+tools/repro/phase2/smoke_lrs2.yml
+tools/repro/phase2/smoke_lrs2_bs8.yml
+
+== v0 LOG END 2026-10-21T19:03:34+00:00 ==
+
+================================================================================
+== v0.1 增量（2026-10-21T19:20Z–19:35Z，task-24 进行中）==
+================================================================================
+
+## 8. diff-scope 守卫失败闭环（AGENTS.md 环境合规改动）
+- 触发：Lead 19:16Z 更新 AGENTS.md（§2 记录 Phase2 依赖 speechmos/onnxruntime/protobuf/flatbuffers；
+  docs/verification/conda-env-lock.txt 115 行），使 AGENTS.md 成为 tracked-modified。
+- studio-frontend 报告两个守卫失败：
+  * test_phase1_regression.py::test_diff_scope_only_allowed_files → tracked modified: AGENTS.md
+  * test_phase2_pipeline.py::test_phase2_diff_scope_guard → Phase2 出现了源码级 tracked 改动: ['AGENTS.md']
+- 修复（QA 写作用域内，未改任何源码）：
+  * test_phase1_regression.py: ALLOWED_TRACKED += "AGENTS.md"
+    （注释 authorized: env compliance §2/§4 + lock 更新，非 Phase1 源码改动）
+  * test_phase2_pipeline.py: ALLOWED_TRACKED_PREFIXES += "AGENTS.md"（同上注释）
+- 复核：`pytest ... -k diff_scope` → 2 passed, 27 deselected in 2.58s。
+- lock 一致性抽查：conda-env-lock.txt = 115 行，含 flatbuffers==25.12.19 / onnxruntime==1.31.0 /
+  protobuf==7.36.2 / speechmos==0.0.1.1，与 AGENTS.md §2 一致。
+
+## 9. 中间全量回归（并发负载下，非终值）
+命令：/root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/tests -q --durations=15
+（19:20Z 启动；同时段 P2-A gap_analysis 200 条、P2-B compare_variants big、P2-C 转换 16 jobs 在跑）
+结果：**1 failed, 88 passed, 6 skipped, 43 warnings in 223.50s**（收集 94 条；此后其他 agent 又新增测试，
+当前收集数 102）
+- 唯一失败 = test_phase2_pipeline.py::test_phase2_reports_have_evidence：
+  P2D-report.md（自述“状态：进行中”）引用尚未生成的 docs/verification/phase2/P2D-train.log。
+  根因是本次全量启动时 pytest 收集的是旧代码（补丁随后才落盘）。
+- 修复后单测复核：test_phase2_reports_have_evidence → 1 passed in 1.52s
+  （规则：自述进行中/待落盘的报告允许 pending 证据，QA 报告单独记录；已完成报告引用的证据必须存在）。
+- 该失败不涉及源码/数值：其余 88 条（含官方权重 4 指纹、LRS2 端到端评测冒烟、CSV 聚合一致性、
+  rebuild 计数、diff-scope 守卫、P2B summary↔CSV 复算）全部通过。
+- 结论：当前代码的等价结果为 ≥89 passed / 6 skipped；终值待独占重跑（-rs 记录 skip 原因）。
+
+## 10. P2-C 转换数据落盘 + 数据 QA 由 skip 转 pass
+- /root/data/falcon_lrs2_2mix 已生成（24 GB，tr/cv/tt = 20000/5000/3000，near-mode=fallback，target=s1）。
+- `pytest tools/repro/tests/test_phase2_data.py -q` → **5 passed in 2.04s**：
+  JSON 一致性 / mouth 对齐与 uint8 [F,96,96,3] / target==s1 且 mix==s1+s2 / near 条目有效 / split 计数。
+- 转换日志：docs/verification/phase2/P2C-convert.log（tr 33.6s、cv 11.0s、tt 5.9s，missing_mouth_npz=0）。
+
+## 11. QA 发现（待各 owner/Lead 收口，不阻塞）
+- P2D-report.md 引用 docs/verification/phase2/P2D-train.log 但该日志尚不存在（正式训练被 P2-C 数据/GPU
+  窗口阻塞，报告自述进行中）；正式训练落盘后需补日志或把引用改为“待生成”。
+- AGENTS.md §2 称“模型 sha256 见 docs/verification/phase2/P2E-env-delta.txt”，但 P2E-env-delta.txt 实际
+  只有安装命令/许可；4 个 DNSMOS ONNX 的 sha256 在 P2E-dnsmos-synthetic.json / P2E-report.md §。属文档指向小瑕疵。
+- P2A/P2B/P2C/P2F 报告尚未落盘（截至 19:35Z 只有 P2D/P2E report），报告证据测试将随落盘自动覆盖。
+
+== v0.1 LOG END 2026-10-21T19:35:00+00:00 ==
+
+================================================================================
+== v1 终检（2026-10-21T19:50Z–20:05Z，task-24 进行中）==
+================================================================================
+
+## 12. Phase2 QA 测试扩展（23 条）
+- test_phase2_data.py（5 条，不变）：P2-C 数据契约；终检全部实际执行（无 skip）。
+- test_phase2_pipeline.py（7→18 条）新增 11 条证据复算：
+  * P2C 转换日志↔索引条目数；P2A anchor 数据不变量；
+  * P2E DNSMOS 版本↔conda lock、4 ONNX sha256、分数域 [1,5]；
+  * P2F 指标实现对拍（my↔core↔CSV、subset_mean、big ckpt 元数据）；
+  * configs/LRS2_2Mix.yml 不变量（数据路径/2s/16k/单源/优化器↔Falcon.yml）；
+  * P2D 2-GPU 冒烟证据；P2B 报告表+6 组配对统计独立复算；
+  * P2A 200 条报告 mean±std/Δ 复算；P2D 训练曲线（2500 step/epoch、K=0、beta 0→1/200ep、val 正）；
+  * P2D 评测 CSV avg=逐句均值 且报告数字可追溯。
+- 修正：`_landed()` 改为 merge-aware（`main` vs `main^`=689555c 的 Phase1 已合并改动也算落地），
+  使 T1/T3/T5 验收测试在 Phase2 分支重新生效；skip 6→1，断言未改。
+
+## 13. 终检全量回归（v3 快照，112 collected）
+命令：`pytest tools/repro/tests -q -rs --durations=10`
+结果：**111 passed, 1 skipped, 0 failed in 122.24s**
+skip：`test_phase1_regression.py:576 configs/Falcon.yml 未被改动`（条件测试，预期）。
+并发说明：P2-D 正式训练（PID 4002894，GPU0 ~83%）同时运行；耗时属并发负载下数值。
+`pytest studio/tests -q` → **35 passed, 2 skipped in 18.81s**（与 Phase1 基线一致）。
+
+## 14. P2-D 正式训练 / epoch0 评测（QA 独立核对）
+- 正式训练：PID 4002894，19:26:41Z 启动；单卡 bs4、train_samples=10000 ⇒ 2500 step/epoch；epochs=100。
+- epoch 0 完成 19:44Z：`/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=0.ckpt`（51,921,591 B）；
+  metrics.csv：val_loss -6.7324724 ⇒ val_pit_sisnr **6.73248**；test_loss -6.8146772 ⇒ test_pit_sisnr **6.81468**；
+  train_loss_epoch -6.69711；beta=0；K=0（0near=4，1near+ 全 0）。P2D-train.log 19:44 有 best-ckpt 保存行。
+- epoch 0 ckpt 评测（19:50Z，`P2D-eval-epoch_0.log`/`.csv`，limit=300，官方 eval 脚本 + LRS2_2Mix.yml）：
+  sdr 6.871 / sdr_i 1.830 / si-snr 6.456 / si-snr_i 1.517 / pesq 1.432 / stoi 0.804（avg 行，303 行含 avg/std）。
+  说明：1 epoch 从零训练，远未收敛；该数字只证明“训练→ckpt→评测”闭环可用，不作为论文结果。
+- epoch 1 进行中（beta=0.005=1/200，符合 0→1 over 200 epoch 退火）。
+
+## 15. 终检发现（P0/P1/P2 分级）
+- P0：无。
+- P1（在途，不阻塞 QA 结论）：
+  * P2-D 正式训练未完成（100 epoch 远超本轮时间窗；外部 GPU 占用限制）；论文级 LRS2-2Mix 数字需训练完成后重评。
+  * P2D-report.md（19:30 版）尚未同步 19:50 的 300-utt epoch0 评测数字与 epoch0 训练指标；已通知 train-sys 更新，
+    更新后 QA 重跑 `test_phase2_p2d_eval_metrics_consistent` 确认报告↔CSV 一致。
+- P2（文档/整洁度）：
+  * `P2B-full-big-whole-real.csv` 为 0 字节占位（全量 big 评测中止），报告已注明“未跑全量”。
+  * `P2D-train.log` epoch 结束前只含启动段（PL 进度条缓冲）；逐 step 曲线以 metrics.csv 为准。
+  * AGENTS.md §2 称 DNSMOS sha256 在 P2E-env-delta.txt，实际在 P2E-dnsmos-synthetic.json / P2E-report.md。
+
+## 16. 工作区 / diff 范围（19:55Z 快照）
+- HEAD `af74cca [repro/phase2]`；`git diff main` tracked 7 文件 +129/-29（全为文档/QA 测试），
+  diff sha256 = `e4d869e343ffc524f12e14651a4c138237f442a447e9994aac9da584ce293d9b`。
+- untracked 56；受保护源码（audio_train.py / audio_visual_test.py / look2hear/ / studio/ / configs/Falcon.yml）
+  vs main 差异 = **0**；未 commit、未切分支。
+- worktree：`/root/wt-base 689555c (detached)`（pristine 基线）、`/root/wt-main ac91800 [main]`（fallback）。
+
+== v1 LOG END 2026-10-21T20:05:00+00:00 ==

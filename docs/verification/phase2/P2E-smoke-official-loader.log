@@ -1,0 +1,10 @@
+[realssa-real] data=/root/data/falcon_eval/smoke_realssa_like_lrs2_20261021T190344Z  smoke=False ()  out=/root/data/falcon_eval/_smoke_official
+[env] speechmos=0.0.1.1 onnxruntime=1.31.0 channel=mean align_tail=True device=auto model=JusperLee/Falcon
+[realssa-real] loader=official:read_recordings  segments=1
+  - smoke-000                scene=smoke                audio=
+[model] FalconRuntime loaded in 39.6s device=cuda
+  [1/1] smoke-000  used=2.00s  SIG=3.268 BAK=2.750 OVRL=2.364 P808=3.170
+
+[realssa-real] CSV -> /root/data/falcon_eval/_smoke_official/realssa_real_dnsmos_per_segment.csv
+[realssa-real] summary -> /root/data/falcon_eval/_smoke_official/summary.json
+[realssa-real] N=1  SIG=3.2677 BAK=2.7496 OVRL=2.3637 P808=3.1704

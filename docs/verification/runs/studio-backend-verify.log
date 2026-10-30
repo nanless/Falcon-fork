@@ -1,0 +1,163 @@
+/root/.venvs/falcon/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+Falcon initialization failed
+Traceback (most recent call last):
+  File "/root/code/github_repos/Falcon-fork/studio/server.py", line 151, in _load
+    runtime = FalconRuntime(variant=self.variant)
+  File "/root/code/github_repos/Falcon-fork/docs/verification/scripts/verify_studio_backend.py", line 513, in __init__
+    raise RuntimeError("simulated checkpoint failure")
+RuntimeError: simulated checkpoint failure
+
+=== A1 constants / variants / weight resolution ===
+SAMPLE_RATE 16000 VIDEO_FPS 25 WINDOW_SAMPLES 32000 WINDOW_FRAMES 50 -> 2s*16k = 32000 2s*25fps = 50
+VARIANTS {"big": {"architecture": "SpeakerContrastiveV2", "config": "FalconBig.yml", "repo": "JusperLee/Falcon-Big", "weights": "falcon-big.pt"}, "small": {"architecture": "FalconSpeakerContrastive", "config": "Falcon.yml", "repo": "JusperLee/Falcon", "weights": "falcon.pt"}}
+variant_for('JusperLee/Falcon') small | ('JusperLee/Falcon-Big') big | ('big') big
+variant_for bad -> ValueError: Unknown Falcon model 'someone/Other'; use JusperLee/Falcon or JusperLee/Falcon-Big
+weights_source small/big (cache-only, no network): huggingface huggingface
+resolve_checkpoint('small', Path('/tmp/x.pt')) -> /tmp/x.pt
+bad hf:// spec -> ValueError: Expected hf://<org>/<repo>/<file>, got hf://model.pt
+pick_device('auto') on this host: cuda | explicit cpu: cpu
+pick_device('tpu') -> ValueError: device must be 'auto', 'cpu', 'cuda' or 'mps'
+pick_device('gpu') -> ValueError: device must be 'auto', 'cpu', 'cuda' or 'mps'
+pick_device(None) -> ValueError: device must be 'auto', 'cpu', 'cuda' or 'mps'
+
+=== A2 model construction, parameter counts, config mutation ===
+small: audio=537,697 video=11,186,688 total=11,724,385 (11.724 M)  arch=FalconSpeakerContrastive
+   original config still has repeats/shared after build=True/True (deepcopy kept Separator.dict.pop from mutating the source)
+   video_bottleneck params=0 out_chan=512 conv=Identity
+big: audio=1,158,617 video=11,186,688 total=12,345,305 (12.345 M)  arch=SpeakerContrastiveV2
+   original config still has repeats/shared after build=True/True (deepcopy kept Separator.dict.pop from mutating the source)
+   video_bottleneck params=0 out_chan=512 conv=Identity
+small vs big audio state_dict keys equal: False | n= 525
+keys with different shapes small->big: 360 e.g. ['separator.audio_net.process_att_layers.0.Values.0.norm.gamma', 'separator.audio_net.process_att_layers.3.Values.3.norm.beta', 'separator.audio_net.fusion_layers.3.global_embedding.norm.cumulate_ln.bias', 'separator.audio_net.process_t_layers.2.rnn.bias_hh_l0']
+
+=== A3 state_dict equality vs training code (look2hear) ===
+studio vs training: keys_equal=True shapes_equal=True n_studio=525 n_training=525 only_studio=[] only_training=[]
+studio vs training: keys_equal=True shapes_equal=True n_studio=137 n_training=137 only_studio=[] only_training=[]
+studio vs training: keys_equal=True shapes_equal=True n_studio=525 n_training=525 only_studio=[] only_training=[]
+=> training ckpt 'audio_model.*' keys load into the Studio copy with strict=True: True
+
+=== A4 preprocess_mouth numerics ===
+shape/dtype: (1, 1, 50, 88, 88) torch.float32 | value(gray=107): -0.008437308482825756 | formula (107/255-.421)/.165 = -0.008437314319667122
+range for gray 0 / 255: -2.5515151023864746 / 3.5090906620025635 -> NOT [-1,1]; it is z-score over [0,1] pixels
+ignoring outer 4 px (96->88 CenterCrop) max|z|: 2.5515151023864746
+  reject: Expected 50 grayscale 96×96 mouth crops; got (49, 96, 96).
+  reject: Expected 50 grayscale 96×96 mouth crops; got (50, 88, 88).
+  reject: Mouth frames must be a uint8 NumPy array.
+
+=== A5 synthetic-checkpoint round trip through FalconRuntime (CPU) ===
+small: ready=True device=cpu arch=FalconSpeakerContrastive audio_keys=525 video_keys=137 parameters=11,724,385 warmup_ms=675.7 load_s=1.19
+   infer -> shape=(32000,) dtype=float32 finite=True last_inference_ms=541.5 range=[-0.064,0.071]
+big: ready=True device=cpu arch=SpeakerContrastiveV2 audio_keys=517 video_keys=137 parameters=12,345,305 warmup_ms=788.5 load_s=1.08
+   infer -> shape=(32000,) dtype=float32 finite=True last_inference_ms=744.1 range=[-0.023,0.022]
+
+=== A6 Studio runtime vs training-code forward (same synthetic weights, CPU) ===
+  FRCNNVideoModel.eval() returns: None (falcon_runtime.py:178 comment verified)
+small: max|studio-training| = 0.000e+00 (bit-identical=True)
+big: max|studio-training| = 0.000e+00 (bit-identical=True)  [training class absent -> self-consistency only]
+
+=== A7 strict loading and error paths ===
+audio keys only: ValueError: Checkpoint must contain both audio_model and video_model weights.
+renamed audio key: RuntimeError: Error(s) in loading state_dict for FalconSpeakerContrastive:
+small ckpt with big config: RuntimeError: Error(s) in loading state_dict for SpeakerContrastiveV2:
+missing file: FileNotFoundError: Falcon checkpoint not found: /tmp/falcon-studio-verify-ikyeavik/nope.pt
+plain prefixed state_dict (no 'state_dict' key) accepted: True cpu
+
+=== A8 infer() input validation ===
+not loaded: RuntimeError: Falcon model has not finished loading.
+float64 audio: ValueError: Expected float32 mono audio shape (32000,) at 16 kHz.
+wrong audio length: ValueError: Expected float32 mono audio shape (32000,) at 16 kHz.
+NaN audio: ValueError: Audio contains non-finite samples.
+list frames: ValueError: Mouth frames must be a uint8 NumPy array.
+
+=== B0 import server (needs Pillow; stub on PYTHONPATH) ===
+server constants: SR,FPS,WINDOW,HOP,GUARD,FADE,MAX_MESSAGE_BYTES,MAX_SAFE_INTEGER = 16000 25 32000 8000 1280 320 2000000 9007199254740991
+absolute chunk/right-context: start=WINDOW-GUARD-HOP= 22720 end=WINDOW-GUARD= 30720 | output samples= 8000 (500 ms) | guard= 1280 (80 ms) | fade= 320 (20 ms)
+decode_request valid -> (32000,) float32 (50, 96, 96) uint8 endpoint 32000
+default end_sample -> 32000
+wire sizes: audio b64 chars 170668 (expect 4*((32000*4+2)//3) = 170668 ) | per-frame cap b64 chars 40000 | -> max frames in 2MB msg ~ 45 but frame cap allows 36586 chars/frame
+  type: ValueError: 未知请求类型。
+  window_seconds: ValueError: 当前模型使用 2 秒窗口、0.5 秒步长。
+  hop_seconds: ValueError: 当前模型使用 2 秒窗口、0.5 秒步长。
+  reset not bool: ValueError: 重置标记必须为布尔值。
+  audio not str: ValueError: 音频必须是 32000 个 16 kHz float32 采样。
+  audio bad length: ValueError: 音频必须是 32000 个 16 kHz float32 采样。
+  frames not list: ValueError: 每个窗口需要 50 帧同步嘴部图像。
+  49 frames: ValueError: 每个窗口需要 50 帧同步嘴部图像。
+  frame too long: ValueError: 嘴部图像大小无效。
+  end_sample bool: ValueError: 音频时间戳无效。
+  end_sample -1: ValueError: 音频时间戳无效。
+  end_sample float: ValueError: 音频时间戳无效。
+  end_sample > 2^53-1: ValueError: 音频时间戳无效。
+  bad base64 frame: ValueError: 无法读取嘴部图像。
+
+=== B1 OutputSlicer offsets / crossfade / clipping ===
+first take: n= 8000 contiguous= False clipped= 0 first/last= 0.2272000014781952 0.3071900010108948 expected absolute chunk starts at 22720
+second take (endpoint+HOP): contiguous= True | crossfade samples= 320 first sample= 0.30720001459121704 future(new chunk start after fade)= 0.31040000915527344
+joined (2 hops) covers one continuous absolute timeline: True max|diff|= 4.281997678656779e-08
+gap (endpoint jump 3*HOP, zero prediction): contiguous= False non-zero samples= 0
+clipping: max= 1.0 clipped_samples= 8000
+  short pred: ValueError: 模型输出长度错误或包含非有限数值。
+  NaN pred: ValueError: 模型输出长度错误或包含非有限数值。
+
+=== B2 same_origin truth table ===
+  None                             host=127.0.0.1:7860         -> True (expect True) [no Origin (CLI/tests)]
+  http://localhost:7860            host=localhost:7860         -> True (expect True) [http same host:port]
+  http://127.0.0.1:7860            host=127.0.0.1:7860         -> True (expect True) [http ipv4]
+  http://[::1]:7860                host=[::1]:7860             -> True (expect True) [http ipv6]
+  https://localhost:7860           host=localhost:7860         -> True (expect True) [https same host:port]
+  http://localhost:9999            host=localhost:7860         -> False (expect False) [port mismatch]
+  http://127.0.0.1:7860            host=localhost:7860         -> False (expect False) [host string mismatch (netloc)]
+  https://evil.example             host=127.0.0.1:7860         -> False (expect False) [external origin]
+  file:///etc/passwd               host=127.0.0.1:7860         -> False (expect False) [non-http scheme]
+  http://localhost.evil.example    host=localhost.evil.example -> False (expect False) [non-local hostname]
+
+=== B3 Engine status / state machine object ===
+fresh Engine.status(): {"app": "falcon-studio", "busy": false, "checkpoint": "falcon.pt", "device": "auto", "error": null, "hop_seconds": 0.5, "loading": false, "mode": "sliding-window", "model": "Falcon · Small", "output_delay_ms": 80, "ready": false, "sample_rate": 16000, "variant": "small", "variants": [{"available": true, "checkpoint": "falcon.pt", "id": "small", "name": "Falcon Small", "repo": "JusperLee/Falcon", "source": "huggingface"}, {"available": true, "checkpoint": "falcon-big.pt", "id": "big", "name": "Falcon Big", "repo": "JusperLee/Falcon-Big", "source": "huggingface"}], "video_fps": 25, "window_seconds": 2}
+with ready runtime -> ready: True | loading: False
+runtime + loading=True -> ready: False | loading: True
+runtime + error -> status['error']: boom ready: True
+infer while lock held -> RuntimeError: 另一个窗口正在使用模型，请关闭重复会话。
+status keys: ['app', 'busy', 'checkpoint', 'device', 'error', 'hop_seconds', 'loading', 'mode', 'model', 'output_delay_ms', 'ready', 'sample_rate', 'variant', 'variants', 'video_fps', 'window_seconds']
+
+=== B4 HTTP endpoints / headers / limits ===
+GET /api/status -> 200 {"app": "falcon-studio", "device": "test", "ready": true, "variant": "small", "variants": [{"available": true, "checkpoint": "falcon.pt", "id": "small", "name": "Falcon Small", "repo": "JusperLee/Falcon", "source": "cached"}]}
+security headers: {'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', 'permissions-policy': 'camera=(self), microphone=(self)', 'cache-control': 'no-store', 'content-security-policy': "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; worker-src 'self' blob:; frame-ancestors 'none'"}
+POST /api/load {} -> 200
+POST /api/load bad json -> 400
+POST /api/load list -> 400
+POST /api/load >1024B -> 413
+GET /api/status with evil Origin -> 403
+GET / -> 200 | static index: 200
+GET /static/vendor/mediapipe/vision_bundle.mjs -> 200
+wasm -> 200 application/wasm
+
+=== B5 WebSocket protocol schema ===
+result keys: ['audio', 'clipped_samples', 'contiguous', 'device', 'end_sample', 'id', 'inference_ms', 'output_delay_ms', 'rtf', 'sample_rate', 'start_sample', 'type', 'window_rtf']
+result types: {"audio": "str", "clipped_samples": "int", "contiguous": "bool", "device": "str", "end_sample": "int", "id": "int", "inference_ms": "int", "output_delay_ms": "int", "rtf": "float", "sample_rate": "int", "start_sample": "int", "type": "str", "window_rtf": "float"}
+audio b64 chars: 42668 -> decoded samples: 8000 float32 | expected 8000
+timing: inference_ms= 25 rtf= 0.05 (=ms/500) window_rtf= 0.013 (=ms/2000)
+timestamps: start_sample= 22720 end_sample= 30720 expected 22720 30720
+flags: contiguous= False clipped_samples= 0 output_delay_ms= 80 device= test
+second window contiguous= True start_sample= 30720 end_sample= 38720
+error schema: ['id', 'message', 'type'] -> error id= None message= Expecting value: line 1 column 1 (char 0)
+validation error message: 每个窗口需要 50 帧同步嘴部图像。
+bool id error: 请求 ID 无效。
+session survives errors: result
+evil-origin ws rejected: WebSocketDisconnect 
+
+=== B6 max message size / PNG frames / amplitude bound / load errors ===
+PNG frames accepted: (50, 96, 96)
+|audio| = 4.0 accepted: 4.0
+|audio| > 4 rejected: 音频数据无效或超出允许范围。
+message == MAX_MESSAGE_BYTES (2,000,000 chars) -> error (json error, session alive)
+message > MAX_MESSAGE_BYTES -> close frame: {'type': 'websocket.close', 'code': 1009, 'reason': ''}
+POST /api/load when start_load raises RuntimeError -> 409
+POST /api/load unknown variant (real Engine, no download) -> 400 | start_load('bogus') raises ValueError before any download
+
+=== B7 engine error propagation + status types after load ===
+Engine._load catches exception -> error= simulated checkpoint failure | loading= False | status(): {"app": "falcon-studio", "busy": false, "checkpoint": "falcon.pt", "device": "auto", "error": "simulated checkpoint failure", "hop_seconds": 0.5, "loading": false, "mode": "sliding-window", "model": "Falcon · Small", "output_delay_ms": 80, "ready": false, "sample_rate": 16000, "variant": "small", "variants": [{"available": true, "checkpoint": "falcon.pt", "id": "small", "name": "Falcon Small", "repo": "JusperLee/Falcon", "source": "huggingface"}, {"available": true, "checkpoint": "falcon-big.pt", "id": "big", "name": "Falcon Big", "repo": "JusperLee/Falcon-Big", "source": "huggingface"}], "video_fps": 25, "window_seconds": 2}
+FalconRuntime.status() after load: {"architecture": "FalconSpeakerContrastive", "audio_weight_keys": 525, "checkpoint": "fake-small.pt", "device": "cpu", "error": null, "last_inference_ms": 541.5, "mode": "windowed_audio_visual", "parameters": 11724385, "ready": true, "requested_device": "cpu", "sample_rate": 16000, "variant": "small", "video_fps": 25, "video_weight_keys": 137, "warmup_ms": 675.7, "warning": null, "window_seconds": 2.0}
+FalconRuntime.status() types: {'ready': 'bool', 'variant': 'str', 'architecture': 'str', 'device': 'str', 'requested_device': 'str', 'checkpoint': 'str', 'sample_rate': 'int', 'video_fps': 'int', 'window_seconds': 'float', 'audio_weight_keys': 'int', 'video_weight_keys': 'int', 'parameters': 'int', 'last_inference_ms': 'float', 'warmup_ms': 'float', 'error': 'NoneType', 'warning': 'NoneType', 'mode': 'str'}
+
+OK: studio backend verification finished

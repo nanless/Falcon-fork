@@ -1,0 +1,245 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+ config snapshot (deepcopy) -> 
+/root/tmp/p2d_smoke_bs8/Experiments/checkpoint/LRS2_2Mix_smoke_bs8/conf.yml
+ use_near = True
+Instantiating datamodule: AVSpeechDataModuleWithNear (use_near=True)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7fc56dfed2d0>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 3 entries.
+Drop 0 utts(0.00 h) from 3 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 3/3 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /root/data/lrs2_2mix/falcon_smoke/tr/mix/5535415699068794046_00006_3.6422_5951349351444679853_00004_-3.6422.wav
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fc56e081750>
+    Normalize(mean=0.421, std=0.165)
+)
+3 3
+Drop 0 utts(0.00 h) from 3 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fc56e082650>
+    Normalize(mean=0.421, std=0.165)
+)
+3 3
+Drop 0 utts(0.00 h) from 3 (shorter than None samples)
+Instantiating AudioNet <FalconSpeakerContrastive>
+Instantiating Optimizer <adamw>
+Instantiating Scheduler <ReduceLROnPlateau>
+Instantiating Loss  train=<pairwise_neg_snr>  val=<pairwise_neg_sisdr>
+[NASS v2] weight=1.0 margin=0.5 alpha_pos=1.0 alpha_neg=1.0 beta=0.0→1.0 over 
+200 epochs
+ logger = CSVLogger
+ accelerator=gpu devices=[0, 1] num_devices=2 strategy=DDPStrategy
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1.0)` was configured so 100% of the batches per epoch will be used..
+You are using a CUDA device ('NVIDIA A800-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/2
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/2
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 2 processes
+----------------------------------------------------------------------------------------------------
+
+LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+┏━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃   ┃ Name             ┃ Type                     ┃ Params ┃ Mode  ┃ FLOPs ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 0 │ audio_model      │ FalconSpeakerContrastive │  537 K │ train │     0 │
+│ 1 │ video_model      │ FRCNNVideoModel          │ 11.2 M │ train │     0 │
+│ 2 │ contrastive_loss │ NASSContrastiveLoss      │      0 │ train │     0 │
+└───┴──────────────────┴──────────────────────────┴────────┴───────┴───────┘
+Trainable params: 537 K                                                         
+Non-trainable params: 11.2 M                                                    
+Total params: 11.7 M                                                            
+Total estimated model params size (MB): 46.898                                  
+Modules in train mode: 688                                                      
+Modules in eval mode: 0                                                         
+Total FLOPs: 0                                                                  
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f4eb49b2c90>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 3 entries.
+Drop 0 utts(0.00 h) from 3 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 3/3 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /root/data/lrs2_2mix/falcon_smoke/tr/mix/5535415699068794046_00006_3.6422_5951349351444679853_00004_-3.6422.wav
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f4eb49b2dd0>
+    Normalize(mean=0.421, std=0.165)
+)
+3 3
+Drop 0 utts(0.00 h) from 3 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f4eb49b3410>
+    Normalize(mean=0.421, std=0.165)
+)
+3 3
+Drop 0 utts(0.00 h) from 3 (shorter than None samples)
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/root/code/github_repos/Falcon-fork/audio_train.py", line 414, in <module>
+[rank1]:     main(arg_dic, ckpt_path=args.ckpt_path)
+[rank1]:   File "/root/code/github_repos/Falcon-fork/audio_train.py", line 383, in main
+[rank1]:     trainer.fit(system)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 584, in fit
+[rank1]:     call._call_and_handle_interrupt(
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/call.py", line 48, in _call_and_handle_interrupt
+[rank1]:     return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 105, in launch
+[rank1]:     return function(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 630, in _fit_impl
+[rank1]:     self._run(model, ckpt_path=ckpt_path, weights_only=weights_only)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 1079, in _run
+[rank1]:     results = self._run_stage()
+[rank1]:               ^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 1123, in _run_stage
+[rank1]:     self.fit_loop.run()
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/fit_loop.py", line 217, in run
+[rank1]:     self.advance()
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/fit_loop.py", line 469, in advance
+[rank1]:     self.epoch_loop.run(self._data_fetcher)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 153, in run
+[rank1]:     self.advance(data_fetcher)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 352, in advance
+[rank1]:     batch_output = self.automatic_optimization.run(trainer.optimizers[0], batch_idx, kwargs)
+[rank1]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/optimization/automatic.py", line 192, in run
+[rank1]:     self._optimizer_step(batch_idx, closure)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/optimization/automatic.py", line 270, in _optimizer_step
+[rank1]:     call._call_lightning_module_hook(
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/call.py", line 177, in _call_lightning_module_hook
+[rank1]:     output = fn(*args, **kwargs)
+[rank1]:              ^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py", line 1368, in optimizer_step
+[rank1]:     optimizer.step(closure=optimizer_closure)
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/optimizer.py", line 154, in step
+[rank1]:     step_output = self._strategy.optimizer_step(self._optimizer, closure, **kwargs)
+[rank1]:                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/ddp.py", line 274, in optimizer_step
+[rank1]:     optimizer_output = super().optimizer_step(optimizer, closure, model, **kwargs)
+[rank1]:                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/strategy.py", line 239, in optimizer_step
+[rank1]:     return self.precision_plugin.optimizer_step(optimizer, model=model, closure=closure, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/plugins/precision/precision.py", line 123, in optimizer_step
+[rank1]:     return optimizer.step(closure=closure, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/optim/optimizer.py", line 516, in wrapper
+[rank1]:     out = func(*args, **kwargs)
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/optim/optimizer.py", line 81, in _use_grad
+[rank1]:     ret = func(*args, **kwargs)
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/optim/adam.py", line 226, in step
+[rank1]:     loss = closure()
+[rank1]:            ^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/plugins/precision/precision.py", line 109, in _wrap_closure
+[rank1]:     closure_result = closure()
+[rank1]:                      ^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/optimization/automatic.py", line 146, in __call__
+[rank1]:     self._result = self.closure(*args, **kwargs)
+[rank1]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+[rank1]:     return func(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/optimization/automatic.py", line 131, in closure
+[rank1]:     step_output = self._step_fn()
+[rank1]:                   ^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/optimization/automatic.py", line 319, in _training_step
+[rank1]:     training_step_output = call._call_strategy_hook(trainer, "training_step", *kwargs.values())
+[rank1]:                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/call.py", line 329, in _call_strategy_hook
+[rank1]:     output = fn(*args, **kwargs)
+[rank1]:              ^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/strategy.py", line 390, in training_step
+[rank1]:     return self._forward_redirection(self.model, self.lightning_module, "training_step", *args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/strategy.py", line 641, in __call__
+[rank1]:     wrapper_output = wrapper_module(*args, **kwargs)
+[rank1]:                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1648, in forward
+[rank1]:     else self._run_ddp_forward(*inputs, **kwargs)
+[rank1]:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1474, in _run_ddp_forward
+[rank1]:     return self.module(*inputs, **kwargs)  # type: ignore[index]
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/strategies/strategy.py", line 634, in wrapped_forward
+[rank1]:     out = method(*_args, **_kwargs)
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/code/github_repos/Falcon-fork/look2hear/system/av_litmodule_nass_v2.py", line 90, in training_step
+[rank1]:     est_sources, sep_audio_embs = self.audio_model(mixtures, mouth_emb)
+[rank1]:                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/code/github_repos/Falcon-fork/look2hear/models/Falcon_Contrastive.py", line 106, in forward
+[rank1]:     refined_features = self.separator(audio, video)                # [B, C, T', F]
+[rank1]:                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/code/github_repos/Falcon-fork/look2hear/models/Falcon.py", line 1032, in forward
+[rank1]:     audio = self.audio_net(audio + audio_residual if i > 0 else audio)
+[rank1]:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/code/github_repos/Falcon-fork/look2hear/models/Falcon.py", line 887, in forward
+[rank1]:     expanded = self.process_t_layers[i](expanded)
+[rank1]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/code/github_repos/Falcon-fork/look2hear/models/Falcon.py", line 400, in forward
+[rank1]:     x, _ = self.rnn(x)
+[rank1]:            ^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/nn/modules/rnn.py", line 1124, in forward
+[rank1]:     result = _VF.lstm(
+[rank1]:              ^^^^^^^^^
+[rank1]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.53 GiB. GPU 1 has a total capacity of 79.33 GiB of which 1.35 GiB is free. Process 2514085 has 70.23 GiB memory in use. Process 253531 has 1.39 GiB memory in use. Process 290676 has 6.34 GiB memory in use. Of the allocated memory 4.81 GiB is allocated by PyTorch, and 629.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

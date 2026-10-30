@@ -1,0 +1,40 @@
+
+==============================================================================
+== [W1] Studio 副本：import 面与 strict=True 加载
+==============================================================================
+  studio classes: FalconSpeakerContrastive / Falcon
+  librosa loaded: False | torch_complex loaded: False | look2hear loaded: False
+  ckpt keys: ['state_dict', 'architecture', 'epoch'] | architecture: FalconSpeakerContrastive | epoch: 714
+  audio_model.* keys=525  video_model.* keys=137  total=662
+  studio strict=True load: <All keys matched successfully>
+  studio params: 537,697 | state_dict keys: 525
+  studio forward: (1, 1, 32000) | stats: -0.12058 0.11067
+
+==============================================================================
+== [W2] 训练副本 vs Studio 副本（真实权重、CPU、eval）
+==============================================================================
+  librosa loaded now: True | pytorch_lightning: True | torch_complex: True
+  training strict=True load: <All keys matched successfully>
+  training params: 537,697 | state_dict keys: 525
+  train vs studio 输出 max|Δ| = 0.000e+00 -> bit-identical: True
+  state_dict 两副本 key 完全一致: True
+
+==============================================================================
+== [W3] Studio 的 CPU FFT bridge 行号与内容（训练侧无）
+==============================================================================
+  -- STFTEncoder.forward (studio 1107-1124) --
+    1111: compute_device = x.device
+    1112: stft_x = x.cpu() if x.device.type == "mps" else x
+    1113: spec = torch.stft(
+    1114: stft_x,
+    1117: window=self.window.to(stft_x.device),
+    1122: spec = spec.to(compute_device)
+  -- STFTDecoder.forward (studio 1176-1200) --
+    1184: output_device = decoded_separated_audio.device
+    1185: if output_device.type == "mps":
+    1186: decoded_separated_audio = decoded_separated_audio.cpu()
+    1190: output = torch.istft(
+    1194: window=self.window.to(spec.device),
+    1198: output = output.to(output_device)
+
+DONE

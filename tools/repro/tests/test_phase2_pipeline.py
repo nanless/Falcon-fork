@@ -223,6 +223,22 @@ def _phase2_metric_csvs() -> list[Path]:
     return [p for p in cands if p.is_file() and p.stat().st_size > 0]
 
 
+def _as_float(value) -> float:
+    """CSV 单元格 -> float；退化样本的空串/nan/None 统一返回 math.nan。
+
+    RealSSA-Sim 全量结果中有 3 条退化样本（SDR solver singular / PESQ "No utterances detected"），
+    评测脚本把 sdr/sdr_i/pesq 落盘为空串（亦可能写 nan/None）。聚合口径是"有限值上的均值 /
+    总体标准差（ddof=0）"，故空值视作 nan 后在 `vals` 里被 `math.isfinite` 过滤掉。
+    其余无法解析的字符串仍会让 `float()` 抛错——不放宽对"格式损坏"的校验。
+    """
+    if value is None:
+        return math.nan
+    text = str(value).strip()
+    if text == "" or text.lower() in ("nan", "none"):
+        return math.nan
+    return float(text)
+
+
 def test_phase2_eval_csv_aggregation_consistent():
     """Phase2 评测 CSV：avg 行 = 逐句均值、std 行 = 总体标准差（ddof=0）、数值有限。"""
     csvs = _phase2_metric_csvs()
@@ -242,14 +258,19 @@ def test_phase2_eval_csv_aggregation_consistent():
         if len(utt) < 2 or avg is None:
             continue
         for col in cols:
-            vals = [float(r[col]) for r in utt if math.isfinite(float(r[col]))]
+            # 空串/nan/None（见 _as_float）按 nan 处理：avg/std 只在有限值上聚合。
+            vals = [v for v in (_as_float(r.get(col)) for r in utt) if math.isfinite(v)]
             if not vals:
                 continue
             mean = sum(vals) / len(vals)
             var = sum((v - mean) ** 2 for v in vals) / len(vals)
-            assert abs(float(avg[col]) - mean) < 1e-5, f"{path.name}:{col} avg≠均值"
+            avg_v = _as_float(avg.get(col))
+            if math.isfinite(avg_v):
+                assert abs(avg_v - mean) < 1e-5, f"{path.name}:{col} avg≠均值"
             if std is not None:
-                assert abs(float(std[col]) - math.sqrt(var)) < 1e-5, f"{path.name}:{col} std≠总体标准差"
+                std_v = _as_float(std.get(col))
+                if math.isfinite(std_v):
+                    assert abs(std_v - math.sqrt(var)) < 1e-5, f"{path.name}:{col} std≠总体标准差"
         checked += 1
     assert checked > 0, "找到 CSV 但没有一条满足『逐句+avg』结构"
 
@@ -283,6 +304,10 @@ ALLOWED_TRACKED_PREFIXES = (
     # authorized (env compliance): AGENTS.md §2/§4 的 Phase2 依赖说明与 lock 更新（19:16Z），
     # 属环境合规文档改动，不是 Phase1 源码改动。
     "AGENTS.md",
+    # authorized (P0 evidence, 2026-10-24): .gitignore 增加 docs/verification 证据日志/CSV 的
+    # 负向规则（!docs/verification/**/*.log 等），属"证据必须可复核"的合规改动，非越界源码改动。
+    # 该文件提交后仍会与 main 存在 diff，故需长期白名单。
+    ".gitignore",
 )
 ALLOWED_UNTRACKED = [
     "docs/*",

@@ -1,0 +1,117 @@
+[realssa-real] data=/root/data/RealSSA-Real  smoke=False ()  out=/root/data/falcon_eval/realssa_real_mean_full3
+[env] speechmos=0.0.1.1 onnxruntime=1.31.0 channel=mean align_tail=True device=cuda model=JusperLee/Falcon
+[realssa-real] loader=official:read_recordings  segments=54
+  - big_indoor/large_mall/1  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/2 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/2-1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-2/2-2 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/5-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/5-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/2  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/4 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/4  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/3  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/5 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/5  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/1 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/4  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/3 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/3-1 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/4-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/4-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/5  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/1 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/1-1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-2/1-2 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/3-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/3-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/1 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/1 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/1  scene=outdoor              audio=(official loader)
+  - big_indoor/large_supermarket/2_badcase scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/2 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/2  scene=outdoor              audio=(official loader)
+  - big_indoor/large_supermarket/3 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/3 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/3  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/4-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/4-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/4-3 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/1-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/1-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/4 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/4 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/4.1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-1/4.2 scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/5 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/5 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/5 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/5.1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-1/5.2 scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/3-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/3-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-3 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-4 scene=small_indoor         audio=(official loader)
+[model] FalconRuntime loaded in 15.5s device=cuda
+  [1/54] big_indoor/large_mall/1  used=111.44s  SIG=2.744 BAK=3.027 OVRL=2.138 P808=2.749
+  [2/54] mid_indoor/billiard_hall/2  used=126.48s  SIG=3.159 BAK=3.139 OVRL=2.475 P808=3.208
+  [3/54] outdoor/street_side-2/2-1  used=29.68s  SIG=3.056 BAK=3.267 OVRL=2.413 P808=2.916
+  [4/54] outdoor/street_side-2/2-2  used=108.04s  SIG=2.858 BAK=3.031 OVRL=2.230 P808=2.820
+  [5/54] small_indoor/study_room/5-1  used=38.72s  SIG=3.595 BAK=3.700 OVRL=3.107 P808=3.936
+  [6/54] small_indoor/study_room/5-2  used=74.64s  SIG=3.634 BAK=3.890 OVRL=3.223 P808=3.770
+  [7/54] big_indoor/large_mall/2  used=108.88s  SIG=2.708 BAK=3.229 OVRL=2.209 P808=2.728
+  [8/54] mid_indoor/billiard_hall/4  used=118.88s  SIG=2.392 BAK=3.364 OVRL=1.981 P808=2.661
+  [9/54] outdoor/street_side-2/4  used=131.28s  SIG=2.841 BAK=3.306 OVRL=2.316 P808=2.736
+  [10/54] small_indoor/classroom/2  used=120.72s  SIG=3.468 BAK=3.719 OVRL=2.998 P808=3.472
+  [11/54] big_indoor/large_mall/3  used=135.84s  SIG=2.381 BAK=3.384 OVRL=1.971 P808=2.514
+  [12/54] mid_indoor/billiard_hall/5  used=153.40s  SIG=2.580 BAK=3.573 OVRL=2.184 P808=2.619
+  [13/54] outdoor/street_side-2/5  used=141.96s  SIG=2.555 BAK=3.459 OVRL=2.103 P808=2.715
+  [14/54] small_indoor/classroom/1  used=123.68s  SIG=3.045 BAK=3.421 OVRL=2.475 P808=2.997
+  [15/54] big_indoor/large_mall/4  used=134.16s  SIG=2.950 BAK=3.636 OVRL=2.553 P808=3.100
+  [16/54] mid_indoor/billiard_hall/3  used=121.32s  SIG=2.685 BAK=3.436 OVRL=2.242 P808=2.857
+  [17/54] outdoor/street_side-2/3-1  used=142.16s  SIG=2.769 BAK=3.522 OVRL=2.340 P808=2.759
+  [18/54] small_indoor/study_room/4-1  used=55.00s  SIG=3.401 BAK=3.837 OVRL=3.013 P808=3.789
+  [19/54] small_indoor/study_room/4-2  used=79.16s  SIG=3.552 BAK=3.898 OVRL=3.171 P808=3.865
+  [20/54] big_indoor/large_mall/5  used=98.24s  SIG=3.398 BAK=3.889 OVRL=2.987 P808=3.533
+  [21/54] mid_indoor/billiard_hall/1  used=118.84s  SIG=2.423 BAK=3.600 OVRL=2.061 P808=2.698
+  [22/54] outdoor/street_side-2/1-1  used=77.72s  SIG=3.391 BAK=3.827 OVRL=3.004 P808=3.486
+  [23/54] outdoor/street_side-2/1-2  used=60.88s  SIG=3.529 BAK=3.879 OVRL=3.142 P808=3.612
+  [24/54] small_indoor/study_room/3-1  used=58.00s  SIG=3.543 BAK=3.927 OVRL=3.179 P808=3.604
+  [25/54] small_indoor/study_room/3-2  used=57.56s  SIG=3.519 BAK=3.967 OVRL=3.169 P808=3.524
+  [26/54] big_indoor/large_supermarket/1  used=139.40s  SIG=3.272 BAK=3.646 OVRL=2.779 P808=3.019
+  [27/54] mid_indoor/internet_cafe/1  used=125.76s  SIG=2.869 BAK=3.735 OVRL=2.451 P808=2.890
+  [28/54] outdoor/street_side-1/1  used=124.76s  SIG=3.361 BAK=3.596 OVRL=2.854 P808=3.201
+  [29/54] big_indoor/large_supermarket/2_badcase  used=125.00s  SIG=2.988 BAK=3.326 OVRL=2.442 P808=2.970
+  [30/54] mid_indoor/internet_cafe/2  used=122.36s  SIG=3.090 BAK=3.651 OVRL=2.620 P808=3.163
+  [31/54] outdoor/street_side-1/2  used=95.88s  SIG=3.426 BAK=3.777 OVRL=2.997 P808=3.515
+  [32/54] big_indoor/large_supermarket/3  used=118.12s  SIG=3.356 BAK=3.654 OVRL=2.887 P808=3.574
+  [33/54] mid_indoor/internet_cafe/3  used=123.36s  SIG=3.105 BAK=3.586 OVRL=2.656 P808=3.324
+  [34/54] outdoor/street_side-1/3  used=120.64s  SIG=3.487 BAK=3.844 OVRL=3.104 P808=3.571
+  [35/54] small_indoor/classroom/4-1  used=39.96s  SIG=3.552 BAK=4.056 OVRL=3.233 P808=3.700
+  [36/54] small_indoor/classroom/4-2  used=39.96s  SIG=3.540 BAK=4.037 OVRL=3.218 P808=3.675
+  [37/54] small_indoor/classroom/4-3  used=41.20s  SIG=3.525 BAK=4.038 OVRL=3.199 P808=3.725
+  [38/54] small_indoor/study_room/1-1  used=87.76s  SIG=3.567 BAK=3.791 OVRL=3.126 P808=3.776
+  [39/54] small_indoor/study_room/1-2  used=50.68s  SIG=3.595 BAK=3.814 OVRL=3.158 P808=3.768
+  [40/54] big_indoor/large_supermarket/4  used=126.56s  SIG=3.277 BAK=3.641 OVRL=2.793 P808=3.250
+  [41/54] mid_indoor/internet_cafe/4  used=128.36s  SIG=2.927 BAK=3.742 OVRL=2.513 P808=3.195
+  [42/54] outdoor/street_side-1/4.1  used=101.96s  SIG=3.375 BAK=3.860 OVRL=3.009 P808=3.396
+  [43/54] outdoor/street_side-1/4.2  used=26.40s  SIG=3.461 BAK=3.731 OVRL=3.027 P808=3.492
+  [44/54] small_indoor/classroom/5  used=121.36s  SIG=2.897 BAK=3.630 OVRL=2.440 P808=3.046
+  [45/54] big_indoor/large_supermarket/5  used=136.96s  SIG=3.543 BAK=3.955 OVRL=3.174 P808=3.657
+  [46/54] mid_indoor/internet_cafe/5  used=122.52s  SIG=3.164 BAK=3.812 OVRL=2.757 P808=3.495
+  [47/54] outdoor/street_side-1/5.1  used=91.08s  SIG=3.476 BAK=3.963 OVRL=3.142 P808=3.678
+  [48/54] outdoor/street_side-1/5.2  used=36.28s  SIG=3.528 BAK=3.967 OVRL=3.192 P808=3.664
+  [49/54] small_indoor/classroom/3-1  used=65.00s  SIG=3.425 BAK=3.850 OVRL=3.042 P808=3.680
+  [50/54] small_indoor/classroom/3-2  used=64.76s  SIG=3.452 BAK=3.817 OVRL=3.052 P808=3.652
+  [51/54] small_indoor/study_room/2-1  used=20.64s  SIG=3.595 BAK=3.909 OVRL=3.224 P808=3.820
+  [52/54] small_indoor/study_room/2-2  used=35.24s  SIG=3.628 BAK=4.067 OVRL=3.321 P808=3.862
+  [53/54] small_indoor/study_room/2-3  used=55.96s  SIG=3.585 BAK=3.917 OVRL=3.207 P808=3.717
+  [54/54] small_indoor/study_room/2-4  used=23.04s  SIG=3.687 BAK=4.036 OVRL=3.363 P808=3.596
+
+[realssa-real] CSV -> /root/data/falcon_eval/realssa_real_mean_full3/realssa_real_dnsmos_per_segment.csv
+[realssa-real] summary -> /root/data/falcon_eval/realssa_real_mean_full3/summary.json
+[realssa-real] N=54  SIG=3.2209 BAK=3.6921 OVRL=2.7901 P808=3.3285
+exit=0

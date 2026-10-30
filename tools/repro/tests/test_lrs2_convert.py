@@ -243,3 +243,76 @@ def test_mix_sum_mismatch_is_reported(fake_src: Path, tmp_path: Path):
     stats = _load_json(out / "conversion_stats.json")
     problems = stats["validation"]["tr"]["problems"]
     assert any("mix-(s1+s2)" in p for p in problems)
+
+
+# ---------------------------------------------------------------------------
+# --near-mode other-speaker (K=1, the other source waveform of the same mixture)
+# ---------------------------------------------------------------------------
+def test_near_mode_other_speaker_target_s1(fake_src: Path, tmp_path: Path):
+    """target=s1 -> near = the same mixture's s2 wav (K=1, deterministic)."""
+    out = tmp_path / "falcon_other_s1"
+    res = _run(["--src", str(fake_src), "--out", str(out), "--splits", "tr", "--limit", "2",
+                "--near-mode", "other-speaker", "--jobs", "2", "--validate-samples", "10"])
+    assert res.returncode == 0, res.stderr
+    mix_json = _load_json(out / "tr" / "mix.json")
+    near_json = _load_json(out / "tr" / "near.json")
+    assert len(mix_json) == len(near_json) == 2
+    for (mix_path, _n), near_entry in zip(mix_json, near_json):
+        # schema must match the on-disk dataset: [[abs_other_speaker_wav, n_samples]]
+        assert isinstance(near_entry, list) and len(near_entry) == 1
+        near_path, near_n = near_entry[0]
+        assert isinstance(near_path, str) and Path(near_path).is_absolute()
+        assert near_n == N
+        stem = Path(mix_path).stem
+        expect = (fake_src / "audio/wav16k/min/tr/s2" / f"{stem}.wav").resolve()
+        assert Path(near_path) == expect
+        assert Path(near_path) != Path(mix_path)
+        info = sf.info(near_path)
+        assert (info.samplerate, info.channels, info.frames) == (SR, 1, N)
+        # the near waveform is exactly s2 (not the mixture)
+        near, _ = sf.read(near_path, dtype="float32")
+        s2, _ = sf.read(str(expect), dtype="float32")
+        mix, _ = sf.read(mix_path, dtype="float32")
+        assert np.max(np.abs(near - s2)) == 0.0
+        assert np.max(np.abs(near - mix)) > 1e-3
+    stats = _load_json(out / "conversion_stats.json")
+    assert stats["near_mode"] == "other-speaker" and stats["target"] == "s1"
+    assert stats["validation"]["tr"]["problems"] == []
+    assert stats["validation"]["tr"]["near_ok"] == 2
+
+
+def test_near_mode_other_speaker_target_s2(fake_src: Path, tmp_path: Path):
+    """target=s2 -> near = the same mixture's s1 wav; target audio/mouth follow s2."""
+    out = tmp_path / "falcon_other_s2"
+    res = _run(["--src", str(fake_src), "--out", str(out), "--splits", "tr", "--limit", "2",
+                "--target", "s2", "--near-mode", "other-speaker", "--jobs", "2",
+                "--validate-samples", "10"])
+    assert res.returncode == 0, res.stderr
+    target_json = _load_json(out / "tr" / "target.json")
+    near_json = _load_json(out / "tr" / "near.json")
+    assert len(target_json) == len(near_json) == 2
+    for (tgt_path, mouth_path, _n), near_entry in zip(target_json, near_json):
+        stem = Path(tgt_path).stem
+        s1 = (fake_src / "audio/wav16k/min/tr/s1" / f"{stem}.wav").resolve()
+        s2 = (fake_src / "audio/wav16k/min/tr/s2" / f"{stem}.wav").resolve()
+        assert Path(tgt_path).read_bytes() == s2.read_bytes()
+        parts = stem.split("_")
+        assert Path(mouth_path).stem == "_".join(parts[3:5])  # mouth belongs to the s2 utterance
+        assert len(near_entry) == 1
+        assert Path(near_entry[0][0]) == s1
+        assert near_entry[0][1] == N
+    stats = _load_json(out / "conversion_stats.json")
+    assert stats["near_mode"] == "other-speaker" and stats["target"] == "s2"
+    assert all(not v["problems"] for v in stats["validation"].values())
+
+
+def test_near_mode_other_speaker_dry_run_reports_counts(fake_src: Path, tmp_path: Path):
+    out = tmp_path / "other_speaker_should_not_exist"
+    res = _run(["--src", str(fake_src), "--out", str(out), "--splits", "tr",
+                "--near-mode", "other-speaker", "--dry-run"])
+    assert res.returncode == 0, res.stderr
+    assert "near-mode=other-speaker" in res.stdout
+    assert "planned near entries" in res.stdout
+    assert "target=s1 -> near=s2" in res.stdout
+    assert "dry-run: nothing written" in res.stdout
+    assert not out.exists()

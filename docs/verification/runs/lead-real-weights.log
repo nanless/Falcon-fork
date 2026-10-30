@@ -1,0 +1,67 @@
+
+==============================================================================
+A. falcon.pt 顶层结构与 key 前缀
+==============================================================================
+file=falcon.pt size=47,156,343B type=dict
+top-level keys: ['state_dict', 'architecture', 'epoch']
+state_dict?  True | entries: 662
+prefix counts: {'audio_model': 525, 'video_model': 137}
+non-audio/video keys: 0 []
+tensor dtypes: ['torch.float32', 'torch.int64']
+  meta[architecture]: str FalconSpeakerContrastive
+  meta[epoch]: int 714
+audio_model.* = 525 keys, video_model.* = 137 keys
+has optimizer state? False | has epoch? True
+
+==============================================================================
+B. 训练侧 look2hear：strict 加载真实权重
+==============================================================================
+training audio_model strict load: OK (missing/unexpected returned empty)
+  params = 537,697
+training video_model strict load: OK
+  params = 11,186,688
+
+==============================================================================
+C. Studio 侧 falcon_model：strict 加载 + 与训练侧 bit-identical 前向
+==============================================================================
+studio audio_model strict load: OK, params = 537,697
+eval-mode forward: train (1, 1, 32000) vs studio (1, 1, 32000), max|Δ| = 0.000e+00
+bit-identical: True
+train-mode tuple shapes: (1, 1, 32000) (1, 1, 112, 251, 129)
+train-mode est max|Δ| = 0.000e+00 | sep_emb max|Δ| = 0.000e+00
+
+==============================================================================
+D. FalconRuntime 真实加载 + 2s 窗口 infer
+==============================================================================
+status: {'ready': True, 'variant': 'small', 'architecture': 'FalconSpeakerContrastive', 'device': 'cpu', 'checkpoint': 'falcon.pt', 'sample_rate': 16000, 'video_fps': 25, 'window_seconds': 2.0, 'audio_weight_keys': 525, 'video_weight_keys': 137, 'parameters': 11724385, 'warmup_ms': 2472.2, 'mode': 'windowed_audio_visual'}
+infer output: (32000,) float32 | finite: True
+preprocess_mouth: (1, 1, 50, 88, 88) torch.float32 min/max = -0.0084/-0.0084
+runtime window output shape check: (1, 1, 32000) | runtime vs manual max|Δ| = 0.0
+
+==============================================================================
+E. falcon-big.pt + SpeakerContrastiveV2
+==============================================================================
+file=falcon-big.pt size=49,645,087B type=dict
+top-level keys: ['state_dict', 'architecture', 'epoch']
+state_dict?  True | entries: 654
+prefix counts: {'audio_model': 517, 'video_model': 137}
+non-audio/video keys: 0 []
+tensor dtypes: ['torch.float32', 'torch.int64']
+  meta[architecture]: str SpeakerContrastiveV2
+  meta[epoch]: int 715
+big audio keys=517, video keys=137
+big strict load OK: audio=1,158,617 video=11,186,688 total=12,345,305 (README 12.35M)
+
+==============================================================================
+F. audio_visual_test 的 ckpt['state_dict'] 假设
+==============================================================================
+falcon.pt 顶层是否有 state_dict: True
+audio_visual_test._load_models_from_ckpt 只做 ckpt['state_dict'] -> 可行
+state_dict 中 audio_model./video_model. 前缀 -> 该函数 strip 前缀后 strict=False 加载 -> 可工作（前提 conf.yml audionet_name 正确）
+
+==============================================================================
+汇总
+==============================================================================
+small: audio keys 525 video keys 137 | params 11,724,385
+big  : audio keys 517 video keys 137 | params 12,345,305
+DONE

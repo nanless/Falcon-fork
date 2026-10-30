@@ -1,0 +1,71 @@
+=== [T1-1] env ===
+Python 3.11.17
+torch 2.8.0+cu128 cuda True devices 2
+
+=== [T1-2] AST parse / undefined names ===
+AST OK
+undefined globals: NONE
+
+=== [T1-3] gpus resolver matrix (incl. negative semantics) ===
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+ WARNING: config requests GPU devices [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] but only 
+[0, 1] visible -> using [0, 1]
+  indices [0..9] (Falcon.yml)      -> ('gpu', [0, 1], 2, <pytorch_lightning.strategies.ddp.DDPStrategy object at 0x7f7a20a15990>)
+  indices [1] (GPU 1, not GPU0)    -> ('gpu', [1], 1, 'auto')
+  indices '0,1'                    -> ('gpu', [0, 1], 2, <pytorch_lightning.strategies.ddp.DDPStrategy object at 0x7f7a1f42b250>)
+ WARNING: config requests 8 GPU(s) but only 2 visible -> using 2
+  count 8 (clamped to 2)           -> ('gpu', 2, 2, <pytorch_lightning.strategies.ddp.DDPStrategy object at 0x7f7a20a15990>)
+  count -1 (legacy = all)          -> ('gpu', [0, 1], 2, <pytorch_lightning.strategies.ddp.DDPStrategy object at 0x7f75d9a2e6d0>)
+ WARNING: legacy training.gpus=0 -> running on CPU
+  count 0 (legacy = CPU)           -> ('cpu', 1, 1, 'auto')
+  count -2 (invalid)               -> ValueError: training.gpus=-2 is not supported: use -1 for all visible GPUs, 0 for CPU, a positive GPU count, or a list of GPU indices
+  none                             -> ('gpu', [0], 1, 'auto')
+  empty []                         -> ValueError: training.gpus is an empty list; provide GPU indices (e.g. [0, 1]), a GPU count (e.g. 2), or omit the key to use a single GPU
+  out-of-range [7]                 -> ValueError: training.gpus=[7] does not match any visible GPU (visible: [0, 1]); on this machine use e.g. [0] or a GPU count
+  duplicate [0,0]                  -> ValueError: training.gpus=[0, 0] contains duplicate GPU indices
+  bool True                        -> ValueError: training.gpus must be int/list/str/None, got bool True
+  no CUDA                          -> ('cpu', 1, 1, 'auto')
+
+=== [T1-4] main() -> Trainer construction with fakes (no real training) ===
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+ config snapshot (deepcopy) -> 
+/tmp/T1-main-gat6zwaz/Experiments/checkpoint/Falcon/conf.yml
+ use_near = True
+Instantiating datamodule: AVSpeechDataModuleWithNear (use_near=True)
+Instantiating AudioNet <FalconSpeakerContrastive>
+Instantiating Optimizer <adamw>
+Instantiating Scheduler <ReduceLROnPlateau>
+Instantiating Loss  train=<pairwise_neg_snr>  val=<pairwise_neg_sisdr>
+[NASS v2] weight=1.0 margin=0.5 alpha_pos=1.0 alpha_neg=1.0 beta=0.0→1.0 over 
+200 epochs
+ logger = CSVLogger
+ WARNING: config requests GPU devices [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] but only 
+[0, 1] visible -> using [0, 1]
+ accelerator=gpu devices=[0, 1] num_devices=2 strategy=DDPStrategy
+  max_epochs = 1000
+  accelerator = gpu
+  devices = [0, 1]
+  strategy = <pytorch_lightning.strategies.ddp.DDPStrategy object at 0x7f56a90302d0>
+  limit_train_batches = 1.0
+  gradient_clip_val = 5.0
+  sync_batchnorm = True
+  num_sanity_val_steps = 0
+  default_root_dir = /tmp/T1-main-gat6zwaz/Experiments/checkpoint/Falcon
+  logger = CSVLogger | log_dir = /tmp/T1-main-gat6zwaz/Experiments/checkpoint/Falcon/version_0
+  callbacks = ['ModelCheckpoint', 'EarlyStopping']
+  dumped conf: audio_params repeats/shared = True True | causal (should be False) = False
+  dumped conf: video_params repeats/shared = True True
+  runtime cfg polluted by real model build: repeats in audio_params = False
+  dumped conf exp_dir = /tmp/T1-main-gat6zwaz/Experiments/checkpoint/Falcon
+
+=== [T1-5] configs/Falcon.yml: comments only, parsed values identical to main ===
+parsed config equal to main: True
+training.gpus: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] | training.logger key present: False
+training keys: ['early_stop', 'epochs', 'gpus', 'parallel', 'system']
+
+=== [T1-6] full-suite known failure (QA regression whitelist) ===
+FAILED tools/repro/tests/test_phase1_regression.py::test_diff_scope_only_allowed_files
+1 failed, 76 passed, 43 warnings in 55.88s
+  cause: tools/repro/tests/test_phase1_regression.py ALLOWED_TRACKED 未包含 configs/Falcon.yml（Lead 刚授权我加注释），需 QA owner 加一行白名单；其余 76 项全过。

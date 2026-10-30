@@ -1,0 +1,41 @@
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/setup.py:175: GPU available but not used. You can set it by doing `Trainer(accelerator='gpu')`.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:881: Checkpoint directory /tmp/plprobe_p6xjhd_e exists and is not empty.
+┏━━━┳━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃   ┃ Name ┃ Type   ┃ Params ┃ Mode  ┃ FLOPs ┃
+┡━━━╇━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 0 │ lin  │ Linear │      5 │ train │     0 │
+└───┴──────┴────────┴────────┴───────┴───────┘
+Trainable params: 5                                                             
+Non-trainable params: 0                                                         
+Total params: 5                                                                 
+Total estimated model params size (MB): 0.000                                   
+Modules in train mode: 1                                                        
+Modules in eval mode: 0                                                         
+Total FLOPs: 0                                                                  
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py:321: The number of training batches (2) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+Metric val_loss/dataloader_idx_0 improved. New best score: 2.850
+Epoch 0, global step 2: 'val_loss/dataloader_idx_0' reached 2.85009 (best 2.85009), saving model to '/tmp/plprobe_p6xjhd_e/epoch=0.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.005 >= min_delta = 0.0. New best score: 2.845
+Epoch 1, global step 4: 'val_loss/dataloader_idx_0' reached 2.84512 (best 2.84512), saving model to '/tmp/plprobe_p6xjhd_e/epoch=1.ckpt' as top 5
+`Trainer.fit` stopped: `max_epochs=2` reached.
+### ModelCheckpoint kwargs: OK
+### EarlyStopping kwargs: OK
+### fit(cpu,CSVLogger,2 val loaders): OK
+### logged val keys: ['lr', 'test_loss/dataloader_idx_1', 'train_loss_epoch', 'train_loss_step', 'val_loss/dataloader_idx_0']
+### val_hook_log: self.log in on_validation_epoch_end: OK
+### comet_api: logger.experiment.log(dict) FAILED: AttributeError: 'ExperimentWriter' object has no attribute 'log'
+### best_model_path: /tmp/plprobe_p6xjhd_e/epoch=1.ckpt
+### best_k_models: {'epoch=0.ckpt': ('Tensor', tensor(2.8501)), 'epoch=1.ckpt': ('Tensor', tensor(2.8451))}
+### v.item(): {'epoch=0.ckpt': 2.850085973739624, 'epoch=1.ckpt': 2.8451218605041504}
+### torch.load(default): OK, keys=['callbacks', 'epoch', 'global_step', 'loops', 'lr_schedulers', 'optimizer_states', 'pytorch-lightning_version', 'state_dict']
+### Trainer(devices=None,accelerator=None,strategy=DDP): FAILED: ValueError: You selected an invalid accelerator name: `accelerator=None`. Available names are: auto, tpu, mps, cuda, cpu.
+### Trainer(devices=[0..9],cuda): FAILED: MisconfigurationException: You requested gpu: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+ But your machine only has: [0, 1]
+### torch.cuda.is_available: True
+### pl.__version__: 2.6.6
+### torch.__version__: 2.8.0+cu128

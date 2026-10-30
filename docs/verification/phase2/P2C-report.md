@@ -158,3 +158,12 @@ val batch  : mix (1, 32000) | mouth (1, 50, 88, 88) | n_near (1,)
 
 - **LRS2-2Mix 全量 28000 条已转换完成**，`{tr,cv,tt}/{mix,target,mouths}` + `mix/target/near.json` 全部就绪，抽样/全量存在性/训练侧 DataModule 三层验证通过；train-sys 可立即用 `configs/LRS2_2Mix.yml` 启动 P2-D 训练。
 - 数据侧唯一缺口是 near 负样本（数据发布物限制），已在 `near.json` 中如实 fallback，并在本报告与 `docs/REPRODUCTION_PLAN.md` 中标注；任何训练结果需同时声明 “K=0 / 无对比负项”。
+
+---
+
+## 12 补记（2026-10-24，P0-3 / task-12）：near.json 的 s2 负样本来源
+
+> 本报告 §5 与 `conversion_stats.json` 的 "near=fallback（K=0）" 只描述 **2026-10-21 的首次转换**。
+> 自 **2026-10-22T16:37:54Z** 起，磁盘 `/root/data/falcon_lrs2_2mix/{tr,cv,tt}/near.json` 已被一条未入库命令原地改写为 **"s2 作 near"（K=1，每条 `[[abs_s2_wav, 32000]]`）**；P2-D 的 contrastive 微调（test SI-SNRi 8.618→8.858 / SDRi 9.042→9.270，+0.24/+0.23 dB）用的就是这一版。
+> 该改写现已固化为 `tools/repro/lrs2_2mix_to_falcon.py --near-mode other-speaker`（确定性、K=1），可一键重建与磁盘**逐条同构**的 `near.json`；5 条真实样本验证路径/n_samples 完全一致且 `near==s2`（max|Δ|=0.0），单测 `pytest tools/repro/tests/test_lrs2_convert.py` → 10 passed。
+> 漂移原因、时间线、重建命令与 P2-D 数据来源详见 **`docs/verification/phase2/P2C-near-mode-provenance.md`**；重跑转换器后 `conversion_stats.near_mode` 会如实变为 `other-speaker`。

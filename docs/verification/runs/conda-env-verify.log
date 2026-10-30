@@ -1,0 +1,55 @@
+=== Falcon 专属 conda 环境验证记录 (2026-10-21T10:54:09+00:00) ===
+env: /root/miniforge3/envs/falcon (conda/mamba: /root/miniforge3)
+
+--- python & packages ---
+Python 3.11.17
+torch==2.8.0+cu128
+torchaudio==2.8.0+cu128
+torchvision==0.23.0+cu128
+triton==3.4.0
+pytorch-lightning==2.6.6
+torchmetrics==1.9.0
+numpy==2.2.6
+scipy==1.17.1
+pandas==3.0.6
+typeguard==2.13.3
+timm==1.0.30
+librosa==0.11.0
+torch-complex==0.4.4
+opencv-python==5.0.0.93
+matplotlib==3.11.2
+fast-bss-eval==0.1.4
+torch-mir-eval==0.4
+pystoi==0.4.1
+ptflops==0.7.5
+pesq==0.0.4
+fastapi==0.156.8
+uvicorn==0.54.0
+Pillow==13.0.0
+huggingface-hub==2.2.0
+einops==0.8.2
+pytest==9.1.1
+httpx==0.28.1
+
+--- project entry imports (real deps) ---
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+look2hear + entry points import OK
+
+--- model params ---
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+audio params: 537,697
+video params: 11,186,688
+
+--- GPU ---
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+cuda=NVIDIA A800-SXM4-80GB 2s-window=54.6 ms est=(1, 1, 32000)
+
+--- Studio pytest ---
+....ss...............................                                    [100%]
+35 passed, 2 skipped in 20.70s
+
+--- Node tests ---
+node: ok=8 fail=0

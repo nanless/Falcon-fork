@@ -1,0 +1,25 @@
+=== R4 cross-checks for 02-layers-dsp review (train-sys) ===
+
+--- [X1] encoder->decoder chain sample-level causality (isolate cLNhw/separator) ---
+perturb s=16000: first changed output sample=16001 (delta=1), max|d|=8.133e-01
+perturb s=20000: first changed output sample=19969 (delta=-31), max|d|=6.822e-01
+
+--- [X2] layers/stft.py vs utils/stft.py diff / md5 (whitespace-removed) ---
+4
+3f7053135a33126c8d2a078b98fc2927  -
+3f7053135a33126c8d2a078b98fc2927  -
+
+--- [X3] CumulateLN defined twice ---
+51:class CumulateLN(MLayerNorm):
+91:class CumulateLN(nn.Module):
+165:class CumulateLN4D(nn.Module):
+
+--- [X4] submodule parameter ledger (02 A56/A58) ---
+encoder: 3,024
+audio_bottleneck: 13,104
+separator: 492,312
+mask_generator: 12,657
+decoder: 2,016
+audio path total: 523,113
+spk_pool_proj: 14,584
+total: 537,697

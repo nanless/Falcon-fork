@@ -1,0 +1,177 @@
+# T4 data-check log — 2026-10-21T16:32:11Z
+
+## 0. environment / branch / scope
+$ git branch --show-current
+repro/phase1
+$ python -V
+Python 3.11.17
+$ git status --porcelain | grep -E "look2hear/datas|tools/repro|docs/verification/phase1"
+ M look2hear/datas/avspeech_dataset.py
+ M look2hear/datas/check_avspeech_dataset.py
+
+## 1. F5 fix diff (avspeech_dataset.py + check copy)
+$ git diff --stat look2hear/datas
+ look2hear/datas/avspeech_dataset.py       | 15 +++++++++++----
+ look2hear/datas/check_avspeech_dataset.py | 10 ++++++----
+ 2 files changed, 17 insertions(+), 8 deletions(-)
+
+$ grep -n "F5 fix" look2hear/datas/*.py
+look2hear/datas/avspeech_dataset.py:114:        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): `sf.read` returns (samples,) for mono
+look2hear/datas/avspeech_dataset.py:198:        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): mono wav -> keep 1-D; multi-channel -> channel mean.
+look2hear/datas/check_avspeech_dataset.py:121:        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): keep mono 1-D; only average channels when present.
+look2hear/datas/check_avspeech_dataset.py:202:        # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): keep mono 1-D; only average channels when present.
+
+## 2. synthetic data generator
+$ python tools/repro/make_synthetic_data.py --out /tmp/t4_smoke/data --n 2 --seconds 3 --seed 0
+  Wrote 2 entries to /tmp/t4_smoke/data/tr/near.json  (missing/fallback: 0, near_per_sample min=1 max=1 avg=1.00)
+  Wrote 2 entries to /tmp/t4_smoke/data/cv/near.json  (missing/fallback: 0, near_per_sample min=1 max=1 avg=1.00)
+  Wrote 2 entries to /tmp/t4_smoke/data/tt/near.json  (missing/fallback: 0, near_per_sample min=1 max=1 avg=1.00)
+[make_synthetic_data] wrote 3 split(s) under /tmp/t4_smoke/data
+[make_synthetic_data] duration = 3.00s (48000 samples @ 16000 Hz, 75 mouth frames @ 25 fps)
+  tr: 2 utterance(s) | mix.json=/tmp/t4_smoke/data/tr/mix.json target.json=/tmp/t4_smoke/data/tr/target.json near.json=/tmp/t4_smoke/data/tr/near.json
+  cv: 2 utterance(s) | mix.json=/tmp/t4_smoke/data/cv/mix.json target.json=/tmp/t4_smoke/data/cv/target.json near.json=/tmp/t4_smoke/data/cv/near.json
+  tt: 2 utterance(s) | mix.json=/tmp/t4_smoke/data/tt/mix.json target.json=/tmp/t4_smoke/data/tt/target.json near.json=/tmp/t4_smoke/data/tt/near.json
+
+DataModule config snippet (configs/Falcon.yml -> datamodule.data_config):
+  train_dir: /tmp/t4_smoke/data/tr
+  valid_dir: /tmp/t4_smoke/data/cv
+  test_dir:  /tmp/t4_smoke/data/tt
+
+Reminder: synthetic data is for pipeline smoke tests only (not for metrics).
+
+$ find /tmp/t4_smoke/data -maxdepth 2 -type d | sort
+/tmp/t4_smoke/data
+/tmp/t4_smoke/data/cv
+/tmp/t4_smoke/data/cv/mix
+/tmp/t4_smoke/data/cv/mouths
+/tmp/t4_smoke/data/cv/near
+/tmp/t4_smoke/data/cv/target
+/tmp/t4_smoke/data/tr
+/tmp/t4_smoke/data/tr/mix
+/tmp/t4_smoke/data/tr/mouths
+/tmp/t4_smoke/data/tr/near
+/tmp/t4_smoke/data/tr/target
+/tmp/t4_smoke/data/tt
+/tmp/t4_smoke/data/tt/mix
+/tmp/t4_smoke/data/tt/mouths
+/tmp/t4_smoke/data/tt/near
+/tmp/t4_smoke/data/tt/target
+
+$ ls /tmp/t4_smoke/data/tr/*.json
+/tmp/t4_smoke/data/tr/mix.json
+/tmp/t4_smoke/data/tr/near.json
+/tmp/t4_smoke/data/tr/target.json
+
+## 3. dataset-level checks (train + eval + DataModule loaders)
+$ python - <<PY  (see log body)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 2 entries.
+Drop 0 utts(0.00 h) from 2 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 2/2 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/t4_smoke/data/tr/near/tr_00001_near0.wav
+train item: mix (32000,) torch.float32 | src (32000,) | mouth (50, 88, 88) float64 | near K 1 [(32000,)] | name tr_00000.wav
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+eval item : mix (48000,) ndim 1 | src (48000,) | mouth (75, 88, 88) | n_near 1 | mix[None] (1, 48000) | mouth[None,None] (1, 1, 75, 88, 88)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 2 entries.
+Drop 0 utts(0.00 h) from 2 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 2/2 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/t4_smoke/data/tr/near/tr_00001_near0.wav
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+train batch: mix (2, 32000) torch.float32 | mouth (2, 50, 88, 88) torch.float64 | near K per sample [1, 1] | near elem (32000,)
+val batch  : mix (1, 48000) | mouth (1, 75, 88, 88) | n_near (1,)
+OK: synthetic-data train/eval/DataModule checks passed
+
+## 4. T4 tests: pytest tools/repro/tests/test_synthetic_data.py tools/repro/tests/test_realssa_convert.py
+$ PYTHONPATH=$PWD python -m pytest tools/repro/tests/test_synthetic_data.py tools/repro/tests/test_realssa_convert.py -q
+..........                                                               [100%]
+10 passed in 17.11s
+
+## 5. full tools/repro/tests snapshot (includes other tasks' in-flight test files)
+$ PYTHONPATH=$PWD python -m pytest tools/repro/tests -q | tail -12
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('val_pit_sisnr_1near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('test_pit_sisnr', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_expands_env_placeholders
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_data_dir_override
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_unresolved_placeholder_raises
+3 failed, 67 passed, 43 warnings in 55.55s
+
+## 6. studio regression: pytest studio/tests -q (Lead-requested)
+$ python -m pytest studio/tests -q
+....ss...............................                                    [100%]
+35 passed, 2 skipped in 16.02s
+
+## 7. RealSSA converter end-to-end on a *fake* WebDataset tar (no gated data)
+$ python - <<PY   # build fake shard with published member layout
+fake shard: /tmp/t4_smoke/RealSSA-Sim/tt/tt-000000.tar 5539840 bytes
+
+$ python tools/repro/realssa_to_falcon.py --src /tmp/t4_smoke/RealSSA-Sim --out /tmp/t4_smoke/realssa_falcon --splits tt --channel 0
+[realssa_to_falcon] split tt: 1 shard(s)
+  tt: converted 2 sample(s); skipped incomplete=1, errors=0
+[realssa_to_falcon] building mix/target/near JSON via DataPreProcess for ['tt']
+  0%|          | 0/4 [00:00<?, ?it/s]100%|██████████| 4/4 [00:00<00:00, 21454.24it/s]
+  0%|          | 0/2 [00:00<?, ?it/s]100%|██████████| 2/2 [00:00<00:00, 13378.96it/s]
+near.json:   0%|          | 0/2 [00:00<?, ?it/s]near.json: 100%|██████████| 2/2 [00:00<00:00, 7244.05it/s]
+  Wrote 2 entries to /tmp/t4_smoke/realssa_falcon/tt/near.json  (missing/fallback: 2, near_per_sample min=1 max=1 avg=1.00)
+  tt: mix.json=/tmp/t4_smoke/realssa_falcon/tt/mix.json target.json=/tmp/t4_smoke/realssa_falcon/tt/target.json near.json=/tmp/t4_smoke/realssa_falcon/tt/near.json (2 samples)
+
+[realssa_to_falcon] NOTE: RealSSA-Sim ships no near-speaker waveforms and no external --near-dir was supplied.
+  near.json entries fall back to mixture sentinels -> the dataset skips them -> K=0 -> the NASS contrastive loss stays inactive.
+  This matches the released-data limitation (docs/REPRODUCTION_PLAN.md §5.1 Step 4); pass --near-dir to use compatible external negatives.
+
+[realssa_to_falcon] done. Point the DataModule at: train_dir=/tmp/t4_smoke/realssa_falcon/tr valid_dir=/tmp/t4_smoke/realssa_falcon/cv test_dir=/tmp/t4_smoke/realssa_falcon/tt
+
+$ find /tmp/t4_smoke/realssa_falcon -maxdepth 3 -type f | sort
+/tmp/t4_smoke/realssa_falcon/tt/mix.json
+/tmp/t4_smoke/realssa_falcon/tt/mix/00001_01_87828.wav
+/tmp/t4_smoke/realssa_falcon/tt/mix/00001_01_87828_meta.json
+/tmp/t4_smoke/realssa_falcon/tt/mix/00002_05_59973.wav
+/tmp/t4_smoke/realssa_falcon/tt/mix/00002_05_59973_meta.json
+/tmp/t4_smoke/realssa_falcon/tt/mouths/00001_01_87828.pt
+/tmp/t4_smoke/realssa_falcon/tt/mouths/00002_05_59973.pt
+/tmp/t4_smoke/realssa_falcon/tt/near.json
+/tmp/t4_smoke/realssa_falcon/tt/target.json
+/tmp/t4_smoke/realssa_falcon/tt/target/00001_01_87828.wav
+/tmp/t4_smoke/realssa_falcon/tt/target/00002_05_59973.wav
+
+$ python - <<PY   # inspect converted outputs
+  00001_01_87828: audio 48000 samples / 1ch @ 16000 | mouths (75, 96, 96, 3) torch.uint8 | frames==samples/640: True
+  00002_05_59973: audio 38400 samples / 1ch @ 16000 | mouths (60, 96, 96, 3) torch.uint8 | frames==samples/640: True
+  mix.json/target.json/near.json: 2 2 2 | near[0] fallback: True
+  meta components: [('near', '/gen/00001_01_87828/n0.wav'), ('far', '/gen/00001_01_87828/f0.wav'), ('env', '/gen/00001_01_87828/e.wav')] | channel: 0 | aligned_frames: 75
+
+## 8. scope / changed files
+$ git status --porcelain | grep -E "look2hear/datas|tools/repro|docs/verification/phase1"
+ M look2hear/datas/avspeech_dataset.py
+ M look2hear/datas/check_avspeech_dataset.py
+
+$ sha256sum tools/repro/make_synthetic_data.py tools/repro/realssa_to_falcon.py tools/repro/tests/*.py look2hear/datas/avspeech_dataset.py
+01c49ffdd7a6bad4ec9dcf5f1f5d8772a3dd44aad0890dd40eb8a2cebd71940a  tools/repro/make_synthetic_data.py
+842e71b5f589a53d73c2e1ca217a41ea6bb24cda8478aeef30780cc9bffcc3aa  tools/repro/realssa_to_falcon.py
+f56ebcef473214786ccc9e765b72c59174dde71d6b9547c06f9adec88373e339  tools/repro/tests/test_realssa_convert.py
+57351332208ca4e0c12a2679faa28b4f5cf6d9e6aae1b714d12b11eaa38286ed  tools/repro/tests/test_synthetic_data.py
+5be594d22b1e8264532e7dbfa270ac1ea7b2420e8dcc9d768a87aace68cd6879  look2hear/datas/avspeech_dataset.py
+
+## 9. post-refactor final state (converter I/O optimisation)
+- realssa_to_falcon.py: one tar open per shard + TarInfo index, so each member extraction is O(1) (TarInfo offset) instead of re-scanning the shard per member; matters for 500-example RealSSA shards.
+$ sha256sum (final)
+01c49ffdd7a6bad4ec9dcf5f1f5d8772a3dd44aad0890dd40eb8a2cebd71940a  tools/repro/make_synthetic_data.py
+aeb0fc352d4da60586a5a272949eea0727256ccfdaa96ec89d425c217d318154  tools/repro/realssa_to_falcon.py
+f56ebcef473214786ccc9e765b72c59174dde71d6b9547c06f9adec88373e339  tools/repro/tests/test_realssa_convert.py
+57351332208ca4e0c12a2679faa28b4f5cf6d9e6aae1b714d12b11eaa38286ed  tools/repro/tests/test_synthetic_data.py
+5be594d22b1e8264532e7dbfa270ac1ea7b2420e8dcc9d768a87aace68cd6879  look2hear/datas/avspeech_dataset.py
+1fb76fbe0e8359cd327ba5093cb67eeaedb6069fa972d2533adf7731eb8f26ce  look2hear/datas/check_avspeech_dataset.py
+
+$ PYTHONPATH=$PWD python -m pytest tools/repro/tests/test_synthetic_data.py tools/repro/tests/test_realssa_convert.py -q   # after refactor
+..........                                                               [100%]
+10 passed in 17.06s
+
+END OF LOG — report: docs/verification/phase1/T4-report.md

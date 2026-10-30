@@ -1,0 +1,10 @@
+tests/check_i18n.mjs                   rc=0
+tests/check_capture_dsp.cjs            rc=0
+tests/check_mouth_tracking.mjs         rc=0
+tests/check_playback_resampler.mjs     rc=0
+tests/check_spectrum.mjs               rc=0
+tests/check_tracking_ui.cjs            rc=0
+web/capture-worklet.test.cjs           rc=0
+web/video-worker.test.cjs              rc=0
+--- node --check ---
+checked=21 fail=0

@@ -1,0 +1,22 @@
+## Metrics summary
+
+| variant | protocol | visual | n | SI-SNR | SI-SNRi | SDR | SDRi | PESQ | STOI |
+|---|---|---|---|---|---|---|---|---|---|
+| big | whole | real | 300 | 12.827 | 7.887 | 13.445 | 8.403 | 2.503 | 0.921 |
+| big | whole | zero | 300 | 8.452 | 3.512 | 9.309 | 4.267 | 2.000 | 0.813 |
+| big | windowed | real | 300 | 10.508 | 5.569 | 11.311 | 6.270 | 2.093 | 0.893 |
+| small | whole | real | 300 | 11.856 | 6.916 | 12.533 | 7.492 | 2.276 | 0.908 |
+| small | whole | shuffle | 300 | -1.038 | -5.977 | 1.685 | -3.357 | 1.363 | 0.540 |
+| small | whole | zero | 300 | -3.233 | -8.173 | -0.062 | -5.103 | 1.355 | 0.466 |
+| small | windowed | real | 300 | 9.944 | 5.004 | 10.804 | 5.762 | 1.949 | 0.884 |
+
+## Paired comparisons (same utterances; delta = candidate - baseline, dB)
+
+| comparison | n | dSI-SNRi mean | std | wins | win rate |
+|---|---|---|---|---|---|
+| big vs small (whole, real) | 300 | +0.971 | 1.697 | 258/300 | 86.0% |
+| small windowed vs whole | 300 | -1.912 | 2.513 | 33/300 | 11.0% |
+| big windowed vs whole | 300 | -2.318 | 2.908 | 33/300 | 11.0% |
+| small zero-mouth vs real (whole) | 300 | -15.089 | 10.860 | 4/300 | 1.3% |
+| small shuffled-mouth vs real (whole) | 300 | -12.894 | 9.890 | 7/300 | 2.3% |
+| big zero-mouth vs real (whole) | 300 | -4.375 | 5.661 | 26/300 | 8.7% |

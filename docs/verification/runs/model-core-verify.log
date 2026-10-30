@@ -1,0 +1,223 @@
+==============================================================================
+[A] 构造链与配置键消耗
+==============================================================================
+audionet_name = FalconSpeakerContrastive
+config keys(depth1) = ['n_src', 'pretrained_vout_chan', 'causal', 'spk_embed_dim', 'video_bn_params', 'audio_bn_params', 'enc_dec_params', 'audio_params', 'video_params', 'fusion_params', 'mask_generation_params']
+构造后 Falcon.audio_params keys = ['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'stride', 'upsampling_depth']
+  -> 'repeats' still in model.audio_params?  False
+  -> 'shared'  still in model.audio_params?  False
+  -> 'causal' in model.audio_params?        True
+  -> 'repeats' still in model.video_params? False
+separator.fusion_repeats / audio_repeats = 1 1
+separator.audio_shared/video_shared/fusion_shared = True True True
+audio_net type = AudioBlock | video_net type = VideoBlock | caf type = NeuroSCNetFusion
+mdcl_margin/mdcl_alpha = 0.0 0.15
+spk_embed_dim = 64 | n_src = 1 | causal = True
+传入的 config dict 是否被构造函数 pop 改写: False (True=被 pop 掉，同一 dict 不能复用)
+
+==============================================================================
+[B] 参数总账与逐层拆解
+==============================================================================
+audio_model total=537,697  trainable=537,697
+  encoder                 3,024
+  audio_bottleneck       13,104
+  video_bottleneck            0
+  separator             492,312
+  mask_generator         12,657
+  decoder                 2,016
+  spk_pool_proj          14,584
+  --- separator 内部 ---
+    separator.audio_net        445,766
+    separator.video_net         42,850
+    separator.caf                3,696
+  --- AudioBlock 内部（单实例，权重被复用两次） ---
+    audio_net.gateway                  225
+    audio_net.projection             7,489
+    audio_net.downsample_layers      6,656
+    audio_net.process_f_layers      81,920
+    audio_net.process_t_layers     177,920
+    audio_net.process_att_layers   119,732
+    audio_net.fusion_layers         22,272
+    audio_net.concat_layers         22,272
+    audio_net.residual_conv          7,280
+    audio_net.downsample_layers[0]            896
+    audio_net.process_f_layers[0]          20,480  (DualPathRNN dim=4, bidir=True)
+    audio_net.process_t_layers[0]          44,480  (DualPathRNN dim=3, bidir=False)
+    audio_net.process_att_layers[0]        51,693  (n_freqs=129, n_head=4, causal=True)
+    audio_net.fusion_layers[0]              5,568
+    audio_net.concat_layers[0]              5,568
+    audio_net.downsample_layers[1]          1,920
+    audio_net.process_f_layers[1]          20,480  (DualPathRNN dim=4, bidir=True)
+    audio_net.process_t_layers[1]          44,480  (DualPathRNN dim=3, bidir=False)
+    audio_net.process_att_layers[1]        31,213  (n_freqs=65, n_head=4, causal=True)
+    audio_net.fusion_layers[1]              5,568
+    audio_net.concat_layers[1]              5,568
+    audio_net.downsample_layers[2]          1,920
+    audio_net.process_f_layers[2]          20,480  (DualPathRNN dim=4, bidir=True)
+    audio_net.process_t_layers[2]          44,480  (DualPathRNN dim=3, bidir=False)
+    audio_net.process_att_layers[2]        20,973  (n_freqs=33, n_head=4, causal=True)
+    audio_net.fusion_layers[2]              5,568
+    audio_net.concat_layers[2]              5,568
+    audio_net.downsample_layers[3]          1,920
+    audio_net.process_f_layers[3]          20,480  (DualPathRNN dim=4, bidir=True)
+    audio_net.process_t_layers[3]          44,480  (DualPathRNN dim=3, bidir=False)
+    audio_net.process_att_layers[3]        15,853  (n_freqs=17, n_head=4, causal=True)
+    audio_net.fusion_layers[3]              5,568
+    audio_net.concat_layers[3]              5,568
+  --- VideoBlock 内部 ---
+    video_net.gateway                1,025
+    video_net.projection            16,481
+    video_net.rnn                    8,448
+    video_net.residual_conv         16,896
+  --- caf ---
+    caf.v_proj                   3,696
+  --- mask_generator / decoder / spk_pool_proj / encoder ---
+    mask_generator.mask_generator      12,657
+    decoder.decoder                  2,016
+    spk_pool_proj.temporal_attn       3,192
+    spk_pool_proj.proj               11,392
+    encoder.conv                     3,024
+  --- 按叶子模块类统计参数量 ---
+    LSTM                         236,544
+    Conv2d                       128,704
+    LayerNormalization4D          79,104
+    Linear                        45,304
+    Conv1d                        38,032
+    GroupNorm                      3,936
+    CumulateLN4D                   3,936
+    ConvTranspose2d                2,016
+    BatchNorm1d                       64
+    PReLU                             57
+  --- Falcon.py 中定义但未出现在模型里的类（死代码） ---
+    defined: ['AudioBlock', 'BaseModel', 'ConvActNorm', 'ConvNormAct', 'DropPath', 'DualPathRNN', 'Falcon', 'FeedForwardNetwork', 'GlobalAttention', 'InjectionMultiSum', 'MaskGenerator', 'MultiHeadSelfAttention', 'MultiHeadSelfAttention2D', 'NeuroSCNetFusion', 'PositionalEncoding', 'STFTDecoder', 'STFTEncoder', 'Separator', 'VideoBlock']
+    unused : ['BaseModel', 'DropPath', 'Falcon', 'FeedForwardNetwork', 'GlobalAttention', 'MultiHeadSelfAttention', 'PositionalEncoding']
+
+==============================================================================
+[C] 输入/输出形状与单位（L=32000=2s@16k, mouth_emb=[B,512,50]）
+==============================================================================
+forward(train) -> (1, 1, 32000) (1, 1, 112, 251, 129)
+forward(eval)  -> Tensor (1, 1, 32000)
+T' = 1 + floor(L/hop) = 251 | F = win/2+1 = 129
+encoder          -> (1, 112, 251, 129)
+audio_bottleneck -> (1, 112, 251, 129)
+video_bottleneck -> (1, 512, 50) params= 0
+  down[0]      in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+  down[1]      in=(1, 64, 251, 129) out=(1, 64, 126, 65)
+  down[2]      in=(1, 64, 126, 65) out=(1, 64, 63, 33)
+  down[3]      in=(1, 64, 63, 33) out=(1, 64, 32, 17)
+  proc_f[3]    in=(1, 64, 32, 17) out=(1, 64, 32, 17)
+  proc_t[3]    in=(1, 64, 32, 17) out=(1, 64, 32, 17)
+  proc_att[3]  in=(1, 64, 32, 17) out=(1, 64, 32, 17)
+  fusion[0]    in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+  fusion[1]    in=(1, 64, 126, 65) out=(1, 64, 126, 65)
+  fusion[2]    in=(1, 64, 63, 33) out=(1, 64, 63, 33)
+  fusion[3]    in=(1, 64, 32, 17) out=(1, 64, 32, 17)
+  concat[3]    in=(1, 64, 63, 33) out=(1, 64, 63, 33)
+  proc_f[2]    in=(1, 64, 63, 33) out=(1, 64, 63, 33)
+  proc_t[2]    in=(1, 64, 63, 33) out=(1, 64, 63, 33)
+  proc_att[2]  in=(1, 64, 63, 33) out=(1, 64, 63, 33)
+  concat[1]    in=(1, 64, 126, 65) out=(1, 64, 126, 65)
+  proc_f[1]    in=(1, 64, 126, 65) out=(1, 64, 126, 65)
+  proc_t[1]    in=(1, 64, 126, 65) out=(1, 64, 126, 65)
+  proc_att[1]  in=(1, 64, 126, 65) out=(1, 64, 126, 65)
+  concat[0]    in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+  proc_f[0]    in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+  proc_t[0]    in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+  proc_att[0]  in=(1, 64, 251, 129) out=(1, 64, 251, 129)
+separator out  -> (1, 112, 251, 129)
+mask_gen out   -> (1, 1, 112, 251, 129)
+decoder out    -> (1, 1, 32000)
+_encode_audio  -> (1, 112, 251, 129)
+AudioBlock 输入 T'= 251 video T= 50 -> NeuroSCNetFusion nearest 插值比 = 5.02
+
+==============================================================================
+[D] 因果性：前缀扰动探测（改后半段输入 -> 左段输出是否变化）
+==============================================================================
+-- 波形/帧边界（前 1s 输入 vs 后 1s 输入）--
+  STFTEncoder(样本->帧)               左段[0:126]=4.492e+00 右段=1.180e+01 | 左段越界=0 单位
+  STFTDecoder(帧->样本)               左段[0:15936]=0.000e+00 右段=8.018e-01 | 左段越界=0 单位
+-- cLNhw 归一化是否为泄漏源 --
+  audio_bottleneck(cLNhw)          左段[0:125]=7.153e-07 右段=4.227e+00 | 左段越界=0 单位
+  仅 pre_norm=cLNhw                 左段[0:125]=1.431e-06 右段=1.158e+01 | 左段越界=0 单位
+  去掉 cLNhw 的 1x1 conv              左段[0:125]=0.000e+00 右段=3.040e+00 | 左段越界=0 单位
+-- 其余组件 --
+  AudioBlock(完整)                   左段[0:125]=2.977e+00 右段=5.050e+00 | 左段越界=0 单位
+  AudioBlock(norm 全关)              左段[0:125]=1.826e-01 右段=4.278e+00 | 左段越界=0 单位
+  DualPathRNN dim=4 频域路径           左段[0:16]=0.000e+00 右段=6.989e+00 | 左段越界=0 单位
+  DualPathRNN dim=3 时域路径(单向)       左段[0:16]=0.000e+00 右段=5.838e+00 | 左段越界=0 单位
+  MHSA2D(causal=True)              左段[0:16]=0.000e+00 右段=7.703e+00 | 左段越界=0 单位
+  MHSA2D(causal=False)             左段[0:16]=4.679e+00 右段=8.444e+00 | 左段越界=0 单位
+  InjectionMultiSum(causal=False)  左段[0:125]=2.704e+00 右段=4.959e+00 | 左段越界=0 单位
+  InjectionMultiSum(causal=True)   左段[0:125]=0.000e+00 右段=5.246e+00 | 左段越界=0 单位
+  MaskGenerator                    左段[0:125]=0.000e+00 右段=1.216e+01 | 左段越界=0 单位
+  NeuroSCNetFusion                 左段[0:125]=0.000e+00 右段=5.941e+00 | 左段越界=0 单位
+
+-- 脉冲响应：输入单帧/单点非零，输出受影响范围（感受野） --
+  STFTEncoder(样本)                  t0=8000 -> 输出[62,65], 未来+-7935, 过去-7938
+  STFTDecoder(帧)                   t0=100 -> 输出[12801,13311], 未来+13211, 过去--12701
+  cLNhw pre_norm                   t0=100 -> 输出[100,250], 未来+150, 过去-0
+  1x1 conv                         t0=100 -> 输出[100,100], 未来+0, 过去-0
+  AudioBlock.down[0](stride1)      t0=100 -> 输出[0,250], 未来+150, 过去-100
+  AudioBlock.down[3](stride2)      t0=30 -> 输出[0,31], 未来+1, 过去-30
+  InjectionMultiSum(causal=False)  t0=100 -> 输出[98,102], 未来+2, 过去-2
+  InjectionMultiSum(causal=True)   t0=100 -> 输出[100,104], 未来+4, 过去-0
+  DualPathRNN 时域(单向)               t0=16 -> 输出[16,16], 未来+0, 过去-0
+  MHSA2D(causal=True)              t0=16 -> 输出[16,31], 未来+15, 过去-0
+  参考: hop=128 样本/帧, win=256；2s 窗口 251 帧；深层 T=251->126->63->32
+
+==============================================================================
+[E] MDCL 数学验证 (_sisnr/_mag_sim/_mdcl_loss_hard)
+==============================================================================
+  _sisnr(est=ref)      = [122.064, 122.101]
+  _sisnr(SNR=20dB)     = [20.0, 20.001] (期望 ≈20)
+  _mag_sim(est=ref)    = [135.271, 135.278]
+  _mag_sim(SNR=20dB)   = [16.332, 16.314]
+  K=0 -> (1,) 0.0
+  K=1 -> 0.000000 | 手算 = 0.000000 | allclose: True
+  K=3 beta=0.0   L=0.000000 manual=0.000000 allclose=True weights[:,0]=[0.3333, 0.3333, 0.3333]
+  K=3 beta=1.0   L=0.000000 manual=0.000000 allclose=True weights[:,0]=[0.0867, 0.0, 0.9133]
+  K=3 beta=20.0  L=0.000000 manual=0.000000 allclose=True weights[:,0]=[0.0, 0.0, 1.0]
+  grad 存在: True | |grad| = 0.0000e+00
+  mdcl_margin(默认, config 未给) = 0.0 | mdcl_alpha = 0.15
+
+==============================================================================
+[F] 死代码 / 不一致 / 抗误用
+==============================================================================
+  Falcon._mdcl_loss_hard 存在: True | Falcon._mdcl_loss 存在: False
+  Falcon(train, near_audio) -> AttributeError: 'Falcon' object has no attribute '_mdcl_loss'
+  FalconSpeakerContrastive.train() 返回 tuple: False
+  configs/Falcon.yml 的 audionet_config 直接喂 Falcon -> TypeError: Falcon.__init__() got an unexpected keyword argument 'spk_embed_dim'
+  models.get('Falcon') -> Falcon
+  models.get('falconspeakercontrastive') -> FalconSpeakerContrastive
+  models.get('AVTIGER_causal') -> ValueError: Could not interpret model name : AVTIGER_causal
+  from look2hear.models import * -> AttributeError module 'look2hear.models' has no attribute 'AVTIGER_causal'
+  look2hear.models.Falcon 属性指向: <class 'look2hear.models.Falcon.Falcon'>
+
+-- n_src=2 抗误用（STFTDecoder.view 假设 in_chan=n_src*out_chan）--
+  n_src=2 forward -> RuntimeError shape '[2, 224, 251, 129]' is invalid for input of size 7252896
+
+-- 未被使用的配置键（video_params.layers / fusion_params 其余键）--
+  video_params keys = ['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'stride'] | layer_1 = {'kernel_size': 3, 'n_head': 8, 'dropout': 0.1, 'norm_type': 'cLN', 'causal': True}
+  fusion_params = {'fusion_type': 'NeuroSCNetFusion', 'fusion_shared': True, 'kernel_size': 4, 'is2d': True} | Separator 只用 fusion_shared（Falcon.py:997）
+
+-- 权重共享/复用证据：一次 Separator.forward 内的模块调用次数 --
+  调用次数: {'audio': 2, 'video': 1, 'caf': 1}
+  process_t_layers 各 level 调用次数: {0: 2, 1: 2, 2: 2, 3: 2}
+
+-- 归一化/因果开关的实际取值 --
+  audio_bottleneck.pre_norm = LayerNormalizationHW | .norm = Identity | .conv = Conv2d
+  ab.gateway.conv / residual_conv.conv = Conv2d / Conv2d
+  ab.downsample_layers[0].causal = False | conv.padding = (1, 1)
+  ab.downsample_layers[1].causal = False | conv.padding = (2, 2) | conv.stride = (2, 2)
+  ab.fusion_layers[0].local_embedding.causal = False | conv.padding = (2, 2)
+  encoder.conv.causal / conv.padding = True (2, 1)
+  decoder.causal/padding = True 1 | decoder op = ConvTranspose2d | win/hop = 256 128
+  encoder/decoder 的 torch.stft/istft 未传 center/pad_mode -> center=True, reflect
+  mask_generator.RI_split/output_gate/dw_gate/direct = True False False False
+  mask_generator.mask_generator[1].conv = Conv2d | padding = (0, 0)
+
+-- mdcl_window buffer --
+  mdcl_window: (256,) | 在 state_dict 中: False | state_dict key 数: 525
+  state_dict 首/尾 key: encoder.conv.conv.weight | spk_pool_proj.proj.2.bias
+
+DONE

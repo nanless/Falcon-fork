@@ -1,0 +1,29 @@
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/setup.py:175: GPU available but not used. You can set it by doing `Trainer(accelerator='gpu')`.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1)` was configured so 1 batch per epoch will be used.
+[ddp2-probe] starting fit (asymmetric buckets expected)
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Lightning model registry.
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/2
+[ddp2-probe] starting fit (asymmetric buckets expected)
+Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/2
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+----------------------------------------------------------------------------------------------------
+distributed_backend=gloo
+All distributed processes registered. Starting with 2 processes
+----------------------------------------------------------------------------------------------------
+
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:881: Checkpoint directory /tmp/fake/0/checkpoints exists and is not empty.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=63` in the `DataLoader` to improve performance.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py:321: The number of training batches (1) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=63` in the `DataLoader` to improve performance.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+[rank1] val idx=0 n_near=1
+[rank1] val idx=1 n_near=1
+[rank0] val idx=0 n_near=0
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 1. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+[rank0] val idx=1 n_near=5
+[rank1] bucket occupancy BEFORE gather: {1: 2}
+[rank0] bucket occupancy BEFORE gather: {0: 1, 4: 1}

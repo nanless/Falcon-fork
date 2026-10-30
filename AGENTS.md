@@ -1,7 +1,7 @@
 # AGENTS.md — Falcon 项目工作约定（运行环境强制）
 
 > 本文件适用于在此仓库（`/root/code/github_repos/Falcon-fork`）工作的所有 AI agent 与人类开发者。
-> 最后更新：2026-10-21。**任何与本文件冲突的旧命令/文档，以本文件为准。**
+> 最后更新：2026-10-24。**任何与本文件冲突的旧命令/文档，以本文件为准。**
 
 ## 1. 运行环境（强制，最高优先级）
 
@@ -37,7 +37,9 @@
 
 ## 2. 环境内容
 
-- 精确锁定：`docs/verification/conda-env-lock.txt`（`pip freeze`，111 行）与 `docs/verification/conda-env.yml`（conda export，94 行）。
+- 精确锁定：`docs/verification/conda-env-lock.txt`（`pip freeze`，**115 行**；2026-10-24 已把 18 个
+  `pkg @ file:///root/wheelhouse/...` 改写成 `pkg==version`，可直接 `pip install -r` 重建）与
+  `docs/verification/conda-env.yml`（conda export，94 行）。
 - 实测关键版本（2026-10-21 建好并验证）：
   - Python **3.11.17**；torch **2.8.0+cu128**、torchaudio 2.8.0+cu128、torchvision 0.23.0+cu128、triton 3.4.0；
   - pytorch-lightning **2.6.6**、torchmetrics 1.9.0、lightning-utilities；
@@ -145,6 +147,8 @@ $ENV/bin/pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" "huggingface_h
 
 - `docs/` 下是本项目的分析产物（`understanding/` 文档、`reviews/` 评审、`verification/` 脚本与日志），
   可以继续追加，**不要删除**。复现计划见 **`docs/REPRODUCTION_PLAN.md`**（数据/缺口/分阶段执行/验收）。
+  最新理解与规划 v2 见 **`docs/understanding/deepdive-20261024/00-SYNTHESIS.md`**（01–09 为 2026-10-24 的 9 子代理深挖）。
+  `docs/verification/**` 下的 `.log`/`.csv` 已通过 `.gitignore` 负向规则纳入版本控制（证据必须可复核）。
 - 历史文档/日志中出现的 `/root/.venvs/falcon`、`/tmp/dp-verify` 等路径是旧环境/临时目录，
   只用于复现历史证据；**新命令一律使用 `falcon` 环境**。
 - 修改源码不在本约定范围内；如需修 P0，先与用户确认并单独开分支。

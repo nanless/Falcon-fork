@@ -1,0 +1,8 @@
+[dnsmos] offline backend = speechmos 0.0.1.1 / onnxruntime 1.31.0
+[dnsmos] 注意：以下为合成信号，只验证离线 ONNX 链路；不代表任何数据集/论文数值。
+  synthetic_harmonic       SIG=1.496 BAK=1.254 OVRL=1.337 P808=2.182 OK
+  synthetic_harmonic_noise SIG=1.258 BAK=1.045 OVRL=1.081 P808=2.173 OK
+  synthetic_silence        SIG=2.514 BAK=3.472 OVRL=1.840 P808=2.147 OK
+  synthetic_noise          SIG=1.137 BAK=1.095 OVRL=1.109 P808=2.076 OK
+[dnsmos] JSON evidence -> docs/verification/phase2/P2E-dnsmos-synthetic.json
+[dnsmos] synthetic smoke: PASS

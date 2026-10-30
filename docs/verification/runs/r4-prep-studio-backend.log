@@ -1,0 +1,80 @@
+# R4 prep (studio-backend): Lead 脚本复跑，用于评审 01-model-core 的执行级验证
+
+## verify_model_params.py
+FRCNN total=11,186,688 trainable=11,186,688 (未加载 pretrain 时 requires_grad=True)
+AUDIO+FRCNN total=11,724,385  trainable(audio only)=537,697
+FRCNN forward [1,1,50,96,96] -> (1, 512, 50) torch.float32
+
+-- 前向形状随输入长度变化 (mouth_emb 时间步 50, train 模式返回 (est, emb)) --
+ audio L |                est |                      sep_emb |  frames=1+L/hop?
+   16000 |      (1, 1, 16000) |        (1, 1, 112, 126, 129) |              126
+   32000 |      (1, 1, 32000) |        (1, 1, 112, 251, 129) |              251
+   48000 |      (1, 1, 48000) |        (1, 1, 112, 376, 129) |              376
+
+-- 因果性探测：只改后半段音频 (sample>=16000)，观察不同区域输出变化 --
+  encoder(frames)    early(0:120) max|d|=1.161e+01   late(120:) max|d|=1.017e+01   shape=(1, 112, 251, 129)
+  audio_bottleneck   early(0:120) max|d|=2.866e+00   late(120:) max|d|=2.843e+00   shape=(1, 112, 251, 129)
+  video_bottleneck   shape: (1, 512, 50)  params: 0
+  separator          early(0:120) max|d|=4.182e+00   late(120:) max|d|=3.770e+00   shape=(1, 112, 251, 129)
+  mask_generator     early(0:120) max|d|=1.842e+01   late(120:) max|d|=1.401e+01   shape=(1, 1, 112, 251, 129)
+  est.samples[    0: 8000] max|d| = 2.208e-04
+  est.samples[ 8000:16000] max|d| = 4.297e-02
+  est.samples[16000:24000] max|d| = 9.337e-01
+  est.samples[24000:32000] max|d| = 7.730e-01
+
+-- 死代码验证：Falcon.forward 引用了不存在的 _mdcl_loss --
+  Falcon._mdcl_loss_hard: True | Falcon._mdcl_loss: False
+  Falcon(train, near_audio) -> AttributeError: 'Falcon' object has no attribute '_mdcl_loss'
+
+-- 关键常量 --
+  encoder out chan: 112
+  mdcl_window: (256,) | persistent: True
+  spk_embed_dim: 64
+  n_src: 1 | causal: True
+
+## verify_causality.py
+  separator.audio_net.fusion_layers.3.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.3.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.fusion_layers.3.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.fusion_layers.3.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.fusion_layers.3.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.0.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.0.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.0.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.1.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.1.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.1.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.2.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.2.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.2.global_gate.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.local_embedding.norm     <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.local_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.local_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.global_embedding.norm    <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.global_embedding.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.global_embedding.norm.cumulate_ln <= CumulateLN4D
+  separator.audio_net.concat_layers.3.global_gate.norm         <= LayerNormalizationHW
+  separator.audio_net.concat_layers.3.global_gate.norm.global_layer_norm <= GlobalLayerNorm
+  separator.audio_net.concat_layers.3.global_gate.norm.cumulate_ln <= CumulateLN4D

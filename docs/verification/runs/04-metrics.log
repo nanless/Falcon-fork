@@ -1,0 +1,29 @@
+==============================================================================
+[1] ALLMetricsTracker（audio_visual_test.py 实际使用的类）
+  CSV columns: ['snt_id', 'sdr', 'sdr_i', 'si-snr', 'si-snr_i', 'pesq', 'stoi']
+  per-utt row : {'snt_id': 'utt_001', 'sdr': 5.481, 'sdr_i': -10.021, 'si-snr': -5.727, 'si-snr_i': 21.644, 'pesq': 3.14, 'stoi': 0.9}
+  avg row     : {'snt_id': 'avg', 'sdr': -5.481, 'sdr_i': 10.021, 'si-snr': -5.727, 'si-snr_i': 21.644, 'pesq': 3.14, 'stoi': 0.9}
+  std row     : {'snt_id': 'std', 'sdr': 0.0, 'sdr_i': 0.0, 'si-snr': 0.0, 'si-snr_i': 0.0, 'pesq': 0.0, 'stoi': 0.0}
+  >>> per-utt 'sdr'=+5.481 (pos), 'avg' 行 sdr=-5.481 (neg) -> 同一列符号相反
+  >>> get_mean() = {'sdr_i': 10.021, 'si-snr_i': 21.644}（内部已取负，故为正）
+  per-utt 'sdr' == PairwiseNegSDR('snr') 的 loss 值 (5.481166 vs 5.481166) -> 名为 SDR，实为 -SNR；avg 行再取负 -> 是 SNR
+  est -> 2*est : per-utt 'sdr' +5.481 -> +11.766 dB, 'sdr_i' -10.021 -> -3.736 dB (真 SDR/SDRi 应尺度不变)
+  PESQ 调用参数顺序: 第1个实参 == estimate ? True （pypesq 合同: pesq(ref, deg, fs) 第1个应是 clean -> 传反了）
+  STOI 调用参数顺序: 第1个实参 == clean ? True （pystoi 合同: stoi(clean, deg, fs) -> 正确）
+
+[2] MetricsTracker（wrapper.py；有 fast_bss_eval 的真 SDR，但无人调用）
+  update() = {'sdr_i': 43.294, 'si-snr_i': 43.53}
+  CSV columns: ['snt_id', 'sdr', 'sdr_i', 'si-snr', 'si-snr_i']
+  per-utt row : {'snt_id': 'utt_002', 'sdr': 13.441, 'sdr_i': 43.294, 'si-snr': 13.445, 'si-snr_i': 43.53}
+  >>> 该 tracker 的 'sdr' = -sdr_pit_loss (fast_bss_eval 返回负 SDR) -> per-utt 为 pos 值 (正常)
+
+[3] 两个 tracker 的 SI-SDR 口径不同：wrapper.py 显式 zero_mean=False（含直流分量）
+  加 +5 直流后 si-snr: ALLMetricsTracker(zero_mean=True)=14.294 dB, MetricsTracker(zero_mean=False)=28.163 dB
+  同输入换尺度 si-snr(ALL): x1=14.294 dB
+
+[4] SPlitMetricsTracker（splitwrapper.py，要求 n_src=3：2 目标 + 1 干扰，未在评测入口使用）
+  CSV columns: ['snt_id', 'one_snr', 'one_snr_i', 'one_si-snr', 'one_si-snr_i', 'two_snr', 'two_snr_i', 'two_si-snr', 'two_si-snr_i']
+  per-utt row : {'snt_id': 'utt_003', 'one_snr': 10.536, 'one_snr_i': 13.237, 'one_si-snr': 10.597, 'one_si-snr_i': 40.841, 'two_snr': 9.983, 'two_snr_i': 12.903, 'two_si-snr': 10.019, 'two_si-snr_i': 50.892}
+  final 行数 = 2 (只有 avg，无 std)
+
+DONE

@@ -1,0 +1,224 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+ config snapshot (deepcopy) -> 
+/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/conf.yml
+ use_near = True
+Instantiating datamodule: AVSpeechDataModuleWithNear (use_near=True)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f5127935a50>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 20000 entries.
+Drop 0 utts(0.00 h) from 20000 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 20000/20000 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /root/data/falcon_lrs2_2mix/tr/mix/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f5126303290>
+    Normalize(mean=0.421, std=0.165)
+)
+5000 5000
+Drop 0 utts(0.00 h) from 5000 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f5126060490>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+Instantiating AudioNet <FalconSpeakerContrastive>
+Instantiating Optimizer <adamw>
+Instantiating Scheduler <ReduceLROnPlateau>
+Instantiating Loss  train=<pairwise_neg_snr>  val=<pairwise_neg_sisdr>
+[NASS v2] weight=1.0 margin=0.5 alpha_pos=1.0 alpha_neg=1.0 beta=0.0→1.0 over 
+200 epochs
+ logger = CSVLogger
+ accelerator=gpu devices=[0] num_devices=1 strategy=auto
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1.0)` was configured so 100% of the batches per epoch will be used..
+You are using a CUDA device ('NVIDIA A800-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+┏━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃   ┃ Name             ┃ Type                     ┃ Params ┃ Mode  ┃ FLOPs ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 0 │ audio_model      │ FalconSpeakerContrastive │  537 K │ train │     0 │
+│ 1 │ video_model      │ FRCNNVideoModel          │ 11.2 M │ train │     0 │
+│ 2 │ contrastive_loss │ NASSContrastiveLoss      │      0 │ train │     0 │
+└───┴──────────────────┴──────────────────────────┴────────┴───────┴───────┘
+Trainable params: 537 K                                                         
+Non-trainable params: 11.2 M                                                    
+Total params: 11.7 M                                                            
+Total estimated model params size (MB): 46.898                                  
+Modules in train mode: 688                                                      
+Modules in eval mode: 0                                                         
+Total FLOPs: 0                                                                  
+Metric val_loss/dataloader_idx_0 improved. New best score: -6.732
+Epoch 0, global step 2500: 'val_loss/dataloader_idx_0' reached -6.73247 (best -6.73247), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=0.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.601 >= min_delta = 0.0. New best score: -7.334
+Epoch 1, global step 5000: 'val_loss/dataloader_idx_0' reached -7.33377 (best -7.33377), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=1.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.770 >= min_delta = 0.0. New best score: -8.104
+Epoch 2, global step 7500: 'val_loss/dataloader_idx_0' reached -8.10366 (best -8.10366), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=2.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.355 >= min_delta = 0.0. New best score: -8.458
+Epoch 3, global step 10000: 'val_loss/dataloader_idx_0' reached -8.45825 (best -8.45825), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=3.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.351 >= min_delta = 0.0. New best score: -8.810
+Epoch 4, global step 12500: 'val_loss/dataloader_idx_0' reached -8.80969 (best -8.80969), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=4.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.270 >= min_delta = 0.0. New best score: -9.080
+Epoch 5, global step 15000: 'val_loss/dataloader_idx_0' reached -9.07977 (best -9.07977), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=5.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.196 >= min_delta = 0.0. New best score: -9.276
+Epoch 6, global step 17500: 'val_loss/dataloader_idx_0' reached -9.27592 (best -9.27592), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=6.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.201 >= min_delta = 0.0. New best score: -9.477
+Epoch 7, global step 20000: 'val_loss/dataloader_idx_0' reached -9.47741 (best -9.47741), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=7.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.245 >= min_delta = 0.0. New best score: -9.723
+Epoch 8, global step 22500: 'val_loss/dataloader_idx_0' reached -9.72265 (best -9.72265), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=8.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.187 >= min_delta = 0.0. New best score: -9.910
+Epoch 9, global step 25000: 'val_loss/dataloader_idx_0' reached -9.90999 (best -9.90999), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=9.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.167 >= min_delta = 0.0. New best score: -10.077
+Epoch 10, global step 27500: 'val_loss/dataloader_idx_0' reached -10.07729 (best -10.07729), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=10.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.125 >= min_delta = 0.0. New best score: -10.203
+Epoch 11, global step 30000: 'val_loss/dataloader_idx_0' reached -10.20278 (best -10.20278), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=11.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.163 >= min_delta = 0.0. New best score: -10.366
+Epoch 12, global step 32500: 'val_loss/dataloader_idx_0' reached -10.36604 (best -10.36604), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=12.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.076 >= min_delta = 0.0. New best score: -10.442
+Epoch 13, global step 35000: 'val_loss/dataloader_idx_0' reached -10.44169 (best -10.44169), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=13.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.172 >= min_delta = 0.0. New best score: -10.614
+Epoch 14, global step 37500: 'val_loss/dataloader_idx_0' reached -10.61368 (best -10.61368), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=14.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.081 >= min_delta = 0.0. New best score: -10.695
+Epoch 15, global step 40000: 'val_loss/dataloader_idx_0' reached -10.69483 (best -10.69483), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=15.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.020 >= min_delta = 0.0. New best score: -10.715
+Epoch 16, global step 42500: 'val_loss/dataloader_idx_0' reached -10.71519 (best -10.71519), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=16.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.086 >= min_delta = 0.0. New best score: -10.801
+Epoch 17, global step 45000: 'val_loss/dataloader_idx_0' reached -10.80138 (best -10.80138), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=17.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.127 >= min_delta = 0.0. New best score: -10.929
+Epoch 18, global step 47500: 'val_loss/dataloader_idx_0' reached -10.92879 (best -10.92879), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=18.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.060 >= min_delta = 0.0. New best score: -10.989
+Epoch 19, global step 50000: 'val_loss/dataloader_idx_0' reached -10.98929 (best -10.98929), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=19.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.195 >= min_delta = 0.0. New best score: -11.185
+Epoch 20, global step 52500: 'val_loss/dataloader_idx_0' reached -11.18458 (best -11.18458), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=20.ckpt' as top 5
+Epoch 21, global step 55000: 'val_loss/dataloader_idx_0' reached -11.17402 (best -11.18458), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=21.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.044 >= min_delta = 0.0. New best score: -11.229
+Epoch 22, global step 57500: 'val_loss/dataloader_idx_0' reached -11.22877 (best -11.22877), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=22.ckpt' as top 5
+Epoch 23, global step 60000: 'val_loss/dataloader_idx_0' reached -11.22329 (best -11.22877), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=23.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.224 >= min_delta = 0.0. New best score: -11.453
+Epoch 24, global step 62500: 'val_loss/dataloader_idx_0' reached -11.45293 (best -11.45293), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=24.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.057 >= min_delta = 0.0. New best score: -11.510
+Epoch 25, global step 65000: 'val_loss/dataloader_idx_0' reached -11.51041 (best -11.51041), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=25.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.133 >= min_delta = 0.0. New best score: -11.644
+Epoch 26, global step 67500: 'val_loss/dataloader_idx_0' reached -11.64354 (best -11.64354), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=26.ckpt' as top 5
+Epoch 27, global step 70000: 'val_loss/dataloader_idx_0' reached -11.54725 (best -11.64354), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=27.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.042 >= min_delta = 0.0. New best score: -11.685
+Epoch 28, global step 72500: 'val_loss/dataloader_idx_0' reached -11.68509 (best -11.68509), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=28.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.047 >= min_delta = 0.0. New best score: -11.732
+Epoch 29, global step 75000: 'val_loss/dataloader_idx_0' reached -11.73200 (best -11.73200), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=29.ckpt' as top 5
+Epoch 30, global step 77500: 'val_loss/dataloader_idx_0' reached -11.70503 (best -11.73200), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=30.ckpt' as top 5
+Epoch 31, global step 80000: 'val_loss/dataloader_idx_0' reached -11.64708 (best -11.73200), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=31.ckpt' as top 5
+Epoch 32, global step 82500: 'val_loss/dataloader_idx_0' reached -11.71704 (best -11.73200), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=32.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.037 >= min_delta = 0.0. New best score: -11.769
+Epoch 33, global step 85000: 'val_loss/dataloader_idx_0' reached -11.76930 (best -11.76930), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=33.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.115 >= min_delta = 0.0. New best score: -11.884
+Epoch 34, global step 87500: 'val_loss/dataloader_idx_0' reached -11.88393 (best -11.88393), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=34.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.131 >= min_delta = 0.0. New best score: -12.015
+Epoch 35, global step 90000: 'val_loss/dataloader_idx_0' reached -12.01457 (best -12.01457), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=35.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.049 >= min_delta = 0.0. New best score: -12.063
+Epoch 36, global step 92500: 'val_loss/dataloader_idx_0' reached -12.06349 (best -12.06349), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=36.ckpt' as top 5
+Epoch 37, global step 95000: 'val_loss/dataloader_idx_0' reached -12.05185 (best -12.06349), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=37.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.066 >= min_delta = 0.0. New best score: -12.130
+Epoch 38, global step 97500: 'val_loss/dataloader_idx_0' reached -12.12976 (best -12.12976), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=38.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.000 >= min_delta = 0.0. New best score: -12.130
+Epoch 39, global step 100000: 'val_loss/dataloader_idx_0' reached -12.13024 (best -12.13024), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=39.ckpt' as top 5
+Epoch 40, global step 102500: 'val_loss/dataloader_idx_0' reached -12.10172 (best -12.13024), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=40.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.095 >= min_delta = 0.0. New best score: -12.225
+Epoch 41, global step 105000: 'val_loss/dataloader_idx_0' reached -12.22488 (best -12.22488), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=41.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.031 >= min_delta = 0.0. New best score: -12.256
+Epoch 42, global step 107500: 'val_loss/dataloader_idx_0' reached -12.25611 (best -12.25611), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=42.ckpt' as top 5
+Epoch 43, global step 110000: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 44, global step 112500: 'val_loss/dataloader_idx_0' reached -12.23351 (best -12.25611), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=44.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.071 >= min_delta = 0.0. New best score: -12.327
+Epoch 45, global step 115000: 'val_loss/dataloader_idx_0' reached -12.32665 (best -12.32665), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=45.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.118 >= min_delta = 0.0. New best score: -12.445
+Epoch 46, global step 117500: 'val_loss/dataloader_idx_0' reached -12.44456 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=46.ckpt' as top 5
+Epoch 47, global step 120000: 'val_loss/dataloader_idx_0' reached -12.38272 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=47.ckpt' as top 5
+Epoch 48, global step 122500: 'val_loss/dataloader_idx_0' reached -12.31704 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=48.ckpt' as top 5
+Epoch 49, global step 125000: 'val_loss/dataloader_idx_0' reached -12.35959 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=49.ckpt' as top 5
+Epoch 50, global step 127500: 'val_loss/dataloader_idx_0' reached -12.40146 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=50.ckpt' as top 5
+Epoch 51, global step 130000: 'val_loss/dataloader_idx_0' reached -12.35727 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=51.ckpt' as top 5
+Epoch 52, global step 132500: 'val_loss/dataloader_idx_0' reached -12.41398 (best -12.44456), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=52.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.071 >= min_delta = 0.0. New best score: -12.515
+Epoch 53, global step 135000: 'val_loss/dataloader_idx_0' reached -12.51511 (best -12.51511), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=53.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.016 >= min_delta = 0.0. New best score: -12.531
+Epoch 54, global step 137500: 'val_loss/dataloader_idx_0' reached -12.53064 (best -12.53064), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=54.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.003 >= min_delta = 0.0. New best score: -12.533
+Epoch 55, global step 140000: 'val_loss/dataloader_idx_0' reached -12.53323 (best -12.53323), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=55.ckpt' as top 5
+Epoch 56, global step 142500: 'val_loss/dataloader_idx_0' reached -12.44363 (best -12.53323), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=56.ckpt' as top 5
+Epoch 57, global step 145000: 'val_loss/dataloader_idx_0' reached -12.52822 (best -12.53323), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=57.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.006 >= min_delta = 0.0. New best score: -12.539
+Epoch 58, global step 147500: 'val_loss/dataloader_idx_0' reached -12.53899 (best -12.53899), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=58.ckpt' as top 5
+Epoch 59, global step 150000: 'val_loss/dataloader_idx_0' was not in top 5
+Metric val_loss/dataloader_idx_0 improved by 0.069 >= min_delta = 0.0. New best score: -12.608
+Epoch 60, global step 152500: 'val_loss/dataloader_idx_0' reached -12.60822 (best -12.60822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=60.ckpt' as top 5
+Epoch 61, global step 155000: 'val_loss/dataloader_idx_0' reached -12.53153 (best -12.60822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=61.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.036 >= min_delta = 0.0. New best score: -12.644
+Epoch 62, global step 157500: 'val_loss/dataloader_idx_0' reached -12.64428 (best -12.64428), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=62.ckpt' as top 5
+Epoch 63, global step 160000: 'val_loss/dataloader_idx_0' reached -12.62119 (best -12.64428), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=63.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.063 >= min_delta = 0.0. New best score: -12.708
+Epoch 64, global step 162500: 'val_loss/dataloader_idx_0' reached -12.70774 (best -12.70774), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=64.ckpt' as top 5
+Epoch 65, global step 165000: 'val_loss/dataloader_idx_0' reached -12.66305 (best -12.70774), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=65.ckpt' as top 5
+Epoch 66, global step 167500: 'val_loss/dataloader_idx_0' reached -12.69365 (best -12.70774), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=66.ckpt' as top 5
+Epoch 67, global step 170000: 'val_loss/dataloader_idx_0' reached -12.63805 (best -12.70774), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=67.ckpt' as top 5
+Epoch 68, global step 172500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 69, global step 175000: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 70, global step 177500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 71, global step 180000: 'val_loss/dataloader_idx_0' reached -12.66737 (best -12.70774), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=71.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.029 >= min_delta = 0.0. New best score: -12.736
+Epoch 72, global step 182500: 'val_loss/dataloader_idx_0' reached -12.73649 (best -12.73649), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=72.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.086 >= min_delta = 0.0. New best score: -12.823
+Epoch 73, global step 185000: 'val_loss/dataloader_idx_0' reached -12.82265 (best -12.82265), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=73.ckpt' as top 5
+Epoch 74, global step 187500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 75, global step 190000: 'val_loss/dataloader_idx_0' was not in top 5
+Metric val_loss/dataloader_idx_0 improved by 0.040 >= min_delta = 0.0. New best score: -12.863
+Epoch 76, global step 192500: 'val_loss/dataloader_idx_0' reached -12.86287 (best -12.86287), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=76.ckpt' as top 5
+Epoch 77, global step 195000: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 78, global step 197500: 'val_loss/dataloader_idx_0' reached -12.84118 (best -12.86287), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=78.ckpt' as top 5
+Epoch 79, global step 200000: 'val_loss/dataloader_idx_0' reached -12.81276 (best -12.86287), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=79.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.016 >= min_delta = 0.0. New best score: -12.879
+Epoch 80, global step 202500: 'val_loss/dataloader_idx_0' reached -12.87902 (best -12.87902), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=80.ckpt' as top 5
+Epoch 81, global step 205000: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 82, global step 207500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 83, global step 210000: 'val_loss/dataloader_idx_0' reached -12.81992 (best -12.87902), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=83.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.015 >= min_delta = 0.0. New best score: -12.894
+Epoch 84, global step 212500: 'val_loss/dataloader_idx_0' reached -12.89439 (best -12.89439), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=84.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.117 >= min_delta = 0.0. New best score: -13.011
+Epoch 85, global step 215000: 'val_loss/dataloader_idx_0' reached -13.01144 (best -13.01144), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=85.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.107 >= min_delta = 0.0. New best score: -13.118
+Epoch 86, global step 217500: 'val_loss/dataloader_idx_0' reached -13.11822 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=86.ckpt' as top 5
+Epoch 87, global step 220000: 'val_loss/dataloader_idx_0' reached -12.99680 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=87.ckpt' as top 5
+Epoch 88, global step 222500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 89, global step 225000: 'val_loss/dataloader_idx_0' reached -13.03173 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=89.ckpt' as top 5
+Epoch 90, global step 227500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 91, global step 230000: 'val_loss/dataloader_idx_0' reached -12.95023 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=91.ckpt' as top 5
+Epoch 92, global step 232500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 93, global step 235000: 'val_loss/dataloader_idx_0' reached -12.97148 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=93.ckpt' as top 5
+Epoch 94, global step 237500: 'val_loss/dataloader_idx_0' reached -12.98467 (best -13.11822), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=94.ckpt' as top 5
+Epoch 95, global step 240000: 'val_loss/dataloader_idx_0' was not in top 5
+Metric val_loss/dataloader_idx_0 improved by 0.020 >= min_delta = 0.0. New best score: -13.138
+Epoch 96, global step 242500: 'val_loss/dataloader_idx_0' reached -13.13827 (best -13.13827), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=96.ckpt' as top 5
+Epoch 97, global step 245000: 'val_loss/dataloader_idx_0' reached -13.11494 (best -13.13827), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=97.ckpt' as top 5
+Epoch 98, global step 247500: 'val_loss/dataloader_idx_0' reached -13.03792 (best -13.13827), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=98.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.063 >= min_delta = 0.0. New best score: -13.201
+Epoch 99, global step 250000: 'val_loss/dataloader_idx_0' reached -13.20141 (best -13.20141), saving model to '/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=99.ckpt' as top 5
+`Trainer.fit` stopped: `max_epochs=100` reached.
+Epoch 99/99 ━━━━━━━━━━━━━━━ 2500/2500 0:10:07 •       4.43it/s v_num: 0.000     
+                                      0:00:00                  train_loss_step: 
+                                                               -12.607          
+                                                               val_loss/dataloa…
+                                                               -13.201          
+                                                               test_loss/datalo…
+                                                               -13.330 lr: 0.001
+                                                               train_loss_epoch:
+                                                               -14.007          
+Finished Training
+ saved best_model.pth -> 
+/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu

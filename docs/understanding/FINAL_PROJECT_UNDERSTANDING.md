@@ -5,6 +5,10 @@
 > 仓库：`/root/code/github_repos/Falcon-fork`（commit `7576854`；**2026-10-21 已同步上游 `689555c`，差异见 §17**）。8 份子系统深度文档见 `docs/understanding/0X-*.md`，
 > 评审记录见 `docs/reviews/round1|round2/`，所有可执行验证脚本/日志见 `docs/verification/`。
 
+> **状态更新（2026-10-24）**：本文件写于 2026-10-22，§10 的 P0 多数已修（F1–F9/F12/F14 半/F17），
+> “训练/评测入口不可跑”“RealSSA 待审批”等描述已过期。最新理解与状态见
+> `docs/understanding/deepdive-20261024/`（00 总纲 + 01–09 深挖，含逐条【确认/修正/推翻】）。
+
 ---
 
 ## 0. 一页速览（先读这 10 条）

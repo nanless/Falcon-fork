@@ -1,0 +1,12 @@
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fbfdca03f10>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[setup] device=cuda test_dir=/root/tmp/lrs2_eval_tt_full/tt utterances=3000
+
+=== run: variant=big protocol=whole visual=real n=3000 ===
+[big] audio=1,158,617 video=11,186,688 total=12,345,305 | ckpt=falcon-big.pt epoch=715
+  [big/whole/real] 100/3000 SI-SNRi=7.910 SDRi=8.373 (209s, eta 6067s)

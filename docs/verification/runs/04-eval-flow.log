@@ -1,0 +1,73 @@
+==============================================================================
+[1] _find_best_ckpt 顺序验证
+  1a) 仓库自带的 Experiments/checkpoint/Falcon（只有 conf.yml + best_k_models.json，${ROOT} 路径失效）:
+      -> FileNotFoundError: No checkpoint found in Experiments/checkpoint/Falcon
+      best_k_models.json 内容路径: ['${ROOT}/Falcon/epoch=714.ckpt', '${ROOT}/Falcon/epoch=735.ckpt', '${ROOT}/Falcon/epoch=738.ckpt', '${ROOT}/Falcon/epoch=741.ckpt', '${ROOT}/Falcon/epoch=742.ckpt']
+      os.path.exists(第一条) = False
+   Using best ckpt: c.ckpt (val_loss=-10.0100)
+  1b) best_k json 中三条都存在 -> 选 min(val_loss)（-10.01 的 c.ckpt）: c.ckpt
+   Using last.ckpt
+  1c) 无 best_k json -> 选 last.ckpt: last.ckpt
+   Using latest ckpt: epoch=742.ckpt
+  1d) 只有 epoch*.ckpt -> 返回 epoch=742.ckpt；但字符串排序结果 = epoch=742.ckpt（>=4 位 epoch 时会选错）
+
+[2] conf.yml 的 audionet_name 与 look2hear.models 不匹配
+  Experiments/checkpoint/Falcon/conf.yml audionet_name = SpeakerContrastiveV2
+  configs/Falcon.yml               audionet_name = FalconSpeakerContrastive
+  getattr(look2hear.models, 'SpeakerContrastiveV2') -> AttributeError（类不存在）
+  getattr(look2hear.models, 'FalconSpeakerContrastive') -> OK
+  video net: getattr(look2hear.videomodels, 'FRCNNVideoModel') -> True
+
+[3] 构建音频模型是否会污染 config（Separator 的 dict.pop）
+  FalconSpeakerContrastive 参数 = 537,697
+  构建后 config['audio_params'] 仍有 'repeats'? False; 仍有 'shared'? False; 'video_params' 仍有 'repeats'? False
+  用“缺 repeats/shared 的 conf”重建 -> 参数 49,081 (远小于 537,697，Separator 层数为 0)；此时 ckpt 里大部分权重会被 strict=False 静默丢弃
+
+[4] _load_models_from_ckpt：用伪造 ckpt 做函数级回环
+  ckpt keys: audio_model.*=525, video_model.*=137
+   ✓ audio_model loaded: 525 keys from ckpt
+   ✓ video_model loaded: 137 keys from ckpt
+  Lightning 风格 {'state_dict': ...} -> 加载成功, 参数与源模型一致=True
+  torch.load(weights_only=False) 见 audio_visual_test.py:119（Studio 用 weights_only=True）
+  裸 state_dict 文件 -> KeyError: 'state_dict' (falcon.pt 若无 state_dict 包装则 HF 评测命令失败)
+
+[5] 用带 SpeakerContrastiveV2 的 shipped conf.yml 走 _load_models_from_ckpt
+  -> AttributeError: module 'look2hear.models' has no attribute 'SpeakerContrastiveV2'（torch.load 成功后失败于模型类名 getattr）
+
+[6] 评测 DataModule 参数兼容性（process_worker 的 data_cfg 过滤后）
+  configs/Falcon.yml: 过滤后非法键=无, 缺必需键=无, data_name=AVSpeechDataModuleWithNear
+  shipped conf.yml: 过滤后非法键=无, 缺必需键=无, data_name=AVSpeechDataModuleWithNear
+  shipped conf.yml 的数据路径仍为未展开占位符: ${DATA_ROOT}/small/DataPreProcess/LRS3_complex_nonmoving/tt
+
+[7] hf:// 解析与结果 CSV 路径
+  'hf://JusperLee/Falcon/falcon.pt' -> repo_id='JusperLee/Falcon', filename='falcon.pt' (audio_visual_test.py:326)
+  exp_dir = /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon
+  每卡 CSV = /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results/metrics_rank{rank}.csv
+  合并 CSV = /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+
+[8] 评估数据集：伪造 1 s 样本验证 96x96 -> 88x88 CenterCrop 发生在 dataset 预处理（不在 FRCNN 内）
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fdc100a6f80>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+  __getitem__ -> mix(16000,), src(16000,), mouth(25, 88, 88) float64, key=mix.wav, n_near=0
+  mouth == CenterCrop(88) after Normalize/255 与均值方差归一化: max|diff|=2.574e-07
+  评估使用整段音频（16000 samples = 1.00s），不是 2 s 训练片段；嘴部 25 帧 = 25 fps
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fdc100d2cb0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+  单声道 wav 探针: mix.shape=(), src.shape=() -> 被 .mean(-1) 压成 0 维（训练集 avspeech_dataset_near.py:186 有 ndim>1 保护，评测集没有；依赖真实数据是多声道）
+
+[9] 复刻 process_worker 单样本前向（真实模型 + 伪造数据 + stub 指标）
+  FRCNNVideoModel().eval() 的返回值 = None（train() 未 return self -> 链式 .eval() 会得到 None）
+  mouth_emb (1, 512, 25); est_sources (1, 1, 16000); 前向耗时 1.09s (CPU)
+  metrics CSV 列/首行: ['snt_id', 'sdr', 'sdr_i', 'si-snr', 'si-snr_i', 'pesq', 'stoi'] | {'snt_id': 'mix.wav', 'sdr': 0.479, 'sdr_i': -6.516, 'si-snr': -38.697, 'si-snr_i': 3.491, 'pesq': 3.0, 'stoi': 0.9}
+
+DONE

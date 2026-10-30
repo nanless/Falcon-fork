@@ -1,0 +1,58 @@
+=== 1. parameter counts ===
+audio total=537,697 video=11,186,688 total=11,724,385
+  encoder                 3,024
+  audio_bottleneck       13,104
+  separator             492,312
+  mask_generator         12,657
+  decoder                 2,016
+  spk_pool_proj          14,584
+  separator.audio_net    445,766
+  separator.video_net     42,850
+  separator.caf            3,696
+
+=== 2. AudioBlock call counts (one Separator.forward) ===
+   {'concat[0]': 2, 'concat[1]': 2, 'concat[3]': 2, 'downsample[0]': 2, 'downsample[1]': 2, 'downsample[2]': 2, 'downsample[3]': 2, 'fusion[0]': 2, 'fusion[1]': 2, 'fusion[2]': 2, 'fusion[3]': 2, 'process_f[0]': 2, 'process_f[1]': 2, 'process_f[2]': 2, 'process_f[3]': 2, 'separator': 1}
+
+=== 3. causality probes ===
+  encoder frames 121-126 delta=[0.0, 0.0, 0.0, 0.0, 4.0780792236328125, 6.019430160522461]
+  encoder first changed frame=125 (expected 125 = ceil((16000-128)/128))
+  output[    0: 4000] max|d|=3.412e-06 first_nonzero=1
+  output[ 4000: 8000] max|d|=2.078e-04 first_nonzero=4000
+  output[ 8000:12000] max|d|=4.338e-03 first_nonzero=8000
+  output[12000:16000] max|d|=4.207e-02 first_nonzero=12000
+  output[16000:20000] max|d|=1.010e+00 first_nonzero=16000
+  output[20000:24000] max|d|=8.062e-01 first_nonzero=20000
+  output[24000:28000] max|d|=7.998e-01 first_nonzero=24000
+  output[28000:32000] max|d|=8.680e-01 first_nonzero=28000
+
+=== 3b. cLNhw removed -> structural lookahead ===
+  as-built (with cLNhw): first changed output sample=1 max|d|=8.198e-01
+  cLNhw -> Identity    : first changed output sample=5652 max|d|=9.278e-01  (lookahead=14348 samples)
+
+=== 3b2. AudioBlock-only structural lookahead (01 claims 57 frames) ===
+  AudioBlock(cLNhw->Identity): first changed frame=68 (perturbed frame>=125) -> lookahead=57 frames max|d|=4.618e+00
+
+=== 3c. top-level `causal` switch inertness ===
+  causal=True vs False: state_dict keys equal=True params 537,697/537,697 bit-identical=True max|d|=0.000e+00
+
+=== 4. dead MDCL path / constants ===
+  Falcon._mdcl_loss_hard=True Falcon._mdcl_loss=False
+  Falcon(train, near_audio) -> AttributeError: 'Falcon' object has no attribute '_mdcl_loss'
+
+=== 5. forward shape chain (hooks) ===
+  encoder            (1, 112, 251, 129)
+  audio_bottleneck   (1, 112, 251, 129)
+  video_bottleneck   (1, 512, 50)
+  separator          (1, 112, 251, 129)
+  mask_generator     (1, 1, 112, 251, 129)
+  decoder            (1, 1, 32000)
+  spk_pool_proj      None
+
+OK: r4 review execution checks finished
+=== R4 supplemental ===
+concat_layers params: [5568, 5568, 5568, 5568] | concat[2] idle = 5568
+fusion_layers params: [5568, 5568, 5568, 5568]
+caf.v_proj: Conv1d(512, 112, kernel_size=(1,), stride=(1,), groups=16)
+downsample outputs (T,F): [(251, 129), (126, 65), (63, 33), (32, 17), (251, 129), (126, 65), (63, 33), (32, 17)]
+caf.v_proj output: [(1, 112, 50)]
+n_src=2 forward -> RuntimeError shape '[2, 224, 251, 129]' is invalid for input of size 7252896

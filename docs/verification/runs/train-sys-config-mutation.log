@@ -1,0 +1,8 @@
+audio_params before: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'repeats', 'shared', 'stride', 'upsampling_depth']
+audio_params after : ['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'stride', 'upsampling_depth']
+video_params before: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'repeats', 'shared', 'stride']
+video_params after : ['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'stride']
+enc_dec_params before: ['act_type', 'bias', 'causal', 'hop_length', 'kernel_size', 'norm_type', 'out_chan', 'stride', 'win']
+enc_dec_params after : ['act_type', 'bias', 'causal', 'hop_length', 'kernel_size', 'norm_type', 'out_chan', 'stride', 'win']
+total params: 537697
+trainable: 537697

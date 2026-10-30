@@ -38,3 +38,10 @@ pretrain_zoo/
 Experiments/checkpoint/LRS2_*/
 Experiments/checkpoint/Falcon/results/
 *.pid
+
+# Reproduction evidence: verification logs/CSVs are part of the record and must be
+# reviewable after clone (added 2026-10-24; see docs/understanding/deepdive-20261024/08).
+!docs/verification/**/*.log
+!docs/verification/**/*.csv
+!docs/verification/runs/
+!docs/verification/runs/**

@@ -1,0 +1,190 @@
+================================================================
+ Phase-1 QA 独立回归日志 · 终检 v2（task-15 / owner: layers-dsp）
+ 生成时间: 2026-10-21T17:23:09+00:00    分支: repro/phase1 @ 689555c
+ 环境: conda falcon (Python 3.11.17 / torch 2.8.0+cu128)
+ 基线: docs/verification/phase1/baseline-fingerprint.json (Lead @ main worktree)
+ 本轮 diff sha256: 49101a329fba3d158a3eb0f2160b476aa969c0c31c1c11cf041dc2e4148514bf
+   （上一轮终检锚点 d854fa7d…；本轮含 train-sys 授权的 configs/Falcon.yml +2 行注释与 audio_train 17:08 更新）
+================================================================
+
+## 0. 环境
+Python 3.11.17
+torch 2.8.0+cu128 cuda_available True device_count 2
+
+## 1. 改动范围
+ audio_train.py                            | 275 +++++++++++--
+ audio_visual_test.py                      | 654 ++++++++++++++++++++----------
+ configs/Falcon.yml                        |   2 +
+ look2hear/datas/avspeech_dataset.py       |  15 +-
+ look2hear/datas/check_avspeech_dataset.py |  10 +-
+ look2hear/metrics/__init__.py             |  24 +-
+ look2hear/metrics/allwrapper.py           | 212 +++++-----
+ look2hear/metrics/wrapper.py              | 141 ++++---
+ look2hear/models/Falcon.py                |   5 +
+ look2hear/models/__init__.py              |   5 +-
+ look2hear/system/av_litmodule.py          |  27 +-
+ look2hear/videomodels/frcnn_videomodel.py |   7 +
+ 12 files changed, 958 insertions(+), 419 deletions(-)
+--- tracked modified ---
+audio_train.py
+audio_visual_test.py
+configs/Falcon.yml
+look2hear/datas/avspeech_dataset.py
+look2hear/datas/check_avspeech_dataset.py
+look2hear/metrics/__init__.py
+look2hear/metrics/allwrapper.py
+look2hear/metrics/wrapper.py
+look2hear/models/Falcon.py
+look2hear/models/__init__.py
+look2hear/system/av_litmodule.py
+look2hear/videomodels/frcnn_videomodel.py
+--- untracked new (source/tools, 不含 docs/) ---
+AGENTS.md
+agents.md
+look2hear/metrics/core.py
+tools/repro/extract_video_backbone.py
+tools/repro/fetch_data.py
+tools/repro/make_synthetic_data.py
+tools/repro/realssa_to_falcon.py
+tools/repro/tests/make_t3_smoke_data.py
+tools/repro/tests/t5_checks.py
+tools/repro/tests/t5_fingerprint.py
+tools/repro/tests/test_audio_train_entry.py
+tools/repro/tests/test_eval_entry.py
+tools/repro/tests/test_litmodule_logging.py
+tools/repro/tests/test_metrics.py
+tools/repro/tests/test_phase1_regression.py
+tools/repro/tests/test_realssa_convert.py
+tools/repro/tests/test_synthetic_data.py
+tools/repro/tests/test_t5_backbone.py
+
+## 2. QA 独立回归套件（21 条：原 16 + config 注释守卫 / GPU spec / LRS2 真实数据 ×3）
+$ /root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/tests/test_phase1_regression.py -q
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+21 passed, 5 warnings in 66.65s (0:01:06)
+
+## 3. 全部 tools/repro/tests（终检 v2：预期 82 = 原 77 + QA 新增 5）
+$ /root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/tests -q
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+82 passed, 43 warnings in 85.34s (0:01:25)
+
+## 4. Studio Python 回归（预期 35 passed / 2 skipped）
+$ /root/miniforge3/envs/falcon/bin/python -m pytest studio/tests -q
+....ss...............................                                    [100%]
+35 passed, 2 skipped in 16.14s
+
+## 5. import 完整性
+IMPORTS_OK (12 modules)
+
+## 6. 官方权重 4 条指纹 vs baseline（QA 套件内断言；此处独立重算打印）
+params audio=537,697 video=11,186,688 total=11,724,385
+eval            torch.Size([1, 1, 32000]) ad0f20a0e67e8e750058bfea69946ca1ee5ff9d7ec6d3caa1f212cb0e8f40757 sum=0.3195922
+train est       torch.Size([1, 1, 32000]) 5f01a59658471af0955cf6c18c09bb7c0788f844c9e0db334db36fa0a7e7545a
+train sep_emb   torch.Size([1, 1, 112, 251, 129]) 8a8e5c2a77eb0d78efd1ee1e9106b7b709326658fc13b1be3c67003c60bddc16
+video frontend  torch.Size([1, 512, 50]) 2afcea082697fdd859b28e4abbcf854abc942b074e9107a96bba9d636c19dd40 sum=7832.2563
+  期望（baseline）: eval ad0f20a0…f40757 / est 5f01a596…e7545a / sep 8a8e5c2a…bddc16 / video 2afcea08…dd40
+
+## 7. 改动范围/语法守卫 + 跨 main-worktree 不变量
+（QA 套件 test_diff_scope_only_allowed_files / test_changed_python_files_compile /
+  test_numeric_invariance_vs_main_worktree / test_config_tracked_changes_are_comment_only）
+py_compile: OK (11 files)
+
+## 7b. configs/Falcon.yml：仅注释改动（键值与 main 完全一致）
+diff --git a/configs/Falcon.yml b/configs/Falcon.yml
+index d5f4157..e8c33ca 100644
+--- a/configs/Falcon.yml
++++ b/configs/Falcon.yml
+@@ -127,6 +127,8 @@ loss:
+ 
+ # Training config
+ training:
++  # logger: csv        # csv | tensorboard | comet | none (default: csv)
++  # gpus: [0, 1]       # list = GPU indices; int = GPU count; 0 = CPU; -1 = all visible GPUs
+   system: AudioVisualLightningModuleNASSv2
+   gpus: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+   parallel: ddp
+  yaml 键值等值: True | 键数: 9 -> 9
+
+## 8. T1 GPU spec / CSVLogger 路径独立复核（不影响数值/训练逻辑）
+_normalize_gpus_spec 语义（纯解析）:
+  gpus=None         -> ('none', None)  OK
+  gpus=''           -> ('none', None)  OK
+  gpus='0,1'        -> ('indices', [0, 1])  OK
+  gpus=[7]          -> ('indices', [7])  OK
+  gpus=(3,)         -> ('indices', [3])  OK
+  gpus='2'          -> ('indices', [2])  OK
+  gpus=2            -> ('count', 2)  OK
+  gpus=0            -> ('cpu', None)  OK
+  gpus=-1           -> ('all', None)  OK
+  gpus=-2 -> ValueError OK (training.gpus=-2 is not supported: use -1 for ...)
+  gpus=-5 -> ValueError OK (training.gpus=-5 is not supported: use -1 for ...)
+resolve_accelerator_and_devices 校验（非法输入应 ValueError）:
+  gpus=[] -> ValueError OK (training.gpus is an empty list; provide GPU in...)
+  gpus=[0, 0] -> ValueError OK (training.gpus=[0, 0] contains duplicate GPU in...)
+  gpus=[99] -> ValueError OK (training.gpus=[99] does not match any visible ...)
+ WARNING: config requests GPU devices [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] but only 
+[0, 1] visible -> using [0, 1]
+  gpus=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -> accelerator=gpu devices=[0, 1] n=2 strategy=DDPStrategy
+ WARNING: legacy training.gpus=0 -> running on CPU
+  gpus=0                          -> accelerator=cpu devices=1 n=1 strategy=auto
+  gpus=-1                         -> accelerator=gpu devices=[0, 1] n=2 strategy=DDPStrategy
+  gpus=2                          -> accelerator=gpu devices=2 n=2 strategy=DDPStrategy
+  gpus=None                       -> accelerator=gpu devices=[0] n=1 strategy=auto
+  CSVLogger.log_dir = /tmp/X/Experiments/checkpoint/Falcon/version_0 | 单层目录（无重复 exp 名）: True
+  模型/视频/优化器/损失/system 构造语句与 main 逐行等值: True
+  备注：与 main 的其余差异为——删未用 ReduceLROnPlateau import、scheduler 行空白格式、exp_dir/conf dump 前移(F9)，均无语义影响
+  GPU-SPEC + CONSTRUCTION CHECKS: PASS
+
+## 9. LRS2-2Mix 真实数据端到端 sanity（官方权重，非仓库数据 /root/data 与 /root/tmp）
+  数据: /root/tmp/lrs2_eval_tt_full/tt (3000 条 Falcon 格式) + s1/s2 20 条子集 /root/tmp/lrs2_eval_s{1,2}/tt
+  QA 覆盖:
+   - test_lrs2_mix_equals_s1_plus_s2        : 独立验证 mix==target(s1)+target(s2)（R²=1.00000，max|Δ|≈PCM16 量化级）
+   - test_lrs2_eval_aggregate_matches_lead_evidence : 解析 Lead 20 条日志：s1 SI-SNRi 7.911 / SDRi 8.547 / SI-SNR 13.601 / SDR 14.309 / PESQ 2.312 / STOI 0.923；s2 对照 SI-SNRi 4.603；s1−s2>2dB ⇒ target=s1 约定确认
+   - test_lrs2_eval_end_to_end_smoke        : 以 --limit 2、CPU 重跑 audio_visual_test.py（cwd=临时目录），
+                                              生成 metrics_combined.csv（2 逐句 + avg/std），断言有限值/SI-SNR>0/SDR>3/SI-SNRi>0/SDRi>0
+  （上述 3 条已在 §2 的 QA 套件中执行；完整输出见 pytest -q 结果）
+
+## 10. 交付物清单
+7938 Oct 21 17:26 QA-regression.log
+18545 Oct 21 17:06 QA-report.md
+4108 Oct 21 16:53 README.md
+14802 Oct 21 17:21 REGRESSION-docs-evidence.json
+20367 Oct 21 17:21 REGRESSION-docs.md
+9841 Oct 21 17:03 REVIEW-training-stack-checks.log
+23294 Oct 21 17:06 REVIEW-training-stack.md
+4661 Oct 21 17:15 T1-checks.log
+2275 Oct 21 16:52 T1-gpu-smoke.log
+182 Oct 21 17:25 T1-pytest.log
+10206 Oct 21 17:16 T1-report.md
+681 Oct 21 16:31 T2-combined-suite-note.log
+3567 Oct 21 16:28 T2-litmodule-check.log
+6599 Oct 21 16:32 T2-report.md
+180 Oct 21 16:28 T2-studio-regression.log
+1544 Oct 21 16:45 T3-combined-tests.log
+1543 Oct 21 16:34 T3-eval-entry-tests.log
+315 Oct 21 16:46 T3-eval-smoke-metrics.csv
+11608 Oct 21 16:46 T3-eval-smoke.log
+321 Oct 21 16:37 T3-import-check.log
+98 Oct 21 16:33 T3-metrics-tests.log
+16386 Oct 21 16:44 T3-report.md
+64 Oct 21 16:43 T3-smoke-fixture-mix.json
+11297 Oct 21 16:37 T4-data-check.log
+14479 Oct 21 16:39 T4-report.md
+4743 Oct 21 16:32 T5-backbone-check.log
+1905 Oct 21 16:53 T5-post-fix-fingerprint.json
+1905 Oct 21 16:53 T5-pre-fix-fingerprint.json
+10360 Oct 21 16:54 T5-report.md
+1826 Oct 21 16:55 T6-data-fetch.log
+8 Oct 21 16:31 T6-download.pid
+6623 Oct 21 17:12 T6-lrs2-structure.txt
+14414 Oct 21 17:14 T6-report.md
+4096 Oct 21 17:26 __pycache__
+2108 Oct 21 16:36 _ddp_smoke_toy.py
+1011 Oct 21 16:19 baseline-fingerprint.json
+7835 Oct 21 17:07 integration-smoke.log
+39926 Oct 21 17:02 review_training_stack_checks.py
+2149 Oct 21 16:30 run_lrs2_download.sh
+
+== FINAL QA LOG v2 END 2026-10-21T17:26:37+00:00 ==

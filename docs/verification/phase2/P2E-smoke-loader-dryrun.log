@@ -1,0 +1,6 @@
+[realssa-real] data=/root/data/falcon_eval/smoke_realssa_like_lrs2_20261021T190344Z  smoke=False ()  out=/root/data/falcon_eval/realssa_real_20261021T190411Z
+[env] speechmos=0.0.1.1 onnxruntime=1.31.0 channel=mean align_tail=True device=auto model=JusperLee/Falcon
+[realssa-real] loader=fallback:metadata-jsonl  segments=2
+  - smoke-000                scene=smoke                audio=000.wav
+  - smoke-001                scene=smoke                audio=001.wav
+[dry-run] 未加载模型、未计算 DNSMOS、未写 CSV。

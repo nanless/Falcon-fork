@@ -1,0 +1,8 @@
+# [model-core 2026-10-24T14:21Z] DEFERRED — 本文件不是完成的评测结果。
+# 2026-10-24T14:14Z 启动的 RealSSA-Sim ch0 全量评测在运行中被 Lead 的 GPU 统一排期 kill（SIGKILL），
+# 未产出任何 per-utterance 指标（metrics_rank0.csv 为 0 字节，已删除）；评测推迟，等待统一排期后重跑。
+# 说明与自检见 docs/verification/phase2/P2E-realssa-sim-ch0-report.md。
+# 原进程 stdout（仅 timm FutureWarning）如下：
+# ---------------------------------------------------------------------------
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)

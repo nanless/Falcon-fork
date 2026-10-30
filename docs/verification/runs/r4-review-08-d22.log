@@ -1,0 +1,4 @@
+same_origin(public origin, same host) = False
+same_origin(loopback) = True
+public Host /api/status -> 400 'Invalid host header'
+loopback Host /api/status -> 200 falcon-studio

@@ -1,0 +1,12 @@
+python: 3.10.18
+top-level groups: ['options', 'videonet', 'audionet', 'spk_contrast', 'loss', 'training', 'optimizer', 'scheduler', 'datamodule', 'exp', 'main_args']
+main_args: {}
+options: {'help': None, 'conf_dir': 'configs/NASSv2_lrs3_complex_nonmoving.yml', 'ckpt_path': ''}
+training: {'system': 'AudioVisualLightningModuleNASSv2', 'gpus': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 'parallel': 'ddp', 'epochs': 1000, 'early_stop': {'monitor': 'val_loss/dataloader_idx_0', 'mode': 'min', 'patience': 30, 'verbose': True}}
+optimizer: {'optim_name': 'adamw', 'lr': 0.001, 'weight_decay': 0.01}
+scheduler: {'sche_name': 'ReduceLROnPlateau', 'sche_config': {'patience': 15, 'factor': 0.5}}
+loss keys: ['train', 'val'] | loss.train type: dict
+datamodule: {'data_name': 'AVSpeechDataModuleWithNear', 'data_config': {'train_dir': '--', 'valid_dir': '--', 'test_dir': '--', 'n_src': 1, 'sample_rate': 16000, 'segment': 2.0, 'normalize_audio': False, 'batch_size': 4, 'num_workers': 8, 'pin_memory': True, 'persistent_workers': True, 'use_near': True}}
+audionet_name: FalconSpeakerContrastive
+spk_contrast: {'margin': 0.5, 'alpha_pos': 1.0, 'alpha_neg': 1.0, 'beta_init': 0.0, 'beta_final': 1.0, 'beta_anneal_epochs': 200, 'loss_weight': 1.0}
+exp: {'exp_name': 'Falcon'}

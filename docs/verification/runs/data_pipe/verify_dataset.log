@@ -1,0 +1,219 @@
+[PASS] A1 stored mouth .pt is 4-D channel-last (T,96,96,C)  -> (75, 96, 96, 1)
+[PASS] A2 stored mouth .pt dtype  -> torch.float32
+[PASS] A3 Grayscale(permute(0,3,1,2)) -> (T,96,96) numpy  -> (75, 96, 96)
+[PASS] A4 train/val/test output shape (T,88,88)  -> (75, 88, 88)
+[PASS] A5 pipeline output dtype float32  -> float32
+[PASS] A6 Normalize(0,255) then Normalize(.421,.165) (train)  -> max|diff|=0.00e+00
+[PASS] A7 val CenterCrop(88) == [4:92,4:92] (= studio preprocess_mouth)  -> max|diff|=0.00e+00
+[PASS] A8 train RandomCrop(88) spatial-only, keeps all 75 frames  -> (75, 88, 88)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3869fbe0>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 8 entries.
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 7/7 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/dp-verify/data/tr/near/u4_short.wav
+[PASS] B1 utt shorter than seg_len dropped (8->7)  -> 7
+[PASS] B2 drop only u5  -> ['u4', 'u3', 'u2', 'u1', 'u0grad', 'u0copy', 'u0']
+[PASS] B3 mix/source/mouth aligned by stem
+[PASS] B4 far-field components excluded (u0 -> 2 near entries)  -> ['u0_n1.wav', 'u0_n2.wav']
+[PASS] B5 fallback = mixture path itself
+[PASS] B6 u4 near = [20000, 48000] samples
+[PASS] B7 kept order reversed vs mix.json (descending append)  -> ['u4', 'u3', 'u2']
+[PASS] B8 len(dataset)==samples (train_samples), not #utts  -> 4
+[PASS] C1 mixture == sf.read(mix, start=10000, stop=42000); idx arg ignored  -> shape=(32000,)
+[PASS] C2 source read with identical window
+[PASS] C3 mouth = frames[floor(start/640) : +50] at 25 fps  -> mouth_start=15, shape=(50, 88, 88), first=-2.19501
+[PASS] C4 mouth dtype float32  -> float32
+[PASS] C5 filename = basename(mix wav)  -> u4.wav
+[PASS] C6 near: short entry skipped; offset=min(rand_start, n-seg_len)  -> #near=1; T=32000
+[PASS] D1 batch mixtures [B,T] float32  -> (3, 32000) torch.float32
+[PASS] D2 batch sources [B,T] float32  -> (3, 32000) torch.float32
+[PASS] D3 batch mouths [B,50,88,88] float32  -> (3, 50, 88, 88) torch.float32
+[PASS] D4 filenames list[str]  -> ['u3.wav', 'u0.wav', 'u3.wav']
+[PASS] D5 near_audios = list[list[Tensor(32000,float32)]] variable K (empty for fallback samples)  -> K over all batches=[0, 2, 0, 0], near shapes={(32000,)}
+[PASS] D6 len(dataset)==samples so DataLoader yields ceil(samples/B) batches (4 samples -> 3+1)  -> [3, 1]
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870c040>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 8 entries.
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 7/7 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/dp-verify/data/tr/near/u4_short.wav
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3870c2b0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3870c850>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+[PASS] D7 config batch_size=4 through DataModule train loader, 5-tuple  -> (4, 32000), tuple len=5
+[PASS] D8 val/test loader forced batch_size=1, config batch_size ignored  -> mix=(1,), mouth=(1, 62, 88, 88), n_near=tensor([0])
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870c970>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 8 entries.
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 7/7 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /tmp/dp-verify/data/tr/near/u4_short.wav
+[PASS] E1 normalize_audio: per-segment mean removal, target scaled by MIXTURE std  -> mix_mean=-1.55e-08 mix_std=1.0000; target own_std=0.4796 -> after=0.9955
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3870de10>
+    Normalize(mean=0.421, std=0.165)
+)
+8 8
+Drop 0 utts(0.00 h) from 8 (shorter than None samples)
+[PASS] F1 eval set keeps short utt (8 entries, no filtering)  -> 8
+[PASS] F2 mono wav -> mixture/source collapse to 0-dim tensor (unguarded .mean(-1) bug)  -> mix.shape=(), src.shape=()
+[PASS] F3 eval mouth = whole sequence center-cropped (75,88,88) float32  -> (75, 88, 88) float32
+[PASS] F4 n_near parsed from <stem>_meta.json  -> key=u0.wav, n_near=2
+[PASS] F5 missing meta tolerated -> n_near=0
+[PASS] F6 eval mouth == ((frames[...,4:92,4:92])/255-.421)/.165
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3870edd0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[PASS] F7 stereo wav -> mean over channels: eval mix/source (T,) float32  -> (40000,) torch.float32
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870eb30>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 0 utts(0.00 h) from 1 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/1 samples have near-speaker entries.
+[PASS] F8 train dataset ndim guard: stereo -> mean over channels (T,)  -> (32000,)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870ee30>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+[PASS] G1 use_near=False -> near lists empty
+[PASS] G2 use_near=False -> item[4] == []
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870e7a0>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] WARNING: near.json not found at /tmp/dp-verify/index_nearmiss/tr/near.json. MDCL will be disabled for this split.
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+[PASS] G3 use_near=True + near.json absent -> degrades to empty near list
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870e3b0>
+    Normalize(mean=0.421, std=0.165)
+)
+[PASS] H1 mix.json/target.json length mismatch -> IndexError (no explicit check)  -> IndexError: list assignment index out of range
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870f0a0>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 5 entries.
+[PASS] H2 near.json length mismatch -> IndexError  -> IndexError: list assignment index out of range
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870fc70>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 0 utts(0.00 h) from 2 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/2 samples have near-speaker entries.
+[PASS] H3 mouth .pt shorter than audio timeline -> per-sample F<50 -> collate stack fails  -> F=25/50, RuntimeError: stack expects each tensor to be equal size, but got [25, 88, 88] at entry 0 and [50, 88, 88] at entry 1
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3870fdf0>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 0 utts(0.00 h) from 8 (shorter than 16000 samples)
+[AVSpeechTrainDatasetWithNear] 0/8 samples have near-speaker entries.
+[PASS] H4 sample_rate=8000: mouth_start uses hard-coded 16000 (frame 15 instead of 31)  -> seg_len=16000, mouth_start=15, correct=31
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c386e54b0>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 0 utts(0.00 h) from 2 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/2 samples have near-speaker entries.
+[PASS] H5 all-zero mixture: normalize_audio yields finite zeros (eps=1e-8)  -> max|mix|=0.00e+00
+
+== I. AVSpeechDataModuleWithNear.__init__ params: ['train_dir', 'valid_dir', 'test_dir', 'n_src', 'sample_rate', 'segment', 'normalize_audio', 'batch_size', 'num_workers', 'pin_memory', 'persistent_workers', 'train_samples', 'use_near']
+==    configs/Falcon.yml data_config keys: ['train_dir', 'valid_dir', 'test_dir', 'n_src', 'sample_rate', 'segment', 'normalize_audio', 'batch_size', 'num_workers', 'pin_memory', 'persistent_workers', 'use_near']
+==    config keys not in signature: []
+==    signature params absent from config: ['train_samples'] -> train_samples default = 10000
+[PASS] I1 every YAML data_config key is accepted by __init__
+[PASS] I2 no unexpected extra ctor arg required (only train_samples, has default)
+[PASS] I3 data_name key is not passed to ctor (class imported directly)  -> AVSpeechDataModuleWithNear
+[PASS] I4 Experiments conf.yml data_config keys == configs/Falcon.yml keys  -> ['batch_size', 'n_src', 'normalize_audio', 'num_workers', 'persistent_workers', 'pin_memory', 'sample_rate', 'segment', 'test_dir', 'train_dir', 'use_near', 'valid_dir']
+[PASS] I5 make_loader is a property returning 3 DataLoaders
+[PASS] I6 make_sets is a property returning (train, val, test) datasets
+[PASS] I7 both properties build NEW DataLoader objects on every access
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3872c4c0>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3872c7c0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3872c9a0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+[PASS] J1 eval-style module: use_near stripped then forced False; make_sets[2] usable  -> mix=(), mouth=(62, 88, 88)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2c3872c9d0>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2c3872cc70>
+    Normalize(mean=0.421, std=0.165)
+)
+[PASS] J2 setup() builds all 3 datasets -> test-only eval still requires train_dir & valid_dir  -> FileNotFoundError: [Errno 2] No such file or directory: '/tmp/dp-verify/does_not_exist/cv/mix.json'
+[PASS] J3 tensors_to_device(tuple) -> list of 5, tensors stay tensors, n_near int stays int  -> types=['Tensor', 'Tensor', 'ndarray', 'str', 'int']
+
+== TOTAL FAILURES: 0

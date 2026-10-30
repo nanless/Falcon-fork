@@ -1,0 +1,35 @@
+=== R3-A: shipped conf.yml rebuild (conf.yml still has repeats/shared) ===
+[A] full(Falcon.yml) params      = 537,697
+[A] polluted(conf.yml) params    = 537,697  (ratio 100.0%)
+[A] state_dict keys=525, missing=0, unexpected=0
+[A] silently dropped tensor elems = 0 (0.0% of all)
+[A] first 6 missing keys: []
+[A] strict=True: no error (unexpected)
+[A] Falcon.yml: audio_params has causal=False, repeats=True, shared=True | video_params has causal=False, repeats=True, shared=True
+[A] conf.yml: audio_params has causal=True, repeats=True, shared=True | video_params has causal=True, repeats=True, shared=True
+
+=== R3-B: minimal repro of audio_train.py conf dump (monkeypatched Trainer/comet_logger) ===
+[B] DummyTrainer.fit called (ckpt_path=None)
+[B] main() 末尾预期失败（best_model_path='' → torch.load）: FileNotFoundError: [Errno 2] No such file or directory: ''
+[B] dumped exists: True -> /tmp/repro_run/Experiments/checkpoint/repro_conf_dump/conf.yml
+[B] dumped audio_params: causal=True, repeats=False, shared=False; keys=['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'stride', 'upsampling_depth']
+[B] dumped video_params: causal=True, repeats=False, shared=False
+[B] dumped top-level keys: ['audionet', 'datamodule', 'exp', 'loss', 'main_args', 'optimizer', 'options', 'scheduler', 'spk_contrast', 'training', 'videonet']
+[B] dumped main_args: {'exp_dir': '/tmp/repro_run/Experiments/checkpoint/repro_conf_dump'}
+[B] dumped options: {'ckpt_path': '', 'conf_dir': 'configs/Falcon.yml', 'help': None}
+[B] Trainer kwargs intercepted: ['accelerator', 'callbacks', 'default_root_dir', 'devices', 'gradient_clip_val', 'limit_train_batches', 'logger', 'max_epochs', 'num_sanity_val_steps', 'strategy', 'sync_batchnorm']
+[B]   Trainer.devices = [0]
+[B]   Trainer.accelerator = 'cuda'
+[B]   Trainer.gradient_clip_val = 5.0
+[B]   Trainer.limit_train_batches = 1.0
+[B]   Trainer.sync_batchnorm = True
+[B]   Trainer.num_sanity_val_steps = 0
+[B]   Trainer.max_epochs = 1000
+[B]   Trainer.logger = None
+
+=== R3-C: eval rebuild from current-code dump -> params + strict=False + forward ===
+[C] full params=537,697 | rebuilt-from-current-code-dump params=49,081 (ratio 9.1%)
+[C] strict=False load: missing keys=0, unexpected=505, dropped elems=0 (0.0%)
+[C] missing examples: []
+[C] polluted model forward eval OK -> (1, 1, 32000) (silent wrong-result risk)
+[C] full model forward eval OK -> (1, 1, 32000)

@@ -1,0 +1,30 @@
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f21d7883c10>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[setup] device=cuda test_dir=/root/tmp/lrs2_eval_tt_full/tt utterances=300
+
+=== run: variant=small protocol=whole visual=zero n=300 ===
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[small] audio=537,697 video=11,186,688 total=11,724,385 | ckpt=falcon.pt epoch=714
+  [small/whole/zero] 100/300 SI-SNRi=-4.451 SDRi=-2.089 (138s, eta 276s)
+  [small/whole/zero] 200/300 SI-SNRi=-8.204 SDRi=-5.270 (706s, eta 353s)
+  [small/whole/zero] 300/300 SI-SNRi=-8.173 SDRi=-5.103 (789s, eta 0s)
+[RESULT] {"variant": "small", "protocol": "whole", "visual": "zero", "n": 300, "si_snr": -3.2330796374382866, "si_snr_i": -8.172667493485557, "sdr": -0.06200795865066709, "sdr_i": -5.10334060604329, "si_snr_i_std": 10.460219293560504, "sdr_i_std": 8.773588540598032, "pesq": 1.354686775604884, "stoi": 0.4656312714254782, "wall_s": 788.8, "csv": "P2B-b300-small-whole-zero.csv"}
+
+=== run: variant=small protocol=whole visual=shuffle n=300 ===
+[small] audio=537,697 video=11,186,688 total=11,724,385 | ckpt=falcon.pt epoch=714
+  [small/whole/shuffle] 100/300 SI-SNRi=-9.452 SDRi=-6.160 (28s, eta 56s)
+  [small/whole/shuffle] 200/300 SI-SNRi=-7.793 SDRi=-5.003 (54s, eta 27s)
+  [small/whole/shuffle] 300/300 SI-SNRi=-5.977 SDRi=-3.357 (82s, eta 0s)
+[RESULT] {"variant": "small", "protocol": "whole", "visual": "shuffle", "n": 300, "si_snr": -1.0378794283258177, "si_snr_i": -5.977467284373088, "sdr": 1.684730307340576, "sdr_i": -3.3566023400520475, "si_snr_i_std": 9.29348417103476, "sdr_i_std": 8.137011522380774, "pesq": 1.362608026266098, "stoi": 0.5404091782857918, "wall_s": 81.9, "csv": "P2B-b300-small-whole-shuffle.csv"}
+
+[summary] wrote /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2B-summary-b300-small.json
+| variant | protocol | visual | n | SI-SNRi | SDRi | PESQ | STOI | wall s |
+|---|---|---|---|---|---|---|---|---|
+| small | whole | zero | 300 | -8.173 | -5.103 | 1.355 | 0.466 | 788.8 |
+| small | whole | shuffle | 300 | -5.977 | -3.357 | 1.363 | 0.540 | 81.9 |

@@ -4,6 +4,11 @@
 > `AGENTS.md`（运行环境强制 conda `falcon`）、`docs/verification/`（已有验证脚本/日志）。
 > 本文回答三件事：**复现什么、已经有什么、还差什么、按什么顺序做。**
 
+> **状态更新（2026-10-24）**：本计划写于 2026-10-21，Phase 2/3 状态已大幅变化（RealSSA 已获批并完成评测、
+> LRS2 已完成单机训练 8.858/9.270、8 卡论文配方待执行）。**最新状态与规划 v2 以
+> `docs/understanding/deepdive-20261024/00-SYNTHESIS.md` 与 `09-benchmark-alignment.md` 为准**；
+> 本文保留为历史执行计划（§6 的 F1–F9/F12/F17 多已修复，§7 的 Phase 2/3 状态行已过期）。
+
 ---
 
 ## 0. TL;DR（先看这段）

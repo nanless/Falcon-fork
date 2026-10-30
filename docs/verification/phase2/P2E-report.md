@@ -237,3 +237,16 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 - ✅ `eval_realssa_real.py`：54 段约定（official loader 优先 + fallback）、align_tail/channel/limit/device/baseline、逐段+汇总 CSV、无数据清晰提示、LRS2/合成接口冒烟、不伪造 RealSSA 结果。
 - ✅ RealSSA-Sim tt 转换+评测命令（复用 `realssa_to_falcon.py`），1 shard dry-run 通过并明确“待审批后执行”。
 - ✅ 报告+日志齐备；未改 Phase1 源码、未 commit；task-22 暂不 complete（等 Lead 验收）。
+
+## 9. 2026-10-24 状态更新（终态）
+
+- **RealSSA-Sim / RealSSA-Real 已于 2026-10-22 获批并下载**：Sim 521,532,645,652 B / 242 文件（240 shard），
+  Real 12.84 GB；已 rsync 归档到 TOS `/aispeech-cfs/voiceprint/data/multimodal/`（`_archive_done.json` 两条 `ok:true`）。
+  本报告 §0/§5 的“403/待审批”描述作废。
+- **RealSSA-Sim test（9,169 条，channel=mean，整段推理，官方 falcon.pt）**：SI-SNRi **7.774307** / SDRi **8.479395** /
+  PESQ 2.093770 / STOI 0.817290（论文 7.7 / 8.2）。证据：`P2E-realssa-sim-eval-official.log`、
+  `P2E-realssa-sim-metrics_combined.csv`（9,171 行=9,169 逐句+avg/std）、`P2E-realssa-sim-convert.log`。
+- **RealSSA-Real（54 段，channel=mean，align_tail=True，窗口化分离后整段 DNSMOS）**：
+  SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285；mixture 基线 2.4176 / 1.7908 / 1.7599 / 2.6765。
+  证据：`DNSMOS-realssa-real-mean-full3/{summary.json,run_metadata.json,per_segment.csv}`。
+- **论文 DNSMOS 3.276 的列名仍未确认**：按 P808 为 +0.05，按 OVRL 为 −0.49；报告必须同时给两列并注明口径。

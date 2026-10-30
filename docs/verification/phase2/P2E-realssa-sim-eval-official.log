@@ -1,0 +1,46 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+[eval] config      : configs/Falcon.yml
+[eval] test index  : /root/data/falcon_realssa_sim/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=all
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f5c913a2450>
+    Normalize(mean=0.421, std=0.165)
+)
+9169 9169
+Drop 0 utts(0.00 h) from 9169 (shorter than None samples)
+[eval] test index: /root/data/falcon_realssa_sim/tt | utterances=9169 | this rank=9169 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+Testing (Rank 0) ━━━━━━━━━━━━━ • 9169/9169 • 3 bytes/s • 0:00:00 • sdr: 10.645  
+                                                                   sdr_i: 8.481 
+                                                                   si-snr: 9.98 
+                                                                   si-snr_i:    
+                                                                   7.776 pesq:  
+                                                                   2.094 stoi:  
+                                                                   0.817        
+[eval] per-utterance results: /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         10.644734
+sdr_i        8.479395
+si-snr       9.980200
+si-snr_i     7.774307
+pesq         2.093770
+stoi         0.817290
+----------------------------------------
+exit=0

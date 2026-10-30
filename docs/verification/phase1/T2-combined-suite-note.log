@@ -1,0 +1,8 @@
+=== combined tools/repro/tests suite (directory is shared with other agents; my files are test_audio_train_entry.py / test_litmodule_logging.py) ===
+E         comparison failed
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_expands_env_placeholders
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_data_dir_override
+FAILED tools/repro/tests/test_eval_entry.py::test_prepare_config_unresolved_placeholder_raises
+FAILED tools/repro/tests/test_metrics.py::test_si_sdr_and_improvement_match_analytic
+FAILED tools/repro/tests/test_synthetic_data.py::test_eval_dataset_stereo_still_uses_channel_mean
+5 failed, 65 passed, 43 warnings in 68.83s (0:01:08)

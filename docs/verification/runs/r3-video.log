@@ -1,0 +1,28 @@
+==============================================================================
+[1] FRCNNVideoModel(resnet, prelu, w=1.0): 参数量/形状/时间步
+  total params = 11,186,688 = 11.1867 M; requires_grad=True params = 77 个张量
+  in (1, 1, 50, 96, 96) -> out (1, 512, 50)   (T_out == T_in: True)
+  in (1, 1, 50, 88, 88) -> out (1, 512, 50)   (T_out == T_in: True)
+  in (1, 1, 25, 88, 88) -> out (1, 512, 25)   (T_out == T_in: True)
+  in (1, 1, 1, 88, 88) -> out (1, 512, 1)   (T_out == T_in: True)
+  in (1, 1, 50, 64, 64) -> out (1, 512, 50)   (T_out == T_in: True)
+  backend_out attr = 512; frontend_nout = 64
+  FRCNNVideoModel().eval() returns: None (train() 无 return)
+
+[2] 冻结与 pretrain 路径
+  update_frcnn_parameter 后 all requires_grad=False: True
+  pretrain 文件缺失 -> FileNotFoundError: [Errno 2] No such file or directory: 'pretrain_zoo/frcnn_128_512.backb
+  train() 模式下 BatchNorm 仍处于 eval（冻结统计量）: True
+
+[3] 其它 videomodel 变体（均不能被 configs/*.yml 选中）
+  FRCNNVideoModel(backbone=shufflenet,w=1.0) params=  1.259 M  out=(1, 1024, 50)
+  ResNetVideoModel                       params= 11.187 M  out=(1, 512, 50)
+  LightVideomodel(shufflenet)            params=  1.259 M  out=(1, 1024, 50)
+  WujianVideoModel                       params= 11.318 M  out=(1, 256, 50)
+  ShuffleNetV2(standalone,input_size=96,w=1.0) params=1.35 M
+  shufflenet 分支对 64x64 输入 -> RuntimeError: Given input size: (1024x2x2). Calculated output size: (1024x0x0). Output size is too small
+
+[4] 88x88 裁剪不在 FRCNN 内部：96x96 与 88x88 都能直接前向，模型无 crop/断言
+  96x96 -> (1, 512, 4), 88x88 -> (1, 512, 4)（都在 dataset 预处理里裁成 88）
+
+DONE

@@ -1,0 +1,116 @@
+  [1/54] big_indoor/large_mall/1 ERROR: NameError: name 'torch' is not defined
+  [2/54] mid_indoor/billiard_hall/2 ERROR: NameError: name 'torch' is not defined
+  [3/54] outdoor/street_side-2/2-1 ERROR: NameError: name 'torch' is not defined
+  [4/54] outdoor/street_side-2/2-2 ERROR: NameError: name 'torch' is not defined
+  [5/54] small_indoor/study_room/5-1 ERROR: NameError: name 'torch' is not defined
+  [6/54] small_indoor/study_room/5-2 ERROR: NameError: name 'torch' is not defined
+  [7/54] big_indoor/large_mall/2 ERROR: NameError: name 'torch' is not defined
+  [8/54] mid_indoor/billiard_hall/4 ERROR: NameError: name 'torch' is not defined
+  [9/54] outdoor/street_side-2/4 ERROR: NameError: name 'torch' is not defined
+  [10/54] small_indoor/classroom/2 ERROR: NameError: name 'torch' is not defined
+  [11/54] big_indoor/large_mall/3 ERROR: NameError: name 'torch' is not defined
+  [12/54] mid_indoor/billiard_hall/5 ERROR: NameError: name 'torch' is not defined
+  [13/54] outdoor/street_side-2/5 ERROR: NameError: name 'torch' is not defined
+  [14/54] small_indoor/classroom/1 ERROR: NameError: name 'torch' is not defined
+  [15/54] big_indoor/large_mall/4 ERROR: NameError: name 'torch' is not defined
+  [16/54] mid_indoor/billiard_hall/3 ERROR: NameError: name 'torch' is not defined
+  [17/54] outdoor/street_side-2/3-1 ERROR: NameError: name 'torch' is not defined
+  [18/54] small_indoor/study_room/4-1 ERROR: NameError: name 'torch' is not defined
+  [19/54] small_indoor/study_room/4-2 ERROR: NameError: name 'torch' is not defined
+  [20/54] big_indoor/large_mall/5 ERROR: NameError: name 'torch' is not defined
+  [21/54] mid_indoor/billiard_hall/1 ERROR: NameError: name 'torch' is not defined
+  [22/54] outdoor/street_side-2/1-1 ERROR: NameError: name 'torch' is not defined
+  [23/54] outdoor/street_side-2/1-2 ERROR: NameError: name 'torch' is not defined
+  [24/54] small_indoor/study_room/3-1 ERROR: NameError: name 'torch' is not defined
+  [25/54] small_indoor/study_room/3-2 ERROR: NameError: name 'torch' is not defined
+  [26/54] big_indoor/large_supermarket/1 ERROR: NameError: name 'torch' is not defined
+  [27/54] mid_indoor/internet_cafe/1 ERROR: NameError: name 'torch' is not defined
+  [28/54] outdoor/street_side-1/1 ERROR: NameError: name 'torch' is not defined
+  [29/54] big_indoor/large_supermarket/2_badcase ERROR: NameError: name 'torch' is not defined
+  [30/54] mid_indoor/internet_cafe/2 ERROR: NameError: name 'torch' is not defined
+  [31/54] outdoor/street_side-1/2 ERROR: NameError: name 'torch' is not defined
+  [32/54] big_indoor/large_supermarket/3 ERROR: NameError: name 'torch' is not defined
+  [33/54] mid_indoor/internet_cafe/3 ERROR: NameError: name 'torch' is not defined
+  [34/54] outdoor/street_side-1/3 ERROR: NameError: name 'torch' is not defined
+  [35/54] small_indoor/classroom/4-1 ERROR: NameError: name 'torch' is not defined
+  [36/54] small_indoor/classroom/4-2 ERROR: NameError: name 'torch' is not defined
+  [37/54] small_indoor/classroom/4-3 ERROR: NameError: name 'torch' is not defined
+  [38/54] small_indoor/study_room/1-1 ERROR: NameError: name 'torch' is not defined
+  [39/54] small_indoor/study_room/1-2 ERROR: NameError: name 'torch' is not defined
+  [40/54] big_indoor/large_supermarket/4 ERROR: NameError: name 'torch' is not defined
+  [41/54] mid_indoor/internet_cafe/4 ERROR: NameError: name 'torch' is not defined
+  [42/54] outdoor/street_side-1/4.1 ERROR: NameError: name 'torch' is not defined
+  [43/54] outdoor/street_side-1/4.2 ERROR: NameError: name 'torch' is not defined
+  [44/54] small_indoor/classroom/5 ERROR: NameError: name 'torch' is not defined
+  [45/54] big_indoor/large_supermarket/5 ERROR: NameError: name 'torch' is not defined
+  [46/54] mid_indoor/internet_cafe/5 ERROR: NameError: name 'torch' is not defined
+  [47/54] outdoor/street_side-1/5.1 ERROR: NameError: name 'torch' is not defined
+  [48/54] outdoor/street_side-1/5.2 ERROR: NameError: name 'torch' is not defined
+  [49/54] small_indoor/classroom/3-1 ERROR: NameError: name 'torch' is not defined
+  [50/54] small_indoor/classroom/3-2 ERROR: NameError: name 'torch' is not defined
+  [51/54] small_indoor/study_room/2-1 ERROR: NameError: name 'torch' is not defined
+  [52/54] small_indoor/study_room/2-2 ERROR: NameError: name 'torch' is not defined
+  [53/54] small_indoor/study_room/2-3 ERROR: NameError: name 'torch' is not defined
+  [54/54] small_indoor/study_room/2-4 ERROR: NameError: name 'torch' is not defined
+[realssa-real] data=/root/data/RealSSA-Real  smoke=False ()  out=/root/data/falcon_eval/realssa_real_mean_full2
+[env] speechmos=0.0.1.1 onnxruntime=1.31.0 channel=mean align_tail=True device=cuda model=JusperLee/Falcon
+[realssa-real] loader=official:read_recordings  segments=54
+  - big_indoor/large_mall/1  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/2 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/2-1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-2/2-2 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/5-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/5-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/2  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/4 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/4  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/3  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/5 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/5  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/1 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/4  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/3 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/3-1 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/4-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/4-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_mall/5  scene=big_indoor           audio=(official loader)
+  - mid_indoor/billiard_hall/1 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-2/1-1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-2/1-2 scene=outdoor              audio=(official loader)
+  - small_indoor/study_room/3-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/3-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/1 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/1 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/1  scene=outdoor              audio=(official loader)
+  - big_indoor/large_supermarket/2_badcase scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/2 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/2  scene=outdoor              audio=(official loader)
+  - big_indoor/large_supermarket/3 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/3 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/3  scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/4-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/4-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/4-3 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/1-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/1-2 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/4 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/4 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/4.1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-1/4.2 scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/5 scene=small_indoor         audio=(official loader)
+  - big_indoor/large_supermarket/5 scene=big_indoor           audio=(official loader)
+  - mid_indoor/internet_cafe/5 scene=mid_indoor           audio=(official loader)
+  - outdoor/street_side-1/5.1 scene=outdoor              audio=(official loader)
+  - outdoor/street_side-1/5.2 scene=outdoor              audio=(official loader)
+  - small_indoor/classroom/3-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/classroom/3-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-1 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-2 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-3 scene=small_indoor         audio=(official loader)
+  - small_indoor/study_room/2-4 scene=small_indoor         audio=(official loader)
+[model] FalconRuntime loaded in 5.4s device=cuda
+
+[realssa-real] CSV -> /root/data/falcon_eval/realssa_real_mean_full2/realssa_real_dnsmos_per_segment.csv
+[realssa-real] summary -> /root/data/falcon_eval/realssa_real_mean_full2/summary.json
+exit=1

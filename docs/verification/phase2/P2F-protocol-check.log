@@ -1,0 +1,70 @@
+=== P2-F consolidated log (2026-10-21) ===
+Note: GPU stages (metrics N=50, variants N=50 / mouth N=20) ran 19:00-19:07 before the Lead
+GPU-coordination message; numeric results are in P2F-results.json. After handoff, data/recheck/static
+were re-run CPU-only (CUDA_VISIBLE_DEVICES=''), no GPU used.
+
+##### STAGE data (CPU, all 3000) #####
+
+==============================================================================
+STAGE 1 — data & official mixing algebra (all 3000 tt clips)
+==============================================================================
+official mix list: 3000 | eval mix files: 3000
+official list vs eval sorted list: sets equal=True, same order=False
+first official: 6360322579951237696_00004_3.2867_6335305254315087182_00057_-3.2867
+first eval   : 6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav
+scaling.mat: scaling_16k (3000, 2), scaling16bit_16k (3000,)
+clip lengths: [32000] (expect [32000] = 2.0 s @16 kHz)
+max(|mix|,|s1|,|s2|) == 0.9: 3000/3000  (range {'min': 0.899993896484375, 'max': 0.899993896484375})
+mix == s1+s2: max|d| = 3.052e-05, p99 = 3.052e-05, rel-rms max = 1.913e-04 (16-bit PCM rounding level)
+s1 peak (scaled target) median=0.816, s2 peak median=0.455; mix/s1 RMS median=0.1446/0.1223
+scaling16bit_16k range: [0.040844696344580586, 0.14304549232980968]
+eval target wav == rebuild s1: 5/5 | eval mix == rebuild mix: 5/5
+baseline SI-SDR(mix, s1) over 3000: mean=4.9937 std=3.0026 median=5.0110 p5=0.361 p95=9.738 [10.9s]
+baseline SDR(mix, s1) over 300 sample: mean=5.0358 std=2.9651 [2.9s]
+official create_mix SNR weights: filename(snr1-snr2) vs measured 10log10(E_s1/E_s2): mean|Δ|=0.597 dB, max|Δ|=3.946 dB, corr=0.959532 over 500 items (snr1 range [0.00092, 4.9987])
+A/V sync probe (supplementary, weak): lag mode=-5 frames, mean|lag|=2.97, mean peak corr=0.210 -> inconclusive on its own
+mouth npz: 20392 files, shapes=[(50, 96, 96)], dtypes={'uint8'}; missing npz for s1 ids: 0/3000, for s2 ids: 0/3000
+eval mouth .pt: 3000 files, sample {'shape': [50, 96, 96, 3], 'dtype': 'torch.uint8', 'min': 0, 'max': 167}; pt == stack(npz,3ch) sample: 3/3
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fd061c28d90>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+eval dataset[6330311066473698535_00011_0.5308…]: mix [32000], mouth [50, 88, 88] float64, mean=-1.144 std=1.202 range=[-2.55,1.37]  (z-score after /255 + center-crop 96→88; mean≈0/std≈1 expected)
+eval dataset[6330311066473698535_00011_2.6743…]: mix [32000], mouth [50, 88, 88] float64, mean=-1.144 std=1.202 range=[-2.55,1.37]  (z-score after /255 + center-crop 96→88; mean≈0/std≈1 expected)
+eval dataset[6330311066473698535_00011_2.9639…]: mix [32000], mouth [50, 88, 88] float64, mean=-1.144 std=1.202 range=[-2.55,1.37]  (z-score after /255 + center-crop 96→88; mean≈0/std≈1 expected)
+
+results -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-results.json
+log     -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-protocol-check.log
+elapsed 53.0 s
+
+##### STAGE recheck (CPU, cache-based N=50) #####
+
+==============================================================================
+STAGE 2b/3b — cache-based recheck (N=50); no model forward, CPU only
+==============================================================================
+CSV rows=3000; dataset-order match=50/50; CSV avg si-snr_i=7.029101 sdr_i=7.712925
+max|my − core.py| = 4.823e-08 dB ; max|my − Phase-1 CSV| = 1.841e-07 dB ; max|baseline SI-SDR − (CSV si-snr−si-snr_i)| = 4.470e-08 dB ; max|baseline SDR − (CSV sdr−sdr_i)| = 8.882e-14 dB
+CSV avg/std == per-row recomputation: True; N=50 subset means: SI-SDRi=7.5347, SDRi=7.9623
+target convention: SI-SDRi(s1)=7.535 vs (s2)=-17.012 dB (Δ=+24.546); PIT/oracle upper bound=7.535 (+0.000)
+metric defs: zero-mean Δ=-0.0005; SDR filter 512→2048 Δ=+0.257; change_sign exact negation max|sum|=0.0e+00; 8 kHz ΔSI-SDR=+0.111, ΔSDR=+0.211
+alignment: lag mode=0, |lag|>16 on 0/50, best-shift gain=+0.0000 dB; clipping Δ=+0.0000 dB; scale invariance: -1.3e-08/-4.6e-09 dB
+
+results -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-results.json
+log     -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-protocol-check.log
+elapsed 36.9 s
+
+##### STAGE static (CPU) #####
+
+==============================================================================
+STAGE 4b — released falcon.pt training-corpus evidence (static)
+==============================================================================
+falcon.pt: architecture=FalconSpeakerContrastive epoch=714; best_k_models epoch=epoch=714.ckpt
+training-run conf snapshot datamodule: train_dir=${DATA_ROOT}/small/DataPreProcess/LRS3_complex_nonmoving/tr
+=> released falcon.pt was trained on LRS3_complex_nonmoving mixtures; LRS2-2Mix eval is cross-corpus.
+
+results -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-results.json
+log     -> /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2F-protocol-check.log
+elapsed 0.1 s

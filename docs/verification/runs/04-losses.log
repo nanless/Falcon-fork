@@ -1,0 +1,65 @@
+==============================================================================
+[1] PairwiseNegSDR: 三种 sdr_type 与手算公式对拍 (zero_mean=True)
+  sdr_type=sisdr  out(2, 2, 2) max|diff|=0.000e+00 sample loss[0,0,0]=15.4373
+  sdr_type=sdsdr  out(2, 2, 2) max|diff|=0.000e+00 sample loss[0,0,0]=18.9852
+  sdr_type=snr    out(2, 2, 2) max|diff|=0.000e+00 sample loss[0,0,0]=3.9481
+
+[2] zero_mean 语义：加直流偏置后 zero_mean=True 不变、False 改变
+  zero_mean=True : max|f(x+bias)-f(x)| = 3.052e-05  (应≈0)
+  zero_mean=False: max|f(x+bias)-f(x)| = 47.815   (应>0)
+  zero_mean=False 对拍 max|diff| = 0.000e+00
+
+[3] SNR 与 SDR 的关键差别：SNR 不尺度不变（即 allwrapper 里的 'sdr' 列其实是 SNR）
+  snr   : est -> 2*est : -0.500 -> -4.515 dB (变化 -4.015)
+  sisdr : est -> 2*est : -7.820 -> -7.820 dB (变化 +0.000, 应≈0)
+
+[4] SingleSrcNegSDR: reduction none/mean、sum 断言、公式对拍
+  reduction='none' max|diff|=0.000e+00 shape=(2,)
+  reduction='mean' == mean(none): 0.000e+00
+  reduction='sum' -> AssertionError(AssertionError(<class 'NotImplementedError'>))  [代码 matrix.py:239]
+
+[5] MultiSrcNegSDR: 对每源独立算 -SDR 后取源均值（不做 PIT）
+  max|diff|=0.000e+00 out(2,)
+
+[6] PITLossWrapper pit_from 语义与手算对拍
+  pw_mtx  : 22.393810 vs 手算 22.393810  diff=0.00e+00
+  pw_pt   : 22.393810 (应等于 pw_mtx) diff=0.00e+00
+  perm_avg: 22.393810 vs 手算 22.393810 diff=0.00e+00
+  pw_mtx_broadcast: 33.590714 vs 手算 33.590714 diff=0.00e+00
+  return_ests: shape=(2, 2, 50) 与最佳排列重排一致=True
+
+[7] threshold_byloss 真实行为（matrix.py:227-230 在 PIT wrapper 内）
+  min_loss per sample = [-6.316, -6.073, -98.286]  (> -30 的样本数 = 2)
+  threshold_byloss=True : -6.194741   (= 只对 min_loss>-30 的样本求均值 -6.194741)
+  threshold_byloss=False: -36.891914   (= 全部样本均值 -36.891914)
+  全部样本 min_loss<-30 时 threshold=True -> -98.41732025146484 (过滤后为空则退回全体均值, 不报 nan)
+
+[8] multidecoder 变体与 new_PITLossWrapper
+  keepmtx: 19.379578 (matrix 用最后 block 选排列, 再对每 block 重排求 multisrc 均值)
+  batchmin: 19.379578 (两 block 在 batch 维拼接后做普通 PIT)
+  new_PITLossWrapper + PairwiseNegSDR -> TypeError: PairwiseNegSDR.forward() takes 3 positional arguments but 5 were given (签名不兼容)
+  new_PITLossWrapper(pw_mtx)+4参loss 返回原始矩阵 shape=(2, 2, 2) 与 pairwise 一致=True -> 未做 PIT 归约（原样返回）
+
+[9] MixITLossWrapper: 2 混合 / 4 估计，最佳划分 + 手算对拍
+  generalized=True : 17.777866 vs 手算 17.777866 diff=0.00e+00; return_est shape=(2, 2, 120) n_parts=14
+  generalized=False: 19.077686 (要求 nsrc%nmix==0, 划分为等大小组)
+
+[10] NASSContrastiveLoss: 公式/β 温度/margin/alpha 逐项对拍
+  crafted neg cos: [[0.9], None, [0.95, 0.7, 0.6, 0.55]]
+  beta=0.0: loss=0.959351 ref=0.959351 diff=9.93e-09
+  beta=1.0: loss=0.967698 ref=0.967698 diff=2.98e-08
+  beta=5.0: loss=1.003706 ref=1.003706 diff=5.96e-08
+  margin=1.5 (>max cos) -> loss=1.5187 (只剩 alpha_pos*(1-cos_pos))
+  梯度: dL/dq 非零=True; dL/dp 非零=True (loss 内部未 detach, 由 system 层 no_grad 保证)
+  全 batch 无负样本时 loss 仍算正样本项: 0.7594
+
+[11] SISNRi 类：__init__ 存在 NameError bug（super(Loss, self)）
+  SISNRi() -> NameError: name 'Loss' is not defined   [sisnri.py:6]
+  sisnr() 手算对拍 max|diff|=1.907e-06 (返回 SI-SNR 改善量)
+  ____init____ 未定义变量: 见源码 sisnri.py:6 (super(Loss, self))
+
+[12] 配置到损失对象：按 audio_train.py:91-97 的方式从 configs/Falcon.yml 实例化
+  train: PITLossWrapper(pairwise_neg_snr) pit_from=pw_mtx threshold_byloss=True loss_func=PairwiseNegSDR/snr
+  val: PITLossWrapper(pairwise_neg_sisdr) pit_from=pw_mtx threshold_byloss=False loss_func=PairwiseNegSDR/sisdr
+
+DONE

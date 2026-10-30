@@ -1,0 +1,68 @@
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/setup.py:175: GPU available but not used. You can set it by doing `Trainer(accelerator='gpu')`.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1)` was configured so 1 batch per epoch will be used.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py:321: The number of training batches (1) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 1. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+Epoch 0, global step 1: 'val_loss/dataloader_idx_0' reached 47.63316 (best 47.63316), saving model to '/tmp/litprobe_o9v62ufk/epoch=0.ckpt' as top 5
+Epoch 1, global step 2: 'val_loss/dataloader_idx_0' reached 26.87667 (best 26.87667), saving model to '/tmp/litprobe_o9v62ufk/epoch=1.ckpt' as top 5
+Epoch 2, global step 3: 'val_loss/dataloader_idx_0' reached 34.15331 (best 26.87667), saving model to '/tmp/litprobe_o9v62ufk/epoch=2.ckpt' as top 5
+Epoch 3, global step 4: 'val_loss/dataloader_idx_0' reached 34.04336 (best 26.87667), saving model to '/tmp/litprobe_o9v62ufk/epoch=3.ckpt' as top 5
+Epoch 4, global step 5: 'val_loss/dataloader_idx_0' reached 29.53419 (best 26.87667), saving model to '/tmp/litprobe_o9v62ufk/epoch=4.ckpt' as top 5
+Epoch 5, global step 6: 'val_loss/dataloader_idx_0' reached 31.09484 (best 26.87667), saving model to '/tmp/litprobe_o9v62ufk/epoch=5.ckpt' as top 5
+Epoch 6, global step 7: 'val_loss/dataloader_idx_0' reached 25.32129 (best 25.32129), saving model to '/tmp/litprobe_o9v62ufk/epoch=6.ckpt' as top 5
+Epoch 7, global step 8: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 8, global step 9: 'val_loss/dataloader_idx_0' reached 33.40317 (best 25.32129), saving model to '/tmp/litprobe_o9v62ufk/epoch=8.ckpt' as top 5
+Epoch 9, global step 10: 'val_loss/dataloader_idx_0' reached 30.17893 (best 25.32129), saving model to '/tmp/litprobe_o9v62ufk/epoch=9.ckpt' as top 5
+Epoch 10, global step 11: 'val_loss/dataloader_idx_0' was not in top 5
+`Trainer.fit` stopped: `max_epochs=11` reached.
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1)` was configured so 1 batch per epoch will be used.
+`Trainer(limit_val_batches=1)` was configured so 1 batch will be used.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Lightning model registry.
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1)` was configured so 1 batch per epoch will be used.
+`Trainer(limit_val_batches=1)` was configured so 1 batch will be used.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Lightning model registry.
+[MDCL DEBUG] step=0 beta=0.000 pit=0.7379
+  b=1 n_near=1 mag_sim=['0.6dB'] raw_mdcl=0.6010 margin=0.0dB
+[MDCL DEBUG] step=0 beta=0.007 pit=0.9219
+  b=1 n_near=1 mag_sim=['-0.3dB'] raw_mdcl=0.0000 margin=0.0dB
+[MDCL DEBUG] step=0 beta=0.015 pit=1.0242
+  b=1 n_near=1 mag_sim=['-0.6dB'] raw_mdcl=0.0000 margin=0.0dB
+`Trainer.fit` stopped: `max_epochs=3` reached.
+### beta(epoch): {0: 0.0, 1: 0.005, 50: 0.25, 100: 0.5, 150: 0.75, 200: 1.0, 250: 1.0}
+### beta(anneal<=0): 1.5
+### configure_optimizers: ('tuple', 1, 'val_loss/dataloader_idx_0', 'ReduceLROnPlateau')
+### NASSv2 fit(11ep): OK
+### NASSv2 logged keys: ['lr', 'test_loss/dataloader_idx_1', 'train_beta_epoch', 'train_beta_step', 'train_cos_sim_neg_avg_epoch', 'train_cos_sim_neg_avg_step', 'train_cos_sim_neg_max_epoch', 'train_cos_sim_neg_max_step', 'train_cos_sim_pos_epoch', 'train_cos_sim_pos_step', 'train_loss_epoch', 'train_loss_step', 'train_n_samples_0near_epoch', 'train_n_samples_0near_step', 'train_n_samples_1near_epoch', 'train_n_samples_1near_step', 'train_n_samples_2near_epoch', 'train_n_samples_2near_step', 'train_n_samples_3near_epoch', 'train_n_samples_3near_step', 'train_n_samples_4plus_near_epoch', 'train_n_samples_4plus_near_step', 'train_neg_active_ratio_epoch', 'train_neg_active_ratio_step', 'train_pit_loss_epoch', 'train_pit_loss_step', 'train_spk_contrast_loss_epoch', 'train_spk_contrast_loss_step', 'val_loss/dataloader_idx_0']
+### NASSv2 comet logged keys: ['epoch', 'learning_rate', 'test_pit_sisnr', 'val_pit_sisnr', 'val_pit_sisnr_0near', 'val_pit_sisnr_1near']
+### NASSv2 ckpt best_k n: 5
+### NASSv2 best_k value type: Tensor
+### NASSv2 sample loss values: {'train_loss_epoch': 0.9065, 'train_pit_loss_epoch': 0.6565, 'train_spk_contrast_loss_epoch': 0.25}
+### NASSv2 fit(CSVLogger): FAILED as predicted: AttributeError: 'ExperimentWriter' object has no attribute 'log'
+s, **kwargs)
+  File "/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 153, in run
+    return self.on_run_end()
+  File "/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 296, in on_run_end
+    self._on_evaluation_epoch_end()
+  File "/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 379, in _on_evaluation_epoch_end
+    call._call_lightning_module_hook(trainer, hook_name)
+  File "/root/.venvs/falcon/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 177, in _call_lightning_module_hook
+    output = fn(*args, **kwargs)
+  File "/root/code/github_repos/Falcon-fork/look2hear/system/av_litmodule.py", line 153, in on_validation_epoch_end
+    self.logger.experiment.log(
+AttributeError: 'ExperimentWriter' object has no attribute 'log'
+
+### MDCL fit(3ep): OK
+### MDCL logged keys: ['train_beta_epoch', 'train_beta_step', 'train_mdcl_0near_epoch', 'train_mdcl_0near_step', 'train_mdcl_1near_epoch', 'train_mdcl_1near_step', 'train_mdcl_2near_epoch', 'train_mdcl_2near_step', 'train_mdcl_3near_epoch', 'train_mdcl_3near_step', 'train_mdcl_4plus_near_epoch', 'train_mdcl_4plus_near_step', 'train_mdcl_loss_epoch', 'train_mdcl_loss_step', 'train_pit_loss_epoch', 'train_pit_loss_step']
+### MDCL values: {'train_pit_loss_epoch': 1.02417, 'train_mdcl_loss_epoch': 0.0, 'train_beta_epoch': 0.015}
+### PITW(tuple_ests): FAILED: AttributeError: 'tuple' object has no attribute 'size'

@@ -1,0 +1,49 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[gap] subset=first seed=0 n=20 / 3000 | device=cuda:0
+[gap] variants=['mouth_s1_88'] | models=['small']
+[gap] loaded small model in 68.0s: {'audio_keys': 525, 'video_keys': 137, 'audio_params': 537697, 'video_params': 11186688}
+[gap] preload 1/20 | elapsed 3.0s
+[gap] preload 20/20 | elapsed 28.9s
+[gap] preloaded 20 utterances in 28.9s
+[gap] small:mouth_s1_88 done in 7.6s (20 utts, batch=4)
+
+=== data self-checks (n=20) ===
+  mix_residual_max           mean=3.05176e-05 min=3.05176e-05 max=3.05176e-05
+  mix_residual_rel           mean=3.39087e-05 min=3.39087e-05 max=3.39087e-05
+  mix_r2                     mean=1 min=1 max=1
+  sir_filename               mean=5.92021 min=0.41228 max=9.905
+  mix_si_snr                 mean=5.68958 min=-0.171571 max=10.0744
+  mix_sdr512                 mean=5.76279 min=-0.105094 max=10.118
+  eval_mix_equals_rebuild    mean=0 min=0 max=0
+  target_equals_s1           mean=0 min=0 max=0
+  mouth_equals_s1_npz        mean=1 min=1 max=1
+  len                        mean=32000 min=32000 max=32000
+  sr                         mean=16000 min=16000 max=16000
+  channels                   mean=1 min=1 max=1
+
+=== mixture baseline consistency ===
+  filename SIR mean=5.920 dB | measured SI-SNR(mix,s1) mean=5.690 | corr=0.941
+  measured SDR512(mix,s1) mean=5.763 dB
+
+=== small model: variant comparison (n=20) ===
+variant                        SI-SNR  SI-SNRi    dSIi   SDR512  SDR512i   dSDRi  seg2_i  tgtS2_i
+mouth_s1_88                     13.60     7.91   +0.00    14.31     8.55   +0.00    7.97   -18.31
+  metric variants on baseline predictions (mean dB):
+    si_snr_i                          7.911 ± 2.760
+    si_snr_i_zm0                      7.911 ± 2.760
+    snr_i_plain                       8.095 ± 2.731
+    sdr512_i                          8.546 ± 2.630
+    sdr256_i                          8.378 ± 2.676
+    sdr128_i                          8.269 ± 2.701
+    sdr64_i                           8.042 ± 2.784
+    si_snr_i_seg2                     7.970 ± 2.500
+    si_snr_i_seg4                     7.899 ± 2.388
+    si_snr_i_tgt_rms_scale            7.911 ± 2.760
+    si_snr_i_tgt_energy_scale         7.911 ± 2.760
+    si_snr_i_tgt_s2                 -18.309 ± 5.331
+    si_snr_i_best_target              7.911 ± 2.760
+
+=== anchor (first-20 small baseline): {'si_snr_i': 7.910559639618702, 'sdr512_i': 8.54626944437623, 'phase1_reference': {'si_snr_i': 7.911, 'sdr512_i': 8.547}} ===
+
+[gap] results JSON: docs/verification/phase2/P2A-anchor-first20.json

@@ -1,0 +1,49 @@
+
+==============================================================================
+== [V1] A68：falcon.pt 格式 / sha256 / strict 加载
+==============================================================================
+  size = 47156343 B
+  sha256 = a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c
+  （05 文档称 47,156,343 B / a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c）
+  top keys = ['state_dict', 'architecture', 'epoch'] | architecture = FalconSpeakerContrastive | epoch = 714
+  state_dict keys = 662 (audio 525 + video 137)
+  strict load OK；audio params=537,697 video params=11,186,688 合计=11,724,385
+
+==============================================================================
+== [V2] A68：真实权重整句评测契约（T=32000/F=50 与 T=48513/F=75）
+==============================================================================
+  T= 32000 F= 50 -> video (1, 512, 50); audio T'=1+T//128=251 (05 称 (1, 112, 251, 129)); est=(1, 1, 32000) len==T:True finite:True
+  T= 48513 F= 75 -> video (1, 512, 75); audio T'=1+T//128=380 (05 称 (1, 112, 380, 129)); est=(1, 1, 48513) len==T:True finite:True
+
+==============================================================================
+== [V3] §5.4 dtype 条件化：uint8 .pt → float64?
+==============================================================================
+  numpy = 2.2.6
+  (uint8 - 0.0)/255.0 dtype = float64
+  (float32 - 0.0)/255.0 dtype = float32
+  训练 val 管线输出: shape=(50, 88, 88) dtype=float64 min=-2.5515 max=3.5091
+
+==============================================================================
+== [V4] A60：Studio preprocess_mouth vs 训练 val 管线（逐元素）
+==============================================================================
+  studio preprocess_mouth: shape=(1, 1, 50, 88, 88) dtype=torch.float32
+  原始比较（float64 vs float32）max|Δ| = 2.574e-07
+  cast 训练输出到 float32 后 max|Δ| = 2.384e-07  -> 精确相等 = False
+  梯度帧：未 cast max|Δ|=1.735e-07 | cast-f32 max|Δ|=2.384e-07
+  训练管线 vs 手算 float64: max|Δ|=0.000e+00
+
+==============================================================================
+== [V5] A64/A65：val 循环与 _meta 链的关键源码断言
+==============================================================================
+  av_litmodule.py:214-216 -> ['def val_dataloader(self):', '"""Validation dataloader"""', 'return [self.val_loader, self.test_loader]']
+  av_litmodule.py:125 -> if (self.trainer.current_epoch) % 10 == 0 and dataloader_idx == 1:
+  av_litmodule.py:174 -> if (self.trainer.current_epoch) % 10 == 0:
+  audio_train.py:51 -> train_loader, val_loader, test_loader = datamodule.make_loader
+  'trainer.test(' 在 audio_train.py: False
+  near.py:188-191: for near_path, n_samples in self.near[mix_index]: || # Skip fallback entries where generator substituted the mix path || if near_path == mix_path: || continue
+  near.py:193-193: if n_samples < self.seg_len:
+  nass_contrastive_loss.py:70-76: else: || weights = torch.softmax(beta * sim_neg, dim=0)  # [K] || l_neg = self.alpha_neg * (weights * F.relu(sim_neg - self.margin)).sum() || else: || l_neg = embed_query.new_zeros(1) ||  || loss_total = loss_total + l_pos + l_neg
+  process_lrs23.py:67-72: pass ||  || if len(sample_nears) == 0: || sample_nears = [[mix_path, mix_n_samples]] || missing += 1 || 
+  generate_near_json.py:60-66: pass  # skip unreadable file ||  || if len(sample_nears) == 0: || # fallback: use the mix itself as a single dummy entry || sample_nears = [[mix_path, mix_n_samples]] || missing += 1 || 
+
+DONE

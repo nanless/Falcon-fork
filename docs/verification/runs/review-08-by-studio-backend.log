@@ -1,0 +1,66 @@
+# review-08 by studio-backend — evidence log (2026-10-21T04:57:07Z)
+
+## doc sha256 before review
+75692199722df17160157529bb95073e47787e471369f352afe0844869084b98  docs/understanding/08-ops-tests-docs.md
+
+## node tests (8/8 rc=0)
+  tests/check_i18n.mjs rc=0 89ms
+  tests/check_capture_dsp.cjs rc=0 484ms
+  tests/check_mouth_tracking.mjs rc=0 65ms
+  tests/check_playback_resampler.mjs rc=0 1505ms
+  tests/check_spectrum.mjs rc=0 951ms
+  tests/check_tracking_ui.cjs rc=0 442ms
+  web/capture-worklet.test.cjs rc=0 384ms
+  web/video-worker.test.cjs rc=0 44ms
+
+## node --check
+  21/21 OK (13 web/*.js + 4 tests/*.mjs + 2 tests/*.cjs + 2 web/*.test.cjs)
+
+## pytest all 4 studio test files (PIL stub + -p no:typeguard)
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+33 passed, 4 skipped, 1 warning in 5.77s
+
+## same_origin on the public demo URL
+  same_origin(demo, demo_host) = False
+  same_origin(demo, 127.0.0.1:7860) = False
+
+## TrustedHostMiddleware on public Host (TestClient)
+  Host=u464727-dmja-7896a455.bjb3.seetacloud.com:8443 -> 400
+
+## check_environment.py in verification venv
+  exit=1
+
+## ptflops / CUDA availability
+  torch 2.8.0+cu128 | cuda True | ptflops 0.7.5
+
+## line counts / git modes / ignore
+ 14 studio/.gitignore
+ 35 .gitignore
+ 49 total
+100755 9c763320f29ad2294fc9ce30ddda6eb4daeeb030 0	studio/Start Falcon.command
+100755 63e26a263c0f7f7f7323e20866218102385dfa73 0	studio/scripts/bootstrap.sh
+100644 57dcd539037bd958424c7e2ec58a3170e0a7f503 0	studio/scripts/check_environment.py
+studio/.gitignore:1:.venv/	studio/.venv/bin/python
+.gitignore:24:*.ckpt	Experiments/checkpoint/Falcon/last.ckpt
+  (tensorboard_logs not listed => NOT ignored)
+  Experiments/tensorboard_logs/x NOT ignored
+
+## conf.yml causal line numbers
+9:    audio_params:
+11:      causal: true
+34:          causal: true
+45:    causal: true
+49:      causal: true
+71:    video_params:
+73:      causal: true
+79:          causal: true
+
+## 45MB estimate
+  11724385 params * 4 B = 46897540 B = 44.72 MiB = 46.90 MB
+
+## project_page external URLs
+35
+31
+
+## doc sha256 after review
+75692199722df17160157529bb95073e47787e471369f352afe0844869084b98  docs/understanding/08-ops-tests-docs.md

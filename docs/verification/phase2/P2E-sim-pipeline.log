@@ -1,0 +1,39 @@
+==================================================================
+[p2e-sim] 2026-10-21T19:01:00+00:00 mode=dry-run shard=tt-000000 channel=mean limit=20 full=0
+[p2e-sim] raw=/root/data/realssa_sim_raw falcon=/root/data/realssa_falcon ckpt=/root/.cache/falcon_weights/falcon.pt
+# would run: /root/miniforge3/envs/falcon/bin/python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --dry-run --proxy http://127.0.0.1:17897
+# would run: /root/miniforge3/envs/falcon/bin/python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --out /root/data/realssa_sim_raw --proxy http://127.0.0.1:17897
+# would run: /root/miniforge3/envs/falcon/bin/python tools/repro/realssa_to_falcon.py --src /root/data/realssa_sim_raw/tt/tt-000000.tar --out /root/data/realssa_falcon --splits tt --channel mean
+# 可先加 --dry-run 只检查 shard 配对/计数：
+#   /root/miniforge3/envs/falcon/bin/python tools/repro/realssa_to_falcon.py --src /root/data/realssa_sim_raw/tt/tt-000000.tar --out /tmp/realssa_dry --splits tt --channel mean --dry-run
+# would run: env PYTHONPATH=/root/code/github_repos/Falcon-fork /root/miniforge3/envs/falcon/bin/python audio_visual_test.py --conf_dir configs/Falcon.yml --data_dir /root/data/realssa_falcon/tt --ckpt_path /root/.cache/falcon_weights/falcon.pt --gpus 0 --limit 20
+[p2e-sim] 2026-10-21T19:01:00+00:00 done; log=docs/verification/phase2/P2E-sim-pipeline.log
+[p2e-sim] 这是 dry-run：未下载/未转换/未评测。审批通过后加 --execute。
+==================================================================
+[p2e-sim] 2026-10-21T19:01:49+00:00 mode=dry-run shard=tt-000000 channel=mean limit=20 full=0
+[p2e-sim] raw=/root/data/realssa_sim_raw falcon=/root/data/realssa_falcon ckpt=/root/.cache/falcon_weights/falcon.pt
+[proxy] 使用 http://127.0.0.1:17897（仅本进程）
+==============================================================================
+[realssa-sim] JusperLee/RealSSA-Sim  gated=manual  gated(manual)；全量 242 shards≈521.5 GB；默认仅 README+1 个 test shard 作为管线验证
+  endpoint = https://huggingface.co
+  out      = /root/data/realssa_sim
+  patterns = ['*/tt-000000.tar']
+  matched  = 1 个文件，共 2.33 GB
+     - tt/tt-000000.tar  2.33 GB
+  gated 授权检查：❌ 未获批（GatedRepoError 403：当前 HF 账号未获批准）
+
+  [GATED] JusperLee/RealSSA-Sim（manual）当前账号无下载权限。
+  1) 打开申请页：https://huggingface.co/datasets/JusperLee/RealSSA-Sim
+  2) 填写申请人/单位/国家/用途，勾选非商用学术研究/不转发/遵守源许可，等待人工批准。
+  3) 批准后在本机执行 `hf auth login`（或设置 HF_TOKEN 环境变量）再重跑本脚本。
+  4) 申请与审批由数据集所有者人工处理；本脚本不会提交申请，也不会绕过 gated 限制。
+  [dry-run] 未写入磁盘。
+==============================================================================
+  realssa-sim    -> OK (rc=0)
+# would run: /root/miniforge3/envs/falcon/bin/python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --out /root/data/realssa_sim_raw --proxy http://127.0.0.1:17897
+# would run: /root/miniforge3/envs/falcon/bin/python tools/repro/realssa_to_falcon.py --src /root/data/realssa_sim_raw/tt/tt-000000.tar --out /root/data/realssa_falcon --splits tt --channel mean
+# 可先加 --dry-run 只检查 shard 配对/计数：
+#   /root/miniforge3/envs/falcon/bin/python tools/repro/realssa_to_falcon.py --src /root/data/realssa_sim_raw/tt/tt-000000.tar --out /tmp/realssa_dry --splits tt --channel mean --dry-run
+# would run: env PYTHONPATH=/root/code/github_repos/Falcon-fork /root/miniforge3/envs/falcon/bin/python audio_visual_test.py --conf_dir configs/Falcon.yml --data_dir /root/data/realssa_falcon/tt --ckpt_path /root/.cache/falcon_weights/falcon.pt --gpus 0 --limit 20
+[p2e-sim] 2026-10-21T19:01:51+00:00 done; log=docs/verification/phase2/P2E-sim-pipeline.log
+[p2e-sim] 这是 dry-run：未下载/未转换/未评测。审批通过后加 --execute。

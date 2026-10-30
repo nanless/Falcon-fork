@@ -159,6 +159,15 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
   本机只有 2 卡，8 卡实验需在火山引擎节点执行。
 - **训练入口**：`audio_train.py` 新增 `training.accumulate_grad_batches` 支持（默认 1，无行为变化）。
 
+## 5.4 数据集下载与归档完成（2026-10-23 17:31 UTC）
+
+- **RealSSA-Sim**：242 文件（240 tar 分片 + README/.gitattributes），521,532,645,652 B，尺寸校验 `bad=[]`；
+- **RealSSA-Real**：423 文件，12.84 GB；
+- 均已从组共享存储 **rsync 迁移到 TOS 冷端** `/aispeech-cfs/voiceprint/data/multimodal/{realssa_sim,realssa_real}`
+  （`_archive_done.json` 两条 `ok: true`；源目录已删除；Sim 归档 521.5GB 用时 26m48s @ ~309 MB/s）。
+- 下载过程：mihomo 代理（hf-mirror/直连不可用），两次带宽骤降（最低 0.12 MB/s）→ 自动暂停/降阈值/断点续传恢复，
+  全程 0 硬失败；工具 `tools/repro/phase2/{download_realssa_shared.py,resume_when_network_ok.sh}`。
+
 ## 6. 遗留与风险
 
 1. LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库无数据文件 → 两列不可复现（需作者或原始语料）。
@@ -183,3 +192,16 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 - 子任务报告：`docs/verification/phase2/{P2A,P2B,P2C,P2D,P2E,P2F}-report.md`、`QA-report.md`、`REGRESSION-docs.md`
 - 工具：`tools/repro/phase2/*.py|*.sh`、`tools/repro/lrs2_2mix_to_falcon.py`
 - 数据：`/root/data/falcon_lrs2_2mix`（28,000 条）、`/root/data/lrs2_2mix/lrs2_rebuild`（原始包）
+
+## 9. 2026-10-24 终态校正（追加节，不改写上文历史快照）
+
+1. **训练终态**：P2-D 单卡 100 epoch 已于 2026-10-22 19:54 结束；真实最佳 val = `epoch=99`（13.2014），
+   §4.1 的“epoch 86 最佳 13.118 / 训练继续中”是当时的中间快照。ep99 全量评测见 `P2D-eval-epoch99.csv`（2026-10-24 补测）。
+2. **LRS2-2Mix 自训结果（tt 3,000）**：ep86 **8.618/9.042**；ep99（补测）；ep124+对比微调 **8.858/9.270**（PESQ 2.576/STOI 0.943）。
+3. **官方权重跨语料基线已复跑并固化**：`P2D-eval-falcon-full.csv`（全量 3,000 条，7.03/7.71 量级），
+   修复了“Phase-1 全量 CSV 被同路径 RealSSA 评测覆盖”的问题。
+4. **RealSSA 全量证据已入库**：`P2E-realssa-sim-metrics_combined.csv`（9,171 行）+ `P2E-realssa-sim-eval-official.log`；
+   RealSSA-Real DNSMOS 证据入库 `DNSMOS-realssa-real-mean-full3/`。
+5. **证据策略已修**：`.gitignore` 放行 `docs/verification/**/*.log` 与 `*.csv`（此前 `*.log` 被全量忽略、`runs/` 被忽略），
+   训练曲线 `P2D-train-metrics-1gpu.csv` / `P2D-near-train-metrics.csv` 已入库。
+6. **当前状态与 v2 规划**：见 `docs/understanding/deepdive-20261024/00-SYNTHESIS.md` 与 `09-benchmark-alignment.md`。

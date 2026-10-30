@@ -1,0 +1,55 @@
+=== [W0] weight files ===
+  /root/.cache/falcon_weights/falcon.pt: 47,156,343 B sha256=a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c
+  /root/.cache/falcon_weights/falcon-big.pt: 49,645,087 B sha256=ce2a92a3188e8069e979f23aaec21cb6d439170aaf4002b4eaa234f0486e037e
+
+=== [W1] falcon.pt structure ===
+  top-level keys: ['architecture', 'epoch', 'state_dict']
+  architecture: FalconSpeakerContrastive | epoch: 714
+  state_dict=662 = audio 525 + video 137 | mdcl_window in state_dict: False
+  state_dict numel: audio=537,762 video=11,196,308 total=11,734,070
+  model params: audio=537,697 video=11,186,688 total=11,724,385
+  audio: keys_equal=True missing=[] extra=[] shape_mismatch=0
+  video: keys_equal=True missing=[] extra=[] shape_mismatch=0
+  strict load OK; rebuilt params: audio=537,697 video=11,186,688
+
+=== [W4] falcon-big.pt structure ===
+  keys=['architecture', 'epoch', 'state_dict'] architecture=SpeakerContrastiveV2 epoch=715
+  state_dict=654 = audio 517 + video 137 | audio numel=1,158,746
+  big audio keys_equal=True shape_mismatch=0 params=1,158,617
+  big audio strict load OK
+
+=== [S] Studio FalconRuntime local-path load of REAL weights ===
+  small ready=True device=cpu audio_keys=525 video_keys=137 params=11,724,385 warmup_ms=882.0
+  checkpoint reported: falcon.pt
+  REAL-WEIGHT CPU forward: studio vs training  max|d|=0.000e+00 bit-identical=True
+  big ready=True audio_keys=517 video_keys=137 params=12,345,305 warmup_ms=842.0
+  big infer -> shape=(32000,) finite=True
+
+=== [H] AudioBlock hooks / concat[2] idle ===
+  hook counts: {'concat[0]': 2, 'concat[1]': 2, 'concat[3]': 2, 'fusion[0]': 2, 'fusion[1]': 2, 'fusion[2]': 2, 'fusion[3]': 2}
+  concat[2] params=5,568 state_dict_keys=15 total=537,697 effective=532,129 idle_ratio=1.0355%
+
+=== [F] A18 first-changed-frame formula ===
+  s=16000: first_changed_frame=125 floor((s-128)/128)+1=125 match=True
+  s=20000: first_changed_frame=156 floor((s-128)/128)+1=156 match=True
+  s=16128: first_changed_frame=126 floor((s-128)/128)+1=126 match=True
+
+=== [A21] InjectionMultiSum pulse response ===
+  A21a as-built pulse span: (0, 250)
+  A21b de-cLNhw pulse span: (98, 102)
+  A21c causal=True+de-norm pulse span: (100, 104)
+
+=== [D] studio vs look2hear Falcon.py diff stat ===
+  added=65 removed=56 net(studio - look2hear)=9
+
+OK: incremental R3 verification finished
+=== [A19] cLNhw leakage mechanism (R3 claim: GN-only x10=4.40 -> full cLNhw 1.9e-6) ===
+  pre_norm type: LayerNormalizationHW
+  GN-only  P1(randn): left-half max|d| = 3.481e-05
+  GN-only  P2(x10): left-half max|d| = 4.103e+00
+  cLNhw    P1(randn): left-half max|d| = 9.537e-07
+  cLNhw    P2(x10): left-half max|d| = 1.907e-06
+  GN output scale on left half: 0.7978975772857666 | delta/scale ratio: 4.103002071380615
+=== [S-big] real-weight big self-consistency ===
+  audio keys 517 video keys 137 params 1158617
+  big runtime vs direct studio model: max|d|=0.000e+00 bit-identical=True

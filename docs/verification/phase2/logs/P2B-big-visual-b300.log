@@ -1,0 +1,20 @@
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f6b9aa62950>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[setup] device=cuda test_dir=/root/tmp/lrs2_eval_tt_full/tt utterances=300
+
+=== run: variant=big protocol=whole visual=zero n=300 ===
+[big] audio=1,158,617 video=11,186,688 total=12,345,305 | ckpt=falcon-big.pt epoch=715
+  [big/whole/zero] 100/300 SI-SNRi=4.145 SDRi=4.744 (27s, eta 53s)
+  [big/whole/zero] 200/300 SI-SNRi=3.542 SDRi=4.274 (199s, eta 100s)
+  [big/whole/zero] 300/300 SI-SNRi=3.512 SDRi=4.267 (234s, eta 0s)
+[RESULT] {"variant": "big", "protocol": "whole", "visual": "zero", "n": 300, "si_snr": 8.45195023634486, "si_snr_i": 3.51236238029759, "sdr": 9.308686909827465, "sdr_i": 4.267354262434843, "si_snr_i_std": 5.799602943456967, "sdr_i_std": 5.409637424842979, "pesq": 1.9998760052522024, "stoi": 0.8134485872351427, "wall_s": 234.2, "csv": "P2B-b300-big-whole-zero.csv"}
+
+[summary] wrote /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2B-summary-b300-big.json
+| variant | protocol | visual | n | SI-SNRi | SDRi | PESQ | STOI | wall s |
+|---|---|---|---|---|---|---|---|---|
+| big | whole | zero | 300 | 3.512 | 4.267 | 2.000 | 0.813 | 234.2 |

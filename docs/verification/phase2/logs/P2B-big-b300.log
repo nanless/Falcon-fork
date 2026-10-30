@@ -1,0 +1,28 @@
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f9664b4d490>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[setup] device=cuda test_dir=/root/tmp/lrs2_eval_tt_full/tt utterances=300
+
+=== run: variant=big protocol=whole visual=real n=300 ===
+[big] audio=1,158,617 video=11,186,688 total=12,345,305 | ckpt=falcon-big.pt epoch=715
+  [big/whole/real] 100/300 SI-SNRi=7.910 SDRi=8.373 (25s, eta 50s)
+  [big/whole/real] 200/300 SI-SNRi=8.018 SDRi=8.525 (200s, eta 100s)
+  [big/whole/real] 300/300 SI-SNRi=7.887 SDRi=8.403 (225s, eta 0s)
+[RESULT] {"variant": "big", "protocol": "whole", "visual": "real", "n": 300, "si_snr": 12.826770752184844, "si_snr_i": 7.887182896137574, "sdr": 13.44467211143791, "sdr_i": 8.403339464045287, "si_snr_i_std": 3.03588219881435, "sdr_i_std": 3.016304085093313, "pesq": 2.503023101091385, "stoi": 0.9212712613097847, "wall_s": 225.0, "csv": "P2B-b300-big-whole-real.csv"}
+
+=== run: variant=big protocol=windowed visual=real n=300 ===
+[big] audio=1,158,617 video=11,186,688 total=12,345,305 | ckpt=falcon-big.pt epoch=715
+  [big/windowed/real] 100/300 SI-SNRi=5.973 SDRi=6.484 (91s, eta 183s)
+  [big/windowed/real] 200/300 SI-SNRi=5.931 SDRi=6.563 (167s, eta 83s)
+  [big/windowed/real] 300/300 SI-SNRi=5.569 SDRi=6.270 (228s, eta 0s)
+[RESULT] {"variant": "big", "protocol": "windowed", "visual": "real", "n": 300, "si_snr": 10.508270868167914, "si_snr_i": 5.568683012120643, "sdr": 11.311477078504238, "sdr_i": 6.270144431111613, "si_snr_i_std": 3.9502327171467613, "sdr_i_std": 3.6998980874038, "pesq": 2.0928529210885367, "stoi": 0.8930616844976336, "wall_s": 227.9, "csv": "P2B-b300-big-windowed-real.csv"}
+
+[summary] wrote /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2B-summary-b300.json
+| variant | protocol | visual | n | SI-SNRi | SDRi | PESQ | STOI | wall s |
+|---|---|---|---|---|---|---|---|---|
+| big | whole | real | 300 | 7.887 | 8.403 | 2.503 | 0.921 | 225.0 |
+| big | windowed | real | 300 | 5.569 | 6.270 | 2.093 | 0.893 | 227.9 |

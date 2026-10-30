@@ -39,6 +39,15 @@ all mixtures that use that utterance, so they are de-duplicated to
   not the actual interfering source), so it only supports "non-official negatives"
   experiments (docs/REPRODUCTION_PLAN.md §5.1 Step 4 option 2).  Report it explicitly
   with any result produced this way.
+* ``other-speaker``: ``near.json`` entry ``i`` is the **other source utterance of the
+  same mixture**, i.e. the actual interfering waveform: ``--target s1`` -> near = the
+  mixture's ``s2`` wav, ``--target s2`` -> near = its ``s1`` wav (both taken from
+  ``<src>/audio/wav16k/min/<split>/{s1,s2}/<stem>.wav``).  It is deterministic, K=1,
+  and is the scheme used by the on-disk ``/root/data/falcon_lrs2_2mix`` dataset
+  (near.json mtime 2026-10-22; see docs/verification/phase2/P2C-near-mode-provenance.md).
+  Semantics: the negative *is* one of the two mixture sources (a far-field, clean
+  interferer), **not** a near-field leakage waveform -- LRS2-2Mix publishes no near
+  source.  Declare this approximation whenever such a run is reported.
 
 The conversion is re-entrant: existing mix/target/mouth files are skipped by default
 (``--overwrite`` forces rewriting), and the JSON indexes are always rebuilt from the
@@ -277,6 +286,7 @@ def build_indexes(args, splits) -> dict:
     for split in splits:
         mix_json, target_json, near_json = [], [], []
         stems = []
+        entries = []
         for entry in iter_split(src, split):
             if "error" in entry:
                 continue
@@ -292,6 +302,7 @@ def build_indexes(args, splits) -> dict:
             mix_json.append([str(mix_path), n])
             target_json.append([str(target_path), str(mouth_path), n])
             stems.append(stem)
+            entries.append(entry)
         if near_mode == "raw_audio":
             candidates = raw_candidates(src, split)
             for stem, mix_entry in zip(stems, mix_json):
@@ -301,6 +312,15 @@ def build_indexes(args, splits) -> dict:
                     near_json.append([[p["path"], p["frames"]] for p in picks])
                 else:  # no different speaker available -> mixture sentinel fallback
                     near_json.append([mix_entry])
+        elif near_mode == "other-speaker":
+            # K=1 deterministic negative: the other source waveform of the same mixture.
+            # --target s1 -> s2 as negative; --target s2 -> s1 as negative.
+            near_key = "s2_path" if args["target"] == "s1" else "s1_path"
+            for entry in entries:
+                near_path = Path(entry[near_key]).resolve()
+                if not _valid_file(str(near_path), 64):
+                    raise SystemExit(f"near-mode other-speaker: missing source wav {near_path}")
+                near_json.append([[str(near_path), sf.info(str(near_path)).frames]])
         else:
             near_json = [[mix_entry] for mix_entry in mix_json]
         split_dir_out = out / split
@@ -391,6 +411,21 @@ def validate_outputs(args, splits, per_split: int) -> dict:
                     target_speakers = {parsed[0].split("_")[0], parsed[2].split("_")[0]}
                     if Path(near_path).stem.split("_")[0] in target_speakers:
                         raise ValueError(f"near clip speaker equals a mixture speaker: {near_path}")
+                elif args["near_mode"] == "other-speaker":
+                    near_path = Path(near_entry[0][0])
+                    if len(near_entry) != 1:
+                        raise ValueError(f"other-speaker near entry must have K=1, got {len(near_entry)}")
+                    expect = (base / ("s2" if args["target"] == "s1" else "s1") / f"{stem}.wav").resolve()
+                    if near_path.resolve() != expect:
+                        raise ValueError(f"other-speaker near path {near_path} != expected {expect}")
+                    near_info = sf.info(str(near_path))
+                    if near_info.samplerate != SAMPLE_RATE or near_info.frames < 32000:
+                        raise ValueError(
+                            f"bad other-speaker near clip {near_path}: "
+                            f"sr={near_info.samplerate} frames={near_info.frames}")
+                    if near_entry[0][1] != near_info.frames:
+                        raise ValueError(f"other-speaker near n_samples {near_entry[0][1]} != "
+                                         f"wav frames {near_info.frames}")
                 checks["near_ok"] += 1
             except Exception as exc:  # noqa: BLE001
                 checks["problems"].append(f"{stem}: {type(exc).__name__}: {exc}")
@@ -441,8 +476,11 @@ def parse_args(argv=None):
                    help="Target convention; s1 matches the paper's video speaker.")
     p.add_argument("--jobs", type=int, default=8, help="Parallel conversion processes.")
     p.add_argument("--limit", type=int, default=None, help="Only the first N samples per split.")
-    p.add_argument("--near-mode", default="fallback", choices=["fallback", "raw_audio"],
-                   help="fallback: mixture sentinel (K=0); raw_audio: approximate negatives.")
+    p.add_argument("--near-mode", default="fallback",
+                   choices=["fallback", "raw_audio", "other-speaker"],
+                   help="fallback: mixture sentinel (K=0); raw_audio: approximate negatives; "
+                        "other-speaker: K=1, the other source wav of the same mixture "
+                        "(target=s1 -> s2, target=s2 -> s1).")
     p.add_argument("--near-per-sample", type=int, default=1,
                    help="--near-mode raw_audio: number of approximate negatives per sample.")
     p.add_argument("--seed", type=int, default=0, help="Deterministic seed for near selection.")
@@ -595,6 +633,13 @@ def main(argv=None) -> int:
     print(f"== estimated output size: {_fmt_bytes(est)} "
           f"(near-mode={args.near_mode}, target={args.target})")
     if args.dry_run:
+        if args.near_mode == "other-speaker":
+            near_src_name = "s2" if args.target == "s1" else "s1"
+            total = sum(a["parsed"] for a in audit.values())
+            per_split = ", ".join(f"{s}={audit[s]['parsed']}" for s in args.splits)
+            print(f"== dry-run near-mode=other-speaker: K=1 deterministic; "
+                  f"planned near entries: {per_split} (total {total}); "
+                  f"target={args.target} -> near={near_src_name}/<stem>.wav")
         print("== dry-run: nothing written ==")
         return 0
     t_start = time.time()

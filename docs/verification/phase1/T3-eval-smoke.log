@@ -1,0 +1,195 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/Falcon.yml
+[eval] test index  : /tmp/t3_smoke/data/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /tmp/t3run/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fdb41162b50>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[eval] test index: /tmp/t3_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+Testing (Rank 0) ━━━━━━━━━━━━━━━━━━━ • 1/1 • ? • 0:00:00 • sdr: -5.905 sdr_i:   
+                                                           -4.019 si-snr:       
+                                                           -11.478 si-snr_i:    
+                                                           -9.427 pesq: 1.046   
+                                                           stoi: 0.056          
+[eval] per-utterance results: /tmp/t3run/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /tmp/t3run/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         -5.905245
+sdr_i       -4.019493
+si-snr     -11.477926
+si-snr_i    -9.427218
+pesq         1.046078
+stoi         0.055786
+----------------------------------------
+
+#
+# --- extra verification 1: ${DATA_ROOT} expansion + default test_dir (no --data_dir) ---
+#
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /tmp/t3_smoke/conf_data_root.yml
+[eval] test index  : /tmp/t3_smoke/data/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /tmp/t3run2/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f608a78af50>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[eval] test index: /tmp/t3_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+Testing (Rank 0) ━━━━━━━━━━━━━━━━━━━ • 1/1 • ? • 0:00:00 • sdr: -5.905 sdr_i:   
+                                                           -4.019 si-snr:       
+                                                           -11.478 si-snr_i:    
+                                                           -9.427 pesq: 1.046   
+                                                           stoi: 0.056          
+[eval] per-utterance results: /tmp/t3run2/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /tmp/t3run2/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         -5.905245
+sdr_i       -4.019493
+si-snr     -11.477926
+si-snr_i    -9.427218
+pesq         1.046078
+stoi         0.055786
+----------------------------------------
+
+#
+# --- extra verification 2: clear error for stale conf.yml audionet_name ---
+#
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Traceback (most recent call last):
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 553, in <module>
+    main(arg_dic)
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 518, in main
+    world_size = _run_workers(config)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 463, in _run_workers
+    process_worker(0, 1, config)
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 393, in process_worker
+    model, video_model = _load_models_from_ckpt(ckpt_path, config, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 290, in _load_models_from_ckpt
+    raise AttributeError(
+AttributeError: look2hear.models has no attribute 'SpeakerContrastiveV2' (config's audionet_name). The released Falcon weights use 'FalconSpeakerContrastive'; the shipped Experiments/checkpoint/Falcon/conf.yml still says 'SpeakerContrastiveV2' (stale snapshot).
+[eval] warning: unresolved config placeholders remain: ['DATA_ROOT', 'ROOT'] (pass --data_dir or export these variables)
+[eval] config      : /root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/conf.yml
+[eval] test index  : /tmp/t3_smoke/data/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /tmp/t3run3/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f0da8212f90>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[eval] test index: /tmp/t3_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+
+#
+# --- extra verification 3: clear error for missing --data_dir ---
+#
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Traceback (most recent call last):
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 553, in <module>
+    main(arg_dic)
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 504, in main
+    train_conf, test_dir = _prepare_config(_get_train_conf(config), config.get("data_dir", ""))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 189, in _prepare_config
+    test_dir = _resolve_index_dir(data_dir, split="tt")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 162, in _resolve_index_dir
+    raise FileNotFoundError(
+FileNotFoundError: No JSON index found for split 'tt' under '/tmp/does-not-exist-t3': expected one of ['/tmp/does-not-exist-t3/tt/mix.json', '/tmp/does-not-exist-t3/mix.json'] to exist. Pass --data_dir pointing at the directory that contains mix.json/target.json, or set the DATA_ROOT environment variable and edit datamodule.data_config.
+
+#
+# --- extra verification 4: clear error when no ckpt can be found ---
+#
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Traceback (most recent call last):
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 553, in <module>
+    main(arg_dic)
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 518, in main
+    world_size = _run_workers(config)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 463, in _run_workers
+    process_worker(0, 1, config)
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 390, in process_worker
+    ckpt_path = config.get("ckpt_path") or _find_best_ckpt(exp_dir)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/code/github_repos/Falcon-fork/audio_visual_test.py", line 249, in _find_best_ckpt
+    raise FileNotFoundError(
+FileNotFoundError: No checkpoint found in /tmp/t3run4/Experiments/checkpoint/Falcon. Pass --ckpt_path explicitly (e.g. --ckpt_path /root/.cache/falcon_weights/falcon.pt) or train first.
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/Falcon.yml
+[eval] test index  : /tmp/t3_smoke/data/tt
+[eval] ckpt_path   : <auto in /tmp/t3run4/Experiments/checkpoint/Falcon>
+[eval] results dir : /tmp/t3run4/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f4107c56fd0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[eval] test index: /tmp/t3_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+
+#
+# --- final-state re-run (after concurrent T1/T2/T4/T5 edits were present in the worktree) ---
+#
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/Falcon.yml
+[eval] test index  : /tmp/t3_smoke/data/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /tmp/t3run5/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7ff516076cd0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+[eval] test index: /tmp/t3_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+Testing (Rank 0) ━━━━━━━━━━━━━━━━━━━ • 1/1 • ? • 0:00:00 • sdr: -5.905 sdr_i:   
+                                                           -4.019 si-snr:       
+                                                           -11.478 si-snr_i:    
+                                                           -9.427 pesq: 1.046   
+                                                           stoi: 0.056          
+[eval] per-utterance results: /tmp/t3run5/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /tmp/t3run5/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         -5.905245
+sdr_i       -4.019493
+si-snr     -11.477926
+si-snr_i    -9.427218
+pesq         1.046078
+stoi         0.055786
+----------------------------------------

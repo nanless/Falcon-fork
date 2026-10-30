@@ -1,0 +1,114 @@
+[supervisor] 2026-10-22T18:21:40+00:00 waiting for PID 4002894
+[supervisor] 2026-10-22T19:55:40+00:00 old training finished; resume with ckpt=/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/last.ckpt
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+ config snapshot (deepcopy) -> 
+/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/conf.yml
+ use_near = True
+Instantiating datamodule: AVSpeechDataModuleWithNear (use_near=True)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7f2a50fe91d0>
+    Normalize(mean=0.421, std=0.165)
+)
+[AVSpeechTrainDatasetWithNear] Loaded near.json with 20000 entries.
+Drop 0 utts(0.00 h) from 20000 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 20000/20000 samples have near-speaker entries.
+[AVSpeechTrainDatasetWithNear] Near file access OK: /root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2a4fa66a90>
+    Normalize(mean=0.421, std=0.165)
+)
+5000 5000
+Drop 0 utts(0.00 h) from 5000 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f2a4f5cbc10>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+Instantiating AudioNet <FalconSpeakerContrastive>
+Instantiating Optimizer <adamw>
+Instantiating Scheduler <ReduceLROnPlateau>
+Instantiating Loss  train=<pairwise_neg_snr>  val=<pairwise_neg_sisdr>
+[NASS v2] weight=1.0 margin=0.5 alpha_pos=1.0 alpha_neg=1.0 beta=0.0→1.0 over 
+200 epochs
+ logger = CSVLogger
+ accelerator=gpu devices=[0] num_devices=1 strategy=auto
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+`Trainer(limit_train_batches=1.0)` was configured so 100% of the batches per epoch will be used..
+Resuming from checkpoint: 
+/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/last.ckpt
+You are using a CUDA device ('NVIDIA A800-SXM4-80GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+Restoring states from the checkpoint path at /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/last.ckpt
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+┏━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃   ┃ Name             ┃ Type                     ┃ Params ┃ Mode  ┃ FLOPs ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ 0 │ audio_model      │ FalconSpeakerContrastive │  537 K │ train │     0 │
+│ 1 │ video_model      │ FRCNNVideoModel          │ 11.2 M │ train │     0 │
+│ 2 │ contrastive_loss │ NASSContrastiveLoss      │      0 │ train │     0 │
+└───┴──────────────────┴──────────────────────────┴────────┴───────┴───────┘
+Trainable params: 537 K                                                         
+Non-trainable params: 11.2 M                                                    
+Total params: 11.7 M                                                            
+Total estimated model params size (MB): 46.898                                  
+Modules in train mode: 688                                                      
+Modules in eval mode: 0                                                         
+Total FLOPs: 0                                                                  
+Restored all states from the checkpoint at /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/last.ckpt
+Epoch 100, global step 252500: 'val_loss/dataloader_idx_0' reached -12.94810 (best -12.94810), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=100.ckpt' as top 5
+Epoch 101, global step 255000: 'val_loss/dataloader_idx_0' reached -13.09308 (best -13.09308), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=101.ckpt' as top 5
+Epoch 102, global step 257500: 'val_loss/dataloader_idx_0' reached -13.12402 (best -13.12402), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=102.ckpt' as top 5
+Epoch 103, global step 260000: 'val_loss/dataloader_idx_0' reached -13.10612 (best -13.12402), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=103.ckpt' as top 5
+Epoch 104, global step 262500: 'val_loss/dataloader_idx_0' reached -13.15366 (best -13.15366), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=104.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.030 >= min_delta = 0.0. New best score: -13.232
+Epoch 105, global step 265000: 'val_loss/dataloader_idx_0' reached -13.23162 (best -13.23162), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=105.ckpt' as top 5
+Epoch 106, global step 267500: 'val_loss/dataloader_idx_0' reached -13.22434 (best -13.23162), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=106.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.002 >= min_delta = 0.0. New best score: -13.233
+Epoch 107, global step 270000: 'val_loss/dataloader_idx_0' reached -13.23345 (best -13.23345), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=107.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.009 >= min_delta = 0.0. New best score: -13.242
+Epoch 108, global step 272500: 'val_loss/dataloader_idx_0' reached -13.24228 (best -13.24228), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=108.ckpt' as top 5
+Epoch 109, global step 275000: 'val_loss/dataloader_idx_0' reached -13.17566 (best -13.24228), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=109.ckpt' as top 5
+Epoch 110, global step 277500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 111, global step 280000: 'val_loss/dataloader_idx_0' reached -13.22427 (best -13.24228), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=111.ckpt' as top 5
+Epoch 112, global step 282500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 113, global step 285000: 'val_loss/dataloader_idx_0' reached -13.23458 (best -13.24228), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=113.ckpt' as top 5
+Epoch 114, global step 287500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 115, global step 290000: 'val_loss/dataloader_idx_0' reached -13.23045 (best -13.24228), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=115.ckpt' as top 5
+Metric val_loss/dataloader_idx_0 improved by 0.064 >= min_delta = 0.0. New best score: -13.306
+Epoch 116, global step 292500: 'val_loss/dataloader_idx_0' reached -13.30635 (best -13.30635), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=116.ckpt' as top 5
+Epoch 117, global step 295000: 'val_loss/dataloader_idx_0' reached -13.25817 (best -13.30635), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=117.ckpt' as top 5
+Epoch 118, global step 297500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 119, global step 300000: 'val_loss/dataloader_idx_0' reached -13.28940 (best -13.30635), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=119.ckpt' as top 5
+Epoch 120, global step 302500: 'val_loss/dataloader_idx_0' reached -13.24507 (best -13.30635), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=120.ckpt' as top 5
+Epoch 121, global step 305000: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 122, global step 307500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 123, global step 310000: 'val_loss/dataloader_idx_0' was not in top 5
+Metric val_loss/dataloader_idx_0 improved by 0.085 >= min_delta = 0.0. New best score: -13.391
+Epoch 124, global step 312500: 'val_loss/dataloader_idx_0' reached -13.39090 (best -13.39090), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=124.ckpt' as top 5
+Epoch 125, global step 315000: 'val_loss/dataloader_idx_0' reached -13.24935 (best -13.39090), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=125.ckpt' as top 5
+Epoch 126, global step 317500: 'val_loss/dataloader_idx_0' was not in top 5
+Epoch 127, global step 320000: 'val_loss/dataloader_idx_0' reached -13.31243 (best -13.39090), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=127.ckpt' as top 5
+Epoch 128, global step 322500: 'val_loss/dataloader_idx_0' reached -13.26164 (best -13.39090), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=128.ckpt' as top 5
+Epoch 129, global step 325000: 'val_loss/dataloader_idx_0' reached -13.30716 (best -13.39090), saving model to '/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=129.ckpt' as top 5
+`Trainer.fit` stopped: `max_epochs=130` reached.
+Epoch 129/129 ━━━━━━━━━━━━━━━ 2500/2500 0:09:35 •       4.27it/s v_num: 0.000   
+                                        0:00:00                  train_loss_ste…
+                                                                 -12.973        
+                                                                 val_loss/datal…
+                                                                 -13.307        
+                                                                 test_loss/data…
+                                                                 -13.762 lr:    
+                                                                 0.001          
+                                                                 train_loss_epo…
+                                                                 -13.789        
+Finished Training
+ saved best_model.pth -> 
+/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2
+[supervisor] 2026-10-23T03:12:44+00:00 contrastive fine-tune exit=0

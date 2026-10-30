@@ -1,0 +1,106 @@
+[PASS] static: no undefined globals in audio_train.py :: []
+[PASS] static: no undefined globals in av_litmodule.py :: []
+[PASS] static: no undefined globals in av_litmodule_nass_v2.py :: []
+[PASS] static: no undefined globals in av_litmodule_mdcl.py :: []
+[PASS] static: `comet_logger` undefined name removed :: 
+[PASS] static: `_normalize_gpus_spec` helper present :: 
+[PASS] static: old `_as_int_list` helper removed :: 
+[PASS] static: --conf_dir default is configs/Falcon.yml :: configs/Falcon.yml
+[PASS] static: exactly one pl.Trainer(...) call :: n=1
+[PASS] static: Trainer kwargs are PL2 API (no `gpus=`) :: got=['accelerator', 'callbacks', 'default_root_dir', 'devices', 'gradient_clip_val', 'limit_train_batches', 'logger', 'max_epochs', 'num_sanity_val_steps', 'strategy', 'sync_batchnorm']
+[PASS] static: no executable `logger.experiment` (Comet-only API) in look2hear/system :: []
+[PASS] static: T2 diff hunks confined to on_validation_epoch_end :: hunks=[(153, 12), (175, 2), (184, 3)] span=(142, 188)
+[PASS] static: audio_train `model =` construction unchanged :: 
+[PASS] static: audio_train `video_model =` construction unchanged :: 
+[PASS] static: audio_train `optimizer =` construction unchanged :: 
+[PASS] static: audio_train `loss_func =` construction unchanged :: 
+[PASS] static: audio_train `system =` construction unchanged :: 
+[PASS] static: audio_train `checkpoint =` construction unchanged :: 
+[PASS] static: AudioVisualLightningModule.training_step unchanged :: 
+[PASS] static: AudioVisualLightningModule.validation_step unchanged :: 
+[PASS] static: AudioVisualLightningModuleNASSv2.training_step unchanged :: 
+[PASS] static: AudioVisualLightningModuleWithMDCL.training_step unchanged :: 
+[PASS] static: T2 log_dict(on_step=False, on_epoch=True, logger=True) :: {'on_step': 'False', 'on_epoch': 'True', 'logger': 'True'}
+[PASS] static: T2 preserves baseline metric keys (learning_rate/val_pit_sisnr/test_pit_sisnr) :: ['learning_rate', 'test_pit_sisnr', 'val_pit_sisnr']
+[PASS] build_logger: default/explicit csv -> CSVLogger :: 
+[PASS] build_logger: CSV log dir is single-level <exp_dir>/version_N :: log_dir=/tmp/phase1-review-logger/checkpoint/Falcon/version_0
+[PASS] build_logger: tensorboard without tensorboard pkg -> clear RuntimeError :: training.logger='tensorboard' but the `tensorboard` package is missing; install it with `pip install
+[PASS] build_logger: comet without comet-ml -> clear RuntimeError :: training.logger='comet' requires the optional `comet-ml` package; install it with `pip install comet
+[PASS] build_logger: 'none' -> None :: 
+[PASS] build_logger: 'null' -> None :: 
+[PASS] build_logger: 'false' -> None :: 
+[PASS] build_logger: None -> None :: 
+[PASS] build_logger: False -> None :: 
+[PASS] build_logger: invalid 'wandb' -> ValueError :: 
+[PASS] build_logger: invalid True -> ValueError :: 
+[PASS] build_logger: invalid 3 -> ValueError :: 
+[PASS] PL2: Trainer(logger=None) still creates a default logger (so T1 must pass False) :: none=[<pytorch_lightning.loggers.csv_logs.CSVLogger object at 0x7f44795bea90>] false=None
+[PASS] normalize_gpus_spec: [1] -> ('indices', [1]) :: got=('indices', [1])
+[PASS] normalize_gpus_spec: [7] -> ('indices', [7]) :: got=('indices', [7])
+[PASS] normalize_gpus_spec: [0, 1] -> ('indices', [0, 1]) :: got=('indices', [0, 1])
+[PASS] normalize_gpus_spec: (0, 1) -> ('indices', [0, 1]) :: got=('indices', [0, 1])
+[PASS] normalize_gpus_spec: range(0, 2) -> ('indices', [0, 1]) :: got=('indices', [0, 1])
+[PASS] normalize_gpus_spec: '0,1' -> ('indices', [0, 1]) :: got=('indices', [0, 1])
+[PASS] normalize_gpus_spec: '1' -> ('indices', [1]) :: got=('indices', [1])
+[PASS] normalize_gpus_spec: 8 -> ('count', 8) :: got=('count', 8)
+[PASS] normalize_gpus_spec: None -> ('none', None) :: got=('none', None)
+[PASS] normalize_gpus_spec: '' -> ('none', None) :: got=('none', None)
+[PASS] normalize_gpus_spec: 0 -> ('cpu', None) :: got=('cpu', None)
+[PASS] normalize_gpus_spec: -1 -> ('all', None) :: got=('all', None)
+[PASS] normalize_gpus_spec: invalid True -> ValueError :: 
+[PASS] normalize_gpus_spec: invalid 1.5 -> ValueError :: 
+[PASS] normalize_gpus_spec: invalid 'a,b' -> ValueError :: 
+[PASS] normalize_gpus_spec: invalid {'gpu': 0} -> ValueError :: 
+[PASS] resolve: cuda=False n=0 gpus=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -> ('cpu', 1, 1, 'auto') :: got=('cpu', 1, 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -> ('gpu', [0, 1], 2, 'DDP') :: got=('gpu', [0, 1], 2, 'DDP')
+[PASS] resolve: cuda=True n=1 gpus=[0] -> ('gpu', [0], 1, 'auto') :: got=('gpu', [0], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=[0] -> ('gpu', [0], 1, 'auto') :: got=('gpu', [0], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=[1] -> ('gpu', [1], 1, 'auto') :: got=('gpu', [1], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=[0, 7] -> ('gpu', [0], 1, 'auto') :: got=('gpu', [0], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=8 -> ('gpu', 2, 2, 'DDP') :: got=('gpu', 2, 2, 'DDP')
+[PASS] resolve: cuda=True n=2 gpus=1 -> ('gpu', 1, 1, 'auto') :: got=('gpu', 1, 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus='0,1' -> ('gpu', [0, 1], 2, 'DDP') :: got=('gpu', [0, 1], 2, 'DDP')
+[PASS] resolve: cuda=True n=2 gpus='1' -> ('gpu', [1], 1, 'auto') :: got=('gpu', [1], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=None -> ('gpu', [0], 1, 'auto') :: got=('gpu', [0], 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=0 -> ('cpu', 1, 1, 'auto') :: got=('cpu', 1, 1, 'auto')
+[PASS] resolve: cuda=True n=2 gpus=-1 -> ('gpu', [0, 1], 2, 'DDP') :: got=('gpu', [0, 1], 2, 'DDP')
+[PASS] resolve: invalid gpus=[] -> ValueError :: training.gpus is an empty list; provide GPU indices (e.g. [0, 1]), a GPU count (
+[PASS] resolve: invalid gpus=[0, 0] -> ValueError :: training.gpus=[0, 0] contains duplicate GPU indices
+[PASS] resolve: invalid gpus=[7] -> ValueError :: training.gpus=[7] does not match any visible GPU (visible: [0, 1]); on this mach
+[PASS] resolve: invalid gpus='a,b' -> ValueError :: training.gpus='a,b' is not a comma-separated integer list
+[PASS] resolve: real host (2×A800, Falcon.yml gpus=[0..9]) -> gpu/[0,1]/DDP :: got=(gpu,[0, 1],2,DDPStrategy)
+[WARN] docs: gpus/logger semantic contract documented in config or phase1 README (docstring claim) [WARN-only] :: configs/Falcon.yml and phase1/README.md contain no logger/gpus-semantics docs
+[PASS] assembly: model built after conf.yml snapshot exists :: conf_exists=True
+[PASS] F9: dumped conf keeps audio_params.repeats/shared :: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'repeats', 'shared', 'stride', 'upsampling_depth']
+[PASS] F9: dumped conf keeps video_params.repeats/shared :: ['act_type', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'norm_type', 'repeats', 'shared', 'stride']
+[PASS] F9: dumped audio_params has no injected `causal` :: 
+[PASS] F9: dumped conf has main_args.exp_dir :: {'exp_dir': '/tmp/phase1-review-main-_u8fqujv/Experiments/checkpoint/Falcon'}
+[PASS] F9: runtime config IS polluted after real model build (repeats popped, causal injected) :: ['act_type', 'causal', 'hid_chan', 'is2d', 'kernel_size', 'layers', 'n_freqs', 'norm_type', 'stride', 'upsampling_depth']
+[PASS] assembly: logger is CSVLogger :: CSVLogger
+[PASS] assembly: PL2 accelerator/devices/strategy :: acc=gpu devices=[0, 1] strategy=DDPStrategy
+[PASS] assembly: no `gpus` kw :: 
+[PASS] assembly: training hyper-params unchanged :: limit=1.0 clip=5.0 sync_bn=True sanity=0
+[PASS] F1: `training.logger: none` reaches Trainer as False (not None) :: False
+[PASS] smoke: training completed without exception :: 
+[PASS] smoke: global_step == 2 (2 train batches) :: global_step=2
+[PASS] smoke: conf.yml + best_k_models.json + best_model.pth + *.ckpt written :: ['best_k_models.json', 'best_model.pth', 'conf.yml', 'epoch=0.ckpt', 'last.ckpt', 'version_0']
+[PASS] smoke: CSVLogger produced metrics.csv :: ['/tmp/phase1-review-smoke-8kciwl6y/Experiments/checkpoint/phase1_review_smoke/version_0/metrics.csv']
+[PASS] smoke: metrics.csv is single-level <exp_dir>/version_0/metrics.csv :: got=/tmp/phase1-review-smoke-8kciwl6y/Experiments/checkpoint/phase1_review_smoke/version_0/metrics.csv expected=/tmp/phase1-review-smoke-8kciwl6y/Experiments/checkpoint/phase1_review_smoke/version_0/metrics.csv
+[PASS] smoke: metrics.csv preserves baseline keys (+bucket, +train keys) :: missing=[]
+[PASS] smoke: learning_rate value == optimizer lr (1e-3) :: [0.0010000000474974513]
+[PASS] smoke: val_pit_sisnr == -val_loss (semantics preserved) :: [(46.672019958496094, -46.672019958496094)]
+[PASS] smoke: no NaN/Inf in logged numeric cells :: 
+[PASS] smoke: epoch-end metrics logged once (on_epoch=True semantics) :: n_epoch_rows=1
+[PASS] F9: smoke dumped conf keeps repeats/shared, no causal :: 
+[PASS] F9: smoke runtime config polluted after training :: 
+[PASS] smoke: best_k_models.json values are floats and point to existing ckpt :: {'/tmp/phase1-review-smoke-8kciwl6y/Experiments/checkpoint/phase1_review_smoke/epoch=0.ckpt': 46.672019958496094}
+[PASS] no-logger: training completed (F2 no-logger safe) :: 
+[PASS] no-logger: Trainer received logger=False :: 
+[PASS] no-logger: no metrics.csv written :: []
+[PASS] no-logger: artifacts still written (conf/ckpt/best_model) :: ['best_k_models.json', 'best_model.pth', 'conf.yml', 'epoch=0.ckpt', 'last.ckpt']
+[PASS] fingerprint: eval forward sha256 == baseline :: got=ad0f20a0e67e8e75 base=ad0f20a0e67e8e75
+[PASS] fingerprint: eval forward mean == baseline :: got=9.98725590761751e-06 base=9.98725590761751e-06
+[PASS] fingerprint: train est/ sep sha256 == baseline :: 
+[PASS] fingerprint: video forward sha256 == T5 protocol fingerprint :: got=1b7255f36d926d44 t5=1b7255f36d926d44
+[PASS] ddp: 2-GPU toy fit with resolved DDPStrategy/sync_batchnorm/CSVLogger :: `Trainer.fit` stopped: `max_epochs=1` reached.
+SUMMARY: total=105 fail=0 warn=1

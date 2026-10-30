@@ -172,3 +172,99 @@ bash /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_p2d.sh <ckpt> /
 
 ---
 *本报告将在正式训练启动/1–2 h 曲线/评测完成后继续更新（含 P2D-train.pid、CSV 曲线、SI-SNRi/SDRi 对比）。*
+
+---
+
+## 8. 2026-10-24 终态校正
+
+> **本节取代 §1「结论（阶段）」、§4「正式训练（已启动）」、§4.2「训练进度与首轮评测（进行中）」中的
+> "进行中 / 等待 P2-C 数据 / 等待 GPU 窗口" 等描述**；其余章节作为历史记录保留。本节数字全部来自
+> 已落盘、可复核的证据：`P2D-train-metrics-1gpu.csv`、`P2D-near-train-metrics.csv`、
+> `P2D-eval-{falcon-full,epoch86,epoch99,epoch124-contrastive}.{csv,log}`。
+
+### 8.1 训练终态（已完成，不再是"进行中"）
+
+| 项 | 值 | 证据 |
+|---|---|---|
+| 正式训练（无 near） | **100/100 epoch，2026-10-22 19:54 UTC 结束** | `epoch=99.ckpt`/训练目录 mtime 19:54；`P2D-train-metrics-1gpu.csv` 最后一行 epoch=99、step=249999 |
+| 规模 | 单卡 bs4，2500 step/epoch，共 249,999 step | 同上 |
+| **best val_pit_sisnr** | **ep99 = 13.2014 dB**（§4.2 中"最佳 val 13.118 / ep86"只是当时的最佳，已被 ep99 超过） | `best_k_models.json`：`epoch=99.ckpt: -13.201412`；metrics ep99 `13.201422` |
+| top-5 ckpt（val_pit_sisnr） | ep86 13.1182 / ep96 13.1383 / ep97 13.1149 / ep98 13.0379 / **ep99 13.2014** | `best_k_models.json` |
+| test_pit_sisnr（tt，每 10 epoch） | ep0 6.8147 / ep10 10.4094 / ep20 11.5897 / ep30 12.1568 / ep40 12.5586 / ep50 12.8444 / ep60 13.1192 / ep70 13.1067 / ep80 13.3705 / ep90 13.3303 | `P2D-train-metrics-1gpu.csv` |
+| contrastive 微调（s2 作 near，K=1） | epoch 100→129（从 ep99 ckpt 续训），**best val ep124 = 13.3909**；test ep120 = 13.7618 | `P2D-near-train-metrics.csv`（`/root/tmp/p2d_near_train/.../LRS2_2Mix_near_s2`，30 个 epoch 行） |
+
+### 8.2 LRS2-2Mix 全量评测终态（tt 3000 条，target=s1，整句推理）
+
+协议：`audio_visual_test.py --conf_dir configs/LRS2_2Mix.yml --data_dir /root/data/falcon_lrs2_2mix --gpus <0|1>`；
+单卡、整句（不切窗）、逐句计算后取均值；PESQ/STOI 用同一脚本实现。全部 4 行**同协议、同 3000 条、target=s1**，
+可直接横向比较。
+
+| 权重 | SI-SNR | **SI-SNRi** | SDR | **SDRi** | PESQ | STOI | 证据（逐句 CSV / 日志） |
+|---|---:|---:|---:|---:|---:|---:|---|
+| 官方 `falcon.pt`（跨语料：LRS3 训练） | 12.023 | **7.029** | 12.813 | **7.713** | 2.196 | 0.916 | `P2D-eval-falcon-full.csv/.log`（3000 句，本次补跑） |
+| 自训 ep86（无 near） | 13.612 | **8.618** | 14.142 | **9.042** | 2.547 | 0.941 | `P2D-eval-epoch86.log`（历史日志；逐句 CSV 已被后续 ep124 运行覆盖） |
+| 自训 **ep99（best val，本次补测）** | 13.720 | **8.726** | 14.222 | **9.122** | 2.578 | 0.944 | `P2D-eval-epoch99.csv/.log`（3000 句） |
+| 自训 ep124（contrastive 微调） | 13.852 | **8.858** | 14.370 | **9.270** | 2.576 | 0.943 | `P2D-eval-epoch124-contrastive.csv/.log`（3000 句） |
+| 论文 LRS2-2Mix（README/论文） | — | 14.1 | — | 14.7 | — | — | README |
+
+跨句标准差（本次两份新 CSV 的 `std` 行）：官方 SI-SNRi 2.932 / SDRi 2.728；ep99 SI-SNRi 2.452 / SDRi 2.466。
+两份新 CSV 均为 3002 行（3000 逐句 + `avg` + `std`）。
+
+精确值（逐句 avg 行；顺序 SDR / SDRi / SI-SNR / SI-SNRi / PESQ / STOI）：
+- 官方 `falcon.pt`：`12.813387 / 7.712925 / 12.022821 / 7.029101 / 2.195634 / 0.916350`
+- 自训 ep99：`14.222311 / 9.121848 / 13.719868 / 8.726148 / 2.577971 / 0.943988`
+- 自训 ep86（仅有日志汇总）：`14.141969 / 9.041506 / 13.611639 / 8.617919 / 2.546623 / 0.940860`
+- 自训 ep124（contrastive 微调）：`14.370037 / 9.269574 / 13.851912 / 8.858192 / 2.576086 / 0.942796`
+
+### 8.3 结论（更新版）
+
+1. **自训最佳 ckpt（ep99）首次全量评测：SI-SNRi 8.726 / SDRi 9.122**，比 ep86（8.618/9.042）高
+   **+0.108 / +0.080 dB**，与 val 曲线的 best（ep99）方向一致；ep124 contrastive 微调再提升
+   **+0.132 / +0.148 dB** → **8.858 / 9.270**（这是"近似 s2 负样本"的增益，非论文原始 near 模拟）。
+2. **官方权重跨语料基线复跑确认：7.029 / 7.713**，与 Phase-1 的 LRS2 全量评测数字一致（同一脚本、同一 3000 条），
+   说明该基线可复现，不是一次性波动。
+3. 自训 ckpt 比官方跨语料权重高 **+1.697 SI-SNRi / +1.409 SDRi**（同数据同协议），符合"已在 LRS2 上训练"的预期；
+   但距论文 14.1 / 14.7 仍差 **−5.374 / −5.578 dB**，归因不变：单卡 bs4（论文 10 卡、全局 batch 40）、
+   100（+30）epoch、LRS2 无 near 导致负项失效或只能近似，以及论文训练配方（数据混合 / lr schedule / 轮数）未公开。
+4. 证据完整性：ep86 只有汇总日志（逐句 CSV 缺失）；官方 / ep99 / ep124 三份均有 3000 句逐句 CSV；
+   两条训练曲线已入库（`P2D-train-metrics-1gpu.csv` 5200 行 / `P2D-near-train-metrics.csv` 1560 行）。
+
+### 8.4 本次评测执行记录（可复核）
+
+- 2026-10-24 13:52 首轮（两卡并行、默认线程）因**线程超订**（每进程 300+ 线程）长时间未产出首行 CSV，
+  被终止，**无结果 CSV 被引用**；
+- 2026-10-24 14:17 由 Lead 在干净环境重启：`python -u`、`OMP_NUM_THREADS=MKL_NUM_THREADS=4`、
+  各自独立 cwd（`/root/tmp/p2d_eval_official`、`/root/tmp/p2d_eval_ep99`）与独立 GPU（0/1），
+  **两份均于 14:26Z 完成（exit 0）**，各约 9 min；
+- 结果复制：`/root/tmp/p2d_eval_{official,ep99}/Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv`
+  → `docs/verification/phase2/P2D-eval-{falcon-full,epoch99}.csv`（Lead 复制；md5 与源文件逐一相同，
+  `ff9b9d74…` / `5a7e307f…`，未改动 CSV 内容）。
+
+复跑命令（与本次一致）：
+
+```bash
+# 官方权重全量（独立 cwd）
+mkdir -p /root/tmp/p2d_eval_official && cd /root/tmp/p2d_eval_official
+OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONPATH=/root/code/github_repos/Falcon-fork \
+  /root/miniforge3/envs/falcon/bin/python -u /root/code/github_repos/Falcon-fork/audio_visual_test.py \
+  --conf_dir /root/code/github_repos/Falcon-fork/configs/LRS2_2Mix.yml \
+  --ckpt_path /root/.cache/falcon_weights/falcon.pt \
+  --data_dir /root/data/falcon_lrs2_2mix --gpus 1
+
+# ep99（best val）全量
+mkdir -p /root/tmp/p2d_eval_ep99 && cd /root/tmp/p2d_eval_ep99
+OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONPATH=/root/code/github_repos/Falcon-fork \
+  /root/miniforge3/envs/falcon/bin/python -u /root/code/github_repos/Falcon-fork/audio_visual_test.py \
+  --conf_dir /root/code/github_repos/Falcon-fork/configs/LRS2_2Mix.yml \
+  --ckpt_path /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=99.ckpt \
+  --data_dir /root/data/falcon_lrs2_2mix --gpus 1
+```
+
+### 8.5 与 §6「后续评测计划」的关系
+
+§6 的评测脚本 `tools/repro/phase2/eval_p2d.sh` 仍可用；但**本次全量评测用的是 `audio_visual_test.py`
+直调 + 独立 cwd**（避免同名 `Experiments/checkpoint/LRS2_2Mix/results/` 互相覆盖，这正是此前 CSV 被覆盖的原因）。
+后续若再用 `eval_p2d.sh`，请先确认它的 cwd 与已有证据不冲突。
+
+---
+*[2026-10-24] 本节为终态校正；`P2D-*` 证据文件与两条训练曲线已落盘可复核。*

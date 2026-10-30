@@ -1,0 +1,92 @@
+
+==============================================================================
+== [V1] A36'：STFTEncoder 帧级 lookahead（s=16000 / 20000）
+==============================================================================
+  扰动 s>=16000 -> 首变帧=125  (帧 124 delta=0.000e+00, 帧 125 delta=4.803e+00)
+  扰动 s>=16001 -> 首变帧=125  (帧 124 delta=0.000e+00, 帧 125 delta=4.589e+00)
+  扰动 s>=16255 -> 首变帧=126  (帧 125 delta=0.000e+00, 帧 126 delta=3.219e-05)
+  扰动 s>=16256 -> 首变帧=127  (帧 126 delta=0.000e+00, 帧 127 delta=5.096e+00)
+  扰动 s>=20000 -> 首变帧=156  (帧 155 delta=0.000e+00, 帧 156 delta=3.253e+00)
+  扰动 s>=21000 -> 首变帧=164  (帧 163 delta=0.000e+00, 帧 164 delta=4.770e+00)
+
+==============================================================================
+== [V2] encoder→decoder 串联的采样级过去泄漏（解析上界 ≤127）
+==============================================================================
+  解析：输入采样 p 影响 encoder 帧 n∈[ceil((p-127)/128), floor((p+127)/128)]；
+        decoder 合成帧 m 依赖 encoder 帧 m-3..m-1；iSTFT 采样 s 由帧 ⌊s/128⌋、⌊s/128⌋+1 叠加
+        => 给定 p=128q+r，最早受影响合成帧 m=q+1，最早受影响采样 s_min=128q=p-r
+        => 采样级过去泄漏 = r ≤ 127（再减去 hann 窗首点 0 的 1 个采样）
+  p=16000 (r=  0) -> 首变输出采样=16001；泄漏 p-first= -1（解析上界 r=0，hann 首点 0 使实测 r-1=-1）
+  p=16001 (r=  1) -> 首变输出采样=16001；泄漏 p-first=  0（解析上界 r=1，hann 首点 0 使实测 r-1=0）
+  p=20000 (r= 32) -> 首变输出采样=19969；泄漏 p-first= 31（解析上界 r=32，hann 首点 0 使实测 r-1=31）
+  p=20032 (r= 64) -> 首变输出采样=19969；泄漏 p-first= 63（解析上界 r=64，hann 首点 0 使实测 r-1=63）
+  p=20127 (r= 31) -> 首变输出采样=20097；泄漏 p-first= 30（解析上界 r=31，hann 首点 0 使实测 r-1=30）
+  p=24000 (r= 64) -> 首变输出采样=23937；泄漏 p-first= 63（解析上界 r=64，hann 首点 0 使实测 r-1=63）
+
+==============================================================================
+== [V3] A19 扰动协议表 + common-mode 抵消 + GN-only vs cLNhw
+==============================================================================
+  (a) cLNhw T=8 单帧尖峰+20@t=6 -> 前缀 t<5 max|Δ| = 1.165e-03
+  (b) 单帧+全通道 +20                     前缀 t<5 max|Δ| = 1.165e-03 | 全段 max|Δ| = 5.814e+00
+  (b) 单帧+单通道 +20                     前缀 t<5 max|Δ| = 2.074e-05 | 全段 max|Δ| = 1.547e+01
+  (b) 整段+全通道 +5 (common-mode)        前缀 t<5 max|Δ| = 7.153e-07 | 全段 max|Δ| = 7.153e-07
+  (b) 整段+单通道 +5                      前缀 t<5 max|Δ| = 5.084e+00 | 全段 max|Δ| = 5.084e+00
+  (c) 波形×10   : pre_norm 左段(T<125) = 8.488e-05 | audio_bottleneck 左段 = 3.827e-05
+  (c) 同分布替换   : pre_norm 左段(T<125) = 1.431e-06 | audio_bottleneck 左段 = 7.153e-07
+  (d) GN-only  ×10 探针左段 = 3.930e+00
+      cLNhw    ×10 探针左段 = 1.435e-03  （GN 的纯尺度泄漏被 CumulateLN4D 抵消）
+
+==============================================================================
+== [V4] A49：逐级对称卷积 lookahead + 单遍 AudioBlock 57 帧
+==============================================================================
+  解析（每级 downsample conv）：L0 k=3,p=1,s=1 -> ±1 L0 帧；
+    L1/L2/L3 k=5,p=2,s=2 -> 本级 ±2 帧，换到 L0 帧 = ±2·2^level -> ±4 / ±8 / ±16
+  各级下采样输出形状: [(251, 129), (126, 65), (63, 33), (32, 17)]
+  AudioBlock 输出首变帧=68（扰动帧>=125）-> 单遍 lookahead = 57 帧 = 7296 采样 = 456 ms
+  说明：Falcon.py:818-824 的 residual_conv 是 k=1（无时间感受野），不能作为非因果证据；
+        非因果结构证据应为 :765（downsample k=3/5）、:801（fusion k=5）、:814（concat k=5）。
+
+==============================================================================
+== [V4b] VideoBlock：eval vs train 前缀因果（BatchNorm1d 批内统计）
+==============================================================================
+  VideoBlock(eval ) 左段 t<30 max|Δ| = 0.000e+00
+  VideoBlock(train) 左段 t<30 max|Δ| = 4.533e-02
+
+==============================================================================
+== [V4c] FRCNN frontend3D 时间感受野（改帧 >=30，最左受影响输出帧）
+==============================================================================
+  FRCNN 输出形状: (1, 512, 50)
+  最早受影响输出帧 = 28 （解析：Conv3d k=5,p=2 ⇒ ±2 帧 = ±80 ms）
+
+==============================================================================
+== [V5] A57 证据行号：causal=False 分支的 Identity
+==============================================================================
+  Falcon.py: 30:         self.out_chan = out_chan if kernel_size > 0 else self.in_chan
+  Falcon.py: 66:             else:
+  Falcon.py: 67:                 self.conv = nn.Identity()
+  Falcon.py: 68:         else:
+  Falcon.py: 84:             else:
+  Falcon.py: 85:                 self.conv = nn.Identity()
+  Falcon.py: 86: 
+
+==============================================================================
+== [V6] layers/__init__.py 导入名字数（AST）
+==============================================================================
+  from .cnnlayers import -> 13 个: ['TAC', 'Conv1DBlock', 'ConvNormAct', 'ConvNorm', 'NormAct', 'Video1DConv', 'Concat', 'FRCNNBlock', 'FRCNNBlockTCN', 'Bottomup', 'BottomupTCN', 'Bottomup_Concat_Topdown', 'Bottomup_Concat_Topdown_TCN']
+  from .rnnlayers import -> 5 个: ['DPRNN', 'DPRNNBlock', 'DPRNNLinear', 'LSTMBlockTF', 'TransformerBlockTF']
+
+==============================================================================
+== [V7] import look2hear.layers 的依赖链（PL/librosa/torch_complex）
+==============================================================================
+  utils/__init__.py 相关行： 'from .lightning_utils import print_only, RichProgressBarTheme, MyRichProgressBar, BatchesProcessedColumn, MyMetricsTextColumn'
+  lightning_utils.py 顶层 import: 'from pytorch_lightning.utilities import rank_zero_only'
+  当前进程 sys.modules（此进程早已 import look2hear.models）:
+    pytorch_lightning: True
+    librosa: True
+    torch_complex: True
+    typeguard: True
+    espnet.nets.pytorch_backend.nets_utils: False
+
+  LayerNormalizationHW 实例数 = 30 | GlobalLayerNorm = 30 | CumulateLN4D = 30 | LayerNormalization4D = 60
+
+DONE

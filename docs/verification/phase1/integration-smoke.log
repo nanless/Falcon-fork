@@ -1,0 +1,127 @@
+=== Phase1 integration smoke (Lead, 2026-10-21T16:43:08+00:00) ===
+branch: repro/phase1  HEAD: 689555c
+env: /root/miniforge3/envs/falcon/bin/python 3.11.17
+
+### 1) synthetic data (tools/repro/make_synthetic_data.py)
+command: python tools/repro/make_synthetic_data.py --out /root/tmp/phase1_smoke/data --n 3 --seconds 3 --near 0 --overwrite
+result: tr/cv/tt 各 3 条，mix/target/mouths + mix/target/near.json；train item (32000,)/(50,88,88)；eval (48000,)/(75,88,88)
+
+### 2) training smoke (audio_train.py, 1 epoch, batch 2, train_samples 8, CSVLogger)
+    Total params: 11.7 M                                                            
+    Total estimated model params size (MB): 46.898                                  
+    Modules in train mode: 688                                                      
+    Modules in eval mode: 0                                                         
+    Total FLOPs: 0                                                                  
+    Metric val_loss/dataloader_idx_0 improved. New best score: 12.188
+    Epoch 0, global step 4: 'val_loss/dataloader_idx_0' reached 12.18827 (best 12.18827), saving model to '/root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke/epoch=0.ckpt' as top 5
+    `Trainer.fit` stopped: `max_epochs=1` reached.
+    Epoch 0/0  ━━━━━━━━━━━━━━━━━━ 4/4 0:00:01 • 0:00:00 4.61it/s v_num: 0.000       
+                                                                 train_loss_step:   
+                                                                 -1.067             
+                                                                 val_loss/dataloade…
+                                                                 12.188             
+                                                                 test_loss/dataload…
+                                                                 25.320 lr: 0.001   
+                                                                 train_loss_epoch:  
+                                                                 -0.551             
+    Finished Training
+     saved best_model.pth -> 
+    /root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke
+
+### 3) eval smoke with trained ckpt (audio_visual_test.py --limit 1)
+    [eval] config      : /root/tmp/phase1_smoke/smoke.yml
+    [eval] test index  : /root/tmp/phase1_smoke/data/tt
+    [eval] ckpt_path   : /root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke/epoch=0.ckpt
+    [eval] results dir : /root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke/results
+    🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+    [eval] test index: /root/tmp/phase1_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+       ✓ audio_model loaded: 525 keys from epoch=0.ckpt
+       ✓ video_model loaded: 137 keys from epoch=0.ckpt
+    Testing (Rank 0) ━━━━━━━━━━━━━━━━━━━ • 1/1 • ? • 0:00:00 • sdr: -0.599 sdr_i:   
+                                                               -10.197 si-snr:      
+                                                               -15.176 si-snr_i:    
+                                                               -24.742 pesq: 1.117  
+                                                               stoi: 0.171          
+    [eval] per-utterance results: /root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke/results/metrics_rank0.csv
+    ✅ [Success] Combined metrics saved to: /root/tmp/phase1_smoke/Experiments/checkpoint/phase1_smoke/results/metrics_combined.csv
+    Final metrics (per-utterance, all workers):
+    sdr         -0.598530
+    sdr_i      -10.197469
+    si-snr     -15.176099
+    si-snr_i   -24.742179
+    pesq         1.117247
+    stoi         0.170708
+
+### 4) eval smoke with official weights (falcon.pt)
+    [eval] config      : /root/code/github_repos/Falcon-fork/configs/Falcon.yml
+    [eval] test index  : /root/tmp/phase1_smoke/data/tt
+    [eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+    [eval] results dir : /root/tmp/phase1_smoke/Experiments/checkpoint/Falcon/results
+    🚀 [eval] 1 worker(s) | gpus=0 | limit=1
+    [eval] test index: /root/tmp/phase1_smoke/data/tt | utterances=1 | this rank=1 | device=cuda:0
+       ✓ audio_model loaded: 525 keys from falcon.pt
+       ✓ video_model loaded: 137 keys from falcon.pt
+    Testing (Rank 0) ━━━━━━━━━━━━━━━━━━━ • 1/1 • ? • 0:00:00 • sdr: -7.439 sdr_i:   
+                                                               -17.038 si-snr:      
+                                                               -16.661 si-snr_i:    
+                                                               -26.227 pesq: 1.138  
+                                                               stoi: 0.284          
+    [eval] per-utterance results: /root/tmp/phase1_smoke/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+    ✅ [Success] Combined metrics saved to: /root/tmp/phase1_smoke/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+    Final metrics (per-utterance, all workers):
+    sdr         -7.438683
+    sdr_i      -17.037621
+    si-snr     -16.660933
+    si-snr_i   -26.227012
+    pesq         1.137967
+    stoi         0.283752
+
+### 5) metric sign sanity (Lead independent, synthetic known-SNR)
+  good_est: sdr 36.176  sdr_i 19.158  si-snr 36.108  si-snr_i 19.162 (all positive, row==avg)
+  est=mix : sdr 17.018  sdr_i 0.000   si-snr 16.945  si-snr_i 0.000  (improvement exactly 0 -> correct)
+
+### 6) numerical fingerprint (official weights, fixed seeds vs baseline-fingerprint.json)
+  eval sha match=True | train est sha match=True | train sep sha match=True | params 537697 / 11186688
+
+### 7) new tests
+  pytest tools/repro/tests -q -> 70 passed (144.49 s)
+  pytest studio/tests -q       -> 35 passed, 2 skipped
+
+=== Phase1 canonical smoke re-run after P2 fixes (Lead, 2026-10-21T17:07:38+00:00) ===
+branch: repro/phase1  HEAD: 689555c  worktree-dirty: 16 files
+config: synthetic near=1 (K=1 真实执行 NASS 分支), 1 epoch, batch 2, train_samples 8, CSVLogger, devices=[0]
+
+--- training (audio_train.py) ---
+Metric val_loss/dataloader_idx_0 improved. New best score: 7.582
+Epoch 0, global step 4: 'val_loss/dataloader_idx_0' reached 7.58213 (best 7.58213), saving model to '/root/tmp/phase1_smoke2/Experiments/checkpoint/phase1_smoke2/epoch=0.ckpt' as top 5
+`Trainer.fit` stopped: `max_epochs=1` reached.
+Finished Training
+ saved best_model.pth -> 
+
+--- eval with trained ckpt (--limit 2) ---
+[eval] test index: /root/tmp/phase1_smoke2/data/tt | utterances=2 | this rank=2 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from last.ckpt
+   ✓ video_model loaded: 137 keys from last.ckpt
+[eval] per-utterance results: /root/tmp/phase1_smoke2/Experiments/checkpoint/phase1_smoke2/results/metrics_rank0.csv
+✅ [Success] Combined metrics saved to: /root/tmp/phase1_smoke2/Experiments/checkpoint/phase1_smoke2/results/metrics_combined.csv
+Final metrics (per-utterance, all workers):
+sdr          5.854274
+sdr_i       -3.570433
+si-snr      -3.127640
+si-snr_i   -12.529624
+pesq         2.003095
+stoi         0.189790
+
+--- eval with official falcon.pt (--limit 2) ---
+[eval] test index: /root/tmp/phase1_smoke2/data/tt | utterances=2 | this rank=2 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+[eval] per-utterance results: /root/tmp/phase1_smoke2/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+✅ [Success] Combined metrics saved to: /root/tmp/phase1_smoke2/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+Final metrics (per-utterance, all workers):
+sdr         -7.398291
+sdr_i      -16.822998
+si-snr     -23.724107
+si-snr_i   -33.126091
+pesq         1.090881
+stoi         0.238053

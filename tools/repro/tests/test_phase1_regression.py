@@ -474,6 +474,10 @@ ALLOWED_TRACKED = [
     # authorized (env compliance): AGENTS.md §2/§4 新增 Phase2 依赖说明 + lock 更新（19:16Z），
     # 属文档/环境合规改动，非 Phase1 源码改动。
     "AGENTS.md",
+    # authorized (P0 evidence, 2026-10-24): .gitignore 增加 docs/verification 证据日志/CSV 的
+    # 负向规则（!docs/verification/**/*.log 等），属"证据必须可复核"的合规改动，不是越界源码改动。
+    # 该文件提交后仍会与 main 存在 diff，故需长期白名单。
+    ".gitignore",
     "look2hear/system/*",
     "look2hear/metrics/*",
     "look2hear/datas/*",

@@ -1,0 +1,76 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[gap] subset=random seed=0 n=200 / 3000 | device=cuda:0
+[gap] variants=['mouth_s1_88', 'mouth_s2_88', 'mouth_zero_88', 'mouth_s1_96_nocrop', 'mouth_s1_88_shift+5', 'mouth_s1_88_shift-5', 'mouth_s1_88_shift+12', 'mouth_s1_88_shift-12', 'mouth_s1_88_1ch', 'mouth_s1_88_nonorm', 'audio_crop_1s', 'audio_pad_3s', 'audio_norm_peak', 'audio_norm_rms'] | models=['small']
+[gap] loaded small model in 29.5s: {'audio_keys': 525, 'video_keys': 137, 'audio_params': 537697, 'video_params': 11186688}
+[gap] preload 1/200 | elapsed 0.4s
+[gap] preload 51/200 | elapsed 19.3s
+[gap] preload 101/200 | elapsed 38.1s
+[gap] preload 151/200 | elapsed 60.0s
+[gap] preload 200/200 | elapsed 72.1s
+[gap] preloaded 200 utterances in 72.1s
+[gap] small:mouth_s1_88 done in 12.8s (200 utts, batch=4)
+[gap] small:mouth_s2_88 done in 12.2s (200 utts, batch=4)
+[gap] small:mouth_zero_88 done in 12.0s (200 utts, batch=4)
+[gap] small:mouth_s1_96_nocrop done in 12.2s (200 utts, batch=4)
+[gap] small:mouth_s1_88_shift+5 done in 12.5s (200 utts, batch=4)
+[gap] small:mouth_s1_88_shift-5 done in 12.2s (200 utts, batch=4)
+[gap] small:mouth_s1_88_shift+12 done in 12.6s (200 utts, batch=4)
+[gap] small:mouth_s1_88_shift-12 done in 11.3s (200 utts, batch=4)
+[gap] small:mouth_s1_88_1ch done in 13.8s (200 utts, batch=4)
+[gap] small:mouth_s1_88_nonorm done in 30.2s (200 utts, batch=4)
+[gap] small:audio_crop_1s done in 16.7s (200 utts, batch=4)
+[gap] small:audio_pad_3s done in 26.3s (200 utts, batch=2)
+[gap] small:audio_norm_peak done in 12.5s (200 utts, batch=4)
+[gap] small:audio_norm_rms done in 10.2s (200 utts, batch=4)
+
+=== data self-checks (n=200) ===
+  mix_residual_max           mean=3.05176e-05 min=3.05176e-05 max=3.05176e-05
+  mix_residual_rel           mean=3.39812e-05 min=3.39087e-05 max=3.8622e-05
+  mix_r2                     mean=1 min=1 max=1
+  sir_filename               mean=5.01028 min=0.00614 max=9.9024
+  mix_si_snr                 mean=4.96986 min=-0.709282 max=12.695
+  mix_sdr512                 mean=5.07457 min=-0.575505 max=12.7924
+  eval_mix_equals_rebuild    mean=0 min=0 max=0
+  target_equals_s1           mean=0 min=0 max=0
+  mouth_equals_s1_npz        mean=1 min=1 max=1
+  len                        mean=32000 min=32000 max=32000
+  sr                         mean=16000 min=16000 max=16000
+  channels                   mean=1 min=1 max=1
+
+=== mixture baseline consistency ===
+  filename SIR mean=5.010 dB | measured SI-SNR(mix,s1) mean=4.970 | corr=0.970
+  measured SDR512(mix,s1) mean=5.075 dB
+
+=== small model: variant comparison (n=200) ===
+variant                        SI-SNR  SI-SNRi    dSIi   SDR512  SDR512i   dSDRi  seg2_i  tgtS2_i
+mouth_s1_88                     11.92     6.95   +0.00    12.70     7.62   +0.00    7.10   -17.00
+mouth_s2_88                    -11.74   -16.71  -23.67    -8.08   -13.15  -20.77  -17.43     5.49
+mouth_zero_88                    7.13     2.16   -4.80     8.33     3.26   -4.37    2.03   -11.72
+mouth_s1_96_nocrop              11.88     6.91   -0.04    12.66     7.58   -0.04    7.05   -16.88
+mouth_s1_88_shift+5              0.42    -4.55  -11.50     3.06    -2.02   -9.64   -4.93   -10.26
+mouth_s1_88_shift-5             -0.91    -5.88  -12.83     1.79    -3.28  -10.90   -5.97    -9.22
+mouth_s1_88_shift+12             0.63    -4.34  -11.30     2.94    -2.13   -9.76   -4.44   -10.10
+mouth_s1_88_shift-12             1.52    -3.45  -10.41     3.71    -1.36   -8.98   -3.53   -10.31
+mouth_s1_88_1ch                 11.92     6.95   -0.00    12.70     7.62   -0.00    7.10   -16.99
+mouth_s1_88_nonorm              11.47     6.50   -0.45    12.23     7.16   -0.47    6.67   -15.90
+audio_crop_1s                   11.41     6.48   -0.48    12.65     7.51   -0.12    6.68   -16.91
+audio_pad_3s                    -0.16    -5.13  -12.08     2.39    -2.68  -10.30   -5.42   -10.86
+audio_norm_peak                 11.92     6.95   -0.00    12.70     7.62   -0.00    7.10   -17.00
+audio_norm_rms                  11.92     6.95   -0.00    12.70     7.62   -0.00    7.10   -17.00
+  metric variants on baseline predictions (mean dB):
+    si_snr_i                          6.955 ± 3.134
+    si_snr_i_zm0                      6.939 ± 3.141
+    snr_i_plain                       7.295 ± 2.872
+    sdr512_i                          7.622 ± 2.800
+    sdr256_i                          7.537 ± 2.805
+    sdr128_i                          7.410 ± 2.816
+    sdr64_i                           7.270 ± 2.855
+    si_snr_i_seg2                     7.101 ± 3.081
+    si_snr_i_seg4                     7.237 ± 3.028
+    si_snr_i_tgt_rms_scale            6.955 ± 3.134
+    si_snr_i_tgt_energy_scale         6.955 ± 3.134
+    si_snr_i_tgt_s2                 -16.998 ± 5.113
+    si_snr_i_best_target              6.976 ± 3.013
+
+[gap] results JSON: docs/verification/phase2/P2A-small-200.json

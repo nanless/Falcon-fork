@@ -1,0 +1,117 @@
+== source audit ==
+  tr: 20000 mixtures, 20000 parsed, lengths={32000: 20000}, unique_target_ids=14773, missing_mouth_npz=0, unparsable=0
+  cv: 5000 mixtures, 5000 parsed, lengths={32000: 5000}, unique_target_ids=476, missing_mouth_npz=0, unparsable=0
+  tt: 3000 mixtures, 3000 parsed, lengths={32000: 3000}, unique_target_ids=267, missing_mouth_npz=0, unparsable=0
+== estimated output size: 23.32 GiB (near-mode=fallback, target=s1)
+== converting split tr (expected 20000 samples, jobs=16)
+  [tr] 1000/20000 processed (373/s)
+  [tr] 2000/20000 processed (453/s)
+  [tr] 3000/20000 processed (500/s)
+  [tr] 4000/20000 processed (540/s)
+  [tr] 5000/20000 processed (544/s)
+  [tr] 6000/20000 processed (565/s)
+  [tr] 7000/20000 processed (578/s)
+  [tr] 8000/20000 processed (538/s)
+  [tr] 9000/20000 processed (548/s)
+  [tr] 10000/20000 processed (556/s)
+  [tr] 11000/20000 processed (562/s)
+  [tr] 12000/20000 processed (570/s)
+  [tr] 13000/20000 processed (576/s)
+  [tr] 14000/20000 processed (585/s)
+  [tr] 15000/20000 processed (591/s)
+  [tr] 16000/20000 processed (592/s)
+  [tr] 17000/20000 processed (595/s)
+  [tr] 18000/20000 processed (593/s)
+  [tr] 19000/20000 processed (592/s)
+  [tr] 20000/20000 processed (597/s)
+  [tr] done: {'missing_mouth_npz': 0, 'converted': 20000, 'elapsed_seconds': 33.6}
+  [tr] INDEX READY: /root/data/falcon_lrs2_2mix/tr/mix.json (20000 entries)
+== converting split cv (expected 5000 samples, jobs=16)
+  [cv] 1000/5000 processed (802/s)
+  [cv] 2000/5000 processed (823/s)
+  [cv] 3000/5000 processed (866/s)
+  [cv] 4000/5000 processed (644/s)
+  [cv] 5000/5000 processed (454/s)
+  [cv] done: {'missing_mouth_npz': 0, 'converted': 5000, 'elapsed_seconds': 11.0}
+  [cv] INDEX READY: /root/data/falcon_lrs2_2mix/cv/mix.json (5000 entries)
+== converting split tt (expected 3000 samples, jobs=16)
+  [tt] 1000/3000 processed (967/s)
+  [tt] 2000/3000 processed (1009/s)
+  [tt] 3000/3000 processed (525/s)
+  [tt] done: {'missing_mouth_npz': 0, 'converted': 3000, 'elapsed_seconds': 5.9}
+  [tt] INDEX READY: /root/data/falcon_lrs2_2mix/tt/mix.json (3000 entries)
+== conversion summary ==
+  tr: mix=20000 target=20000 mouths=14773 lengths={32000: 20000} bytes=21.44 GiB
+    -> /root/data/falcon_lrs2_2mix/tr/mix.json (20000 entries)
+  cv: mix=5000 target=5000 mouths=476 lengths={32000: 5000} bytes=1.21 GiB
+    -> /root/data/falcon_lrs2_2mix/cv/mix.json (5000 entries)
+  tt: mix=3000 target=3000 mouths=267 lengths={32000: 3000} bytes=0.70 GiB
+    -> /root/data/falcon_lrs2_2mix/tt/mix.json (3000 entries)
+== total output: 23.36 GiB; elapsed 237.9s (4.0 min)
+== validation (sampled) ==
+  tr: checked=200 length_ok=200 mouth_ok=200 mix_sum_ok=200 max_mix_sum_err=3.05e-05 near_ok=200 problems=0
+  cv: checked=200 length_ok=200 mouth_ok=200 mix_sum_ok=200 max_mix_sum_err=3.05e-05 near_ok=200 problems=0
+  tt: checked=200 length_ok=200 mouth_ok=200 mix_sum_ok=200 max_mix_sum_err=3.05e-05 near_ok=200 problems=0
+
+## POST-RUN VERIFICATION (2026-10-21T19:27:41Z)
+$ python - <<PY  # full existence check + DataModule integration on converted data
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+  File "<frozen genericpath>", line 30, in isfile
+TypeError: stat: path should be string, bytes, os.PathLike or integer, not list
+
+$ du -sh /root/data/falcon_lrs2_2mix /root/data/falcon_lrs2_2mix/*/
+24G	/root/data/falcon_lrs2_2mix
+
+$ pytest tools/repro/tests/test_lrs2_convert.py -q
+.......                                                                  [100%]
+7 passed in 18.84s
+
+$ cat /root/data/falcon_lrs2_2mix/conversion_stats.json | head -c 900
+{
+  "out": "/root/data/falcon_lrs2_2mix",
+  "src": "/root/data/lrs2_2mix/lrs2_rebuild",
+  "target": "s1",
+  "near_mode": "fallback",
+  "near_per_sample": 1,
+  "elapsed_seconds": 237.9,
+  "splits": {
+    "tr": {
+      "mix_files": 20000,
+      "target_files": 20000,
+      "mouth_files": 14773,
+      "sample_lengths": {
+        "32000": 20000
+      },
+      "total_seconds": 1.2,
+      "bytes": 23021105506,
+      "bytes_human": "21.44 GiB",
+      "count_from_source": 20000
+    },
+    "cv": {
+      "mix_files": 5000,
+      "target_files": 5000,
+      "mouth_files": 476,
+      "sample_lengths": {
+        "32000": 5000
+      },
+      "total_seconds": 0.3,
+      "bytes": 1301791544,
+      "bytes_human": "1.21 GiB",
+      "count_from_source": 5000
+    },
+    "tt": {
+      "mix_files": 3000,
+      "target_files": 3000,
+      "mouth_files": 267,
+      "sample_lengths": {
+        "32000": 3000
+    
+
+## POST-RUN VERIFICATION (corrected, 2026-10-21T19:28:41Z)
+JSON existence check: 28000 samples, missing files=0 (elapsed 16.7s); near=fallback identical to mix sentinel for all 3 splits
+5000 5000
+3000 3000
+train batch: mix (4, 32000) torch.float32 | target (4, 32000) | mouth (4, 50, 88, 88) torch.float64 | near K [0, 0, 0, 0] | names ['6074177255672442633_00006_3.4864_5552454693325501610_00013_-3.4864.wav', '5994390077711437429_00059_4.7728_5948077874855316453_00034_-4.7728.wav']
+val batch  : mix (1, 32000) | mouth (1, 50, 88, 88) | n_near (1,)
+OK: full existence check + DataModule train/val loaders work on /root/data/falcon_lrs2_2mix

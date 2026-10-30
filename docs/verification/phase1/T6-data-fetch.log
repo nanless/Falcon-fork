@@ -1,0 +1,26 @@
+==================================================================
+[start] 2026-10-21T16:29:44+00:00  URL=https://huggingface.co/datasets/JusperLee/LRS2-2Mix/resolve/main/lrs2.tar.gz
+[target] /root/data/lrs2_2mix/lrs2.tar.gz  expected_bytes=16470508590 (16.47 GB)
+[note] HF_ENDPOINT=https://hf-mirror.com 在本机 TLS 不可达；改用 huggingface.co + 本机 mihomo 代理。
+==================================================================
+[attempt 1] 2026-10-21T16:29:44+00:00 resume_from=0B
+curl: option --retry-all-errors: is unknown
+curl: try 'curl --help' or 'curl --manual' for more information
+[attempt 1] rc=2 bytes=0B elapsed=2026-10-21T16:29:44+00:00
+[attempt 2] 2026-10-21T16:29:59+00:00 resume_from=0B
+curl: option --retry-all-errors: is unknown
+curl: try 'curl --help' or 'curl --manual' for more information
+[attempt 2] rc=2 bytes=0B elapsed=2026-10-21T16:29:59+00:00
+[restart] 2026-10-21T16:31:18+00:00 fixed curl options, restarting background download
+==================================================================
+[start] 2026-10-21T16:31:18+00:00  URL=https://huggingface.co/datasets/JusperLee/LRS2-2Mix/resolve/main/lrs2.tar.gz
+[target] /root/data/lrs2_2mix/lrs2.tar.gz  expected_bytes=16470508590 (16.47 GB)
+[note] HF_ENDPOINT=https://hf-mirror.com 在本机 TLS 不可达；改用 huggingface.co + 本机 mihomo 代理。
+==================================================================
+[attempt 1] 2026-10-21T16:31:18+00:00 resume_from=0B
+[progress] 2026-10-21T16:45:28+00:00 bytes=9472950272 pct=57.51%
+[attempt 1] rc=0 bytes=16470508590B elapsed=2026-10-21T16:54:08+00:00
+[download-complete] 2026-10-21T16:54:08+00:00 bytes=16470508590
+[verify] size=16470508590 expected=16470508590
+[sha256] ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e
+[end] 2026-10-21T16:55:39+00:00

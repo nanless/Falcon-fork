@@ -1,0 +1,32 @@
+=== T2: litmodule logging pytest ===
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+5 passed, 38 warnings in 5.96s
+
+=== T2: no executable Comet-only API left (grep) ===
+code hits: NONE
+
+=== T2: symtable undefined globals in 3 litmodules ===
+look2hear/system/av_litmodule.py -> NONE
+look2hear/system/av_litmodule_nass_v2.py -> NONE
+look2hear/system/av_litmodule_mdcl.py -> NONE
+
+=== T2: CSVLogger fit evidence (NASSv2, CPU, dummy models, 2 train steps) ===
+GPU available: True (cuda), used: False
+TPU available: False, using: 0 TPU cores
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/setup.py:175: GPU available but not used. You can set it by doing `Trainer(accelerator='gpu')`.
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automatically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Lightning model registry.
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/fit_loop.py:321: The number of training batches (2) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 1. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+`Trainer.fit` stopped: `max_epochs=1` reached.
+epoch-end/step keys logged: ['learning_rate', 'test_pit_sisnr', 'val_pit_sisnr', 'val_pit_sisnr_0near', 'val_pit_sisnr_1near']
+metrics.csv: /tmp/T2-csv-1npn680f/t2/version_0/metrics.csv
+  CSV contains column 'learning_rate': True
+  CSV contains column 'val_pit_sisnr': True
+  CSV contains column 'val_pit_sisnr_0near': True
+  CSV contains column 'test_pit_sisnr': True
+  first CSV line: epoch,learning_rate,lr,step,test_loss/dataloader_idx_1,test_pit_sisnr,train_beta_epoch,train_cos_sim_neg_avg_epoch,train_cos_sim_neg_max_epoch,train_cos_sim_pos_epoch,train_loss_epoch,train_n_samples_0near_epoch,train_n_samples_1near_epoch,train_n_samples_2near_epoch,train_n_samples_3near_epoch,train_n_samples_4plus_near_epoch,train_neg_active_ratio_epoch,train_pit_loss_epoch,train_spk_contrast_loss_epoch,val_loss/dataloader_idx_0,val_pit_sisnr,val_pit_sisnr_0near,val_pit_sisnr_1near

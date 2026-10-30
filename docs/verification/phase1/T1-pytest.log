@@ -1,0 +1,28 @@
+=== T1 regression (my file) ===
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+20 passed, 5 warnings in 5.90s
+
+=== T1 regression (all tools/repro/tests) ===
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+82 passed, 43 warnings in 82.96s (0:01:22)
+
+=== T1 regression (studio tests) ===
+....ss...............................                                    [100%]
+35 passed, 2 skipped in 15.58s
+
+=== git diff main -- configs/Falcon.yml (comments only) ===
++  # logger: csv        # csv | tensorboard | comet | none (default: csv)
++  # gpus: [0, 1]       # list = GPU indices; int = GPU count; 0 = CPU; -1 = all visible GPUs
+
+=== git status (my scope) ===
+ M audio_train.py
+ M configs/Falcon.yml
+ M look2hear/system/av_litmodule.py
+?? docs/verification/phase1/
+?? tools/repro/tests/
+
+=== diffstat ===
+ audio_train.py                   | 275 ++++++++++++++++++++++++++++++++++-----
+ configs/Falcon.yml               |   2 +
+ look2hear/system/av_litmodule.py |  27 ++--
+ 3 files changed, 262 insertions(+), 42 deletions(-)

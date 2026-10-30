@@ -5,6 +5,13 @@
 > 约束：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128）；不改源码、不 commit；本目录为本任务写作用域。
 > 回归与一致性明细：`REGRESSION-docs.md`（v0 2026-10-21T19:10Z）；状态快照见 §1 表。
 
+> **状态更新（2026-10-24，HEAD `2beec38`）**：本索引的“RealSSA 403 / 训练进行中”已过期——RealSSA 已获批、下载并归档
+> （Sim 521.5 GB、Real 12.84 GB），RealSSA-Sim test 9,169 条评测 **7.774/8.479**；P2-D 训练已于 2026-10-22 19:54 结束
+> （100 epoch，最佳 val ep99 13.201），contrastive 微调 ep124 **8.858/9.270**。新增入库证据：
+> `P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`、
+> `P2D-eval-{epoch86,epoch99,epoch124-contrastive,falcon-full}.{log,csv}`（**ep99 8.726/9.122**、官方全量 **7.029/7.713**）、`P2D-train-metrics-1gpu.csv`、
+> `P2D-near-train-metrics.csv`、`DNSMOS-realssa-real-mean-full3/`。完整现状见 `docs/understanding/deepdive-20261024/`（08/09）。
+
 ## 1. 任务索引与状态
 
 | 任务 | 内容 | Owner | 期望产出（本目录） | 状态（快照 2026-10-21T19:10Z） |

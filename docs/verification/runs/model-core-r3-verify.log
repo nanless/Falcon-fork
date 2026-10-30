@@ -1,0 +1,73 @@
+==============================================================================
+[W1] 真实权重 falcon.pt 顶层结构
+==============================================================================
+  top-level type: dict
+  top-level keys: ['state_dict', 'architecture', 'epoch'] 
+  是否含 'state_dict' 包裹: True | state_dict 条目数: 662
+  非 state_dict 的字段: {'architecture': 'FalconSpeakerContrastive', 'epoch': 714}
+  audio_model.* = 525 keys | video_model.* = 137 keys | 其它 = 0 []
+  mdcl_window 是否在 audio key 中: False
+  audio 参数（按权重形状求和）: 537,762
+  video 参数（按权重形状求和）: 11,196,308
+
+==============================================================================
+[W2] 与 `FalconSpeakerContrastive(configs/Falcon.yml)` 的 key/shape 全等校验
+==============================================================================
+  model.state_dict() keys: 525
+  key 集合相等: True
+  仅模型有: [] 
+  仅 ckpt 有: [] 
+  shape 不一致条目数: 0 []
+  strict=False 载入 -> missing: 0 | unexpected: 0
+  strict=True 载入 -> OK（与 Studio 的加载口径一致）
+  state_dict 载入后参数总量: 537,697
+
+==============================================================================
+[W3] 视频权重 FRCNNVideoModel 校验
+==============================================================================
+  video keys: 137 | FRCNN keys: 137 | 集合相等: True
+  shape 不一致: 0
+  video strict=True OK；参数: 11,186,688
+  audio+video 合计 = 11,724,385
+
+==============================================================================
+[W4] falcon-big.pt 顶层结构（仅结构核对，模型类属 06 域）
+==============================================================================
+  top-level type: dict | keys: ['state_dict', 'architecture', 'epoch']
+  audio_model.* = 517 keys | video_model.* = 137 keys
+  audio 参数: 1,158,746 | video 参数: 11,196,308
+  非 state_dict 字段: {'architecture': 'SpeakerContrastiveV2', 'epoch': 715}
+  audio key 前缀样例: ['encoder.conv.conv.weight', 'audio_bottleneck.conv.weight', 'audio_bottleneck.conv.bias']
+
+==============================================================================
+[W5] Studio 副本 vs 训练侧 Falcon.py：结构化 diff 统计
+==============================================================================
+  diff 总行数 193 | 新增 56 | 删除 65 | 净 -9
+  去掉注释/空白后：新增 8 行、删除 15 行
+  新增代码行样例: ['from timm.models.layers import DropPath', '        n_freqs: int = 129, # initial frequency bins for computing subsequent layer dimensions', '            att_config["n_freqs"] = current_f # pass current layer\'s F dimension', '            x,', '            window=self.window.to(x.device),', '            window=self.window.to(x.device),']
+  删除代码行样例: ['from ..drop_path import DropPath', '        n_freqs: int = 129, # 新增参数：需要知道初始的频点数来计算后续层的维度', '            att_config["n_freqs"] = current_f # 传入当前层的 F 维度', '        compute_device = x.device']
+
+==============================================================================
+[W6] concat_layers[2] 闲置：hook 计数 + 参数
+==============================================================================
+  concat_layers 调用次数（一次 model forward，AudioBlock×2）: {0: 2, 1: 2, 2: 0, 3: 2}
+  fusion_layers 调用次数: {0: 2, 1: 2, 2: 2, 3: 2}
+  concat_layers[2] 参数 = 5,568 | 占 audio_model 537,697 的 1.04%
+  有效参与前向的参数 = 532,129
+  concat_layers[2] 的 state_dict key 数: 15
+
+==============================================================================
+[W7] AudioBlock lookahead 的分界敏感性（A20 的 ±1 帧量化）
+==============================================================================
+  split=100: 前缀最左受影响帧 = 44, lookahead = 56 帧 = 7168 样本
+  split=125: 前缀最左受影响帧 = 68, lookahead = 57 帧 = 7296 样本
+  split=150: 前缀最左受影响帧 = 92, lookahead = 58 帧 = 7424 样本
+
+==============================================================================
+[W8] encoder 首变帧公式复核（P2-3）：f_first = floor((s - win/2)/hop) + 1
+==============================================================================
+  s=16000: 首变帧=125 末变帧=250 | 公式 f_first=125 (一致)
+  s=20000: 首变帧=156 末变帧=250 | 公式 f_first=156 (一致)
+  s=16128: 首变帧=126 末变帧=250 | 公式 f_first=126 (一致)
+
+DONE-R3

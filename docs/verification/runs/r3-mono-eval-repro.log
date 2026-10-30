@@ -1,0 +1,159 @@
+
+==============================================================================
+== 0. build minimal fixtures
+==============================================================================
+mono fixture  : /tmp/dp-verify/p0/mono
+stereo fixture: /tmp/dp-verify/p0/stereo
+odd  fixture  : /tmp/dp-verify/p0/stereo_odd
+
+==============================================================================
+== 1. fake a mono-layout dir: AVSpeechEvalDataset item shapes
+==============================================================================
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb08eb398a0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+len(eval_mono) = 1
+item types      : ['Tensor', 'Tensor', 'ndarray', 'str', 'int']
+mixture.shape   : () torch.float32 | ndim = 0
+source.shape    : () torch.float32
+mouth.shape     : (62, 88, 88) float32
+n_near          : 2
+mix[None].shape : (1,)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb08eb3a980>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+stereo: mixture.shape = (40000,) torch.float32 | mouth.shape = (62, 88, 88)
+
+==============================================================================
+== 2. build the real models from configs/Falcon.yml (pretrain=None)
+==============================================================================
+audio params: 537697 | video params: 11186688
+
+==============================================================================
+== 3. replicate audio_visual_test.py:229-231 for the MONO fixture
+==============================================================================
+key = u0.wav | n_near = 2
+mouth_in.shape = (1, 1, 62, 88, 88)
+mouth_emb.shape = (1, 512, 62)
+mix[None].shape = (1,)   (audio_visual_test.py:231 passes this as [B,T])
+!! EXCEPTION: RuntimeError: Argument #4: Padding size should be less than the corresponding input dimension, but got: padding (128, 128) at dimension 2 of input [1, 1, 1]
+!! traceback tail:
+       spec = torch.stft(
+     File "/root/code/github_repos/Wav2TextGrid/.venv/lib/python3.10/site-packages/torch/functional.py", line 728, in stft
+       input = F.pad(input.view(extended_shape), [pad, pad], pad_mode)
+     File "/root/code/github_repos/Wav2TextGrid/.venv/lib/python3.10/site-packages/torch/nn/functional.py", line 5290, in pad
+       return torch._C._nn.pad(input, pad, mode, value)
+   RuntimeError: Argument #4: Padding size should be less than the corresponding input dimension, but got: padding (128, 128) at dimension 2 of input [1, 1, 1]
+
+==============================================================================
+== 4. same lines for the STEREO fixture (implicit multi-channel requirement)
+==============================================================================
+stereo: mix.shape = (40000,) | mix[None].shape = (1, 40000)
+stereo: mouth_emb.shape = (1, 512, 62)
+stereo: est_sources.shape = (1, 1, 40000) torch.float32 | output length == input length: True
+
+==============================================================================
+== 5. manual fix demo: apply ndim guard (near.py:176-177 style) -> eval works on mono
+==============================================================================
+after guard: fixed_mix.shape = (40000,) torch.float32
+after guard: est_sources.shape = (1, 1, 40000) | length == T: True
+
+==============================================================================
+== 6. training-time validation path also affected (default_collate of 0-dim item)
+==============================================================================
+val-batch types: ['Tensor', 'Tensor', 'Tensor', 'tuple', 'Tensor']
+val-batch mixture.shape = (1,) | targets.shape = (1,) | mouth.shape = (1, 62, 88, 88) | n_near.shape = (1,)
+!! val path EXCEPTION: RuntimeError: Argument #4: Padding size should be less than the corresponding input dimension, but got: padding (128, 128) at dimension 2 of input [1, 1, 1]
+
+==============================================================================
+== 7. eval-path alignment: whole utterance, no trunc/pad; video frames nearest-interpolated
+==============================================================================
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb06f101cc0>
+    Normalize(mean=0.421, std=0.165)
+)
+1 1
+Drop 0 utts(0.00 h) from 1 (shorter than None samples)
+odd fixture: audio T = 48513 | mouth F = 75 | input wav frames = 48513
+fusion calls (audio.shape, video.shape):
+    ((1, 112, 380, 129), (1, 512, 75))
+odd: out.shape = (1, 1, 48513) | length == T: True
+=> 25 fps frames F = 75 ; audio STFT time steps T' = 380 ; nominal ratio T'/F = 5.07 (640 samples/frame / hop 128 => ~5 audio steps per video frame)
+
+==============================================================================
+== 8. audio_visual_test.py data-path static contract (AST audit)
+==============================================================================
+  audio_visual_test.py contains DataLoader      : False
+  audio_visual_test.py contains train_dataloader: False
+  audio_visual_test.py contains val_dataloader  : False
+  audio_visual_test.py contains test_dataloader : False
+  audio_visual_test.py contains make_loader     : False
+  audio_visual_test.py contains make_sets       : True
+  audio_visual_test.py contains setup           : True
+  audio_visual_test.py contains tensors_to_device: True
+  (only make_sets/setup/tensors_to_device appear; no DataLoader/dataloaders => eval is per-sample)
+
+==============================================================================
+== 9. make_sets + use_near=False actual behaviour (replicate audio_visual_test.py:183-189)
+==============================================================================
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7fb06d049900>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb06d049c30>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb06d049c00>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+make_sets types: ['AVSpeechTrainDatasetWithNear', 'AVSpeechEvalDataset', 'AVSpeechEvalDataset']
+data_train.use_near = False | #non-empty near lists = 0
+data_val/data_test type = AVSpeechEvalDataset / AVSpeechEvalDataset (use_near=False does NOT propagate to eval datasets)
+data_val[0] n_near (still parsed from _meta.json) = 0
+test_set[0] tuple len = 5 | mouth.shape = (62, 88, 88)
+lipreading_preprocessing_func: Compose(
+    Normalize(mean=0.0, std=255.0)
+    RandomCrop(size=(88, 88))
+    <look2hear.datas.transform.HorizontalFlip object at 0x7fb06d049e40>
+    Normalize(mean=0.421, std=0.165)
+)
+Drop 1 utts(0.00 h) from 8 (shorter than 32000 samples)
+[AVSpeechTrainDatasetWithNear] 0/7 samples have near-speaker entries.
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb06d049ea0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fb06d04a3b0>
+    Normalize(mean=0.421, std=0.165)
+)
+2 2
+Drop 0 utts(0.00 h) from 2 (shorter than None samples)
+use_near=False + near.json deleted for all splits: setup() OK (train near all empty: True )
+
+== DONE

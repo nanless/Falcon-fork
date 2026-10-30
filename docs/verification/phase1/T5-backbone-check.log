@@ -1,0 +1,82 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+==============================================================================
+T5 backbone/API checks
+==============================================================================
+
+[1] imports / __all__ / models.get
+  look2hear.models: /root/code/github_repos/Falcon-fork/look2hear/models/__init__.py
+  look2hear.videomodels: /root/code/github_repos/Falcon-fork/look2hear/videomodels/__init__.py
+  models.__all__ = ['Falcon', 'FalconSpeakerContrastive', 'get', 'register_model']
+  star-import names: ['Falcon', 'FalconSpeakerContrastive', 'get', 'register_model']
+  OK
+
+[2] API fixes
+  Falcon._mdcl_loss is Falcon._mdcl_loss_hard: True
+  FRCNNVideoModel.train(True)/eval() return self: True
+  BatchNorm modules training flags after train(True): {False}
+  bare Falcon weight load: missing=0 unexpected=7
+  Falcon.forward(near_audio=[tensor]) -> est (1, 1, 32000), mdcl=0.000000 finite=True
+  NOTE: random inputs give mdcl=0.000000 (margin=0 clips to 0); checking non-trivial equivalence below
+  alias loss=22.339954 hard loss=22.339954 equal=True
+  OK
+
+[3] extract_video_backbone.py
+  $ /root/miniforge3/envs/falcon/bin/python /root/code/github_repos/Falcon-fork/tools/repro/extract_video_backbone.py --variant small --dst /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar --force
+[extract_video_backbone] variant=small
+  src = /root/.cache/falcon_weights/falcon.pt
+  dst = /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
+  checkpoint: architecture='FalconSpeakerContrastive' epoch=714 state_dict_entries=662
+  video tensors: 137 keys, 11,196,308 elements, dtypes=['torch.float32', 'torch.int64']
+  sample keys: ['trunk.layer1.0.conv1.weight', 'trunk.layer1.0.bn1.weight', 'trunk.layer1.0.bn1.bias'] ...
+  wrote /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar (44.8 MB)
+  meta: {"source_checkpoint": "falcon.pt", "source_architecture": "FalconSpeakerContrastive", "source_epoch": 714, "num_keys": 137, "note": "Extracted from the released audio-visual checkpoint; visual encoder is frozen during training (look2hear/videomodels/frcnn_videomodel.py: update_frcnn_parameter)."}
+  load back check:
+    torch.load(dst)['model_state_dict'] -> 137 keys, meta present=True
+    key set identical to source: True
+  file size: 44.8 MB; keys=137; meta OK
+
+[4] FRCNNVideoModel(pretrain=<exported>) load + forward
+  params=11,186,688 trainable=0 all_frozen=True
+  forward (1, 1, 50, 88, 88) -> (1, 512, 50) (finite=True)
+  pretrain vs manual-load output sha equal: True
+  output sha256=1b7255f36d926d44448da023eb634d4cc3d82d2f5ba35823929c47135ea1ff3f
+  OK
+
+[5] --variant big export (big ships a different visual backbone)
+[extract_video_backbone] variant=big
+  src = /root/.cache/falcon_weights/falcon-big.pt
+  dst = /root/.cache/falcon_weights/frcnn_128_512.backbone.big.pth.tar
+  checkpoint: architecture='SpeakerContrastiveV2' epoch=715 state_dict_entries=654
+  video tensors: 137 keys, 11,196,308 elements, dtypes=['torch.float32', 'torch.int64']
+  sample keys: ['trunk.layer1.0.conv1.weight', 'trunk.layer1.0.bn1.weight', 'trunk.layer1.0.bn1.bias'] ...
+  wrote /root/.cache/falcon_weights/frcnn_128_512.backbone.big.pth.tar (44.8 MB)
+  meta: {"source_checkpoint": "falcon-big.pt", "source_architecture": "SpeakerContrastiveV2", "source_epoch": 715, "num_keys": 137, "note": "Extracted from the released audio-visual checkpoint; visual encoder is frozen during training (look2hear/videomodels/frcnn_videomodel.py: update_frcnn_parameter)."}
+  load back check:
+    torch.load(dst)['model_state_dict'] -> 137 keys, meta present=True
+    key set identical to source: True
+  small vs big video tensors: same_keys=True same_values=False (60/137 tensors differ)
+  FINDING: small/big releases have distinct visual-backbone values -> use the matching --variant when exporting
+  OK
+
+[6] pre-fix vs post-fix forward fingerprint (official weights, bit-identical)
+  eval_forward.shape: SAME
+  eval_forward.sum: SAME
+  eval_forward.mean: SAME
+  eval_forward.sha256: SAME
+  train_forward.est_shape: SAME
+  train_forward.est_sum: SAME
+  train_forward.est_sha256: SAME
+  train_forward.sep_shape: SAME
+  train_forward.sep_sum: SAME
+  train_forward.sep_sha256: SAME
+  video_forward.shape: SAME
+  video_forward.sum: SAME
+  video_forward.mean: SAME
+  video_forward.sha256: SAME
+  params equal: True ({'audio': 537697, 'video': 11186688})
+  eval sha matches Lead baseline: True
+  train est sha matches Lead baseline: True
+  OK
+
+ALL T5 CHECKS PASSED

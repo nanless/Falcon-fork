@@ -1,0 +1,11 @@
+=== R2 cross-check: FRCNN shape contract (05 A48/§5.4) ===
+frontend3D: Sequential | trunk: ResNet
+backend_out: 512 | attrs: ['T_destination', 'add_module', 'apply', 'backbone_type', 'backend_out', 'bfloat16', 'buffers', 'call_super_init', 'children', 'compile', 'cpu', 'cuda', 'double', 'dump_patches', 'eval']
+OK (2, 512, 50)
+
+=== R2 cross-check: numpy dtype flow in transform pipeline (05 A23 dtype) ===
+stored uint8    -> after Normalize(0,255): float64, after second: float64
+stored float32  -> after Normalize(0,255): float32, after second: float32
+
+=== R2: 05 doc sha256 (unchanged check) ===
+fde1ed6a3943582e018a8c8156191c9e9a285818c3bf02feb01d6141b153c442  docs/understanding/05-data-pipeline.md

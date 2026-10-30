@@ -1,0 +1,46 @@
+==============================================================================
+== audionet_name: FalconSpeakerContrastive
+==============================================================================
+
+-- 音频网络各子模块参数量 --
+encoder              total=     3,024 trainable=     3,024
+audio_bottleneck     total=    13,104 trainable=    13,104
+video_bottleneck     total=         0 trainable=         0
+separator            total=   492,312 trainable=   492,312
+mask_generator       total=    12,657 trainable=    12,657
+decoder              total=     2,016 trainable=     2,016
+spk_pool_proj        total=    14,584 trainable=    14,584
+
+AUDIO_MODEL total=537,697 trainable=537,697
+
+-- 冻结视觉编码器 FRCNNVideoModel --
+FRCNN total=11,186,688 trainable=11,186,688 (未加载 pretrain 时 requires_grad=True)
+AUDIO+FRCNN total=11,724,385  trainable(audio only)=537,697
+FRCNN forward [1,1,50,96,96] -> (1, 512, 50) torch.float32
+
+-- 前向形状随输入长度变化 (mouth_emb 时间步 50, train 模式返回 (est, emb)) --
+ audio L |                est |                      sep_emb |  frames=1+L/hop?
+   16000 |      (1, 1, 16000) |        (1, 1, 112, 126, 129) |              126
+   32000 |      (1, 1, 32000) |        (1, 1, 112, 251, 129) |              251
+   48000 |      (1, 1, 48000) |        (1, 1, 112, 376, 129) |              376
+
+-- 因果性探测：只改后半段音频 (sample>=16000)，观察不同区域输出变化 --
+  encoder(frames)    early(0:120) max|d|=1.267e+01   late(120:) max|d|=1.024e+01   shape=(1, 112, 251, 129)
+  audio_bottleneck   early(0:120) max|d|=2.637e+00   late(120:) max|d|=2.881e+00   shape=(1, 112, 251, 129)
+  video_bottleneck   shape: (1, 512, 50)  params: 0
+  separator          early(0:120) max|d|=3.817e+00   late(120:) max|d|=3.639e+00   shape=(1, 112, 251, 129)
+  mask_generator     early(0:120) max|d|=1.823e+01   late(120:) max|d|=1.209e+01   shape=(1, 1, 112, 251, 129)
+  est.samples[    0: 8000] max|d| = 7.480e-05
+  est.samples[ 8000:16000] max|d| = 4.750e-02
+  est.samples[16000:24000] max|d| = 8.405e-01
+  est.samples[24000:32000] max|d| = 7.985e-01
+
+-- 死代码验证：Falcon.forward 引用了不存在的 _mdcl_loss --
+  Falcon._mdcl_loss_hard: True | Falcon._mdcl_loss: False
+  Falcon(train, near_audio) -> AttributeError: 'Falcon' object has no attribute '_mdcl_loss'
+
+-- 关键常量 --
+  encoder out chan: 112
+  mdcl_window: (256,) | persistent: True
+  spk_embed_dim: 64
+  n_src: 1 | causal: True

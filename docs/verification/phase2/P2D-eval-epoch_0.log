@@ -1,0 +1,35 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/LRS2_2Mix.yml
+[eval] test index  : /root/tmp/lrs2_eval_tt_full/tt
+[eval] ckpt_path   : /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=0.ckpt
+[eval] results dir : /root/tmp/p2d_eval/Experiments/checkpoint/LRS2_2Mix/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=300
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f06f74dec90>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[eval] test index: /root/tmp/lrs2_eval_tt_full/tt | utterances=300 | this rank=300 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from epoch=0.ckpt
+   ✓ video_model loaded: 137 keys from epoch=0.ckpt
+Testing (Rank 0) ━━━━━━━━━━━━━ • 300/300 • 3 bytes/s • 0:00:00 • sdr: 6.803     
+                                                                 sdr_i: 1.811   
+                                                                 si-snr: 6.388  
+                                                                 si-snr_i: 1.498
+                                                                 pesq: 1.426    
+                                                                 stoi: 0.806    
+[eval] per-utterance results: /root/tmp/p2d_eval/Experiments/checkpoint/LRS2_2Mix/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /root/tmp/p2d_eval/Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         6.871118
+sdr_i       1.829785
+si-snr      6.456445
+si-snr_i    1.516857
+pesq        1.432088
+stoi        0.803797
+----------------------------------------
