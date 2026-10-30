@@ -131,7 +131,7 @@ P0–P5 规划 v2、证据审计补遗）。
 
 ## 4. 未完成 / 说明
 
-1. **ep86 的逐句 CSV 无法恢复**（原文件被 ep124 评测覆盖）；现有证据为 `P2D-eval-epoch86.log`（含 Final metrics）
+1. **ep86 逐句 CSV 已恢复**（2026-10-30 重跑，`P2D-eval-epoch86.csv`，3,003 行，指标与历史汇总日志完全一致）；
    + `P2D-eval-epoch124-contrastive.csv`。若需逐句级复核，可用同命令重跑 ep86（约 30–45 min）。
 2. **ch0 评测推迟**：转换已完成并自检通过（9,169 条、channel_policy=0、id 与 mean 版同集），但全量评测约 2–4 h，
    本轮被 P0 排期挤掉；**不得引用任何 ch0 数字**，报告见 `P2E-realssa-sim-ch0-report.md`（含重跑命令与 Δ 判定规则）。

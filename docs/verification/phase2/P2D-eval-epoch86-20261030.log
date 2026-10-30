@@ -1,0 +1,36 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/LRS2_2Mix.yml
+[eval] test index  : /root/data/falcon_lrs2_2mix/tt
+[eval] ckpt_path   : /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=86.ckpt
+[eval] results dir : /root/tmp/p2d_eval_ep86_20261030/Experiments/checkpoint/LRS2_2Mix/results
+🚀 [eval] 1 worker(s) | gpus=1 | limit=all
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fd31cf0a950>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[eval] test index: /root/data/falcon_lrs2_2mix/tt | utterances=3000 | this rank=3000 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from epoch=86.ckpt
+   ✓ video_model loaded: 137 keys from epoch=86.ckpt
+Testing (Rank 0) ━━━━━━━━━━━━ • 3000/3000 • 5 bytes/s • 0:00:00 • sdr: 14.158   
+                                                                  sdr_i: 9.06   
+                                                                  si-snr: 13.628
+                                                                  si-snr_i:     
+                                                                  8.637 pesq:   
+                                                                  2.548 stoi:   
+                                                                  0.941         
+[eval] per-utterance results: /root/tmp/p2d_eval_ep86_20261030/Experiments/checkpoint/LRS2_2Mix/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /root/tmp/p2d_eval_ep86_20261030/Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         14.141969
+sdr_i        9.041506
+si-snr      13.611639
+si-snr_i     8.617919
+pesq         2.546623
+stoi         0.940860
+----------------------------------------

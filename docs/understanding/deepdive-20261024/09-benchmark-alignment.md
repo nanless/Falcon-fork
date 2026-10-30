@@ -394,4 +394,6 @@ near 负样本、8 vs 10 卡、通道、窗口化、DNSMOS 口径）；④ 随�
 - **论文校正要点**（详见 `PAPER_ALIGNMENT_20261030.md`）：DNSMOS 3.276 = **P.835** 且属 RealSSA-trained ckpt
   （同 ckpt OVRL 2.79 不可比）；RealSSA-Sim 论文用 **channel-1**（`--channel 0`），我们此前用 mean；
   论文训练配方 = **−SI-SNR、τ 0→1/1000 epoch、8×3090/bs4/seed42**（仓库 `pairwise_neg_snr` 与 β/200 属偏离）；
-  near 负样本可按 App A.2 由 LibriSpeech+RIR 重建。ch0 复评已启动（2026-10-30，9,169 条）。
+  near 负样本可按 App A.2 由 LibriSpeech+RIR 重建。
+- **2026-10-30 补跑**：ep86 逐句 CSV 已重跑恢复（8.618/9.042，与历史日志一致）；RealSSA-Sim **ch0 全量评测运行中**
+  （9,169 条，GPU0，预计 1–2 h；完成后回答论文 channel-1 与我们的 mean 差多少）。
