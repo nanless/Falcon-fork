@@ -70,6 +70,8 @@ import json
 import os
 import shutil
 import sys
+import stat
+import uuid
 import tarfile
 from pathlib import Path
 
@@ -290,6 +292,36 @@ def build_meta(
 # ---------------------------------------------------------------------------
 # Conversion
 # ---------------------------------------------------------------------------
+def _atomic_save_mouths(mouths: torch.Tensor, destination: Path) -> None:
+    """Publish a complete tensor without overwriting a shared destination inode."""
+    destination = Path(destination)
+    try:
+        target_mode = stat.S_IMODE(destination.stat().st_mode)
+    except FileNotFoundError:
+        target_mode = None
+    temporary = destination.with_name(
+        f".{destination.name}.{uuid.uuid4().hex}.tmp"
+    )
+    # O_EXCL makes the unpredictable name exclusive. Capture the caller's normal
+    # creation mode (including umask), then make the still-empty file private
+    # before serializing any tensor bytes.
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            creation_mode = stat.S_IMODE(os.fstat(stream.fileno()).st_mode)
+            os.fchmod(stream.fileno(), 0o600)
+            torch.save(mouths, stream)
+            stream.flush()
+            os.fchmod(stream.fileno(), creation_mode if target_mode is None else target_mode)
+            os.fsync(stream.fileno())
+        os.replace(temporary, destination)
+    finally:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+
+
 class Converter:
     def __init__(self, args):
         self.args = args
@@ -344,7 +376,7 @@ class Converter:
         mouths_path.parent.mkdir(parents=True, exist_ok=True)
         sf.write(str(mix_path), mix_mono, SAMPLE_RATE, subtype="PCM_16")
         sf.write(str(target_path), target_mono, SAMPLE_RATE, subtype="PCM_16")
-        torch.save(mouths.contiguous(), mouths_path)
+        _atomic_save_mouths(mouths.contiguous(), mouths_path)
 
         near_paths = find_near_files(self.near_dir, sample_id)
         meta = build_meta(sample_id, source_meta, args.channel, frames, near_paths)
