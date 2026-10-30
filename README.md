@@ -16,6 +16,7 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
 <sub><sup>\*</sup>Equal contribution</sub>
 
 <p>
+  <a href="https://arxiv.org/abs/2610.32749">arXiv paper</a> ·
   <a href="https://cslikai.cn/Falcon/">Project page</a> ·
   <a href="https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/">Live demo</a> ·
   <a href="https://huggingface.co/spaces/JusperLee/Falcon-Studio">Hugging Face Space</a> ·
@@ -37,14 +38,13 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=flat-square&amp;logo=pytorch&amp;logoColor=white" alt="PyTorch 2.x">
 </p>
 
-<sub>Paper link will be added when available.</sub>
-
 </div>
 
 > Falcon is a causal audio-visual target speaker extraction (AVTSE) model that separates in a single encoder–decoder pass. It reaches state-of-the-art quality on RealSSA, LRS2-2Mix, LRS3-2Mix and VoxCeleb2-2Mix with 0.5 M trainable parameters, and runs live in video meetings on a laptop.
 
 ## 💥 News
 
+- **[2026-10-23]** The paper is on [arXiv](https://arxiv.org/abs/2610.32749).
 - **[2026-10-21]** **Falcon Studio** on a [Hugging Face ZeroGPU Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio): record a clip in the browser, then separate it on a GPU.
 - **[2026-10-20]** Training, evaluation and inference code released, together with **Falcon Studio**, a real-time demo that plugs into Zoom / Tencent Meeting.
 - **[2026-09-24]** Falcon is accepted to **NeurIPS 2026**.
@@ -122,7 +122,7 @@ pip install -r studio/requirements.txt
 
 \*Including the frozen 11.2 M-parameter FRCNN lip-reading encoder. The paper counts trainable parameters only (0.5 M for Falcon).
 
-Nothing needs to be downloaded by hand. Falcon Studio, `infer_file.py` and `FalconRuntime.from_pretrained` load the weights from these Hugging Face short links on first use and cache them in `~/.cache/huggingface`. If huggingface.co is slow or blocked, set a mirror, e.g. `export HF_ENDPOINT=https://hf-mirror.com`. A local file can be passed with `--checkpoint`, for example one fetched with `hf download JusperLee/Falcon falcon.pt --local-dir weights`.
+Nothing needs to be downloaded by hand. Falcon Studio, `infer_file.py` and `FalconRuntime.from_pretrained` load the weights from these Hugging Face short links on first use and cache them in `~/.cache/huggingface`. Each load also sends a HEAD request for the repo's `config.yaml`, the file the Hub counts downloads by (the `.pt` weights are not counted); `HF_HUB_DISABLE_TELEMETRY=1` turns it off. If huggingface.co is slow or blocked, set a mirror, e.g. `export HF_ENDPOINT=https://hf-mirror.com`. A local file can be passed with `--checkpoint`, for example one fetched with `hf download JusperLee/Falcon falcon.pt --local-dir weights`.
 
 The files contain only the `audio_model.*` and `video_model.*` weights. Training additionally needs the pretrained visual backbone `frcnn_128_512.backbone.pth.tar` in `pretrain_zoo/` (see Training and evaluation below).
 
@@ -225,7 +225,7 @@ Efficiency on a 2 s, 16 kHz clip with 50 mouth frames (RTX 3090 / Intel Xeon, ba
 | Dolphin | 5.6 | 18.1 | 2411.0 | 87.9 | 560.2 | 390.3 |
 | **Falcon (ours)** | **0.5** | 10.6 | 1361.2 | 51.3 | 125.3 | 364.7 |
 
-Dolphin and AV-Mossformer2 were re-implemented as causal variants under our training protocol; the other baselines follow the values reported by Swift-Net. Ablations and real-world NISQA results are in the paper.
+Dolphin and AV-Mossformer2 were re-implemented as causal variants under our training protocol; the other baselines follow the values reported by Swift-Net. Ablations and real-world NISQA results are in the [paper](https://arxiv.org/abs/2610.32749).
 
 ## 🗂️ Repository layout
 

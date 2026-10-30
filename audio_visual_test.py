@@ -539,6 +539,11 @@ if __name__ == "__main__":
             raise ValueError(f"expected hf://<org>/<repo>/<file>, got {ckpt_path!r}")
         print(f"[eval] downloading {filename} from HF repo {repo_id} (cached in ~/.cache/huggingface)")
         ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename)
+        try:  # The Hub counts downloads by config.yaml, not by the weights file; best effort.
+            from huggingface_hub import get_hf_file_metadata, hf_hub_url
+            get_hf_file_metadata(hf_hub_url(repo_id, "config.yaml"))
+        except Exception:
+            pass
 
     arg_dic = {
         "conf_dir": args.conf_dir,
