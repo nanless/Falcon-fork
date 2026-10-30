@@ -177,6 +177,15 @@ $ENV tools/repro/realssa_to_falcon.py --src /root/data/RealSSA-Sim \
 
 ---
 
+## 5.1 2026-10-30 追加：上游同步与仓库收口
+
+- `git fetch upstream`：`689555c → 439cbe9`（HF 下载计数、README/项目页 arXiv 链接），已合并进 main；
+  `audio_visual_test.py` 冲突手工解决（保留本地重写 + 移植上游下载计数代码块），`py_compile` 通过。
+- 论文公开：**arXiv:2610.32749**（2026-10-23），“论文未公开”类推断作废，协议核对见 `PAPER_ALIGNMENT_20261030.md`。
+- 分支收口：仅保留 `main`；删除本地与远端 `repro/phase1`、`repro/phase2`；移除 worktree `wt-main`（保留 detached `wt-base`）。
+- 新增提交：`714e1a5`（mouths.pt 原子写）、`d9ec1e8`（upstream merge），随后 push 到 `origin/main`。
+- 回归：合并后 `studio/tests` **38 passed / 2 skipped**；`tools/repro/tests` 见同步后的最终运行结果。
+
 ## 6. 本轮变更文件（提交前清单）
 
 - 代码/工具：`tools/repro/lrs2_2mix_to_falcon.py`（+near-mode）、`tools/repro/tests/test_lrs2_convert.py`（+3 单测）、

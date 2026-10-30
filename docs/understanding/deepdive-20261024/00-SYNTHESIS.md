@@ -236,3 +236,7 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 - **文档**：6 份过期状态加 2026-10-24 校正；`AGENTS.md` 更新（lock 115 行、deepdive 入口、证据入库约定）。
 - **回归**：`tools/repro/tests` **109 passed / 6 skipped / 0 failed**；`studio/tests` 35/2。
 - **仍在跑/待办**：P1 ch0 评测（转换已完成）、P2 8 卡训练、P3 RealSSA 从零训练。
+
+**2026-10-30 追加**：上游已同步（`689555c → 439cbe9`，HF 下载计数 + arXiv 链接）；**论文已公开 arXiv:2610.32749**
+（RealSSA-Sim 1–5 近场 + 10–15 远场干扰、encoder-space speaker contrastive loss），此前“论文未公开”类结论作废；
+仓库分支统一为 `main`、远端多余分支已清理；协议对齐见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`。

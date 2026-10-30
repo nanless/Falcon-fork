@@ -378,3 +378,14 @@ near 负样本、8 vs 10 卡、通道、窗口化、DNSMOS 口径）；④ 随�
    用于回答"通道协议是否必须声明"。
 
 仍未执行：LRS2 8 卡论文配方（唯一能缩小 14.1 差距的动作）、RealSSA-Sim 从零训练、3090 延迟。
+
+### 11.1 2026-10-30：上游同步、论文公开、仓库收口
+
+- **上游同步**：`git fetch upstream` 后 `689555c → 439cbe9`（2 个提交：HF 模型下载计数、README/项目页加 arXiv 链接），
+  已合并进 `main`；唯一冲突 `audio_visual_test.py` 手工解决——保留 Phase-1 重写版入口，并移植上游的
+  “best-effort 触发 HF 下载计数”代码块。
+- **论文公开**：arXiv **2610.32749**（2026-10-23，28 页）。摘要确认 RealSSA-Sim 含 **1–5 个动态近场干扰**、
+  远场场景另有 **10–15 个远场干扰**，Falcon 用 **encoder-space speaker contrastive loss** 抑制近场泄漏；
+  因此本文 §2/§7 关于“论文未公开、协议只能推断”的结论作废，协议细节见 `PAPER_ALIGNMENT_20261030.md`。
+- **仓库收口**：分支统一为 **main**（删除本地/远端 `repro/phase1`、`repro/phase2`），移除多余 worktree `wt-main`；
+  新增提交：`714e1a5`（RealSSA mouths.pt 原子写）、`d9ec1e8`（上游合并）。

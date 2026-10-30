@@ -8,6 +8,10 @@
 > LRS2 已完成单机训练 8.858/9.270、8 卡论文配方待执行）。**最新状态与规划 v2 以
 > `docs/understanding/deepdive-20261024/00-SYNTHESIS.md` 与 `09-benchmark-alignment.md` 为准**；
 > 本文保留为历史执行计划（§6 的 F1–F9/F12/F17 多已修复，§7 的 Phase 2/3 状态行已过期）。
+>
+> **2026-10-30 更新**：上游已同步 `689555c → 439cbe9`（HF 下载计数 + README/项目页 arXiv 链接）；
+> **论文已于 2026-10-23 公开：arXiv:2610.32749**，因此本文 §2“论文未公开”及其派生推断作废，
+> 协议核对见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`（论文公开后对齐，进行中）。
 
 ---
 
