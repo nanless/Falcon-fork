@@ -101,7 +101,7 @@ P0–P5 规划 v2、证据审计补遗）。
 |---|---|---|---|
 | 官方权重 LRS2 full（3,000） | ✅ 完成（14:26Z，exit 0） | SDR 12.813387 / SDRi **7.712925** / SI-SNR 12.022821 / SI-SNRi **7.029101** / PESQ 2.195634 / STOI 0.916350 | `P2D-eval-falcon-full.{log,csv}`（3,003 行） |
 | ep99 LRS2 full（3,000） | ✅ 完成（14:26Z，exit 0） | SDR 14.222311 / SDRi **9.121848** / SI-SNR 13.719868 / SI-SNRi **8.726148** / PESQ 2.577971 / STOI 0.943988 | `P2D-eval-epoch99.{log,csv}`（3,003 行） |
-| RealSSA-Sim ch0（9,169，P1） | ⏸ 转换完成（9,169 条/30 GB/0 errors）；评测因 GPU 排期推迟，**无 ch0 指标** | — | `P2E-realssa-sim-ch0-{convert.log,report.md,eval.log(DEFERRED)}` |
+| RealSSA-Sim ch0（9,169，P1） | ✅ 完成（2026-10-30T04:49Z，exit 0） | SI-SNRi **7.977** / SDRi **8.452**（对论文 +0.28/+0.25；与 mean 差 +0.20/−0.03） | `P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}` |
 
 > 说明：首轮两个 eval 因"每进程 300+ 线程 + 共享机 load≈72"18 分钟未写出首行 CSV，已终止并用
 > `OMP/MKL_NUM_THREADS=4` 重启（20 条基准 17 s ≈ 0.55 s/utt，预计 30–45 min/全量）。
@@ -133,8 +133,8 @@ P0–P5 规划 v2、证据审计补遗）。
 
 1. **ep86 逐句 CSV 已恢复**（2026-10-30 重跑，`P2D-eval-epoch86.csv`，3,003 行，指标与历史汇总日志完全一致）；
    + `P2D-eval-epoch124-contrastive.csv`。若需逐句级复核，可用同命令重跑 ep86（约 30–45 min）。
-2. **ch0 评测推迟**：转换已完成并自检通过（9,169 条、channel_policy=0、id 与 mean 版同集），但全量评测约 2–4 h，
-   本轮被 P0 排期挤掉；**不得引用任何 ch0 数字**，报告见 `P2E-realssa-sim-ch0-report.md`（含重跑命令与 Δ 判定规则）。
+2. **ch0 评测已完成**（2026-10-30）：SI-SNRi 7.977 / SDRi 8.452，与论文 7.7/8.2 为 +0.28/+0.25 dB，与 mean 差 +0.20/−0.03 dB
+   → 通道协议影响 <0.3 dB，不是残余偏差来源。报告见 `P2E-realssa-sim-ch0-report.md`。
 3. **LRS2 8 卡论文配方**（P2）仍未执行：需 8 卡节点；本机 2 卡只能 smoke。
 4. **RealSSA-Sim 从零训练**（P3）仍未开始：tr/cv 需从 TOS 恢复 450 GB + 转换 + near 方案决策。
 5. **论文 DNSMOS 3.276 口径**：2026-10-30 已由论文确认（P.835），见 §2.2 与 P2E-report §9 的校正段；待补的是 RealSSA-Sim 训练 ckpt 上的 DNSMOS 复评。

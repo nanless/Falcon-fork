@@ -1,0 +1,45 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/Falcon.yml
+[eval] test index  : /root/data/falcon_realssa_sim_ch0/tt
+[eval] ckpt_path   : /root/.cache/falcon_weights/falcon.pt
+[eval] results dir : /root/tmp/p2e_sim_ch0_20261030/Experiments/checkpoint/Falcon/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=all
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7fc85e6be6d0>
+    Normalize(mean=0.421, std=0.165)
+)
+9169 9169
+Drop 0 utts(0.00 h) from 9169 (shorter than None samples)
+[eval] test index: /root/data/falcon_realssa_sim_ch0/tt | utterances=9169 | this rank=9169 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from falcon.pt
+   ✓ video_model loaded: 137 keys from falcon.pt
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+SDR computation failed (torch.linalg.solve: (Batch element 0): The solver failed because the input matrix is singular.); recording nan
+PESQ computation failed (b'No utterances detected'); recording nan
+Testing (Rank 0) ━━━━━━━━━━━━ • 9169/9169 • 4 bytes/s • 0:00:00 • sdr: 10.111   
+                                                                  sdr_i: 8.454  
+                                                                  si-snr: 9.319 
+                                                                  si-snr_i:     
+                                                                  7.979 pesq:   
+                                                                  2.004 stoi:   
+                                                                  0.815         
+[eval] per-utterance results: /root/tmp/p2e_sim_ch0_20261030/Experiments/checkpoint/Falcon/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /root/tmp/p2e_sim_ch0_20261030/Experiments/checkpoint/Falcon/results/metrics_combined.csv
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr         10.111060
+sdr_i        8.452396
+si-snr       9.319856
+si-snr_i     7.976709
+pesq         2.004064
+stoi         0.815009
+----------------------------------------

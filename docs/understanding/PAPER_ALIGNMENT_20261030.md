@@ -348,3 +348,19 @@ grep -n "repeats\|audio_repeats\|fusion_repeats" look2hear/models/Falcon.py  # �
 - 未读内容：图 1/2/3/4/5/6/7/8/9 的像素内容（只读图注/正文描述）；Algorithm 1 的逐行伪代码（正文 A.2 已覆盖语义）；
   App N（LLM 声明）与致谢仅略读。
 - 本文件未改动任何代码/配置/他人文档；所有“应改”建议均以文字给出，供 Lead 统一整合与后续执行。
+
+## 11. 2026-10-30 ch0 复评结果（论文 channel-1 验证）
+
+论文 RealSSA-Sim 只用 channel-1（代码 `--channel 0`）。我们此前主结果用 4ch **mean**；2026-10-30 已用同一官方 `falcon.pt`、
+同一 9,169 条、同一指标完成 ch0 全量评测：
+
+| 指标 | mean（此前） | ch0（论文通道） | ch0−mean | 论文 | ch0 对论文 |
+|---|---|---|---|---|---|
+| SI-SNRi | 7.774 | **7.977** | +0.202 | 7.7 | **+0.28** |
+| SDRi | 8.479 | **8.452** | −0.027 | 8.2 | **+0.25** |
+| SI-SNR / SDR | 9.980 / 10.645 | 9.320 / 10.111 | −0.660 / −0.534 | — | — |
+| PESQ / STOI | 2.094 / 0.817 | 2.004 / 0.815 | −0.090 / −0.002 | — | — |
+
+结论：**通道选择影响 <0.3 dB，两通道都在论文 ±0.3 容差内**；论文 channel-1 不解释残余偏差，也不改变“RealSSA-Sim 已复现”。
+真正不可比的是 **RealSSA-Real DNSMOS**：论文 3.276 属 RealSSA-trained ckpt 且为 P.835，我们官方权重同口径 OVRL 2.79。
+证据：`docs/verification/phase2/P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}`。

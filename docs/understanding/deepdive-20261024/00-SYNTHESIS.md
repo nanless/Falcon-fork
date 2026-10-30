@@ -93,7 +93,7 @@
 
 | Benchmark | 论文 | 实测 | 结论 |
 |---|---|---|---|
-| RealSSA-Sim SI-SNRi / SDRi | 7.7 / 8.2 | **7.774 / 8.479** | ✅ 复现（±0.3） |
+| RealSSA-Sim SI-SNRi / SDRi | 7.7 / 8.2 | mean **7.774/8.479**；ch0（论文通道）**7.977/8.452** | ✅ 复现（±0.3，两通道均成立） |
 | RealSSA-Real DNSMOS | 3.276 | P808 **3.3285** / OVRL 2.7901 | ⚠️ 口径未定 |
 | LRS2-2Mix SI-SNRi / SDRi | 14.1 / 14.7 | 官方跨语料 7.029/7.713；自训 8.618/9.042；+对比 8.858/9.270 | ❌ 未复现（差 5–7 dB） |
 | LRS3-2Mix / VoxCeleb2-2Mix | 16.4/16.7、10.5/11.8 | 无数据 | ❌ 不可复现 |
@@ -242,4 +242,4 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 （RealSSA-Sim 1–5 近场 + 10–15 远场干扰、encoder-space speaker contrastive loss），此前“论文未公开”类结论作废；
 仓库分支统一为 `main` 并已 push（`origin/main=d076be9`，远端多余分支已清理）；协议对齐见
 `docs/understanding/PAPER_ALIGNMENT_20261030.md`（DNSMOS=P.835、RealSSA channel-1、−SI-SNR/τ1000、near 可重生成）。ep86 逐句 CSV 已补跑恢复；
-RealSSA-Sim ch0（论文通道）全量评测运行中。
+RealSSA-Sim ch0（论文通道）全量评测完成：**7.977/8.452**，与 mean 差 +0.20/−0.03 dB（通道影响 <0.3）。

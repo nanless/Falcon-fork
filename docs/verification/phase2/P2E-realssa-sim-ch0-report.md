@@ -1,4 +1,4 @@
-# P2E · RealSSA-Sim 通道敏感性（ch0 vs mean）· 转换完成 / 评测推迟
+# P2E · RealSSA-Sim 通道敏感性（ch0 vs mean）· **已完成**
 
 > 任务：`task-13`（P1 通道敏感性，owner `model-core`）· 日期 2026-10-24
 > 环境：conda `falcon`（`/root/miniforge3/envs/falcon/bin/python`，Python 3.11.17，torch 2.8.0+cu128）
@@ -14,11 +14,11 @@
 |---|---|---|
 | RealSSA-Sim tt → ch0 转换（9169 条） | ✅ **完成** | `P2E-realssa-sim-ch0-convert.log`（exit 0） |
 | 转换自检（条数/通道记录/对齐/near fallback/id 与 mean 一致） | ✅ **通过** | 本报告 §3 |
-| 官方权重 `falcon.pt` 在 ch0 上全量评测（9169 条） | ⏸ **推迟（未完成，无指标）** | 见 §4；`P2E-realssa-sim-ch0-eval.log` 已标注 DEFERRED |
-| 与 mean 基线（SI-SNRi 7.774 / SDRi 8.479）的 Δ | ⏸ 待评测后计算 | §5 给出判定规则与脚本思路 |
-| 产物落盘 | ✅ 转换日志 + 本报告 | `P2E-realssa-sim-ch0-{convert.log,eval.log,report.md}` |
+| 官方权重 `falcon.pt` 在 ch0 上全量评测（9169 条） | ✅ **完成（2026-10-30T04:49Z，exit 0，单卡约 43 min）** | `P2E-realssa-sim-ch0-eval-20261030.log`、`P2E-realssa-sim-ch0-metrics_combined-20261030.csv`（9,171 行） |
+| 与 mean 基线（SI-SNRi 7.774 / SDRi 8.479）的 Δ | ✅ 已计算（见 §5） | SI-SNRi **+0.202**、SDRi **−0.027** dB |
+| 产物落盘 | ✅ 转换日志 + 评测日志 + 逐句 CSV + 本报告 | `P2E-realssa-sim-ch0-*` |
 
-一句话：**ch0 数据已就绪并通过自检；评测被 Lead 的 GPU 统一排期中止（P0 LRS2 全量评测占满 2 卡），本轮不排，指标留待统一排期后重跑。**
+一句话：**ch0 全量评测已完成——SI-SNRi 7.977 / SDRi 8.452，对论文 7.7/8.2 为 +0.28/+0.25 dB；与 mean 差 +0.20/−0.03 dB。通道选择影响 <0.3 dB，不能解释我们相对论文的残余偏差。**
 
 ---
 
@@ -86,14 +86,36 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python tools/repro/realssa_to_f
 
 ---
 
-## 4. 评测状态：推迟（DEFERRED，无任何指标）
+## 4. 评测结果（2026-10-30 完成）
 
-- 2026-10-24T14:14Z 曾启动一次全量评测（cwd=`/root/tmp/p2e_sim_ch0`），
-  **运行中被 Lead 的 GPU 统一排期 kill（SIGKILL）**——当时 Lead 已把 2×A800 排给两个 P0 全量 LRS2 评测
-  （PIDs 987371/987372，预计 30–45 min，之后可能还有其它 GPU 任务）。
-  **本轮未产出任何 per-utterance 结果**：`metrics_rank0.csv` 为 0 字节（已删除），`P2E-realssa-sim-ch0-eval.log` 已加 DEFERRED 头注。
-- Lead 决定：ch0 全量 9169 条约需 **2–4 h**，本轮不排；待统一排期后重跑。
-- 因此本报告**不含** ch0 的 SI-SNRi/SDRi，也不含 Δ——不做任何推断或占位数字。
+- 2026-10-24T14:14Z 首次尝试被 GPU 排期中止（无产出）；2026-10-30T04:06Z 由 Lead 在独立 cwd
+  `/root/tmp/p2e_sim_ch0_20261030` 重跑，**04:49Z 结束（exit 0，单卡约 43 min）**。
+- 命令与日志：
+
+```bash
+mkdir -p /root/tmp/p2e_sim_ch0_20261030 && cd /root/tmp/p2e_sim_ch0_20261030
+OMP_NUM_THREADS=4 PYTHONPATH=/root/code/github_repos/Falcon-fork \
+  /root/miniforge3/envs/falcon/bin/python -u /root/code/github_repos/Falcon-fork/audio_visual_test.py \
+  --conf_dir /root/code/github_repos/Falcon-fork/configs/Falcon.yml \
+  --data_dir /root/data/falcon_realssa_sim_ch0/tt \
+  --ckpt_path /root/.cache/falcon_weights/falcon.pt --gpus 0
+```
+
+- **全量 9,169 条结果**（`P2E-realssa-sim-ch0-metrics_combined-20261030.csv` 的 `avg` 行）：
+
+| 指标 | ch0 |
+|---|---|
+| SDR | 10.111060 |
+| SDRi | **8.452396** |
+| SI-SNR | 9.319856 |
+| SI-SNRi | **7.976709** |
+| PESQ | 2.004064 |
+| STOI | 0.815009 |
+
+- 完整性：9,171 行 = 9,169 逐句 + avg/std；3 条退化样本的 `sdr/sdr_i/pesq` 为 nan（求解器奇异 / PESQ 无语音），
+  `si-snr/si-snr_i/stoi` 9,169 条全部有限；聚合按有限值计算。
+- 历史归档：`P2E-realssa-sim-ch0-eval.log` 保留为 2026-10-24 DEFERRED 记录，正式结果以
+  `P2E-realssa-sim-ch0-eval-20261030.log` 为准。
 
 ### 4.1 运维发现（对后续排期有用，`[验证]`）
 
@@ -128,16 +150,21 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 
 ---
 
-## 5. 与 mean 基线的 Δ：待评测后填写（方法已定）
+## 5. 与 mean 基线的 Δ（已计算）
 
 | 指标 | mean 基线（9169 条，已复核） | ch0（9169 条） | Δ = ch0 − mean |
 |---|---|---|---|
-| SI-SNRi | **7.774307** | 待评测 | 待评测 |
-| SDRi | **8.479395** | 待评测 | 待评测 |
-| SI-SNR | 9.980200 | 待评测 | 待评测 |
-| SDR | 10.644734 | 待评测 | 待评测 |
-| PESQ | 2.093770 | 待评测 | 待评测 |
-| STOI | 0.817290 | 待评测 | 待评测 |
+| SI-SNRi | **7.774307** | **7.976709** | **+0.202402** |
+| SDRi | **8.479395** | **8.452396** | **−0.026998** |
+| SI-SNR | 9.980200 | 9.319856 | −0.660345 |
+| SDR | 10.644734 | 10.111060 | −0.533675 |
+| PESQ | 2.093770 | 2.004064 | −0.089706 |
+| STOI | 0.817290 | 0.815009 | −0.002281 |
+
+**判定**：`|Δ SI-SNRi| = 0.202 < 0.3`、`|Δ SDRi| = 0.027 < 0.3` → **通道选择对“提升量”的影响可忽略**
+（但绝对量 SI-SNR/SDR 分别低 0.66/0.53 dB，说明通道改变同时改变了 mixture 基线；报告时不能只给绝对量）。
+对论文 7.7/8.2：ch0 为 **+0.28/+0.25 dB**，与 mean 的 +0.07/+0.28 dB 同处 ±0.3 容差内 ⇒
+**论文 channel-1 不是我们残余偏差的来源，也不改变“RealSSA-Sim 主结果已复现”的结论。**
 
 > mean 基线取自 `P2E-realssa-sim-metrics_combined.csv` 的 `avg` 行，本轮已独立重算（逐条均值 si-snr_i=7.773784、
 > sdr_i=8.478822，与 `avg` 行 7.774307/8.479395 的差异仅来自 `avg` 行按列均值 vs 逐条均值，量级 <1e-3 dB）。
@@ -151,7 +178,9 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 | 文件 | 内容 |
 |---|---|
 | `docs/verification/phase2/P2E-realssa-sim-ch0-convert.log` | 全量转换原始日志（19 shards → 9169 条，exit 0） |
-| `docs/verification/phase2/P2E-realssa-sim-ch0-eval.log` | 评测尝试的日志，已加 **DEFERRED** 头注（无指标） |
+| `docs/verification/phase2/P2E-realssa-sim-ch0-eval.log` | 2026-10-24 首次尝试日志（DEFERRED，历史留存） |
+| `docs/verification/phase2/P2E-realssa-sim-ch0-eval-20261030.log` | **正式评测日志**（2026-10-30，exit 0） |
+| `docs/verification/phase2/P2E-realssa-sim-ch0-metrics_combined-20261030.csv` | **逐句结果**（9,171 行 = 9,169 + avg/std） |
 | `docs/verification/phase2/P2E-realssa-sim-ch0-report.md` | 本报告 |
 | `/root/data/falcon_realssa_sim_ch0/`（仓库外） | ch0 数据集：`tt/mix|target|mouths` + `mix.json/target.json/near.json`，30 GB，9169 条 |
 | `/root/data/falcon_realssa_sim/`（仓库外，**未改动**） | mean 基线数据集（只读引用） |
@@ -160,16 +189,17 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 
 ## 7. 下一步建议
 
-1. **统一排期后重跑 §4.2**（预计 2–4 h 单卡）；用 `--gpus <物理卡号>` 固定卡，别再依赖环境变量。
-2. 若时间紧，可先跑 `--limit 1000` 做 ch0 快检（与 mean 的同 1000 条对比），粗判 Δ 量级，再决定是否值得全量。
-3. 评测完成后：`cp` combined CSV → 按 §5 填 Δ；若 `|Δ|>0.3 dB`，在 `P2E-report.md`/FINAL 的 RealSSA 口径处加“通道协议必须显式声明”。
-4. 注意：ch0 与 mean 的 near.json 都是 mixture fallback（K=0），两者评测语义一致，不存在 near 差异混杂。
+1. **通道问题已闭合**：论文 channel-1（ch0）与 mean 的 Δ 均 <0.3 dB；后续报告统一写
+   “mean 7.774/8.479、ch0 7.977/8.452，两者都在论文 ±0.3 内，通道协议已声明”。
+2. 真正影响 RealSSA-Real DNSMOS 对比的是 **ckpt 不同**（论文 3.276 属 RealSSA-trained ckpt），
+   不是通道；要做同口径 DNSMOS 对比，需要先按论文配方训练 RealSSA-Sim ckpt。
+3. ch0 与 mean 的 near.json 都是 mixture fallback（K=0），两者评测语义一致，不存在 near 差异混杂。
 
 ---
 
 ## 8. 未做 / 约束遵守记录
 
-- 未启动新的评测（Lead 排期指令后未再起任何 GPU 任务）；未 kill 任何进程（第一次 kill 的是**本任务自己的**评测进程，用于纠正落卡）。
-- 未 git commit、未 checkout、未改源码/配置/他人文档；仅新增/追加本任务前缀文件。
-- 未覆盖 mean 数据目录；未删除任何已有证据。
-- 未产出任何 ch0 指标——**评测未完成，明确标记为未验证**，不以任何方式外推。
+- 转换与自检由 `model-core` 完成；**2026-10-30 的全量评测由 Lead 在独立 cwd 执行**（避免与其它评测同名结果覆盖），
+  产物与日志已落到本任务前缀文件；未改 mean 数据目录、未删除历史 DEFERRED 日志。
+- 未改源码/配置/他人文档；`P2E-realssa-sim-ch0-*` 之外无写入。
+- 结果可复核：CSV 9,171 行 + 日志 `Final metrics` 段；mean 基线来自 `P2E-realssa-sim-metrics_combined.csv`。
