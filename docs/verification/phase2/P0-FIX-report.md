@@ -74,7 +74,7 @@ P0–P5 规划 v2、证据审计补遗）。
 
 ### 2.2 RealSSA-Real（54 段，channel=mean，align_tail，窗口化分离后整段 DNSMOS）
 - SIG 3.2209 / BAK 3.6921 / **OVRL 2.7901** / **P808 3.3285**；mixture 基线 2.4176/1.7908/1.7599/2.6765。
-- 论文 3.276 口径未定：P808 → +0.05；OVRL → −0.49。
+- **2026-10-30 论文校正**：3.276 是 **P.835** 口径（arXiv:2610.32749），且属 RealSSA-trained ckpt；本 ckpt 的 OVRL 2.7901 不可与之比，P808 3.3285 只是巧合。
 - 证据：`DNSMOS-realssa-real-mean-full3/{summary.json,run_metadata.json,per_segment.csv}`。
 
 ### 2.3 LRS2-2Mix 官方权重（跨语料，tt 3,000）
@@ -137,7 +137,7 @@ P0–P5 规划 v2、证据审计补遗）。
    本轮被 P0 排期挤掉；**不得引用任何 ch0 数字**，报告见 `P2E-realssa-sim-ch0-report.md`（含重跑命令与 Δ 判定规则）。
 3. **LRS2 8 卡论文配方**（P2）仍未执行：需 8 卡节点；本机 2 卡只能 smoke。
 4. **RealSSA-Sim 从零训练**（P3）仍未开始：tr/cv 需从 TOS 恢复 450 GB + 转换 + near 方案决策。
-5. **论文 DNSMOS 3.276 口径**（P808 vs OVRL）仍需作者确认——已写入 §2.2 与 P2E-report §9。
+5. **论文 DNSMOS 3.276 口径**：2026-10-30 已由论文确认（P.835），见 §2.2 与 P2E-report §9 的校正段；待补的是 RealSSA-Sim 训练 ckpt 上的 DNSMOS 复评。
 6. 本报告与修复**未 push**（仅本地 commit）；是否 push/开 PR 由用户决定。
 
 ---

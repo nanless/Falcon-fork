@@ -606,3 +606,15 @@ print(tr, core.si_sdr(2*ref, ref))               # 0.000 dB（SNR） vs 116.191 
   缺的是 LRS2-trained ckpt**。本文件新增的三个训练侧结论（训练 SNR ≠ 评测 SI-SDRi、NASS K=0/K=1 与 β 失效、
   MDCL 死代码）应并入最终复现报告。
 ```
+
+## 8. 2026-10-30 论文公开后的校正（arXiv:2610.32749）
+
+- **DNSMOS 口径确定**：论文 “Real-world DNSMOS” 引用 **P.835**（非 P.808），单值 3.276 属 RealSSA-trained ckpt；
+  同一官方 `falcon.pt` 上我们的 P.835 OVRL 2.7901 不可与之比（P808 3.3285 是巧合）。
+- **训练损失**：论文 App D Table 16 明示 **L_recon = −SI-SNR**、λ_spk=1.0、margin 0.5、**τ 0→1 线性退火跨前 1000 epoch**、
+  8×RTX3090、bs 4/GPU（global 32）、seed 42；仓库 `configs/Falcon.yml` 的 `pairwise_neg_snr` 与 β/200 epoch 属偏离配方，
+  复现报告必须声明该差异。
+- **RealSSA-Sim 评测通道**：论文用 **channel-1**（对应代码 `--channel 0`），我们此前用 4ch mean；
+  通道差异量级待 ch0 复评给出（预计 ±0.1~0.3 dB，可能解释我们 +0.07/+0.28 的一部分）。
+- **near 负样本**：论文 App A.2 说明 near 干扰由 LibriSpeech 源按 RIR 仿真生成，metadata/脚本承诺发布 →
+  “发布包无 near 波形”不等于不可复现，而是需要按论文参数重建（成本高，列为 P3 的备选方案）。

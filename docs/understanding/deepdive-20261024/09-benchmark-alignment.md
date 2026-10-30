@@ -29,10 +29,10 @@ RealSSA-Real 的 DNSMOS 口径未定、LRS2-2Mix 列未复现；L3（训练）LR
 
 | # | Benchmark / 指标 | 论文值 | 我们的实测 | 数据（split/条数） | 权重 | 协议 | 差异 | 归因 | 结论 |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | **RealSSA-Sim SI-SNRi** | 7.7 | **7.774** | test 全量 9,169 | 官方 `falcon.pt`（small，0.538 M） | 整句、4ch→mono **mean**、16 kHz | **+0.07** | 同分布；评测口径正确 | ✅ **复现（±0.3 内）** |
+| 1 | **RealSSA-Sim SI-SNRi** | 7.7 | **7.774** | test 全量 9,169 | 官方 `falcon.pt`（small，0.538 M） | 整句、4ch→mono **mean**（论文用 **channel-1**/ch0，复评中）、16 kHz | **+0.07** | 同分布；指标口径正确 | ✅ **复现（±0.3 内；通道待对齐）** |
 | 2 | **RealSSA-Sim SDRi** | 8.2 | **8.479** | 同上 | 同上 | SDR = fast_bss_eval 512-tap | **+0.28** | 同上；512 tap 变体本身 ±0.35 | ✅ **复现** |
 | 3 | RealSSA-Sim（1000 条快速估计） | 7.7/8.2 | 7.935 / 8.754 | test 前 1000 | 官方 small | 同上 | +0.24/+0.55 | 子集偏易 | 参考（非最终） |
-| 4 | **RealSSA-Real DNSMOS** | 3.276 | **P808 3.3285**（+0.053）<br>**OVRL 2.7901**（−0.486）<br>SIG 3.2209 / BAK 3.6921 | 54/54 段（84 min、4 场景） | 官方 small | channel=mean、`align_tail=True`、**窗口化推理**（2 s 窗/0.5 s hop）后整段拼接打分 | 取决于 3.276 是 P808 还是 OVRL | 论文列名未公开；窗口化分离自带 ~2 dB 损失 | ⚠️ **半复现，口径未定** |
+| 4 | **RealSSA-Real DNSMOS** | 3.276 | **P808 3.3285**（+0.053）<br>**OVRL 2.7901**（−0.486）<br>SIG 3.2209 / BAK 3.6921 | 54/54 段（84 min、4 场景） | 官方 small | channel=mean、`align_tail=True`、**窗口化推理**（2 s 窗/0.5 s hop）后整段拼接打分 | 取决于 3.276 是 P808 还是 OVRL | 论文已确认=P.835（2026-10-30）；3.276 属 RealSSA-trained ckpt；窗口化自带 ~2 dB 损失 | ❌ **口径不成立**：同 ckpt OVRL 2.79 不可比（P808 3.33 是巧合） |
 | 5 | RealSSA-Real mixture 基线 | — | OVRL 1.7599 / P808 2.6765 | 同上 | 无（mix 直接打分） | 同上 | 分离提升 **+1.03 OVRL / +0.65 P808** | — | 参考 |
 | 6 | **LRS2-2Mix SI-SNRi** | 14.1 | 官方权重 **7.029**（跨语料）<br>自训 ep86 **8.618**<br>自训+对比 ep124 **8.858** | tt 全量 3,000（2 s clip） | `falcon.pt` / `epoch=86.ckpt` / `epoch=124.ckpt` | target=s1、整句 | −7.07 / −5.48 / −5.24 | ① 发布权重是 LRS3 训练（主因 ~6 dB）② 我们只单卡 bs4、无 near 真源、130 epoch | ❌ **未复现** |
 | 7 | **LRS2-2Mix SDRi** | 14.7 | 7.713 / 9.042 / 9.270 | 同上 | 同上 | 同上 | −6.99 / −5.66 / −5.43 | 同上 | ❌ **未复现** |
@@ -105,7 +105,7 @@ RealSSA-Real 的 DNSMOS 口径未定、LRS2-2Mix 列未复现；L3（训练）LR
 | 列 | 状态 | 说明 |
 |---|---|---|
 | RealSSA-Sim | ✅ 闭合 | 7.774/8.479 vs 7.7/8.2；指标与协议被 P2-A/P2-F 独立验证（≤0.4 dB / 4.8e-8 dB） |
-| RealSSA-Real | ⚠️ 半 | DNSMOS 已测但“3.276 是 P808 还是 OVRL”未定；窗口化推理自带偏差 |
+| RealSSA-Real | ❌ 口径不成立 | 论文用 P.835 OVRL、3.276 属 RealSSA-trained ckpt；同 ckpt 实测 OVRL 2.79 不可比（2026-10-30 校正）；窗口化推理另有偏差 |
 | LRS2-2Mix | ❌ | 发布权重是跨语料（7.03/7.71）；自训 130 ep 8.86/9.27；论文 14.1 需 LRS2-trained ckpt |
 | LRS3-2Mix / VoxCeleb2-2Mix | ❌ 阻塞 | HF 仓库无数据文件，只能向作者要 |
 
@@ -159,7 +159,7 @@ RealSSA-Real 的 DNSMOS 口径未定、LRS2-2Mix 列未复现；L3（训练）LR
    “big 不是论文 0.5 M 主模型”的叙事与 LRS2 一致。
 4. **DNSMOS 口径澄清**：① 用更长窗（如 10 s/5 s hop，若显存允许）或“窗口化分离→整段拼接→打分”重跑 RealSSA-Real；
    ② 同时报 SIG/BAK/**OVRL**/**P808** + `n_windows` + channel；③ 对照 mixture 基线；
-   ④ 给作者发 issue/邮件确认 “3.276 是哪一个 DNSMOS 列（P.835 OVRL 还是 P.808）”。
+   ④ ~~给作者确认 3.276 口径~~ → 2026-10-30 论文已确认是 P.835；改为：用 `--channel 0`（论文 channel-1）+ P.835 OVRL 复评，并与论文 RealSSA-trained ckpt 区分。
 - **验收**：RealSSA 部分产出“通道×协议×模型×DNSMOS 口径”四张小表；论文 3.276 若仍无法确认，
   报告写“P808 +0.05 / OVRL −0.49，口径未定”。
 - **估算**：每次 9,169 条整句评测 ≈ 20–40 min（A800，含 PESQ/STOI/SDR）；窗口化 ×3；DNSMOS 54 段 ≈ 10 min。
@@ -266,7 +266,8 @@ near 负样本、8 vs 10 卡、通道、窗口化、DNSMOS 口径）；④ 随�
 
 ## 7. 未解问题
 
-1. **论文未公开**：训练细节（数据混合、epochs、seed、near 负样本构造、benchmark 是否分别训练 ckpt）只能推断；
+1. **~~论文未公开~~**（2026-10-23 已公开 arXiv:2610.32749）：论文给出 −SI-SNR、τ 0→1/1000 epoch、8×3090/bs4/seed42 等；
+   benchmark 是否分别训练 ckpt 仍未完全声明。详见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`；
    README 明示 “Paper link will be added when available”。
 2. **官方权重 provenance 的精确含义**：`conf.yml` 写 `LRS3_complex_nonmoving`（epoch 714），而 RealSSA-Sim 由
    LRS3（TED）+ LibriSpeech 生成——所以 7.774 与 7.7 吻合说明“权重训练分布 ≈ RealSSA-Sim 分布”，但**并不等于**

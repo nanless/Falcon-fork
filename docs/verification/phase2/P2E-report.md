@@ -250,3 +250,8 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
   SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285；mixture 基线 2.4176 / 1.7908 / 1.7599 / 2.6765。
   证据：`DNSMOS-realssa-real-mean-full3/{summary.json,run_metadata.json,per_segment.csv}`。
 - **论文 DNSMOS 3.276 的列名仍未确认**：按 P808 为 +0.05，按 OVRL 为 −0.49；报告必须同时给两列并注明口径。
+
+> **2026-10-30 论文公开后校正（arXiv:2610.32749）**：论文的 “Real-world DNSMOS 3.276” 引用 **DNSMOS P.835**（不是 P.808），
+> 且该数字对应 **RealSSA-trained ckpt**；我们用的官方 `falcon.pt` 在同一数据上 P.835 OVRL = **2.7901**，
+> 与 3.276 **不可直接比较**（P808 3.3285 只是数值巧合）。另：论文 RealSSA-Sim **只用 channel-1**（代码 `--channel 0`），
+> 我们此前用 4ch mean；ch0 复评已排期。详见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`。
