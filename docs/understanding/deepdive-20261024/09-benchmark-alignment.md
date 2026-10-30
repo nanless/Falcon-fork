@@ -389,4 +389,9 @@ near 负样本、8 vs 10 卡、通道、窗口化、DNSMOS 口径）；④ 随�
   远场场景另有 **10–15 个远场干扰**，Falcon 用 **encoder-space speaker contrastive loss** 抑制近场泄漏；
   因此本文 §2/§7 关于“论文未公开、协议只能推断”的结论作废，协议细节见 `PAPER_ALIGNMENT_20261030.md`。
 - **仓库收口**：分支统一为 **main**（删除本地/远端 `repro/phase1`、`repro/phase2`），移除多余 worktree `wt-main`；
-  新增提交：`714e1a5`（RealSSA mouths.pt 原子写）、`d9ec1e8`（上游合并）。
+  新增提交：`714e1a5`（RealSSA mouths.pt 原子写）、`d9ec1e8`（上游合并）、`3d36b78`/`d076be9`（同步与论文校正文档）。
+  已 push 到 **`origin/main` = `d076be9`**；远端只剩 `main` + tag `repro-phase2-freeze-20261024`。
+- **论文校正要点**（详见 `PAPER_ALIGNMENT_20261030.md`）：DNSMOS 3.276 = **P.835** 且属 RealSSA-trained ckpt
+  （同 ckpt OVRL 2.79 不可比）；RealSSA-Sim 论文用 **channel-1**（`--channel 0`），我们此前用 mean；
+  论文训练配方 = **−SI-SNR、τ 0→1/1000 epoch、8×3090/bs4/seed42**（仓库 `pairwise_neg_snr` 与 β/200 属偏离）；
+  near 负样本可按 App A.2 由 LibriSpeech+RIR 重建。ch0 复评已启动（2026-10-30，9,169 条）。

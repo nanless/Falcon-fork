@@ -240,4 +240,5 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 
 **2026-10-30 追加**：上游已同步（`689555c → 439cbe9`，HF 下载计数 + arXiv 链接）；**论文已公开 arXiv:2610.32749**
 （RealSSA-Sim 1–5 近场 + 10–15 远场干扰、encoder-space speaker contrastive loss），此前“论文未公开”类结论作废；
-仓库分支统一为 `main`、远端多余分支已清理；协议对齐见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`。
+仓库分支统一为 `main` 并已 push（`origin/main=d076be9`，远端多余分支已清理）；协议对齐见
+`docs/understanding/PAPER_ALIGNMENT_20261030.md`（DNSMOS=P.835、RealSSA channel-1、−SI-SNR/τ1000、near 可重生成）。
