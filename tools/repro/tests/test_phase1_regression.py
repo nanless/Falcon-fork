@@ -74,8 +74,15 @@ def _run(cmd, cwd=REPO, env=None, timeout=900):
     return subprocess.run(cmd, cwd=str(cwd), env=e, capture_output=True, text=True, timeout=timeout)
 
 
+#: Phase1 冻结提交区间：`689555c`（Phase1 合并前 upstream main）→ `ac91800`（Phase1 commit）。
+#: 范围守卫必须针对**冻结历史**：working-tree / `main^` 基线会随分支 tip 漂移（review A8-1），
+#: 且后续维护轮次（2026-10-31）会合法修改源码。历史区间永远稳定，可长期作为 Phase1 契约。
+PHASE1_RANGE = "689555c..ac91800"
+
+
 def _git_diff_names() -> list[str]:
-    r = _run(["git", "diff", "--name-only", "main"])
+    """Phase1 冻结区间内改动的文件（不随当前分支/工作区漂移）。"""
+    r = _run(["git", "diff", "--name-only", PHASE1_RANGE])
     return [x for x in r.stdout.splitlines() if x.strip()]
 
 
@@ -96,32 +103,43 @@ def _baseline_worktree() -> Path:
     return BASELINE_WT_CANDIDATES[0]
 
 
-def _phase1_merge_base() -> str | None:
-    """Phase1 合并提交 `main`（ac91800）的父提交 = 原始 upstream 基线（689555c）。"""
-    r = _run(["git", "rev-parse", "main^"])
-    return r.stdout.strip() or None
+#: Phase1 固定基线：`689555c` = Phase1 合并前的 upstream main（见 Phase-1 报告）。
+#: 不能用 `main^`（历史实现）：main tip 之后继续提交时 `main^` 会漂移，导致 7 条 Phase1
+#: 验收断言在 clean tree 下恒 skip、从未真正执行（review A8-1，2026-10-30 修正）。
+PHASE1_BASE = "689555c"
+
+
+def _phase1_base() -> str:
+    """解析 Phase1 固定基线 commit；缺失（浅克隆/无该历史）时 fail 而不是悄悄 skip。"""
+    r = _run(["git", "cat-file", "-t", PHASE1_BASE])
+    if r.stdout.strip() != "commit":
+        pytest.fail(
+            f"无法解析 Phase1 固定基线 {PHASE1_BASE}；本套件需要完整 git 历史（勿在浅克隆中运行）"
+        )
+    return PHASE1_BASE
+
+
+def _baseline_diff_names(path_prefix: str | None = None) -> list[str]:
+    """工作区相对 Phase1 固定基线的**累计** diff（含已提交 + 未提交改动）。"""
+    cmd = ["git", "diff", "--name-only", _phase1_base()]
+    if path_prefix:
+        cmd += ["--", path_prefix]
+    return [x.strip() for x in _run(cmd).stdout.splitlines() if x.strip()]
+
 
 
 def _landed(path_prefix: str) -> bool:
-    """该文件是否已落地，用于分阶段 skip。
+    """该路径相对 Phase1 固定基线是否有累计改动（= 对应修复是否已落地）。
 
-    Phase2 分支上 `main` 已包含 Phase1 合并提交（ac91800），因此“已落地”有两种来源：
-      1) Phase2 未提交改动：工作区 vs `main`（原行为）；
-      2) Phase1 已合并改动：`main` vs `main^`（= upstream 689555c）——否则 Phase1 验收测试
-         在合并后会全部 skip，丢失回归覆盖（Phase2-QA 2026-10-21 修正）。
+    历史实现判 `main vs main^`：Phase1 合并后 main tip 仍会继续前进，`main^` 随之漂移，
+    于是已落地的修复被判为“未落地”，7 条验收断言全部 skip（review A8-1）。
+    固定基线后该判定与分支 tip / 工作区是否干净均无关。
     """
-    diffs = _git_diff_names()
-    if any(d == path_prefix or d.startswith(path_prefix.rstrip("/") + "/") for d in diffs):
-        return True
     if any(u == path_prefix or u.startswith(path_prefix.rstrip("/") + "/")
            for u in _git_untracked_names()):
         return True
-    base = _phase1_merge_base()
-    if base:
-        r = _run(["git", "diff", "--name-only", base, "--", path_prefix])
-        if any(x.strip() for x in r.stdout.splitlines()):
-            return True
-    return False
+    return bool(_baseline_diff_names(path_prefix))
+
 
 
 # ------------------------------------------------------------------- session fixtures
@@ -474,6 +492,7 @@ ALLOWED_TRACKED = [
     # authorized (env compliance): AGENTS.md §2/§4 新增 Phase2 依赖说明 + lock 更新（19:16Z），
     # 属文档/环境合规改动，非 Phase1 源码改动。
     "AGENTS.md",
+    "agents.md",
     # authorized (P0 evidence, 2026-10-24): .gitignore 增加 docs/verification 证据日志/CSV 的
     # 负向规则（!docs/verification/**/*.log 等），属"证据必须可复核"的合规改动，不是越界源码改动。
     # 该文件提交后仍会与 main 存在 diff，故需长期白名单。
@@ -497,32 +516,37 @@ ALLOWED_UNTRACKED = [
 
 
 def test_diff_scope_only_allowed_files():
-    """Phase1 只允许改 T1–T5 约定文件；任何越界源码改动 = P0/P1。"""
-    violations = []
-    for p in _git_diff_names():
-        if not any(fnmatch.fnmatch(p, pat) for pat in ALLOWED_TRACKED):
-            violations.append(f"tracked modified: {p}")
-    for p in _git_untracked_names():
-        if not any(fnmatch.fnmatch(p, pat) for pat in ALLOWED_UNTRACKED):
-            violations.append(f"untracked new: {p}")
-    assert not violations, "发现越界改动（不在 task-9..15 写作用域）:\n" + "\n".join(violations)
+    """Phase1 冻结区间（689555c..ac91800）只允许改 T1–T5 约定文件。
+
+    守卫对象是**已冻结的 Phase1 提交**（review A8-1：不能再用 working-tree/`main^`，
+    否则维护轮次会误报、且 tip 之后提交会让断言恒 skip）。后续维护轮次的改动由
+    `test_phase2_pipeline.py::test_phase2_diff_scope_guard` 的历史区间与人工 review 负责。
+    """
+    files = _git_diff_names()
+    assert files, f"Phase1 冻结区间 {PHASE1_RANGE} 无改动——基线/历史缺失"
+    violations = [p for p in files if not any(fnmatch.fnmatch(p, pat) for pat in ALLOWED_TRACKED)]
+    assert not violations, "Phase1 冻结区间发现越界改动（不在 task-9..15 写作用域）:\n" + "\n".join(violations)
 
 
 def test_changed_python_files_compile():
-    """所有被改动/新增的 .py 均可编译（捕获未定义语法/半写入文件）。"""
-    files = [p for p in _git_diff_names() if p.endswith(".py")]
+    """相对 Phase1 固定基线改动/新增的 .py 均可编译（捕获未定义语法/半写入文件）。"""
+    files = [p for p in _baseline_diff_names() if p.endswith(".py") and (REPO / p).is_file()]
     files += [p for p in _git_untracked_names() if p.endswith(".py") and (REPO / p).is_file()]
     if not files:
-        pytest.skip("当前无被改动的 Python 文件（Phase1 尚未落地）")
+        pytest.fail(
+            f"相对固定基线 {PHASE1_BASE} 没有任何 .py 改动——Phase1 修复应已落地；"
+            "若为有意回退，请更新本测试而不是让它静默 skip"
+        )
     r = _run([PY, "-m", "py_compile", *files], cwd=REPO, timeout=300)
     assert r.returncode == 0, f"py_compile 失败:\n{r.stderr[-4000:]}"
+
 
 
 # =============================================================== 9) T1/T3/T5 验收不变量
 def test_t1_audio_train_no_undefined_comet_logger():
     """T1 验收：audio_train.py 不得再以未定义名 `comet_logger` 作为 logger 实参。"""
     if not _landed("audio_train.py"):
-        pytest.skip("T1 尚未落地 audio_train.py 改动")
+        pytest.fail(f"T1 修复相对固定基线 {PHASE1_BASE} 未落地（audio_train.py 无改动）")
     src = (REPO / "audio_train.py").read_text()
     assert "logger=comet_logger" not in src, "audio_train.py 仍引用未定义的 comet_logger"
     assert ("CSVLogger" in src) or ("TensorBoardLogger" in src), "T1 应提供 CSV/TB logger 构建"
@@ -531,7 +555,7 @@ def test_t1_audio_train_no_undefined_comet_logger():
 def test_t3_metrics_core_available():
     """T3 验收：core 指标模块存在且导出 4 个正号指标函数；SDR/SI-SDR 均有限值。"""
     if not _landed("look2hear/metrics"):
-        pytest.skip("T3 尚未落地 look2hear/metrics 改动")
+        pytest.fail(f"T3 修复相对固定基线 {PHASE1_BASE} 未落地（look2hear/metrics 无改动）")
     core = pytest.importorskip("look2hear.metrics.core")
     for name in ("si_sdr", "si_sdr_improvement", "sdr", "sdr_improvement"):
         assert callable(getattr(core, name, None)), f"core.{name} 缺失"
@@ -548,7 +572,7 @@ def test_t5_frcnn_eval_returns_self_and_mdcl_alias():
     changed_video = _landed("look2hear/videomodels/frcnn_videomodel.py")
     changed_model = _landed("look2hear/models/Falcon.py")
     if not changed_video and not changed_model:
-        pytest.skip("T5 尚未落地模型/视频骨干改动")
+        pytest.fail(f"T5 修复相对固定基线 {PHASE1_BASE} 未落地（FRCNNVideoModel/Falcon 均无改动）")
     sys.path.insert(0, str(REPO))
     if changed_video:
         from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
@@ -565,7 +589,7 @@ def test_t5_frcnn_eval_returns_self_and_mdcl_alias():
 def test_t5_models_dunder_all_consistent():
     """T5 验收：look2hear.models.__all__ 中每个名字都真实存在（修复 AVTIGER_causal 悬空）。"""
     if not _landed("look2hear/models/__init__.py"):
-        pytest.skip("T5 尚未落地 models/__init__.py 改动")
+        pytest.fail(f"T5 修复相对固定基线 {PHASE1_BASE} 未落地（look2hear/models/__init__.py 无改动）")
     sys.path.insert(0, str(REPO))
     import look2hear.models as models
 
@@ -574,18 +598,23 @@ def test_t5_models_dunder_all_consistent():
 
 # =============================================================== 10) T1: config 变更仅注释
 def test_config_tracked_changes_are_comment_only():
-    """`configs/Falcon.yml` 若有改动，只允许注释（键值必须与 main 完全一致）。"""
+    """`configs/Falcon.yml` 相对 Phase1 固定基线只允许注释改动（键值必须与基线完全一致）。"""
     cfg = "configs/Falcon.yml"
-    if cfg not in _git_diff_names():
-        pytest.skip("configs/Falcon.yml 未被改动")
+    base = _phase1_base()
+    if cfg not in _baseline_diff_names():
+        pytest.fail(
+            f"{cfg} 相对固定基线 {base} 无改动——Phase1 的 logger/gpus 注释说明应已落地；"
+            "若为有意回退，请更新本测试而不是让它静默 skip"
+        )
     import yaml
 
-    main_text = _run(["git", "show", f"main:{cfg}"]).stdout
+    base_text = _run(["git", "show", f"{base}:{cfg}"]).stdout
+    assert base_text, f"无法读取 {base}:{cfg}"
     cur_text = (REPO / cfg).read_text()
-    assert yaml.safe_load(main_text) == yaml.safe_load(cur_text), (
+    assert yaml.safe_load(base_text) == yaml.safe_load(cur_text), (
         "configs/Falcon.yml 出现键值变化：Phase1 只允许注释级改动（logger/gpus 语义说明）"
     )
-    diff = _run(["git", "diff", "main", "--", cfg]).stdout
+    diff = _run(["git", "diff", base, "--", cfg]).stdout
     bad = []
     for line in diff.splitlines():
         if line.startswith(("+++", "---", "@@", "diff ", "index ")):
@@ -601,7 +630,7 @@ def test_config_tracked_changes_are_comment_only():
 def test_t1_gpu_spec_semantics(tmp_path):
     """T1 独立复核：`training.gpus` 语义（list=索引 / int=数量 / 0=cpu / -1=all / 其余负数报错）。"""
     if not _landed("audio_train.py"):
-        pytest.skip("audio_train.py 未改动")
+        pytest.fail(f"T1 修复相对固定基线 {PHASE1_BASE} 未落地（audio_train.py 无改动）")
     sys.path.insert(0, str(REPO))
     import audio_train as at
 

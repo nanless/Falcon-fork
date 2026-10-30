@@ -5,7 +5,8 @@
 > 约束：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128）；不改源码、不 commit；本目录为本任务写作用域。
 > 回归与一致性明细：`REGRESSION-docs.md`（v0 2026-10-21T19:10Z）；状态快照见 §1 表。
 
-> **状态更新（2026-10-24，HEAD `2beec38`）**：本索引的“RealSSA 403 / 训练进行中”已过期——RealSSA 已获批、下载并归档
+> **状态更新（2026-10-31）**：本索引的表格是 Phase 2 期间快照；**当前结论/证据/待办以 `docs/STATUS.md` 为唯一事实源**（2026-10-30 三轮 review 详见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`）。
+> 历史快照（2026-10-24，HEAD `2beec38`）：：本索引的“RealSSA 403 / 训练进行中”已过期——RealSSA 已获批、下载并归档
 > （Sim 521.5 GB、Real 12.84 GB），RealSSA-Sim test 9,169 条评测 **7.774/8.479**；P2-D 训练已于 2026-10-22 19:54 结束
 > （100 epoch，最佳 val ep99 13.201），contrastive 微调 ep124 **8.858/9.270**。新增入库证据：
 > `P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`、
@@ -19,11 +20,11 @@
 | **P2-A** | LRS2-2Mix 与论文差 ~7 dB：指标/协议变体排查 | loss-metric-eval | `P2A-report.md`、`P2A-*.log`、`tools/repro/phase2/gap_analysis.py` | ✅ 报告落盘（[P2A-report.md](P2A-report.md)）：200 条×14 变体，基线 6.95/7.62；**所有合理变体收益 ≤0.4 dB**；mouth=s2 −16.7 / 置黑 +2.16 / 错位 ±5/12 帧 −3.4~−5.9 / 96 不裁 −0.04 / 1ch ±0.00 / 不归一化 −0.45 / 补零 3 s −5.13；结论：**指标/协议不能解释 ~7 dB**，指向训练数据/配方（与 P2-B/P2-F 一致） |
 | **P2-B** | Falcon-Big vs Small、整句 vs 窗口化推理、mouth 分支贡献 | model-core | `P2B-report.md`、`tools/repro/phase2/compare_variants.py`、日志 | ✅ 报告落盘（[P2B-report.md](P2B-report.md)）：small 6.916/7.492、small windowed 5.004/5.762、big 7.887/8.403、big windowed 5.569/6.270；配对 big−small **+0.971**、窗口化 −1.912/−2.318；视觉消融 −15.089/−12.894/−4.375；**3000 基线行列序 P3 已修**（SI-SNR 12.023 / SDR 12.813） |
 | **P2-C** | LRS2-2Mix 全量 → `/root/data/falcon_lrs2_2mix` + JSON/near | data-pipe | `P2C-report.md`、`P2C-convert.log`、`tools/repro/lrs2_2mix_to_falcon.py`（QA 侧测试为 `tools/repro/tests/test_phase2_data.py`） | ✅ 报告落盘（[P2C-report.md](P2C-report.md)）：**全量 28000 条（tr 20000 / cv 5000 / tt 3000）转换完成，23.36 GiB**；三表等长、mouth `[50,96,96,3]` uint8、脚本/测试 sha256 已核、`test_lrs2_convert.py` **7 passed**；near=fallback→**K=0**（训练结果须声明无对比负项） |
-| **P2-D** | LRS2-2Mix 训练复现（配置/冒烟/正式训练/评测） | train-sys | `P2D-report.md`、`P2D-train.log`、`configs/LRS2_2Mix.yml` | ⏳ 报告落盘（[P2D-report.md](P2D-report.md)）+ **正式训练 19:26:41Z 已启动**：单卡 bs4（PID 4002894，`P2D-train.log`，cwd `/root/tmp/p2d_train`，配置 `LRS2_2Mix_1gpu.yml`）；冒烟 100 step/73 s/2.97 it/s/val 1.946、conf 保留 `repeats/shared`；评测脚本 `eval_p2d.sh` 已端到端验证（5 条为未训练基线）；**epoch 0 已完成（19:45Z）：val_pit_sisnr 6.73 dB / test_pit_sisnr 6.81 dB**（cv/tt；`metrics.csv`），训练继续中 |
-| **P2-E** | RealSSA 评测预置：DNSMOS + RealSSA-Real 管线 + Sim 命令 | ops-tests-docs | `P2E-report.md`、`tools/repro/phase2/eval_dnsmos.py`、`eval_realssa_real.py` | ✅ 报告落盘（[P2E-report.md](P2E-report.md)）：DNSMOS 离线链路 PASS（speechmos/onnxruntime；合成 4 例 + LRS2 2 例 + RealSSA-Real 管线冒烟）、Sim tt 1-shard dry-run 流程；**新依赖已并入 `conda-env-lock.txt`（115 行）与 `AGENTS.md §2`**；**RealSSA 数据仍 403 → 无 RealSSA 指标结论（符合约束）** |
+| **P2-D** | LRS2-2Mix 训练复现（配置/冒烟/训练/评测） | train-sys | `P2D-report.md`、`P2D-*.csv/log`、`configs/LRS2_2Mix*.yml` | ✅ **终态**：单卡 100 epoch 于 2026-10-22 19:54 结束（best val ep99 13.2014），contrastive ep124 13.3909；tt 3000：官方跨语料 7.029/7.713、ep86 8.618/9.042、ep99 8.726/9.122、ep124 8.858/9.270（论文 14.1/14.7 未复现，需 8 卡论文配方）。详见 [P2D-report.md](P2D-report.md) §8 |
+| **P2-E** | RealSSA 评测（DNSMOS + Sim + Real 管线） | ops-tests-docs | `P2E-report.md`、`P2E-*.{log,json,csv}` | ✅ **终态**：RealSSA-Sim test 9,169 条 **7.774/8.479**（mean）、ch0 **7.977/8.452**；RealSSA-Real 54 段 DNSMOS 旧 run（P.835 OVRL 2.7901/P808 3.3285，窗口 bug 修复后重跑见 §10）；论文 3.276 属 RealSSA-trained ckpt、不可直接比 |
 | **P2-F** | LRS2-2Mix 指标/协议第三方独立验证 | studio-backend | `P2F-report.md`、`tools/repro/phase2/protocol_check.py`、日志 | ✅ 报告落盘（[P2F-report.md](P2F-report.md)）：独立对拍 **4.8e-8/1.8e-7 dB**、baseline 4.994、target=s1 Δ+24.5、PIT 0、lag 0、无削波；**关键归因：发布 `falcon.pt` 训练集 = LRS3_complex_nonmoving（`conf.yml:99-102`）→ 7.03/7.71 属跨语料结果，不是论文 LRS2 列（14.1/14.7）的复现**；P5 基线 P3 已修（7.911） |
-| **P2-G** | Phase 2 独立 QA + pristine 基线 worktree + 回归 | layers-dsp | `QA-report.md`、`QA-regression.log`、`tools/repro/tests/test_phase2_*.py` | ⏳ v0 已交付（[QA-report.md](QA-report.md)）：已修 Phase2 白名单 + 新增 `test_phase2_diff_scope_guard`（源码与 main 零 diff）；**AGENTS.md 白名单 19:20/19:23 已补，守卫 19:26Z 复跑 2 passed**；task-25 全量复跑 **96 passed/6 skipped（102 collected，19:29Z）**；QA 终检独占重跑后以终值为准 |
-| **P2-H** | 本索引 + REPRODUCTION_PLAN 状态 + 文档一致性 + 回归（本任务） | studio-frontend | `README.md`（本文件）、`REGRESSION-docs.md` | ✅ **v1 终检完成**（[REGRESSION-docs.md](REGRESSION-docs.md) 19:45Z）：回归 96/6、P2-A…F 报告逐项核对、跨语料归因复核、2 处 P3 已闭环、链接/HF 事实审计、PLAN/README 状态回填 |
+| **P2-G** | Phase 2 独立 QA + 回归 | layers-dsp | `QA-report.md`、`QA-regression.log` | ✅ 历史值 111/1（2026-10-21 collector）；**当前基线见 `docs/STATUS.md` §5**（Phase1 skip 守卫已修） |
+| **P2-H** | 本索引 + 文档一致性 | studio-frontend | `README.md`、`REGRESSION-docs.md` | ✅ 历史快照（19:45Z 回归 96/6）；**当前状态以 `docs/STATUS.md` 为准** |
 
 > 说明：本表由 task-25 在终检时更新为 ✅/⚠️ 并补报告链接；其余任务以各自报告的“结论”节为准。
 

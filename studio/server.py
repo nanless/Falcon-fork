@@ -30,6 +30,36 @@ GUARD, FADE = 1280, 320  # 80 ms right context, 20 ms prediction crossfade
 MAX_MESSAGE_BYTES = 2_000_000
 MAX_SAFE_INTEGER = 2**53 - 1  # JavaScript's exact integer timeline limit
 log = logging.getLogger("falcon")
+_UNSET = object()  # sentinel: the caller did not pass a checkpoint override
+
+
+def checkpoint_name(spec, variant: str) -> str:
+    """Filename shown in /api/status for a checkpoint override or the variant's default."""
+    if not spec:
+        from falcon_runtime import VARIANTS
+        return VARIANTS[variant]["weights"]
+    spec = str(spec)
+    return spec.rpartition("/")[2] if spec.startswith("hf://") else Path(spec).name
+
+
+def normalize_checkpoint(spec) -> str | None:
+    """Validate a local .pt path or hf:// link and make local paths absolute; None means default."""
+    if spec is None:
+        return None
+    if not isinstance(spec, str):
+        raise ValueError("检查点必须是本地 .pt 路径或 hf://<org>/<repo>/<file>。")
+    spec = spec.strip()
+    if not spec:
+        raise ValueError("检查点不能为空字符串。")
+    if spec.startswith("hf://"):
+        repo_id, _, filename = spec[len("hf://"):].rpartition("/")
+        if not repo_id or not filename:
+            raise ValueError("hf:// 检查点格式应为 hf://<org>/<repo>/<file>。")
+        return spec
+    path = Path(spec).expanduser()
+    if not path.is_file():
+        raise ValueError(f"检查点文件不存在：{path}")
+    return str(path.resolve())
 
 
 def decode_request(data: dict) -> tuple[np.ndarray, np.ndarray, int]:
@@ -90,9 +120,11 @@ class OutputSlicer:
 
 
 class Engine:
-    def __init__(self, device="auto", variant="small"):
+    def __init__(self, device="auto", variant="small", checkpoint=None):
         self.device = device
         self.variant = variant
+        self.checkpoint = checkpoint
+        self.checkpoint_sha256 = None
         self.active_connections = 0
         self.runtime = None
         self.loading = False
@@ -103,9 +135,24 @@ class Engine:
         self.load_thread = None
 
     def status(self):
-        from falcon_runtime import VARIANTS
+        # Hash the selected checkpoint once so /api/status can report the exact bytes that
+        # will be (or were) loaded: a local file immediately, or an already-cached HF download.
+        if self.checkpoint_sha256 is None and self.runtime is None:
+            from falcon_runtime import VARIANTS, file_sha256
+            if self.checkpoint and not str(self.checkpoint).startswith("hf://"):
+                self.checkpoint_sha256 = file_sha256(self.checkpoint)
+            elif not self.checkpoint:
+                try:
+                    from huggingface_hub import try_to_load_from_cache
+                    cached = try_to_load_from_cache(VARIANTS[self.variant]["repo"], VARIANTS[self.variant]["weights"])
+                    if isinstance(cached, str):
+                        self.checkpoint_sha256 = file_sha256(cached)
+                except Exception:
+                    pass
         status = {"ready": False, "loading": self.loading, "error": self.error,
-                  "device": self.device, "model": f"Falcon · {self.variant.title()}", "checkpoint": VARIANTS[self.variant]["weights"],
+                  "device": self.device, "model": f"Falcon · {self.variant.title()}",
+                  "checkpoint": checkpoint_name(self.checkpoint, self.variant),
+                  "checkpoint_sha256": self.checkpoint_sha256,
                   "variant": self.variant, "variants": self.variants(),
                   "sample_rate": SR, "video_fps": FPS, "window_seconds": 2,
                   "hop_seconds": .5, "output_delay_ms": 80, "busy": self.busy,
@@ -123,23 +170,35 @@ class Engine:
                  "source": weights_source(name), "checkpoint": info["weights"], "repo": info["repo"]}
                 for name, info in VARIANTS.items()]
 
-    def start_load(self, variant=None):
+    def start_load(self, variant=None, checkpoint=_UNSET):
         variant = variant or self.variant
         if variant not in ("small", "big"):
             raise ValueError("未知模型版本。")
+        if checkpoint is _UNSET:
+            # Switching variants falls back to that variant's own weights; a retry of the
+            # same variant keeps the checkpoint supplied by --checkpoint or /api/load.
+            checkpoint = self.checkpoint if variant == self.variant else None
+        else:
+            checkpoint = normalize_checkpoint(checkpoint)
         with self.load_lock:
             if self.loading:
-                if variant != self.variant:
+                if variant != self.variant or checkpoint != self.checkpoint:
                     raise RuntimeError("模型加载中，请等待完成后再切换。")
                 return
-            if variant == self.variant and self.runtime is not None:
+            if variant == self.variant and checkpoint == self.checkpoint and self.runtime is not None:
                 return
             if self.active_connections:
                 raise RuntimeError("请先停止所有分离会话，再切换模型。")
-            selected = next(v for v in self.variants() if v["id"] == variant)
-            if not selected["available"]:
-                raise ValueError(f"尚未安装 {selected['name']} 权重：models/{selected['checkpoint']}")
+            if checkpoint is None:
+                selected = next(v for v in self.variants() if v["id"] == variant)
+                if not selected["available"]:
+                    raise ValueError(f"尚未安装 {selected['name']} 权重：models/{selected['checkpoint']}")
             self.variant = variant
+            self.checkpoint = checkpoint
+            self.checkpoint_sha256 = None
+            if checkpoint and not checkpoint.startswith("hf://"):
+                from falcon_runtime import file_sha256
+                self.checkpoint_sha256 = file_sha256(checkpoint)
             self.runtime = None
             self.loading, self.error = True, None
             self.load_thread = threading.Thread(target=self._load, daemon=True, name="falcon-load")
@@ -148,7 +207,7 @@ class Engine:
     def _load(self):
         try:
             from falcon_runtime import FalconRuntime
-            runtime = FalconRuntime(variant=self.variant)
+            runtime = FalconRuntime(variant=self.variant, checkpoint_path=self.checkpoint)
             runtime.load(device=self.device)
             self.runtime = runtime
         except Exception as exc:
@@ -223,7 +282,10 @@ def create_app(engine=None, autoload=True):
             payload = json.loads(raw) if raw else {}
             if not isinstance(payload, dict):
                 raise ValueError("加载请求必须为 JSON 对象。")
-            engine.start_load(payload.get("variant"))
+            if "checkpoint" in payload:
+                engine.start_load(payload.get("variant"), checkpoint=payload["checkpoint"])
+            else:
+                engine.start_load(payload.get("variant"))
         except (ValueError, json.JSONDecodeError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except RuntimeError as exc:
@@ -287,20 +349,40 @@ def create_app(engine=None, autoload=True):
 app = create_app()
 
 
-def main():
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Falcon Studio · local audio-visual extraction")
     parser.add_argument("--host", choices=["127.0.0.1", "localhost"], default="127.0.0.1")
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--device", choices=["auto", "cuda", "mps", "cpu"], default="auto",
                         help="auto prefers CUDA, then Apple Metal (mps), then the CPU")
     parser.add_argument("--model", default="JusperLee/Falcon", help="JusperLee/Falcon (default) or JusperLee/Falcon-Big")
+    parser.add_argument("--checkpoint", default=None,
+                        help="local .pt file or hf://<org>/<repo>/<file>; overrides the model's own weights")
     parser.add_argument("--no-browser", action="store_true")
-    args = parser.parse_args()
+    return parser
+
+
+def parse_args(argv=None):
+    """Parse CLI arguments and validate the model variant and checkpoint without loading torch."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
     from falcon_runtime import variant_for
     try:
-        variant = variant_for(args.model)
+        args.variant = variant_for(args.model)
     except ValueError as exc:
         parser.error(str(exc))
+    if args.checkpoint:
+        try:
+            args.checkpoint = normalize_checkpoint(args.checkpoint)
+        except ValueError as exc:
+            parser.error(str(exc))
+    return args
+
+
+def main():
+    args = parse_args()
+    parser = build_parser()
+    variant = args.variant
     if args.port is None:
         for candidate in range(7860, 7900):
             with socket.socket() as sock:
@@ -329,7 +411,7 @@ def main():
                 except Exception:
                     time.sleep(.5)
         threading.Thread(target=open_when_ready, daemon=True).start()
-    uvicorn.run(create_app(Engine(args.device, variant)), host=args.host, port=args.port,
+    uvicorn.run(create_app(Engine(args.device, variant, checkpoint=args.checkpoint)), host=args.host, port=args.port,
                 ws_max_size=MAX_MESSAGE_BYTES, ws_max_queue=1, log_level="info")
 
 

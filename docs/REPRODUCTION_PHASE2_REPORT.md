@@ -3,6 +3,9 @@
 > 日期：2026-10-22 · 分支 `repro/phase2`（Phase 1 已合入 `main` = `ac91800`，已 push）
 > 环境：conda `falcon`（见 `AGENTS.md`）· 数据/权重在仓库外 `/root/data`、`/root/.cache/falcon_weights`
 > 各子任务报告：`docs/verification/phase2/P2A…P2F-report.md`、`QA-report.md`、`REGRESSION-docs.md`
+>
+> **状态校正（2026-10-31）**：本报告正文含 10-22/23 快照（“403 / 训练中 / 论文未公开 / P808 最接近”）。终态以
+> `docs/STATUS.md`、本文件 §9 与 `PAPER_ALIGNMENT_20261030.md` 为准。
 
 ## 1. TL;DR
 
@@ -13,8 +16,8 @@
    falcon-big 仅 +0.97 dB（P2-B）、Studio 窗口化 −1.9~−2.3 dB、视觉分支贡献 +4.8~+15 dB。
 2. **LRS2-2Mix 已具备完整训练条件**：数据全量转换完成（28,000 条 / 23.36 GiB，target=s1，mouths `(50,96,96,3)`），
    **单卡训练已启动**：epoch 0 完成，**val_pit_sisnr 6.7325 dB / test 6.8147 dB**（1 epoch 已接近官方跨语料 7.03），
-   训练继续中（100 epoch 预计 ~30 h 单卡）。
-3. **RealSSA 访问申请已提交**（RealSSA-Sim/Real，2026-10-22，账号 nanless/USTC/CN），当前仍 403 待人工审批；
+   训练已于 2026-10-22 19:54 结束（100 epoch；best val ep99 13.2014），详见 §9 与 P2D-report §8。
+3. **RealSSA 已获批**（2026-10-22 申请；随后下载/归档并完成评测，见 §5.1–5.4；正文“403/训练中”为当时快照）；
    DNSMOS 评测工具链（speechmos P.835 + onnxruntime）与 RealSSA-Real 评测脚本已预置并冒烟通过，
    审批通过后可立即跑 RealSSA-Sim（目标 7.7/8.2）与 RealSSA-Real（DNSMOS 目标 3.276）。
 4. LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库仍无数据文件 → 这两列暂不可复现（需作者/原数据）。
@@ -87,7 +90,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 
 ## 5. RealSSA（待审批）
 
-- 申请：RealSSA-Sim / RealSSA-Real 已于 2026-10-22 提交（HF ask-access，HTTP 303；账号 nanless/USTC/CN），当前数据文件 403。
+- 申请：RealSSA-Sim / RealSSA-Real 已于 2026-10-22 提交（HF ask-access，HTTP 303；账号 nanless/USTC/CN），（历史快照；实际已获批并下载，见 §5.1/§9）。
 - 预置：DNSMOS 工具链、RealSSA-Real 评测脚本（channel mean/0/1、align_tail、只算 DNSMOS）、RealSSA-Sim tt 转换/评测命令
   （`tools/repro/phase2/realssa_sim_tt_pipeline.sh`，dry-run 已验证；1 shard 2.33 GB，tt 19 shards≈40.1 GB）。
 - 批准后执行清单：Sim 用官方权重测 SI-SNRi/SDRi（目标 7.7/8.2，ch mean/0 两套）；Real 测 DNSMOS（目标 3.276±0.05，mean/0/1 三套）。
@@ -104,7 +107,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 | OVRL | 2.7901 | 1.7599 | +1.03 |
 | P808 | **3.3285** | 2.6765 | +0.65 |
 
-  论文 “Real-world DNSMOS **3.276**” 与 **P808 3.3285（+0.05）** 最接近；若论文为 OVRL 口径则为 2.79（差 0.49，需论文确认）。
+  ~~论文 3.276 与 P808 3.3285 最接近~~ → 2026-10-30 论文确认 3.276 为 **P.835** 且属 RealSSA-trained ckpt；同 ckpt OVRL 2.79 不可比（详见 §9 与 PAPER_ALIGNMENT）。
   分场景 OVRL：small_indoor 3.10 / outdoor 2.78 / big_indoor 2.59 / mid_indoor 2.39；RTF 均值 0.198。
   口径声明：DNSMOS 实现为 speechmos P.835+P.808、channel=mean、align_tail=True、窗口化推理。
 - **RealSSA-Sim tt**：19 shards（38 GB）已下载；转换完成 **9,169 条**
@@ -175,7 +178,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
 3. LRS2-2Mix 无 near 源 → NASS 对比损失只剩正项（K=0）；本次训练未使用非官方负样本（`--near-mode raw_audio` 仅留作消融）。
 4. RealSSA 审批时间不可控；DNSMOS 版本敏感（已固定 speechmos 0.1.1 + 模型 sha）。
 5. 训练复现的实验设计：1 epoch 已 6.81，但论文 14.1 需要充分训练；建议至少跑 30–50 epoch 后评估趋势，并与官方跨语料 7.03 对比。
-6. 论文仍未公开：训练细节（数据混合、epochs、lr schedule）只能按 config/README 推断。
+6. ~~论文仍未公开~~：2026-10-23 已公开 arXiv:2610.32749；训练细节见 Table 16/App D 与 PAPER_ALIGNMENT。
 
 ## 7. 下一步建议
 

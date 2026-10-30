@@ -1,0 +1,112 @@
+# Repository tests that run without GPUs, paid services or the Space runtime.
+#
+# Jobs:
+#   frontend     - Studio Node tests (8), Space assembly + i18n (226 strings), Space
+#                  static build tests, and the environment lock-file sanity check.
+#                  Needs only Python + Node (no torch, no gradio).
+#   python       - Studio Python tests and the offline reproduction-tool tests with a
+#                  CPU torch build, plus the Space clip-schedule equivalence tests.
+#
+# Deliberately not run here: `space/tests/test_space.py` (needs gradio/spaces and the
+# Free/ZeroGPU runtime) and `space/tests/test_clip.py -m slow` (loads real Falcon
+# weights). The `diff_scope` guards in tools/repro/tests encode historical task write
+# scopes -- the Phase 1 one diffs against `main` (so it fails on any feature branch) and
+# the Phase 2 one only inspects uncommitted changes (vacuous on a clean checkout) --
+# so they stay a local review check instead of a CI gate.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Studio frontend + Space static (no torch)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install --upgrade pip pytest
+      - name: Studio Node tests (8)
+        run: |
+          set -e
+          for t in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs; do
+            echo "== $t"
+            node "$t"
+          done
+      - name: Space assembly and i18n (226 Chinese strings)
+        run: |
+          set -e
+          python space/build.py --out "$RUNNER_TEMP/falcon-space"
+          node space/tests/check_i18n.mjs "$RUNNER_TEMP/falcon-space"
+      - name: Space static tests (build + i18n, no gradio)
+        run: python -m pytest space/tests/test_static.py -q
+      - name: Environment lock file is installable
+        run: |
+          set -e
+          test -f docs/verification/conda-env-lock.txt
+          test -f docs/verification/conda-env.yml
+          lines=$(wc -l < docs/verification/conda-env-lock.txt)
+          echo "conda-env-lock.txt: $lines lines"
+          test "$lines" -ge 100
+          if grep -n "@ file://" docs/verification/conda-env-lock.txt; then
+            echo "::error::conda-env-lock.txt contains local wheel paths; rewrite as pkg==version"
+            exit 1
+          fi
+
+  python:
+    name: Studio Python + repro tool tests (CPU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install CPU torch and the training/evaluation dependencies
+        run: |
+          set -e
+          python -m pip install --upgrade pip
+          python -m pip install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 \
+            --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install "numpy>=2.2,<3" "scipy<2" pandas pyyaml soundfile tqdm rich \
+            packaging timm librosa torch-complex torch-optimizer opencv-python-headless \
+            matplotlib fast-bss-eval torch-mir-eval pystoi ptflops "typeguard<3" pesq
+          python -m pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" \
+            "huggingface_hub>=2" einops pytest httpx
+      - name: pypesq compatibility shim (see AGENTS.md §5)
+        run: |
+          python - <<'PY'
+          import pathlib, site
+          shim = (
+              "import numpy as np\n"
+              "from pesq import pesq as _pesq\n\n\n"
+              "def pesq(ref, deg, fs, mode='wb'):\n"
+              "    return float(_pesq(int(fs), np.asarray(ref), np.asarray(deg), mode))\n"
+          )
+          target = pathlib.Path(site.getsitepackages()[0]) / "pypesq.py"
+          target.write_text(shim)
+          print("wrote", target)
+          PY
+      - name: Falcon training/evaluation imports
+        run: |
+          python -c "import sys; sys.path.insert(0, '.'); import look2hear.models, look2hear.system, look2hear.metrics, audio_train, audio_visual_test; print('imports OK')"
+      - name: Studio Python tests
+        run: python -m pytest studio/tests -q
+      - name: Space clip-schedule equivalence (no slow weights)
+        run: python -m pytest space/tests/test_clip.py -q -m "not slow"
+      - name: Reproduction tool tests (offline; branch-scope guards excluded)
+        run: python -m pytest tools/repro/tests -q -rs -k "not diff_scope"

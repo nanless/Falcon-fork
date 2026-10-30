@@ -22,11 +22,16 @@
   python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000   # 获批后只取一个 test shard
   python tools/repro/fetch_data.py --dataset realssa-real --full       # 获批后全量（≈12.84 GB）
   python tools/repro/fetch_data.py --dataset all --dry-run
+  # 下载后校验（LRS2 tar 的 sha256/bytes 见 docs/DATA_ACCESS_GUIDE.md；失败 exit 2）
+  python tools/repro/fetch_data.py --dataset lrs2-2mix \
+      --sha256 ebdfdf31335f288cc2e4b1690a0cc2f260e1826a68a020723ad4ce59a033767e \
+      --bytes 16470508590
 """
 from __future__ import annotations
 
 import argparse
 import fnmatch
+import hashlib
 import os
 import shutil
 import subprocess
@@ -173,6 +178,38 @@ def print_gated_instructions(spec: dict) -> None:
     print("  4) 申请与审批由数据集所有者人工处理；本脚本不会提交申请，也不会绕过 gated 限制。")
 
 
+def file_sha256(path: str, chunk: int = 1 << 20) -> str:
+    """流式计算 SHA-256（大文件不占内存）。"""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(chunk), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def verify_download(path: str, expected_bytes: int | None, expected_sha256: str | None) -> int:
+    """校验已下载文件的大小/哈希；返回 0=通过/未要求，2=校验失败。"""
+    if expected_bytes is None and not expected_sha256:
+        return 0
+    if not os.path.isfile(path):
+        print(f"[verify] FAILED: file not found: {path}")
+        return 2
+    size = os.path.getsize(path)
+    if expected_bytes is not None and size != expected_bytes:
+        print(f"[verify] FAILED bytes: got {size} expected {expected_bytes} ({human_bytes(size)} "
+              f"vs {human_bytes(expected_bytes)}) -> {path}")
+        return 2
+    if expected_sha256:
+        actual = file_sha256(path)
+        if actual.lower() != expected_sha256.lower():
+            print(f"[verify] FAILED sha256: got {actual} expected {expected_sha256.lower()} -> {path}")
+            return 2
+        print(f"[verify] OK sha256={actual} bytes={size} ({human_bytes(size)}) -> {path}")
+    else:
+        print(f"[verify] OK bytes={size} ({human_bytes(size)}) -> {path}")
+    return 0
+
+
 def resumable_download(url: str, out_path: str, expected_size: int | None, args) -> bool:
     """公开大文件：curl -C - 断点续传；返回是否成功且大小吻合。"""
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -248,6 +285,8 @@ def plan_dataset(args, name: str, endpoint: str, out_root: str | None = None) ->
                 print_gated_instructions(spec)
         else:
             print("  gated = False（公开，可直接下载）")
+        if args.sha256 or args.verify_bytes is not None:
+            print(f"  [verify] 下载后将校验：bytes={args.verify_bytes} sha256={args.sha256 or '(未指定)'}")
         print("  [dry-run] 未写入磁盘。")
         return 0
 
@@ -261,8 +300,11 @@ def plan_dataset(args, name: str, endpoint: str, out_root: str | None = None) ->
     # 实际下载
     if name == "lrs2-2mix" and len(matched) == 1 and matched[0][0] == "lrs2.tar.gz":
         url = hf_hub_url(spec["repo"], "lrs2.tar.gz", repo_type="dataset", endpoint=endpoint)
-        ok = resumable_download(url, os.path.join(out_dir, "lrs2.tar.gz"), spec["expected_bytes"], args)
-        return 0 if ok else 1
+        out_file = os.path.join(out_dir, "lrs2.tar.gz")
+        ok = resumable_download(url, out_file, spec["expected_bytes"], args)
+        if not ok:
+            return 1
+        return verify_download(out_file, args.verify_bytes, args.sha256)
 
     try:
         snapshot_download(
@@ -277,6 +319,13 @@ def plan_dataset(args, name: str, endpoint: str, out_root: str | None = None) ->
         print(f"  [ERROR] 下载失败：{exc}")
         return 1
     print(f"  [done] 已保存到 {out_dir}")
+    if args.sha256 or args.verify_bytes is not None:
+        if len(matched) != 1:
+            print(f"  [verify] ERROR: --sha256/--bytes 需要恰好匹配 1 个文件，当前 {len(matched)} 个；"
+                  f"请用 --pattern/--shard 收窄")
+            return 2
+        return verify_download(os.path.join(out_dir, matched[0][0]),
+                               args.verify_bytes, args.sha256)
     return 0
 
 
@@ -298,7 +347,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--proxy", default=None, help="HTTP(S) 代理，如 http://127.0.0.1:17897")
     parser.add_argument("--max-workers", type=int, default=4, help="并行下载数（非 LRS2 大文件）")
     parser.add_argument("--max-time", type=int, default=0, help="curl 单次最长秒数（0=不限）")
+    parser.add_argument("--sha256", default=None,
+                        help="下载后校验 SHA-256（64 位 hex）；失败 exit 2。LRS2 tar 的值见 DATA_ACCESS_GUIDE.md")
+    parser.add_argument("--bytes", dest="verify_bytes", type=int, default=None,
+                        help="下载后校验精确字节数；失败 exit 2")
     args = parser.parse_args(argv)
+    if args.sha256 is not None:
+        digest = args.sha256.strip().lower()
+        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            parser.error("--sha256 必须是 64 位十六进制字符串")
+        args.sha256 = digest
+    if args.verify_bytes is not None and args.verify_bytes < 0:
+        parser.error("--bytes 必须为非负整数")
 
     if args.pattern and (args.shard or args.full):
         parser.error("--pattern 不能与 --shard/--full 同时使用")
@@ -321,7 +381,14 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 78)
     for name, rc in results.items():
         print(f"  {name:14s} -> {'OK' if rc == 0 else ('GATED/NO-ACCESS' if rc == 3 else 'FAILED')} (rc={rc})")
-    return 0 if all(rc == 0 for rc in results.values()) else (3 if 3 in results.values() else 1)
+    codes = list(results.values())
+    if all(rc == 0 for rc in codes):
+        return 0
+    if 3 in codes:
+        return 3
+    if 2 in codes:
+        return 2
+    return 1
 
 
 if __name__ == "__main__":

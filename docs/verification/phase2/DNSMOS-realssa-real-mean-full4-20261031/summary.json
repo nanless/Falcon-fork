@@ -1,0 +1,77 @@
+{
+  "segments_total": 54,
+  "segments_ok": 54,
+  "segments_error": 0,
+  "metrics": {
+    "sig_mos": {
+      "n": 54,
+      "mean": 3.2226,
+      "std": 0.3703
+    },
+    "bak_mos": {
+      "n": 54,
+      "mean": 3.6981,
+      "std": 0.2598
+    },
+    "ovrl_mos": {
+      "n": 54,
+      "mean": 2.7941,
+      "std": 0.41
+    },
+    "p808_mos": {
+      "n": 54,
+      "mean": 3.3365,
+      "std": 0.4066
+    },
+    "mix_sig_mos": {
+      "n": 54,
+      "mean": 2.4176,
+      "std": 0.8054
+    },
+    "mix_bak_mos": {
+      "n": 54,
+      "mean": 1.7908,
+      "std": 0.5457
+    },
+    "mix_ovrl_mos": {
+      "n": 54,
+      "mean": 1.7599,
+      "std": 0.5101
+    },
+    "mix_p808_mos": {
+      "n": 54,
+      "mean": 2.6765,
+      "std": 0.2073
+    }
+  },
+  "by_scene": {
+    "big_indoor": {
+      "n": 10,
+      "sig_mos": 3.0691,
+      "bak_mos": 3.5415,
+      "ovrl_mos": 2.6024,
+      "p808_mos": 3.1139
+    },
+    "mid_indoor": {
+      "n": 10,
+      "sig_mos": 2.8546,
+      "bak_mos": 3.5759,
+      "ovrl_mos": 2.4069,
+      "p808_mos": 3.0164
+    },
+    "outdoor": {
+      "n": 14,
+      "sig_mos": 3.1971,
+      "bak_mos": 3.6484,
+      "ovrl_mos": 2.7608,
+      "p808_mos": 3.2623
+    },
+    "small_indoor": {
+      "n": 20,
+      "sig_mos": 3.5012,
+      "bak_mos": 3.8723,
+      "ovrl_mos": 3.1067,
+      "p808_mos": 3.6598
+    }
+  }
+}

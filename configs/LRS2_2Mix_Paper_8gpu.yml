@@ -1,3 +1,8 @@
+# LEGACY（2026-10-30 起由 configs/LRS2_2Mix_Paper_v2.yml 取代；本文件保留以便复跑旧实验）
+#   旧配方：train loss = pairwise_neg_snr、beta_anneal_epochs = 200、batch_size = 5/GPU（8x5=global 40）。
+#   论文 Table 16 实际是：-SI-SNR、tau 0->1 / 1000 epoch、batch 4/GPU（8x4=global 32）。
+#   新实验请用 v2；只有在需要复现 2026-10-23 的旧 8 卡方案时才用本文件。
+
 videonet:
   videonet_name: FRCNNVideoModel
   videonet_config:

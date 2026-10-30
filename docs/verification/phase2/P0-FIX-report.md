@@ -73,7 +73,7 @@ P0–P5 规划 v2、证据审计补遗）。
 - 证据：`P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`。
 
 ### 2.2 RealSSA-Real（54 段，channel=mean，align_tail，窗口化分离后整段 DNSMOS）
-- SIG 3.2209 / BAK 3.6921 / **OVRL 2.7901** / **P808 3.3285**；mixture 基线 2.4176/1.7908/1.7599/2.6765。
+- **full4（2026-10-31 修复窗口起点 bug 后重跑）**：SIG 3.2226 / BAK 3.6981 / **OVRL 2.7941** / **P808 3.3365**；mixture 基线 2.4176/1.7908/1.7599/2.6765（逐位不变）。full3 的 3.2209/3.6921/2.7901/3.3285 作废（首块 1.34 s 静音）。
 - **2026-10-30 论文校正**：3.276 是 **P.835** 口径（arXiv:2610.32749），且属 RealSSA-trained ckpt；本 ckpt 的 OVRL 2.7901 不可与之比，P808 3.3285 只是巧合。
 - 证据：`DNSMOS-realssa-real-mean-full3/{summary.json,run_metadata.json,per_segment.csv}`。
 

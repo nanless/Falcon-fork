@@ -13,9 +13,16 @@ Fixes (Phase1/T3, see docs/REPRODUCTION_PLAN.md §6.2 F7/F8):
 * SI-SDR uses the standard zero-mean definition through
   :mod:`look2hear.metrics.core` (the old tracker used ``zero_mean=False``).
 
-CSV schema is unchanged for downstream compatibility::
+A4-3 / A4-4 additions (2026-10-30, appended columns only; existing order kept)::
 
-    snt_id, sdr, sdr_i, si-snr, si-snr_i, pesq, stoi        (+ avg/std rows)
+    snt_id, sdr, sdr_i, si-snr, si-snr_i[, si-snr_mix, sdr_mix], pesq, stoi,
+    n_sdr, n_sdr_i, n_si-snr, n_si-snr_i, n_pesq, n_stoi, n_si-snr_mix, n_sdr_mix
+
+* ``si-snr_mix`` / ``sdr_mix``: the mixture-baseline scores, so that
+  ``si-snr_i == si-snr - si-snr_mix`` can be re-derived offline (A4-4).
+* ``n_*``: number of finite values that contribute to the row's aggregate.
+  Per-utterance rows leave them empty; ``avg`` / ``std`` rows carry the true
+  valid counts (A4-3: never silently ``nanmean`` without knowing ``n``).
 
 All values in the CSV are positive dB scores (higher is better), including the
 per-utterance rows and the ``avg`` / ``std`` rows.
@@ -31,7 +38,33 @@ from . import core
 
 logger = logging.getLogger(__name__)
 
-CSV_COLUMNS = ["snt_id", "sdr", "sdr_i", "si-snr", "si-snr_i", "pesq", "stoi"]
+#: Metric columns whose finite-value counts are tracked (A4-3).
+METRIC_COLUMNS = [
+    "sdr",
+    "sdr_i",
+    "si-snr",
+    "si-snr_i",
+    "pesq",
+    "stoi",
+    "si-snr_mix",
+    "sdr_mix",
+]
+COUNT_COLUMNS = [f"n_{c}" for c in METRIC_COLUMNS]
+
+#: Full CSV schema. Existing columns keep their original order/position; the
+#: A4-3/A4-4 columns (mixture baselines + valid counts) are appended at the end.
+CSV_COLUMNS = [
+    "snt_id",
+    "sdr",
+    "sdr_i",
+    "si-snr",
+    "si-snr_i",
+    "pesq",
+    "stoi",
+    "si-snr_mix",
+    "sdr_mix",
+    *COUNT_COLUMNS,
+]
 
 
 class ALLMetricsTracker:
@@ -53,6 +86,8 @@ class ALLMetricsTracker:
         self.all_sisnrs_i = []
         self.all_pesqs = []
         self.all_stois = []
+        self.all_sisnrs_mix = []
+        self.all_sdrs_mix = []
         self._warned_multisrc = False
 
         self.results_csv = open(save_file, "w", newline="")
@@ -87,6 +122,8 @@ class ALLMetricsTracker:
             "sdr_i": sdr_i,
             "si-snr": si_sdr,
             "si-snr_i": sisnr_i,
+            "si-snr_mix": si_sdr_mix,
+            "sdr_mix": sdr_mix,
             "pesq": pesq,
             "stoi": stoi,
         }
@@ -94,7 +131,8 @@ class ALLMetricsTracker:
     # -- public API ---------------------------------------------------------
     def __call__(self, mix, clean, estimate, key):
         metrics = self._compute(mix, clean, estimate)
-        row = {"snt_id": str(key), **metrics}
+        # Per-utterance rows carry the values only; counts are aggregate-row metadata.
+        row = {"snt_id": str(key), **metrics, **{c: "" for c in COUNT_COLUMNS}}
         self.writer.writerow(row)
         self.all_sdrs.append(metrics["sdr"])
         self.all_sdrs_i.append(metrics["sdr_i"])
@@ -102,6 +140,8 @@ class ALLMetricsTracker:
         self.all_sisnrs_i.append(metrics["si-snr_i"])
         self.all_pesqs.append(metrics["pesq"])
         self.all_stois.append(metrics["stoi"])
+        self.all_sisnrs_mix.append(metrics["si-snr_mix"])
+        self.all_sdrs_mix.append(metrics["sdr_mix"])
         return row
 
     @staticmethod
@@ -118,25 +158,35 @@ class ALLMetricsTracker:
             return float("nan")
         return float(np.nanstd(arr))
 
-    def get_mean(self):
-        return {k: self._mean(getattr(self, attr)) for k, attr in (
+    def _value_attr(self):
+        return (
             ("sdr", "all_sdrs"), ("sdr_i", "all_sdrs_i"),
             ("si-snr", "all_sisnrs"), ("si-snr_i", "all_sisnrs_i"),
             ("pesq", "all_pesqs"), ("stoi", "all_stois"),
-        )}
+            ("si-snr_mix", "all_sisnrs_mix"), ("sdr_mix", "all_sdrs_mix"),
+        )
+
+    def get_mean(self):
+        return {k: self._mean(getattr(self, attr)) for k, attr in self._value_attr()}
 
     def get_std(self):
-        return {k: self._std(getattr(self, attr)) for k, attr in (
-            ("sdr", "all_sdrs"), ("sdr_i", "all_sdrs_i"),
-            ("si-snr", "all_sisnrs"), ("si-snr_i", "all_sisnrs_i"),
-            ("pesq", "all_pesqs"), ("stoi", "all_stois"),
-        )}
+        return {k: self._std(getattr(self, attr)) for k, attr in self._value_attr()}
+
+    def get_counts(self):
+        """Number of finite (non-nan) values accumulated per metric column (A4-3)."""
+        counts = {}
+        for k, attr in self._value_attr():
+            arr = np.asarray(getattr(self, attr), dtype=np.float64)
+            counts[f"n_{k}"] = int(np.count_nonzero(np.isfinite(arr)))
+        return counts
 
     def final(self):
         avg = self.get_mean()
         std = self.get_std()
-        self.writer.writerow({"snt_id": "avg", **avg})
-        self.writer.writerow({"snt_id": "std", **std})
+        counts = self.get_counts()
+        # counts are identical for avg/std (same accumulation); expose on both rows.
+        self.writer.writerow({"snt_id": "avg", **avg, **counts})
+        self.writer.writerow({"snt_id": "std", **std, **counts})
         self.results_csv.close()
 
     # convenience for callers that forget to close explicitly
@@ -145,4 +195,4 @@ class ALLMetricsTracker:
             self.final()
 
 
-__all__ = ["ALLMetricsTracker", "CSV_COLUMNS"]
+__all__ = ["ALLMetricsTracker", "CSV_COLUMNS", "METRIC_COLUMNS", "COUNT_COLUMNS"]

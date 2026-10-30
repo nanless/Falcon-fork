@@ -42,6 +42,14 @@ Audio and mouth crops go to this Space only for the separation and are not writt
 
 ## Development
 
+The Space runs on the ZeroGPU runtime (`sdk_version: 6.29.1`): **Python 3.12 with
+`torch==2.13.0`**, as pinned in `space/requirements.txt`. That is a **different
+environment from the local Studio setup**: the repository's `falcon` conda env is
+Python 3.11 with `torch 2.8` (see `AGENTS.md` §2). Do not install
+`space/requirements.txt` into `falcon`; `space/tests/test_static.py` and
+`space/tests/check_i18n.mjs` need only Python and Node, while `space/tests/test_clip.py`
+runs in the `falcon` env and the HTTP/SSE tests need the Space deps here.
+
 From the GitHub repository root, with Python 3.12:
 
 ```bash

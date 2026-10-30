@@ -123,3 +123,24 @@
 - 本报告对应的三轮工作流：`falcon-3round-review`（30 agents；150 候选/124 open/17 done）与 `falcon-review-converge`（10 agents，补足截断）。
 - 原始 captured 问题：`docs/verification/phase2/three-round-review-20261030-captured.json`（43 条闭环条目，含 final_verdict/priority/evidence/next_action）。
 - 既有证据/规划：[09 基准对齐](deepdive-20261024/09-benchmark-alignment.md)、[PAPER_ALIGNMENT](PAPER_ALIGNMENT_20261030.md)、[P0-FIX-report](../verification/phase2/P0-FIX-report.md)、[P2D-report](../verification/phase2/P2D-report.md)。
+
+---
+
+## 9. 2026-10-31 执行状态（本轮修复）
+
+已修复并验证（详见 `docs/STATUS.md` 与各文件 diff）：
+
+| review ID | 状态 | 结果 |
+|---|---|---|
+| A5-1（P0） | ✅ 修复 | `--copy-wavs` 改 `target/near/<stem>.s1|s2.wav` + 构建闸门（计数/等长/target≠near/mouth 说话人），测试 5 例 |
+| A4-1（P1） | ✅ 修复+重跑 | 窗口首块 `HOP+GUARD` + 覆盖率断言；full4：OVRL 2.7941 / P808 3.3365（full3 作废；mixture 基线逐位不变） |
+| A1-1/A1-2（P1） | ✅ 修复 | deepcopy 消除 config 污染（同 dict 连构 537,697/537,697）；`get_model_args` 完整可重建，serialize→from_pretrain 525 keys、max\|Δ\|=0 |
+| A2-2（P2） | ✅ 修复 | FRCNN 严格校验 missing/unexpected/shape，缺键/坏 payload raise；官方骨干 137 keys strict、11,186,688 全冻结 |
+| A3-01/A3-03/A3-04（P1/P2） | ✅ 修复 | `LRS2_2Mix_Paper_v2.yml`（−SI-SNR、τ/1000、bs4、seed42）；8 卡脚本渲染 DATA_ROOT/断言 NPROC/global batch；`--ckpt_path` 缺失退出；监控 glob version_* |
+| A4-3/A4-4（P2） | ⏳ 进行中 | CSV 增加 mix 基线列与逐列 n_*，ep99/官方权重重跑（losses-metrics 收尾中） |
+| A5-2/A5-3（P1） | ✅ 部分 | 新增 `audit_data.py`（K 分布/哨兵/可读性）与 `fetch_data.py --sha256/--bytes`；Dataset 侧真 K 计数与 near.json 元数据仍待做 |
+| A6-1/A6-2/A7-01..04（P1/P2） | ✅ 修复 | Studio `--checkpoint`/status sha；bootstrap/doctor 安全守卫；依赖版本对齐；Space static 测试+CI；i18n 5 条；项目页 meta |
+| A8-1/A8-3/A8-4/A8-5（P1/P2） | ✅ 修复 | Phase1 7 个 skip 改为 fail-on-missing 并全部执行；pid/0 字节清理；lock 顶部两步重建命令+可移植测试；ckpt sha256 记录 |
+| A10-3（P1） | ✅ 修复 | 新增 `docs/STATUS.md` 单一事实源；PLAN/GUIDE/PHASE2/README/04/09/08/AGENTS 过期正文就地修正；README 中英补因果/ckpt 注记 |
+
+仍开放（需资源或后续轮次）：LRS2 8 卡论文配方训练、RealSSA-Sim near 重建+从零训练、RealSSA-Real WER/sim/NISQA、LRS3/Vox 数据、3090 延迟、Studio big 副本（SISNRRepel/Speaker_Contrastive_v2）config 污染与 get_model_args、Dataset 侧 K 计数/near 元数据、`--save-estimates` 嵌套 id 路径问题。

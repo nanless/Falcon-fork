@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -983,10 +985,14 @@ class Separator(nn.Module):
         fusion_params: dict,
     ):
         super(Separator, self).__init__()
-        self.audio_params = audio_params
-        self.video_params = video_params
+        # Deep-copy the sub-configs before popping keys (A1-1): the pops below used to
+        # mutate the caller's dict in place, so reusing one config dict silently built a
+        # truncated model (537,697 -> 49,081 params). Mirrors look2hear/models/Falcon.py.
+        self.audio_params = copy.deepcopy(audio_params)
+        self.video_params = copy.deepcopy(video_params)
         self.audio_bn_chan = audio_bn_chan
         self.video_bn_chan = video_bn_chan
+        self.fusion_params = copy.deepcopy(fusion_params)
         
         self.fusion_repeats = self.video_params.pop("repeats", 0)
         self.audio_repeats = self.audio_params.pop("repeats", 0) - self.fusion_repeats
@@ -994,7 +1000,7 @@ class Separator(nn.Module):
         
         self.audio_shared = self.audio_params.pop("shared", False)
         self.video_shared = self.video_params.pop("shared", False)
-        self.fusion_shared = fusion_params.get("fusion_shared", False)
+        self.fusion_shared = self.fusion_params.get("fusion_shared", False)
         
         # Video net and audio net
         if self.audio_shared:
@@ -1303,13 +1309,16 @@ class Falcon(BaseModel):
         super(Falcon, self).__init__(sample_rate=sample_rate)
         self.n_src = n_src
         self.pretrained_vout_chan = pretrained_vout_chan
-        self.audio_bn_params = audio_bn_params
-        self.video_bn_params = video_bn_params
-        self.enc_dec_params = enc_dec_params
-        self.audio_params = audio_params
-        self.video_params = video_params
-        self.fusion_params = fusion_params
-        self.mask_generation_params = mask_generation_params
+        # Deep-copy every sub-config (A1-1): Falcon writes ``causal`` into the audio/video
+        # params and Separator pops ``repeats``/``shared``, so keeping the caller's dict by
+        # reference polluted configs. Mirrors look2hear/models/Falcon.py.
+        self.audio_bn_params = copy.deepcopy(audio_bn_params)
+        self.video_bn_params = copy.deepcopy(video_bn_params)
+        self.enc_dec_params = copy.deepcopy(enc_dec_params)
+        self.audio_params = copy.deepcopy(audio_params)
+        self.video_params = copy.deepcopy(video_params)
+        self.fusion_params = copy.deepcopy(fusion_params)
+        self.mask_generation_params = copy.deepcopy(mask_generation_params)
         self.causal = causal
         self.mdcl_margin = mdcl_margin
         self.mdcl_alpha = mdcl_alpha
@@ -1470,6 +1479,12 @@ class Falcon(BaseModel):
         # weighted sum over K, then mean over B
         return (weights * penalties).sum(dim=0).mean()
 
+    # Backwards-compatible alias (parity with look2hear/models/Falcon.py, Phase 1 F14):
+    # ``Falcon.forward`` calls ``self._mdcl_loss(...)`` when ``near_audio`` is provided,
+    # but the implementation has always been ``_mdcl_loss_hard``. Studio inference never
+    # takes that branch, so this alias changes no numerics.
+    _mdcl_loss = _mdcl_loss_hard
+
     def forward(self, audio_mixture: torch.Tensor, mouth_embedding: torch.Tensor = None,
                 target_audio: torch.Tensor = None, near_audio: torch.Tensor = None):
         audio_mixture_embedding = self.encoder(audio_mixture)  # B, 1, L -> B, N, T, (F)
@@ -1492,5 +1507,23 @@ class Falcon(BaseModel):
         return separated_audios
 
     def get_model_args(self):
-        model_args = {"n_src": self.n_src}
-        return model_args
+        """Return the full, JSON-serializable constructor kwargs (A1-2).
+
+        Mirrors look2hear/models/Falcon.py: the previous version returned only
+        ``{"n_src": ...}`` so a serialized checkpoint could not be rebuilt.
+        """
+        return {
+            "n_src": self.n_src,
+            "enc_dec_params": copy.deepcopy(self.enc_dec_params),
+            "audio_bn_params": copy.deepcopy(self.audio_bn_params),
+            "audio_params": copy.deepcopy(self.audio_params),
+            "mask_generation_params": copy.deepcopy(self.mask_generation_params),
+            "pretrained_vout_chan": self.pretrained_vout_chan,
+            "video_bn_params": copy.deepcopy(self.video_bn_params),
+            "video_params": copy.deepcopy(self.video_params),
+            "fusion_params": copy.deepcopy(self.fusion_params),
+            "sample_rate": self.sample_rate(),
+            "causal": self.causal,
+            "mdcl_margin": self.mdcl_margin,
+            "mdcl_alpha": self.mdcl_alpha,
+        }

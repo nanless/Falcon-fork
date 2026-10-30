@@ -266,5 +266,40 @@ OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONPATH=/root/code/github_repos/Falcon-fo
 直调 + 独立 cwd**（避免同名 `Experiments/checkpoint/LRS2_2Mix/results/` 互相覆盖，这正是此前 CSV 被覆盖的原因）。
 后续若再用 `eval_p2d.sh`，请先确认它的 cwd 与已有证据不冲突。
 
+### 8.6 ckpt 文件哈希（review A8-3；2026-10-30 实测）
+
+三个用于终态评测/微调的 checkpoint 的 sha256 与字节数（`sha256sum` + `stat -c %s`，本机实测）：
+
+| ckpt 路径 | epoch | 字节数 | sha256 | 用途 |
+|---|---:|---:|---|---|
+| `/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=86.ckpt` | 86 | 51,922,804 | `68edbc98d265b7f5d1630d92ae8bcd41e8eb831b49f9ee2519a6b06c6663d561` | §8.2 中 8.618 / 9.042 评测所用 |
+| `/root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=99.ckpt` | 99 | 51,922,804 | `8a46117577dfc9ce4e40e70019ddcaa5c749adebd2f44e1669d14120a47ddfec` | **best val 13.2014**；8.726 / 9.122 评测所用 |
+| `/root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=124.ckpt` | 124 | 51,922,996 | `a3f4319d72ccd1f4f86a30881c617bbfe87310087290cfccf4fbe309d5f2b73d` | contrastive 微调 **best val 13.3909**；8.858 / 9.270 评测所用 |
+
+复核命令（本机；ckpt 不入库——`*.ckpt` 被 `.gitignore` 忽略，且位于 `/root/tmp`）：
+
+```bash
+sha256sum /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch={86,99}.ckpt \
+          /root/tmp/p2d_near_train/Experiments/checkpoint/LRS2_2Mix_near_s2/epoch=124.ckpt
+stat -c '%n %s' <同上三个路径>
+```
+
+说明：ckpt 只存在于本机 `/root/tmp`，**未归档**（见 STATUS「可选清理」）；若重跑训练得到不同哈希，
+需先确认随机种子/数据顺序/环境（torch 2.8.0+cu128）是否一致，再判断是否可比。
+
 ---
 *[2026-10-24] 本节为终态校正；`P2D-*` 证据文件与两条训练曲线已落盘可复核。*
+*[2026-10-30] 追加 §8.6：三个 ckpt 的 sha256/字节数（A8-3）。*
+
+### 8.7 2026-10-31：评测 CSV 追加 mixture 基线列与有效计数（review A4-3/A4-4）
+
+- `look2hear/metrics/allwrapper.py`：既有 7 列顺序不变，末尾追加 `si-snr_mix, sdr_mix,
+  n_sdr, n_sdr_i, n_si-snr, n_si-snr_i, n_pesq, n_stoi, n_si-snr_mix, n_sdr_mix`；
+  逐句行填 8 个值列，`n_*` 只在 avg/std 行填真实有效计数（不再静默 nanmean）。
+- `audio_visual_test.py::_merge_results`：写 `metrics_counts.json`（counts/nan_counts/n_utterances/
+  si_snr_identity_check）并在 avg/std 回填 `n_*`。
+- 重跑 ep99 与官方权重各 3,000 条：旧 6 列 avg 与旧 CSV **一致**（逐句 max|Δ|：sdr/si-snr ≤3.3e-7 dB、
+  PESQ ≤4.3e-4）；新列 `si-snr_mix=4.993720`、`sdr_mix=5.100463`；离线恒等式
+  `max|si-snr − si-snr_i − si-snr_mix| = 8.9e-15`、`n=3000/3000` 全 finite。
+- 证据：`P2D-eval-epoch99-cols-20261031.{csv,log,counts.json}`、
+  `P2D-eval-falcon-full-cols-20261031.{csv,log,counts.json}`（旧 CSV 保留对拍）。

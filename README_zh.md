@@ -41,6 +41,8 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
 </div>
 
 > Falcon 是一个因果音视频目标说话人提取（AVTSE）模型，在单次编码器–解码器前向中完成分离。它以 0.5 M 可训练参数在 RealSSA、LRS2-2Mix、LRS3-2Mix 和 VoxCeleb2-2Mix 上取得最优效果，并能在笔记本电脑上实时用于视频会议。
+>
+> **复现注记（2026-10-31）**：本发布代码的“因果”是**窗口级因果**——`torch.stft(center=True)`、全窗 `cLNhw` 与对称 `AudioBlock` 卷积使单遍 lookahead 实测 **57 帧≈456 ms**（不是论文 App E 的 120 ms），跨窗无状态；Studio 因此每 0.5 s 重算 2 s 窗口。详见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`（A2-1/A9-1）。
 
 ## 💥 动态
 
@@ -226,6 +228,8 @@ python evaluated_mac_params.py
 | **Falcon（本文）** | **0.5** | 10.6 | 1361.2 | 51.3 | 125.3 | 364.7 |
 
 Dolphin 和 AV-Mossformer2 在我们的训练流程下重新实现为因果版本；其余基线采用 Swift-Net 报告的数值。消融实验和真实场景 NISQA 结果见[论文](https://arxiv.org/abs/2610.32749)。
+
+> **复现注记**：论文对每个 benchmark 分别训练模型；发布的 `falcon.pt` 来自 `LRS3_complex_nonmoving`（epoch 714），在 LRS2-2Mix 上实测 **7.03 / 7.71**（跨语料），在 RealSSA-Sim 上 **7.774 / 8.479**（论文 7.7/8.2）。要复现 LRS2 14.1/14.7 需 LRS2-trained ckpt。详见 `docs/STATUS.md`。
 
 ## 🗂️ 目录结构
 

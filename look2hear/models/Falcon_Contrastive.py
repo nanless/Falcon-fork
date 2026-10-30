@@ -118,5 +118,12 @@ class FalconSpeakerContrastive(Falcon):
         return separated_audios
 
     def get_model_args(self):
-        model_args = {"n_src": self.n_src}
+        """Extend the base ctor args with the contrastive head width (A1-2).
+
+        ``Falcon.get_model_args`` already returns the full Falcon ctor kwargs;
+        the speaker head adds the only extra keyword (``spk_embed_dim``), so the
+        serialized checkpoint can rebuild this subclass unchanged.
+        """
+        model_args = super().get_model_args()
+        model_args["spk_embed_dim"] = self.spk_embed_dim
         return model_args

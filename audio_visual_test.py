@@ -479,17 +479,67 @@ def _merge_results(exp_dir, world_size):
     if utterances.empty:
         raise RuntimeError("no per-utterance metric rows were produced (empty test split?)")
 
-    numeric = utterances.select_dtypes(include=[np.number])
+    # A4-4: mixture baselines (`si-snr_mix`/`sdr_mix`) are now per-utterance columns, so
+    # `si-snr - si-snr_mix == si-snr_i` can be re-derived offline from metrics_combined.csv.
+    # A4-3: aggregate rows must record how many finite values contributed (never a silent
+    # nanmean); per-utterance rows leave the `n_*` columns empty (they are aggregate metadata).
+    value_columns = [c for c in utterances.columns if c != "snt_id" and not c.startswith("n_")]
+    count_columns = [c for c in utterances.columns if c.startswith("n_")]
+    numeric = utterances[value_columns].apply(pd.to_numeric, errors="coerce")
+    counts = {c: int(numeric[c].notna().sum()) for c in value_columns}
+    nan_counts = {c: int(numeric[c].isna().sum()) for c in value_columns}
+
     avg = {"snt_id": "avg", **numeric.mean(numeric_only=True).to_dict()}
-    std = {"snt_id": "std", **numeric.std(ddof=0).to_dict()}
+    std = {"snt_id": "std", **numeric.std(ddof=0, numeric_only=True).to_dict()}
+    for count_column in count_columns:
+        source = count_column[len("n_"):]
+        avg[count_column] = counts.get(source, 0)
+        std[count_column] = counts.get(source, 0)
+
     final = pd.concat([utterances, pd.DataFrame([avg, std])], ignore_index=True)
+    final = final[list(utterances.columns)]  # keep the shard schema/order stable
     final_csv_path = os.path.join(ex_save_dir, "metrics_combined.csv")
     final.to_csv(final_csv_path, index=False)
 
+    # Offline validity report for A4-3: count of finite values per metric column.
+    identity = None
+    if {"si-snr", "si-snr_i", "si-snr_mix"} <= set(value_columns):
+        residual = (numeric["si-snr"] - numeric["si-snr_i"] - numeric["si-snr_mix"]).abs()
+        identity = {
+            "rule": "|si-snr - si-snr_i - si-snr_mix|",
+            "max": float(residual.max()) if residual.notna().any() else None,
+            "finite_pairs": int(residual.notna().sum()),
+        }
+    counts_payload = {
+        "schema_version": 1,
+        "producer": "audio_visual_test._merge_results",
+        "workers": int(world_size),
+        "n_utterances": int(len(utterances)),
+        "columns": value_columns,
+        "counts": counts,
+        "nan_counts": nan_counts,
+        "count_columns": count_columns,
+        "aggregation": {
+            "avg": "mean over utterance rows (NaN skipped)",
+            "std": "population std, ddof=0 (NaN skipped)",
+            "n_<col>": "number of finite (non-NaN) utterance values; identical on avg and std rows",
+        },
+        "si_snr_identity_check": identity,
+        "combined_csv": final_csv_path,
+    }
+    counts_json_path = os.path.join(ex_save_dir, "metrics_counts.json")
+    with open(counts_json_path, "w", encoding="utf-8") as f:
+        json.dump(counts_payload, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
     print(f"\n✅ [Success] Combined metrics saved to: {final_csv_path}")
+    print(f"✅ [Success] Valid counts saved to: {counts_json_path}")
     print("-" * 40)
     print("Final metrics (per-utterance, all workers):")
     print(numeric.mean(numeric_only=True).to_string())
+    print("-" * 40)
+    print("Valid counts (finite values per column):")
+    print(", ".join(f"{c}={counts[c]}/{len(utterances)}" for c in value_columns))
     print("-" * 40)
 
     for rank in range(world_size):

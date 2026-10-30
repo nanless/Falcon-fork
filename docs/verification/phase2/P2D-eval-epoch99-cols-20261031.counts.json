@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "producer": "audio_visual_test._merge_results",
+  "workers": 1,
+  "n_utterances": 3000,
+  "columns": [
+    "sdr",
+    "sdr_i",
+    "si-snr",
+    "si-snr_i",
+    "pesq",
+    "stoi",
+    "si-snr_mix",
+    "sdr_mix"
+  ],
+  "counts": {
+    "sdr": 3000,
+    "sdr_i": 3000,
+    "si-snr": 3000,
+    "si-snr_i": 3000,
+    "pesq": 3000,
+    "stoi": 3000,
+    "si-snr_mix": 3000,
+    "sdr_mix": 3000
+  },
+  "nan_counts": {
+    "sdr": 0,
+    "sdr_i": 0,
+    "si-snr": 0,
+    "si-snr_i": 0,
+    "pesq": 0,
+    "stoi": 0,
+    "si-snr_mix": 0,
+    "sdr_mix": 0
+  },
+  "count_columns": [
+    "n_sdr",
+    "n_sdr_i",
+    "n_si-snr",
+    "n_si-snr_i",
+    "n_pesq",
+    "n_stoi",
+    "n_si-snr_mix",
+    "n_sdr_mix"
+  ],
+  "aggregation": {
+    "avg": "mean over utterance rows (NaN skipped)",
+    "std": "population std, ddof=0 (NaN skipped)",
+    "n_<col>": "number of finite (non-NaN) utterance values; identical on avg and std rows"
+  },
+  "si_snr_identity_check": {
+    "rule": "|si-snr - si-snr_i - si-snr_mix|",
+    "max": 5.329070518200751e-15,
+    "finite_pairs": 3000
+  },
+  "combined_csv": "/root/tmp/p2d_eval_ep99_v4/Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv"
+}

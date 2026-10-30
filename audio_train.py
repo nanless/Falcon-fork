@@ -232,7 +232,48 @@ def build_logger(config, exp_dir):
     )
 
 
+def resolve_resume_checkpoint(ckpt_path):
+    """Validate an explicit ``--ckpt_path`` before any expensive work.
+
+    Returns ``None`` when the flag is empty, the expanded path when it points to
+    an existing file, and raises :class:`SystemExit` otherwise.  The old
+    behaviour silently trained from scratch when the path was wrong, which can
+    waste a long GPU job (or mix a fresh run into an experiment directory that
+    looks resumed).
+    """
+    if not ckpt_path:
+        return None
+    expanded = os.path.expanduser(str(ckpt_path))
+    if not os.path.isfile(expanded):
+        raise SystemExit(
+            f"[audio_train] --ckpt_path does not exist: {ckpt_path!r} "
+            f"(expanded: {expanded!r}); refusing to silently train from scratch. "
+            "Pass a valid checkpoint path or drop --ckpt_path."
+        )
+    return expanded
+
+
+def set_seed(seed=None):
+    """Seed python/numpy/torch/Lightning RNGs (paper Table 16 uses seed 42).
+
+    ``seed=None`` is a no-op, so configs without ``training.seed`` keep the old
+    (unseeded) behaviour.  Returns the effective seed, or ``None``.
+    """
+    if seed is None:
+        return None
+    seed = int(seed)
+    pl.seed_everything(seed, workers=True)
+    return seed
+
+
 def main(config, ckpt_path=""):
+    # ── Resume guard: an explicitly requested checkpoint must exist (A3-04) ───
+    resume_from = resolve_resume_checkpoint(ckpt_path)
+
+    # ── Reproducibility seed: optional `training.seed` (paper Table 16: 42) ──
+    seed = set_seed((config.get("training") or {}).get("seed"))
+    print_only(f"[audio_train] seed = {seed if seed is not None else 'None (unseeded)'}")
+
     # ── Experiment dir + safe config snapshot (BEFORE any model construction) ──
     # NOTE: `Separator.__init__` (look2hear/models/Falcon.py) pops `repeats`/`shared`
     # from the config dict, and `Falcon.__init__` injects `causal`.  Dumping a
@@ -376,13 +417,11 @@ def main(config, ckpt_path=""):
         num_sanity_val_steps=0,
     )
 
-    # ── Optional resume from checkpoint (kept CLI behavior) ───────────────────
-    if ckpt_path and os.path.exists(ckpt_path):
-        print_only(f"Resuming from checkpoint: {ckpt_path}")
-        trainer.fit(system, ckpt_path=ckpt_path)
+    # ── Resume from checkpoint (path already validated at the top of main()) ──
+    if resume_from is not None:
+        print_only(f"Resuming from checkpoint: {resume_from}")
+        trainer.fit(system, ckpt_path=resume_from)
     else:
-        if ckpt_path:
-            print_only(f"[audio_train] WARNING: ckpt_path not found ({ckpt_path}); training from scratch")
         trainer.fit(system)
 
     print_only("Finished Training")

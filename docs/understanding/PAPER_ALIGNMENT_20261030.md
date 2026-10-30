@@ -362,5 +362,7 @@ grep -n "repeats\|audio_repeats\|fusion_repeats" look2hear/models/Falcon.py  # �
 | PESQ / STOI | 2.094 / 0.817 | 2.004 / 0.815 | −0.090 / −0.002 | — | — |
 
 结论：**通道选择影响 <0.3 dB，两通道都在论文 ±0.3 容差内**；论文 channel-1 不解释残余偏差，也不改变“RealSSA-Sim 已复现”。
-真正不可比的是 **RealSSA-Real DNSMOS**：论文 3.276 属 RealSSA-trained ckpt 且为 P.835，我们官方权重同口径 OVRL 2.79。
+真正不可比的是 **RealSSA-Real DNSMOS**：论文 3.276 属 RealSSA-trained ckpt 且为 P.835；我们官方权重同口径 **full4 = OVRL 2.7941 / P808 3.3365**（窗口起点 bug 修复后重跑，full3 作废）。
 证据：`docs/verification/phase2/P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}`。
+
+> 说明：当前结论/证据/待办以 `docs/STATUS.md` 为准；本文保留为 2026-10-30 论文协议提取记录。

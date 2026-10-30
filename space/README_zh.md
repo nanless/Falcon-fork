@@ -23,6 +23,13 @@ Space 启动时加载两个模型：[`JusperLee/Falcon`](https://huggingface.co/
 
 ## 开发
 
+Space 运行在 ZeroGPU 运行时（`sdk_version: 6.29.1`）：**Python 3.12 + `torch==2.13.0`**，
+见 `space/requirements.txt`。这与本地 Studio 环境**不是同一个环境**：仓库的 `falcon`
+conda 环境是 Python 3.11 + `torch 2.8`（见 `AGENTS.md` §2）。不要把
+`space/requirements.txt` 装进 `falcon`；`space/tests/test_static.py` 与
+`space/tests/check_i18n.mjs` 只需要 Python 和 Node，`space/tests/test_clip.py` 在
+`falcon` 环境运行，HTTP/SSE 测试才需要这里的 Space 依赖。
+
 在 GitHub 仓库根目录、Python 3.12 下：
 
 ```bash

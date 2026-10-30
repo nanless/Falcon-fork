@@ -30,7 +30,7 @@
 3. **P1** `best_k_models.json` 的 5 个 key 是字面量 `${ROOT}/Falcon/epoch=*.ckpt`；`audio_visual_test.py:83-94` 只做 `os.path.exists(best_path)`，**不展开 `${ROOT}`**，且仓库里没有任何 `*.ckpt`（被 `.gitignore:24` 忽略）→ 不传 `--ckpt_path` 时评测最终 `FileNotFoundError`（`audio_visual_test.py:103-107`）。[代码+验证（json 解析/存在性）]
 4. **P1** 根 `requirements.txt`（29 行）没有声明 `huggingface_hub`，而 README 的 `--ckpt_path hf://...` 命令在 `audio_visual_test.py:323-326` 需要它 → 全新训练环境按 README 安装后该命令 `ModuleNotFoundError`。[代码+验证（全量 import 审计）]
 5. **P1** `python evaluated_mac_params.py` 只能跑在有 CUDA 的机器上：`evaluated_mac_params.py:48,77-81,86` 多处 `.cuda()`；且硬编码读 `configs/Falcon.yml`（`:39`），README 未提示。[代码]
-6. **P1（待外部确认）** 项目页 4 个场景的 demo 音频，`large` 场景写的是 `Dolphin.wav`（大写，`project_page/index.html:517`），其余三个场景是小写 `dolphin.wav`（`:451,484,550`）——阿里云 OSS 区分大小写，若对象名确为小写则 404。[推断/未验证]
+6. ~~**P1（待外部确认）** 项目页 large 场景 `Dolphin.wav` 大小写~~ → **2026-10-30 已确认非缺陷**：`large/Dolphin.wav` HTTP 200、`large/dolphin.wav` 404，大写 D 是 OSS 真实 key，禁止规范化。
 7. **测试现状（R3 修订）**：8 个 Node 测试**全部通过**（实测 ≈4.0–4.1 s，见 §2.4/§8）；pytest 四文件在**注入仓库内最小 PIL stub**（`docs/verification/scripts/pil_stub/`，仅提供 `Image.new/open/save/convert`）后**可完整运行**：评审基线 **33 passed / 4 skipped**（当时无权重缓存，`test_server` 协议用例全过），本轮复跑为 **35 passed / 2 skipped**（本环境 HF 缓存已有 small/big 权重，`test_infer_file` 2 项不再 skip；详见 §8.2）。真实 JPEG/PNG 解码仍属 Pillow 职责、未验证。
 8. **启动链认知修正**：任务描述里归给 `launch.sh` 的"venv 选择/锁优先/端口 7860-7899/Metal-CUDA 探测/自动开浏览器"，实际分布在 `bootstrap.sh`（venv/依赖，`:12-83`）、`server.py`（端口/浏览器，`:304-329`）、`falcon_runtime.py`（设备，`:81-92,183-196`）；`launch.sh` 只有 20 行，只做"调 bootstrap → 确保权重 → exec server.py"（`:6-20`）。[代码]
 9. **测试面修正 Lead 侦察图**：`00-project-map.md:71` 写 `check_*.mjs/cjs（5 个）`，实际 `studio/tests/` 有 **6 个**（4 `.mjs` + 2 `.cjs`），另有 `studio/web/*.test.cjs` **2 个**；`test_*.py` 4 个正确。[验证（ls/wc）]
@@ -223,7 +223,7 @@ PYTHONPATH=$PWD/docs/verification/scripts/pil_stub:$PWD/docs/verification/stubs:
 
 **一致性核对**：
 - 相对资源 `logo.png`、`figures/*.pdf.png` 全部存在；页内锚点 `#abstract...#citation` 全部有对应 id。[验证]
-- 外部媒体**统一在 `oss.cslikai.cn/demos/<scene>/`**：`small/medium/large/outdoor` × `{s1.mp4, base,falcon,swiftnet,dolphin,TFGrid .wav}`；唯一异常：`large` 的 Dolphin 写作 **`Dolphin.wav`**（`:517`）而其余为小写 `dolphin.wav`（`:451,484,550`）→ OSS 区分大小写时该按钮 404（P1，待线上确认）。
+- 外部媒体**统一在 `oss.cslikai.cn/demos/<scene>/`**：`small/medium/large/outdoor` × `{s1.mp4, base,falcon,swiftnet,dolphin,TFGrid .wav}`；`large` 的 Dolphin 为 **`Dolphin.wav`**（`:517`）而其余为小写 `dolphin.wav`；2026-10-30 实测 `large/Dolphin.wav`=200、`large/dolphin.wav`=404 ⇒ **非缺陷，禁止改成小写**。
 - 页面数字与 README 结果表/效率表逐项一致：7.7/8.2、14.1/14.7、16.4/16.7、10.5/11.8、DNSMOS 3.276；0.5M/10.6G/1361.2/51.3/125.3/364.7；摘要里的 91.9%/20.2×/11.1× 可分别由 (6.2-0.5)/6.2、213.8/10.6、567.8/51.3 复算 ≈91.9%/20.17/11.07。[代码]
 - 页面插图与 README 插图是**两份独立渲染**（`project_page/figures/*.pdf.png` 209/75/105 KB vs `assets/Overall_Pipeline.png` 165 KB、`Separator.png` 105 KB、`TFRB.png` 64 KB），内容对应但文件不同 → 双源维护风险（P2）。
 - 页面依赖 Google Fonts + cdnjs：与 Studio 的 "no CDN"（`studio/README.md:20`）**不冲突**（该承诺只针对 Studio 界面），但项目页离线/受限网络下样式会退化（P2）。
@@ -438,7 +438,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 | D13 | `studio/README.md:182-184`；`README_zh.md` 同 | `pip install -r requirements-dev.txt` + `python -m pytest tests/` + node 循环 | `tests/test_infer_file.py:13`、`tests/test_device.py:35,44` 有 skip 条件；`test_server.py` 需 Pillow（`studio/requirements.txt:9` 有声明） | **R3 修订**：注入最小 PIL stub 后可运行（评审基线 33 passed/4 skipped，§2.4/§8.2），不是不可验证；README 仍未说明部分测试会 skip（缺权重/无 GPU）及 dev 额外依赖 | P2 |
 | D14 | `studio/README.md:101` | 频谱面板显示最近 ~8 s | `spectrum-dsp.js:5-11`（16 kHz、FFT 1024、HOP 640、128 行、DB_FLOOR=-90、MAX_RECORDING_SAMPLES=4.8M=300 s）；未能定位"~8 s"常量 | 0–8 kHz / −90 dBFS 可验证；"~8 s"需前端文档（07）确认具体列数/缓冲来源 | P2（Q7） |
 | D15 | 四份 README | 参数/延迟数字（0.5M/11.72M） | `docs/verification/runs/lead-model-params.log:14` `AUDIO_MODEL total=537,697 trainable=537,697`、`:18` `AUDIO+FRCNN total=11,724,385` | 与 `README.md:34,100,103` 一致（0.5M 为论文口径，实测 0.5377M；11.72M 精确匹配）；MACs 10.6G 与延迟 51.3/1361.2 ms 本轮**未尝试复算**（验证 venv 实有 `ptflops 0.7.5` 且 `torch.cuda.is_available()==True`（2×A800）；复算需固定输入与训练侧 import，超出本轮预算；R3 修正了 R1 的“无 GPU/ptflops”失实表述） | 一致/部分未验证 |
-| D16 | `project_page/index.html:517` | 项目页 large 场景 Dolphin 按钮 | 同一页面其他场景 `dolphin.wav`（`:451,484,550`），`large` 写 `Dolphin.wav`；媒体在外部 OSS（区分大小写） | 很可能 404（按钮点了无声）；需线上/OSS 对象名确认 | P1（待确认） |
+| D16 | `project_page/index.html:517` | 项目页 large 场景 Dolphin 按钮 | `large/Dolphin.wav` 为 OSS 真实 key（实测 200；小写 `large/dolphin.wav` 为 404） | **非缺陷**（2026-10-30 线上核实）；禁止规范化大小写 | 已关闭 |
 | D17 | `.gitignore` | 忽略构建产物 | `audio_train.py:153-154` 创建 `Experiments/tensorboard_logs/<exp>/`；根 `.gitignore` 无 `tensorboard_logs/`（实测 NOT IGNORED） | 训练后 `git status` 出现未跟踪目录，易误提交日志 | P2 |
 | D18 | `00-project-map.md:71` | `tests/ check_*.mjs/cjs（5 个）` | 实际 `studio/tests/` 6 个（4 mjs+2 cjs）+ `studio/web/*.test.cjs` 2 个（`wc -l`/`ls`） | Lead 侦察图数字错误，本域已更正 | P2 |
 | D19 | 仓库/README 未写 | — | `check_environment.py:25-27` 强制要求 requirements 行含 `>=` 与 `,<`；`bootstrap.sh:24` 依赖它 | 未来若把 Studio 依赖改为 `==`（或加 hash/环境标记），bootstrap 会抛 `ValueError` 而非友好提示 | P2（Q12） |
@@ -488,7 +488,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 
 ### 5.6 项目页外部契约
 
-- 媒体：`https://oss.cslikai.cn/demos/{small,medium,large,outdoor}/{s1.mp4,base.wav,falcon.wav,swiftnet.wav,dolphin.wav,TFGrid.wav}`（注意 large 的 Dolphin 大小写异常，D16）。
+- 媒体：`https://oss.cslikai.cn/demos/{small,medium,large,outdoor}/{s1.mp4,base.wav,falcon.wav,swiftnet.wav,dolphin.wav,TFGrid.wav}`（large 的 `Dolphin.wav` 大写为真实 key，见 D16）。
 - 字体/图标：Google Fonts + cdnjs Font Awesome（`index.html:10-13`），断网时降级。
 - 图片：`logo.png` + `figures/*.pdf.png`（均在 `project_page/` 内，随 artifact 发布）。
 - 同一时刻只播放一个 scene/一个方法（tab 切换 + `pauseAllSyncedMedia`，`:721-724`）；video muted，音频由 video 时间轴驱动（`:734-790`）。
@@ -549,7 +549,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 | A50 | `check_environment.py` 的 import 清单不含 huggingface_hub（版本检查里却有） | `check_environment.py:20-44` | 读码 | 高 |
 | A51 | `audio_train.py` 默认 `--conf_dir` 指向不存在的 `configs/NASSv2_lrs3_complex_nonmoving.yml`；`audio_visual_test.py` 默认 conf 也不存在 | `audio_train.py:33`；`audio_visual_test.py:65`；`ls configs`/`find Experiments` | 读码 + ls [验证] | 高 |
 | A52 | `Experiments/checkpoint` 只有 2 个文件，无权重/ckpt | `find Experiments -type f` | 实测 [验证] | 高 |
-| A53 | 项目页 large 场景 `Dolphin.wav` 与其他场景 `dolphin.wav` 大小写不一致 | `index.html:517` vs `:451,484,550` | grep [验证] | 高（404 后果待外部确认） |
+| A53 | ~~项目页 large 场景 Dolphin 大小写~~ | 实测 `large/Dolphin.wav`=200、`large/dolphin.wav`=404 | curl [验证 2026-10-30] | 无（非缺陷） |
 | A54 | `00-project-map.md` 的 "check_*.mjs/cjs（5 个）" 不准确（实际 6+2） | `00-project-map.md:71`；`ls studio/tests/check_* studio/web/*.test.cjs` | 实测 [验证] | 高 |
 | A55 | 根 README/中文版所有可验证的 Studio 数字（端口、2s/hop、80ms、0.58/1.42s、5min、4帧、2.5s）与代码一致 | 见 §4.7 末尾"未发现矛盾"清单及 A21/A26 | 读码逐项核对 | 高 |
 | A56 | README 公网在线 demo 与仓库 `same_origin`/`TrustedHost` 的 loopback 限制冲突（D22） | `README.md:21`；`README_zh.md:23`；`studio/README.md:16`；`studio/README_zh.md:16`；`server.py:175-179,196` | 实测 `same_origin(公网 origin, 同 host)=False`；`TestClient` + 公网 `Host` → HTTP 400 [验证] | 高 |

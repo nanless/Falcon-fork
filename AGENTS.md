@@ -63,7 +63,7 @@
     已安装 PyPI `pesq 0.0.4`（同一 ITU-T P.862 实现），并在 site-packages 放置 `pypesq.py` 兼容层
     （`pypesq.pesq(ref, deg, fs)` → `pesq.pesq(fs, ref, deg)`），使 `look2hear.metrics` / `audio_visual_test.py`
     可正常导入与计算。该 shim **不在仓库内**（属环境内容），重启环境需按 §5 重建。
-  - 环境已经验证：真实权重 strict 加载 + CPU/GPU 推理、`pytest studio/tests` **35 passed/2 skipped**、
+  - 环境已经验证：真实权重 strict 加载 + CPU/GPU 推理、`pytest studio/tests` **38 passed/2 skipped**、
     8 个 Node 测试全过、`import look2hear.models/system/metrics`、`import audio_train/audio_visual_test` 均 OK。
   - **GPU**：本机 2×A800（驱动 535.129），cu128 轮子可用；CPU 也可完整运行（2 s 窗口前向约 2.5 s）。
   - torch 固定 **2.8.0+cu128** 是刻意选择：本项目此前所有验证结论（参数量、形状、因果性、真实权重
@@ -98,7 +98,8 @@ $ENV/bin/python -V                                                   # 3.11.17
 $ENV/bin/python -c "import torch;print(torch.__version__, torch.cuda.is_available(), torch.cuda.device_count())"
 #   -> 2.8.0+cu128 True 2
 $ENV/bin/python -c "import sys;sys.path.insert(0,'.');import look2hear.models, look2hear.system, look2hear.metrics, audio_train, audio_visual_test;print('imports OK')"
-$ENV/bin/python -m pytest studio/tests -q                            # 35 passed, 2 skipped
+$ENV/bin/python -m pytest studio/tests -q                            # 38 passed, 2 skipped
+$ENV/bin/python -m pytest tools/repro/tests -q -rs                    # 基线见 docs/STATUS.md §5
 ```
 
 ## 4. 依赖安装 / 升级规则

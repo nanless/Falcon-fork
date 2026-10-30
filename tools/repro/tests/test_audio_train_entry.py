@@ -333,10 +333,14 @@ def test_main_constructs_trainer_and_dumps_safe_config(patched):
         assert key in dumped_video, f"safe conf lost video_params.{key}"
     assert "causal" not in dumped_audio, "safe conf must be dumped before Falcon injects `causal`"
 
-    # ... while the runtime dict IS polluted by the real model construction
+    # A1-1 (2026-10-31): model construction must NOT mutate the caller's config anymore.
+    # (Before the fix, Separator popped repeats/shared and injected causal into this dict; the
+    # polluted dict was stored in ckpt hparams and rebuilt a 49k-parameter model.)
     runtime_audio = runtime_cfg["audionet"]["audionet_config"]["audio_params"]
-    assert "repeats" not in runtime_audio and "shared" not in runtime_audio
-    assert "causal" in runtime_audio
+    for key in ("repeats", "shared"):
+        assert key in runtime_audio, f"model construction polluted caller config: lost audio_params.{key}"
+    assert runtime_audio["repeats"] == 2 and runtime_audio["shared"] is True
+    assert "causal" not in runtime_audio, "model construction must not inject `causal` into caller config"
 
 
 def test_main_without_logger(patched):

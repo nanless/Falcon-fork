@@ -23,7 +23,7 @@ Falcon Studio 在 Mac 或带 NVIDIA GPU 的 Linux 上实时运行 Falcon 音视�
 
 ## 快速开始
 
-1. 在 Finder 中双击 **Start Falcon.command**。首次运行会检查环境、安装缺少的依赖，并从 Hugging Face 下载权重。
+1. 在 Finder 中双击 **Start Falcon.command**。它会复用已有环境；若缺少依赖，会停下并提示先运行一次 `./scripts/bootstrap.sh --yes`（bootstrap 会先列出将变更的包）。权重首次使用时从 Hugging Face 下载。
 2. 浏览器自动打开后，等待模型加载和预热完成。
 3. 点击 **开启设备**，允许摄像头和麦克风访问。
 4. 默认使用 **自动跟踪**。正对摄像头、露出嘴部，等绿色嘴部轮廓和 **AUTO** 取景框跟上后，点击 **开始分离**。
@@ -110,11 +110,15 @@ Chrome 在切换到会议窗口后仍会继续采集摄像头画面；其他浏�
 ./scripts/launch.sh                              # 自动选择 Metal 或 CPU，并打开浏览器
 ./scripts/launch.sh --device cuda                # 或 --device mps / --device cpu
 ./scripts/launch.sh --model JusperLee/Falcon-Big # 启动时加载 Falcon-Big
+./scripts/launch.sh --checkpoint /path/to/falcon.pt  # 本地 .pt，或 hf://<org>/<repo>/<file>
 ./scripts/launch.sh --port 7861 --no-browser
 ./scripts/doctor.sh                              # 检查依赖、Metal / CUDA 和模型下载状态
+./scripts/doctor.sh --check-only                 # 只诊断：不 bootstrap、不安装
 ```
 
-`auto` 依次尝试 CUDA、Metal，GPU 预热失败时退回 CPU。在 Linux 上，先安装 CUDA 版 PyTorch（见 pytorch.org）和依赖，然后运行 `python server.py --device cuda`，用 Chrome 打开终端里显示的地址；`.command` 启动入口和 BlackHole 仅适用于 macOS。启动脚本会复用本目录中可用的 `.venv`，否则安装到 iCloud 之外的 `~/Library/Caches/FalconStudio/venv`，并优先使用固定版本的 `requirements-lock.txt`。支持 Python 3.10–3.12（推荐 3.11）；可用 `FALCON_PYTHON=/path/to/python3.11` 指定解释器，用 `FALCON_VENV=/path` 指定环境目录，用 `./scripts/bootstrap.sh` 只安装不启动。
+`auto` 依次尝试 CUDA、Metal，GPU 预热失败时退回 CPU。在 Linux 上，先安装 CUDA 版 PyTorch（见 pytorch.org）和依赖，然后运行 `python server.py --device cuda`，用 Chrome 打开终端里显示的地址；`.command` 启动入口和 BlackHole 仅适用于 macOS。启动脚本会复用本目录中可用的 `.venv`，否则使用 iCloud 之外的 `~/Library/Caches/FalconStudio/venv`；安装缺失依赖必须显式运行 `./scripts/bootstrap.sh --yes`，并优先使用固定版本的 `requirements-lock.txt`。支持 Python 3.10–3.12（推荐 3.11）；可用 `FALCON_PYTHON=/path/to/python3.11` 指定解释器，用 `FALCON_VENV=/path` 指定环境目录，用 `./scripts/bootstrap.sh` 只安装不启动。
+
+`--checkpoint` 在 `launch.sh`、`server.py` 和 `infer_file.py` 上都可用（权重要与所选 small/big 模型匹配）；服务端还接受 `/api/load` 的 `{"variant": "small", "checkpoint": "..."}`，并由 `/api/status` 回显已加载检查点的文件名与 SHA-256。已能导入 torch、numpy、Pillow 的解释器（`FALCON_PYTHON`、`FALCON_VENV` 或 `FALCON_MANAGED_ENV=1`）会原样复用，绝不会被安装或升级；`FALCON_MANAGED_ENV=1` 下若该检查失败，则直接报错而不会安装。`bootstrap.sh` 会先打印将安装/变更的包，只有加 `--yes` 才继续；`doctor.sh --check-only` 完全跳过 bootstrap，直接使用给定解释器。
 
 ### 离线处理一段录音
 
@@ -123,7 +127,7 @@ ffmpeg -i input.mp4 -ac 1 -ar 16000 mix.wav
 python infer_file.py --audio mix.wav --mouth mouth.npy --out target.wav --model JusperLee/Falcon
 ```
 
-`mouth.npy` 是目标说话者 25 fps 的 96×96 灰度嘴部裁剪，形状为 `(T, 96, 96)`（也支持 `.npz` 和 `.pt`）。`--checkpoint` 可以传入本地权重文件或 `hf://<org>/<repo>/<file>`，代替模型默认的权重。
+`mouth.npy` 是目标说话者 25 fps 的 96×96 灰度嘴部裁剪，形状为 `(T, 96, 96)`（也支持 `.npz` 和 `.pt`）。`--checkpoint` 可以传入本地权重文件或 `hf://<org>/<repo>/<file>`，代替模型默认的权重（`server.py` 同样支持）。
 
 ### Python API
 
@@ -159,7 +163,7 @@ target = model.infer(audio, mouth)                         # (32000,) 目标语�
 
 **端口被占用。** 不指定 `--port` 时会在 7860–7899 中选择下一个空闲端口；指定 `--port` 时严格使用该端口。关闭浏览器页面不会停止服务，需要在终端按 Control-C。
 
-**依赖损坏。** 重新运行 `./scripts/bootstrap.sh`，或用 `FALCON_VENV=/new/path` 安装到新的环境。
+**依赖损坏。** 重新运行 `./scripts/bootstrap.sh --yes`（会先列出将变更的包），或用 `FALCON_VENV=/new/path` 安装到新的环境；只想诊断而不安装时用 `./scripts/doctor.sh --check-only`。
 
 ## 目录结构
 

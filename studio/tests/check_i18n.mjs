@@ -197,4 +197,68 @@ await test('switch updates bound text and attributes, preserves device selection
   assert.equal(changes, 2);
 });
 
+await test('every Chinese literal in the Studio app has an English translation', async () => {
+  const { api } = await load();
+  const source = fs.readFileSync(path.join(web, 'app.js'), 'utf8');
+  const literals = [...source.matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)]
+    .map((match) => match[1] ?? match[2])
+    .filter((text) => han.test(text) && !text.includes('${') && text !== '中文');
+  assert.ok(literals.length > 100, `expected Chinese UI literals in app.js, found ${literals.length}`);
+  for (const key of new Set(literals)) {
+    assert.ok(!han.test(api.t(key)), `app.js literal without an English translation: ${key}`);
+  }
+});
+
+/* The local model server raises English errors from falcon_runtime.py; the UI shows them
+ * through translateMessage(), so every one of them must reverse-map to Chinese. */
+function firstRaiseMessage(block) {
+  const matches = [...block.matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)];
+  if (!matches.length) return null;
+  let text = matches[0][1] ?? matches[0][2];
+  for (let index = 1; index < matches.length; index++) {
+    // Python concatenates adjacent literals ("a" "b"); unrelated literals are not joined.
+    const gap = block.slice(matches[index - 1].index + matches[index - 1][0].length, matches[index].index);
+    if (!/^\s*$/.test(gap)) break;
+    text += matches[index][1] ?? matches[index][2];
+  }
+  return text;
+}
+
+function raiseMessages(file) {
+  const source = fs.readFileSync(file, 'utf8');
+  const messages = [];
+  for (const match of source.matchAll(/raise\s+\w+\s*\(/g)) {
+    let index = match.index + match[0].length, depth = 1, quote = null, block = '';
+    while (index < source.length && depth > 0) {
+      const character = source[index];
+      if (quote) {
+        block += character;
+        if (character === quote && source[index - 1] !== '\\') quote = null;
+      } else if (character === '"' || character === "'") { quote = character; block += character; }
+      else if (character === '(') { depth++; block += character; }
+      else if (character === ')') { depth--; if (depth > 0) block += character; }
+      else block += character;
+      index++;
+    }
+    const message = firstRaiseMessage(block);
+    if (message) messages.push(message);
+  }
+  return messages;
+}
+
+await test('every English runtime error maps back to Chinese', async () => {
+  const { api } = await load();
+  const messages = raiseMessages(path.resolve(web, '..', 'falcon_runtime.py'));
+  assert.ok(messages.length >= 15, `expected FalconRuntime raise sites, found ${messages.length}`);
+  for (const message of messages) {
+    if (han.test(message)) continue;
+    const translated = api.translateMessage(message, 'zh');
+    assert.ok(han.test(translated), `runtime error without a Chinese translation: ${message} → ${translated}`);
+  }
+  const offline = api.translateMessage('Could not download falcon.pt from Hugging Face repo JusperLee/Falcon: offline. Set HF_ENDPOINT to a mirror, or pass a local weights file.', 'zh');
+  assert.ok(han.test(offline) && offline.includes('HF_ENDPOINT'), `download failure must translate and keep the mirror hint: ${offline}`);
+  const device = api.translateMessage("device must be 'auto', 'cpu', 'cuda' or 'mps'", 'zh');
+  assert.ok(han.test(device) && device.includes('cuda'), `device hint must translate and list cuda: ${device}`);
+});
+
 console.log(`${passed} localization checks passed (${dictionaries.length} dictionary entries audited).`);

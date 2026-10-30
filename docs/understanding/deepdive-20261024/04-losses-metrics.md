@@ -529,11 +529,11 @@ PESQ wb；STOI ext=False；整句推理（LRS2 为 2 s clip，RealSSA-Sim 为对
 
 | Q | 问题 | 现状/证据 | 需要谁 |
 |---|---|---|---|
-| Q1 | 论文 “Real-world DNSMOS 3.276” 是 **OVRL** 还是 **P808**（还是别的 DNSMOS 实现）？ | 我们 P808 3.3285（+0.05）、OVRL 2.7901（−0.49）；`README.md:211` 与 Swift-Net 值相同（3.276），无法区分 | 作者/论文 |
+| Q1 | ~~论文 DNSMOS 3.276 是 OVRL 还是 P808？~~ | **2026-10-30 已由论文确认 = P.835**；3.276 属 RealSSA-trained ckpt；同 ckpt OVRL 2.7901 不可比（见 §8） | 已解决 |
 | Q2 | 论文 SDRi 的实现（BSS-Eval v3/v4、filter length、是否 `change_sign`）| 我们用 fast_bss_eval 512-tap；RealSSA-Sim SDRi +0.28、LRS2 变体 512→64 差 −0.35 | 作者/论文 |
-| Q3 | 论文训练损失是 SNR 还是 SI-SDR？`configs/Falcon.yml:117` 是 `pairwise_neg_snr`，但论文/README 未写 | 代码是 SNR；`threshold_byloss=True` 还会丢 >30 dB 样本 | 作者/论文 |
+| Q3 | 论文训练损失？ | **论文 = −SI-SNR**（App D Table 16）；仓库 `pairwise_neg_snr` 与 β/200 属偏离配方（见 §8） | 已解决（仓库待切 v2 配置） |
 | Q4 | 论文 PESQ 是 wideband 还是 narrowband、是否用 `extended` STOI | 我们用 wb + `extended=False`（`core.py:196-217`）；PESQ 传反会差 0.06~1.69 MOS | 作者/论文 |
-| Q5 | 论文 RealSSA-Sim 的 channel 选择（4ch→mean？ch0？）与 align 规则 | 我们用 mean + min 对齐；`P2E-report.md` §4 也要求 ch mean/0 两套都报，目前只有 mean 结果 | 数据卡/作者 |
+| Q5 | 论文 RealSSA-Sim 通道选择？ | **论文 = channel-1（ch0）**；我们 mean（7.774/8.479）与 ch0（7.977/8.452）均已评测，差 <0.3 dB | 已解决 |
 | Q6 | 论文 LRS2-2Mix 的训练配方与对应 ckpt | 发布 ckpt=LRS3（`conf.yml:99-102`）；GitHub issue #1 已问；P2-D 训练中 | 作者/P2-D |
 | Q7 | 原始训练 near.json 的 K 分布（决定 NASS 负项与 β 是否真的起作用）| 发布权重是推理产物，无法反推；LRS3 数据不可得 | 作者/数据 |
 | Q8 | speechmos 内置 ONNX 与“论文用 DNSMOS 官方实现”的数值一致性 | 只有 sha256 记录（§2.6）；不同实现/版本可差 0.1~0.3 MOS | 作者/复算 |

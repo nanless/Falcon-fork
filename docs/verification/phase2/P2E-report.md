@@ -255,3 +255,92 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 > 且该数字对应 **RealSSA-trained ckpt**；我们用的官方 `falcon.pt` 在同一数据上 P.835 OVRL = **2.7901**，
 > 与 3.276 **不可直接比较**（P808 3.3285 只是数值巧合）。另：论文 RealSSA-Sim **只用 channel-1**（代码 `--channel 0`），
 > 我们此前用 4ch mean；ch0 复评已排期。详见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`。
+
+---
+
+## 10. 2026-10-31 A4-1 修复后重跑（full4，**替换 full3**）
+
+### 10.1 bug 与修复（review A4-1）
+
+- **位置**：`tools/repro/phase2/eval_realssa_real.py` 的 `_extract_windowed()`（旧 `:405,424`）。
+- **旧行为**：`endpoint = LEFT + HOP`（=30,720），而每个窗输出的是 `pred[LEFT:LEFT+HOP]`，对应绝对
+  `[endpoint-GUARD-HOP, endpoint-GUARD)`。因此首窗写 `[21,440, 29,440)`，**`[0, 21,440)`（21,440 样本 = 1.34 s@16k）
+  永远不被任何窗口写入**，每条估计的音频开头恒为静音。已发布的 full3 四指标即建立在该输出上。
+- **修复**：首窗 `endpoint = HOP + GUARD`（=9,280），与 Studio 语义对齐——`studio/web/app.js:624`
+  首窗 `end = sessionEpoch + HOP + GUARD`、`studio/server.py:266` 发出
+  `start_sample = endpoint-GUARD-HOP, end_sample = endpoint-GUARD`；此时 `abs_start = endpoint-(WINDOW-LEFT) = 0`。
+- **覆盖率断言**（新增）：循环内用 `filled[np]` 记录每个写入样本；循环后若 `not filled.all()`，压缩未覆盖区间并
+  `raise RuntimeError("windowed inference coverage failure: … gaps(sample[start,end))=[…]")`；
+  整段输出必须 100% 被写，不允许静默留白。
+
+### 10.2 修复验证（CPU/GPU 两路）
+
+- 合成探针（fake runtime，`_extract_windowed` 直接调用）：n=16,000 / 19,200 / 20,000 / 40,000 样本全部
+  **coverage=100%**、输出长度==输入长度；同一循环用旧初值 `LEFT+HOP` 时未覆盖恰为
+  `21,440/64,000` 样本、区间 `[0, 21440)`（即 1.34 s 静音前缀），新初值 `HOP+GUARD` 未覆盖 0 样本。
+- 真实数据：full4 全 54 段运行中覆盖率断言**全部通过**（任何一段 <100% 都会 raise 并中止）；
+  首段估计前 21,440 样本 `nonzero_frac=1.000`（旧代码为 0），首 1 s `mean|x|=0.0204`。
+- **mixture 基线逐位不变**（见下表 4 个 mix_* delta=+0.0000）→ 证明差异只来自分离输出修复，DNSMOS 侧无漂移。
+
+### 10.3 full3（作废） vs full4（有效）
+
+**结论：旧 full3 的 SIG/BAK/OVRL/P808 因首块 1.34 s 静音前缀作废，引用/图表一律改用 full4；full3 仅保留为历史
+证据（`…full3/`），不得再作为“官方权重 RealSSA-Real DNSMOS”引用。**
+
+| 指标 | full3（旧，作废） | **full4（新，有效）** | Δ（new−old） | n |
+|---|---|---|---|---|
+| SIG | 3.2209 ± 0.3691 | **3.2226 ± 0.3703** | +0.0017 | 54/54 |
+| BAK | 3.6921 ± 0.2640 | **3.6981 ± 0.2598** | +0.0060 | 54/54 |
+| OVRL | 2.7901 ± 0.4082 | **2.7941 ± 0.4100** | +0.0040 | 54/54 |
+| P808 | 3.3285 ± 0.4045 | **3.3365 ± 0.4066** | +0.0080 | 54/54 |
+| mixture SIG | 2.4176 | 2.4176 | +0.0000 | 54/54 |
+| mixture BAK | 1.7908 | 1.7908 | +0.0000 | 54/54 |
+| mixture OVRL | 1.7599 | 1.7599 | +0.0000 | 54/54 |
+| mixture P808 | 2.6765 | 2.6765 | +0.0000 | 54/54 |
+
+分场景 OVRL（full3 → full4）：big_indoor 2.5934 → **2.6024**；mid_indoor 2.3942 → **2.4069**；
+outdoor 2.7766 → **2.7608**；small_indoor 3.0958 → **3.1067**（其余分场景见 `summary.json`）。
+
+**幅度解释**：单段整段 DNSMOS 用 9.01 s 窗/1 s hop，1.34 s 静音只影响首窗约 15% 的内容，且静音在 P.835 中
+BAK/OVRL 上被平滑 → 均值只移动 +0.002~+0.008 MOS；但**输出本身错误（每条开头 1.34 s 静音）是确定性的**，
+因此必须重跑/替换，不能以“数值几乎不变”为由沿用 full3。
+
+### 10.4 复跑命令与产物
+
+```bash
+cd /root/tmp/p2e_real_dnsmos_full4        # 独立 cwd（不在仓库内）
+OUT=/root/code/github_repos/Falcon-fork/docs/verification/phase2/DNSMOS-realssa-real-mean-full4-20261031
+PYTHONPATH=/root/code/github_repos/Falcon-fork:/root/code/github_repos/Falcon-fork/studio:/root/code/github_repos/Falcon-fork/tools/repro/phase2 \
+CUDA_VISIBLE_DEVICES=0 /root/miniforge3/envs/falcon/bin/python \
+  /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_realssa_real.py \
+  --data /root/data/RealSSA-Real --channel mean --align-tail --device cuda \
+  --model JusperLee/Falcon --baseline --out-dir "$OUT"
+```
+
+- 产物：`DNSMOS-realssa-real-mean-full4-20261031/{summary.json,run_metadata.json,realssa_real_dnsmos_per_segment.csv,P2E-realssa-real-full4.log}`
+- `run_metadata.json`：timestamp `20261030T162555Z`、channel=mean、align_tail=true、device=cuda、
+  speechmos 0.0.1.1 / onnxruntime 1.31.0、baseline=true、segments 54/54/0、used_s 合计 5,037.6 s（=83.96 min）、RTF 均值 0.102（median 0.0985，GPU 0）。
+- 备注：`--save-estimates` 本轮未开（该开关对 `inference_id` 含 `/` 的嵌套 id 会因父目录不存在而报错，
+  属既有 P3 问题，不影响指标）；覆盖率证据由 §10.2 的合成探针 + 运行期断言提供。
+
+### 10.5 附带：评测 CSV 增加 mixture 基线列与有效计数（A4-3 / A4-4）
+
+- `look2hear/metrics/allwrapper.py`：`CSV_COLUMNS` **只在末尾追加**（既有 7 列顺序/位置不变）：
+  `si-snr_mix, sdr_mix, n_sdr, n_sdr_i, n_si-snr, n_si-snr_i, n_pesq, n_stoi, n_si-snr_mix, n_sdr_mix`。
+  逐句行填 8 个新值列、`n_*` 留空；`avg`/`std` 行的 `n_*` 为真实有效计数（不再“静默 nanmean”）。
+- `audio_visual_test.py::_merge_results`：合并时按列统计 finite 值写 `metrics_counts.json`
+  （`counts`/`nan_counts`/`n_utterances`/`si_snr_identity_check`），并在 avg/std 行回填 `n_*`。
+- 重跑 LRS2-2Mix test 全量 3,000 条（ep99 与官方 `falcon.pt` 各一次；GPU0，独立 cwd `/root/tmp/p2d_eval_*_v4`）：
+
+| run | 旧列 avg（sdr / sdr_i / si-snr / si-snr_i / pesq / stoi） | 新列 avg（si-snr_mix / sdr_mix） | 逐句旧列 max\|Δ\| |
+|---|---|---|---|
+| LRS2 ep99 | 14.222311 / 9.121848 / 13.719868 / 8.726148 / 2.577971 / 0.943988（与旧 CSV **一致**） | **4.993720 / 5.100463** | sdr 3.3e-7、si-snr 3.3e-7、pesq 4.3e-4、stoi 1.8e-8 dB/MOS |
+| LRS2 官方 falcon.pt | 12.813387 / 7.712925 / 12.022821 / 7.029101 / 2.195634 / 0.916350（与旧 CSV **一致**） | **4.993720 / 5.100463** | sdr 2.2e-7、si-snr 2.3e-7、pesq 9.4e-5、stoi 3.9e-8 dB/MOS |
+
+- 离线恒等式：`max|si-snr − si-snr_i − si-snr_mix| = 8.9e-15`、
+  `max|sdr − sdr_i − sdr_mix| = 8.9e-15`（3000/3000 句）→ SI-SNRi/SDRi 可离线复核（A4-4 闭环）。
+- 有效计数：两 run 均 `n=3000/3000`（6 个旧列 + 2 个新列全部 finite，0 nan）。
+- 证据：`P2D-eval-epoch99-cols-20261031.{csv,log,counts.json}`、
+  `P2D-eval-falcon-full-cols-20261031.{csv,log,counts.json}`（旧 6 列 CSV 保留不动，便于对拍）。
+
+

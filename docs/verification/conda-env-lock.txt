@@ -1,3 +1,12 @@
+# Falcon 训练/评测环境精确锁定（conda `falcon`；`pip freeze` 快照，共 115 个包）。
+# 新机器 / 环境损坏时按**两步**重建（顺序不可换：torch 的 +cu128 轮子不在 PyPI，必须先走官方 index）：
+#   1) pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 torchvision==0.23.0+cu128 \
+#          --index-url https://download.pytorch.org/whl/cu128
+#   2) pip install -r docs/verification/conda-env-lock.txt
+# 备注：
+#   - 本文件不含本机绝对路径（2026-10-24 已把 18 个 wheelhouse 路径改写为 pkg==version），可直接 pip install -r；
+#   - `pypesq` 是 site-packages 下的兼容层（非发行包，`pip freeze` 不显示），重建后按 AGENTS.md §5 手工创建；
+#   - `typeguard` 必须 <3、`torch` 固定 2.8.0+cu128、`numpy` 固定 2.2.6（见 AGENTS.md §4）。
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1

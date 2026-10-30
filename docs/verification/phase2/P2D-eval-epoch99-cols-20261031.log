@@ -1,0 +1,48 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] config      : /root/code/github_repos/Falcon-fork/configs/LRS2_2Mix.yml
+[eval] test index  : /root/data/falcon_lrs2_2mix/tt
+[eval] ckpt_path   : /root/tmp/p2d_train/Experiments/checkpoint/LRS2_2Mix_1gpu/epoch=99.ckpt
+[eval] results dir : /root/tmp/p2d_eval_ep99_v4/Experiments/checkpoint/LRS2_2Mix/results
+🚀 [eval] 1 worker(s) | gpus=0 | limit=all
+lipreading_preprocessing_func:  Compose(
+    Normalize(mean=0.0, std=255.0)
+    <look2hear.datas.transform.CenterCrop object at 0x7f59fad6e350>
+    Normalize(mean=0.421, std=0.165)
+)
+3000 3000
+Drop 0 utts(0.00 h) from 3000 (shorter than None samples)
+[eval] test index: /root/data/falcon_lrs2_2mix/tt | utterances=3000 | this rank=3000 | device=cuda:0
+   ✓ audio_model loaded: 525 keys from epoch=99.ckpt
+   ✓ video_model loaded: 137 keys from epoch=99.ckpt
+Testing (Rank 0) ━━━━━━━━━━━━━ • 3000/3000 • 5 bytes/s • 0:00:00 • sdr: 14.239  
+                                                                   sdr_i: 9.14  
+                                                                   si-snr:      
+                                                                   13.737       
+                                                                   si-snr_i:    
+                                                                   8.746 pesq:  
+                                                                   2.579 stoi:  
+                                                                   0.944        
+                                                                   si-snr_mix:  
+                                                                   4.991        
+                                                                   sdr_mix:     
+                                                                   5.098        
+[eval] per-utterance results: /root/tmp/p2d_eval_ep99_v4/Experiments/checkpoint/LRS2_2Mix/results/metrics_rank0.csv
+
+✅ [Success] Combined metrics saved to: /root/tmp/p2d_eval_ep99_v4/Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv
+✅ [Success] Valid counts saved to: /root/tmp/p2d_eval_ep99_v4/Experiments/checkpoint/LRS2_2Mix/results/metrics_counts.json
+----------------------------------------
+Final metrics (per-utterance, all workers):
+sdr           14.222311
+sdr_i          9.121848
+si-snr        13.719868
+si-snr_i       8.726148
+pesq           2.577971
+stoi           0.943988
+si-snr_mix     4.993720
+sdr_mix        5.100463
+----------------------------------------
+Valid counts (finite values per column):
+sdr=3000/3000, sdr_i=3000/3000, si-snr=3000/3000, si-snr_i=3000/3000, pesq=3000/3000, stoi=3000/3000, si-snr_mix=3000/3000, sdr_mix=3000/3000
+----------------------------------------
+exit=0

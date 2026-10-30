@@ -23,7 +23,7 @@ Everything runs on your machine: the interface, fonts, scripts and the MediaPipe
 
 ## Quick start
 
-1. Double-click **Start Falcon.command** in Finder. The first run checks the environment, installs missing dependencies and downloads the weights from Hugging Face.
+1. Double-click **Start Falcon.command** in Finder. It reuses an existing environment; if dependencies are missing it stops and asks you to run `./scripts/bootstrap.sh --yes` once (the bootstrap lists the packages it will change). Weights download from Hugging Face on first use.
 2. The browser opens; wait until the model has loaded and warmed up.
 3. Click **Enable devices** and allow camera and microphone access.
 4. **Auto tracking** is the default. Face the camera with your mouth visible, wait for the green lip outline and the **AUTO** crop to follow you, then click **Start separation**.
@@ -110,11 +110,15 @@ Run from `studio/`:
 ./scripts/launch.sh                              # pick Metal or CPU automatically, open the browser
 ./scripts/launch.sh --device cuda                # or --device mps / --device cpu
 ./scripts/launch.sh --model JusperLee/Falcon-Big # start with Falcon-Big loaded
+./scripts/launch.sh --checkpoint /path/to/falcon.pt  # local .pt, or hf://<org>/<repo>/<file>
 ./scripts/launch.sh --port 7861 --no-browser
 ./scripts/doctor.sh                              # check dependencies, Metal / CUDA and model downloads
+./scripts/doctor.sh --check-only                 # diagnose only: never bootstrap or install
 ```
 
-`auto` tries CUDA, then Metal, and falls back to the CPU if the GPU warm-up fails. On Linux, install a CUDA build of PyTorch (see pytorch.org) and the requirements, then run `python server.py --device cuda` and open the printed address in Chrome; the `.command` launchers and BlackHole are macOS only. The launcher reuses a working `.venv` in this folder, otherwise installs into `~/Library/Caches/FalconStudio/venv`, outside iCloud. It prefers the pinned `requirements-lock.txt`. Python 3.10–3.12 is supported (3.11 recommended); use `FALCON_PYTHON=/path/to/python3.11` to pick an interpreter, `FALCON_VENV=/path` for another environment, and `./scripts/bootstrap.sh` to install without starting.
+`auto` tries CUDA, then Metal, and falls back to the CPU if the GPU warm-up fails. On Linux, install a CUDA build of PyTorch (see pytorch.org) and the requirements, then run `python server.py --device cuda` and open the printed address in Chrome; the `.command` launchers and BlackHole are macOS only. The launcher reuses a working `.venv` in this folder, otherwise uses `~/Library/Caches/FalconStudio/venv` outside iCloud; installing missing packages always requires an explicit `./scripts/bootstrap.sh --yes`. It prefers the pinned `requirements-lock.txt`. Python 3.10–3.12 is supported (3.11 recommended); use `FALCON_PYTHON=/path/to/python3.11` to pick an interpreter, `FALCON_VENV=/path` for another environment, and `./scripts/bootstrap.sh` to install without starting.
+
+`--checkpoint` works on `launch.sh`, `server.py` and `infer_file.py` (the file must match the selected small/big model), and the server also accepts `{"variant": "small", "checkpoint": "..."}` on `/api/load`; `/api/status` reports the loaded checkpoint filename and SHA-256. An interpreter that already imports torch, numpy and Pillow (`FALCON_PYTHON`, `FALCON_VENV`, or a `FALCON_MANAGED_ENV=1` run) is reused as-is and is never installed into; with `FALCON_MANAGED_ENV=1`, an interpreter that fails that check is rejected instead of being installed into. `bootstrap.sh` prints the packages it would install or change and only proceeds with `--yes`; `doctor.sh --check-only` skips bootstrap entirely and uses the supplied interpreter.
 
 ### Offline inference on a clip
 
@@ -123,7 +127,7 @@ ffmpeg -i input.mp4 -ac 1 -ar 16000 mix.wav
 python infer_file.py --audio mix.wav --mouth mouth.npy --out target.wav --model JusperLee/Falcon
 ```
 
-`mouth.npy` holds the target speaker's grayscale 96×96 mouth crops at 25 fps, shape `(T, 96, 96)` (`.npz` and `.pt` also work). `--checkpoint` takes a local weights file or `hf://<org>/<repo>/<file>` instead of the model's own weights.
+`mouth.npy` holds the target speaker's grayscale 96×96 mouth crops at 25 fps, shape `(T, 96, 96)` (`.npz` and `.pt` also work). `--checkpoint` takes a local weights file or `hf://<org>/<repo>/<file>` instead of the model's own weights (the same option exists on `server.py`).
 
 ### Python API
 
@@ -159,7 +163,7 @@ target = model.infer(audio, mouth)                         # (32000,) target spe
 
 **Port in use.** Without `--port`, the app picks the next free port in 7860–7899; with `--port` it uses exactly that port. Closing the browser tab does not stop the service; press Control-C in the terminal.
 
-**Broken dependencies.** Rerun `./scripts/bootstrap.sh`, or install into a fresh environment with `FALCON_VENV=/new/path`.
+**Broken dependencies.** Rerun `./scripts/bootstrap.sh --yes` (it lists the packages it will change first), or install into a fresh environment with `FALCON_VENV=/new/path`. Use `./scripts/doctor.sh --check-only` to diagnose without installing anything.
 
 ## Project layout
 

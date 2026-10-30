@@ -145,7 +145,7 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
   --ckpt_path /root/.cache/falcon_weights/falcon.pt \
   --gpus <空闲物理卡号> 2>&1 | tee /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2E-realssa-sim-ch0-eval.log
 # 产物：/root/tmp/p2e_sim_ch0/Experiments/checkpoint/Falcon/results/metrics_combined.csv
-# 落盘：cp .../metrics_combined.csv docs/verification/phase2/P2E-realssa-sim-ch0-metrics_combined.csv
+# 落盘：cp .../metrics_combined.csv docs/verification/phase2/P2E-realssa-sim-ch0-metrics_combined-20261030.csv
 ```
 
 ---

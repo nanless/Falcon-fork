@@ -32,7 +32,7 @@ RealSSA-Real 的 DNSMOS 口径未定、LRS2-2Mix 列未复现；L3（训练）LR
 | 1 | **RealSSA-Sim SI-SNRi** | 7.7 | **7.774** | test 全量 9,169 | 官方 `falcon.pt`（small，0.538 M） | 整句、4ch→mono（论文 **channel-1=ch0**；mean 与 ch0 均已复评）、16 kHz | **+0.07** | 同分布；指标口径正确 | ✅ **复现（±0.3 内；mean 7.774/8.479，ch0 7.977/8.452）** |
 | 2 | **RealSSA-Sim SDRi** | 8.2 | **8.479** | 同上 | 同上 | SDR = fast_bss_eval 512-tap | **+0.28** | 同上；512 tap 变体本身 ±0.35 | ✅ **复现** |
 | 3 | RealSSA-Sim（1000 条快速估计） | 7.7/8.2 | 7.935 / 8.754 | test 前 1000 | 官方 small | 同上 | +0.24/+0.55 | 子集偏易 | 参考（非最终） |
-| 4 | **RealSSA-Real DNSMOS** | 3.276 | **P808 3.3285**（+0.053）<br>**OVRL 2.7901**（−0.486）<br>SIG 3.2209 / BAK 3.6921 | 54/54 段（84 min、4 场景） | 官方 small | channel=mean、`align_tail=True`、**窗口化推理**（2 s 窗/0.5 s hop）后整段拼接打分 | 取决于 3.276 是 P808 还是 OVRL | 论文已确认=P.835（2026-10-30）；3.276 属 RealSSA-trained ckpt；窗口化自带 ~2 dB 损失 | ❌ **口径不成立**：同 ckpt OVRL 2.79 不可比（P808 3.33 是巧合） |
+| 4 | **RealSSA-Real DNSMOS** | 3.276 | **full4**：P808 **3.3365**<br>OVRL **2.7941**<br>SIG 3.2226 / BAK 3.6981（full3 作废） | 54/54 段（84 min、4 场景） | 官方 small | channel=mean、`align_tail=True`、**窗口化推理**（2 s 窗/0.5 s hop）后整段拼接打分 | 取决于 3.276 是 P808 还是 OVRL | 论文已确认=P.835（2026-10-30）；3.276 属 RealSSA-trained ckpt；窗口化自带 ~2 dB 损失 | ❌ **口径不成立**：同 ckpt OVRL 2.79 不可比（P808 3.33 是巧合） |
 | 5 | RealSSA-Real mixture 基线 | — | OVRL 1.7599 / P808 2.6765 | 同上 | 无（mix 直接打分） | 同上 | 分离提升 **+1.03 OVRL / +0.65 P808** | — | 参考 |
 | 6 | **LRS2-2Mix SI-SNRi** | 14.1 | 官方权重 **7.029**（跨语料）<br>自训 ep86 **8.618**<br>自训+对比 ep124 **8.858** | tt 全量 3,000（2 s clip） | `falcon.pt` / `epoch=86.ckpt` / `epoch=124.ckpt` | target=s1、整句 | −7.07 / −5.48 / −5.24 | ① 发布权重是 LRS3 训练（主因 ~6 dB）② 我们只单卡 bs4、无 near 真源、130 epoch | ❌ **未复现** |
 | 7 | **LRS2-2Mix SDRi** | 14.7 | 7.713 / 9.042 / 9.270 | 同上 | 同上 | 同上 | −6.99 / −5.66 / −5.43 | 同上 | ❌ **未复现** |
@@ -404,7 +404,7 @@ near 负样本、8 vs 10 卡、通道、窗口化、DNSMOS 口径）；④ 随�
   因此本文 §2/§7 关于“论文未公开、协议只能推断”的结论作废，协议细节见 `PAPER_ALIGNMENT_20261030.md`。
 - **仓库收口**：分支统一为 **main**（删除本地/远端 `repro/phase1`、`repro/phase2`），移除多余 worktree `wt-main`；
   新增提交：`714e1a5`（RealSSA mouths.pt 原子写）、`d9ec1e8`（上游合并）、`3d36b78`/`d076be9`（同步与论文校正文档）。
-  已 push 到 **`origin/main` = `d076be9`**；远端只剩 `main` + tag `repro-phase2-freeze-20261024`。
+  已 push 到 **`origin/main`**（当前值见 `docs/STATUS.md`）；远端只剩 `main`；tag `repro-phase2-freeze-20261024` 为 10-24 历史快照，最新冻结 tag 见 STATUS。
 - **论文校正要点**（详见 `PAPER_ALIGNMENT_20261030.md`）：DNSMOS 3.276 = **P.835** 且属 RealSSA-trained ckpt
   （同 ckpt OVRL 2.79 不可比）；RealSSA-Sim 论文用 **channel-1**（`--channel 0`），我们此前用 mean；
   论文训练配方 = **−SI-SNR、τ 0→1/1000 epoch、8×3090/bs4/seed42**（仓库 `pairwise_neg_snr` 与 β/200 属偏离）；

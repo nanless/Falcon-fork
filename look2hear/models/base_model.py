@@ -52,6 +52,8 @@ class BaseModel(nn.Module):
 
     @staticmethod
     def from_pretrain(pretrained_model_conf_or_path, *args, **kwargs):
+        import warnings
+
         from . import get
 
         conf = torch.load(
@@ -60,6 +62,11 @@ class BaseModel(nn.Module):
         # print(conf.keys())
 
         model_class = get(conf["model_name"])
+        # Self-describing checkpoints: when the caller gives no explicit ctor args,
+        # rebuild from the ``model_args`` saved by ``serialize`` (A1-2). Explicit
+        # args/kwargs always win, so existing call sites are unaffected.
+        if not args and not kwargs and conf.get("model_args"):
+            kwargs = dict(conf["model_args"])
         # model_class = get("Conv_TasNet")
         model = model_class(*args, **kwargs)
         missing, unexpected = model.load_state_dict(conf["state_dict"], strict=False)
@@ -69,7 +76,6 @@ class BaseModel(nn.Module):
                 f"(model has layers not in checkpoint):\n  {missing[:5]} ..."
             )
         if unexpected:
-            import warnings
             warnings.warn(
                 f"from_pretrain: {len(unexpected)} unexpected keys in checkpoint "
                 f"(checkpoint has extra layers ignored by current model). "

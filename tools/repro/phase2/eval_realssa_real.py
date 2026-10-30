@@ -382,7 +382,11 @@ def _extract_windowed(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarr
     """窗口化推理（2 s 窗 / 0.5 s hop / 80 ms guard），内存有界；等价于 Studio 推理协议。
 
     长录音（RealSSA-Real 单段可达数分钟）整段前向会产生 O(T) 大特征图导致 OOM；这里按 Studio 调度：
-    每个窗口取 pred[LEFT:LEFT+HOP]（绝对 [endpoint-9280, endpoint-1280)），首窗左补零、末窗右补零。
+    endpoint 是“当前窗输出终点（session 坐标，不含）”；每个窗取 pred[LEFT:LEFT+HOP]，对应绝对
+    [endpoint-GUARD-HOP, endpoint-GUARD)。与 studio/server.py:266（start_sample=endpoint-GUARD-HOP,
+    end_sample=endpoint-GUARD）和 studio/web/app.js:624（首窗 end=sessionEpoch+HOP+GUARD）一致：
+    **首窗 endpoint=HOP+GUARD**，首窗输出覆盖 [0, HOP)，不会留下 1.34 s 静音前缀（A4-1 修复）。
+    输出覆盖率断言：整段 out 必须 100% 被写；否则列出未覆盖区间并 raise。
     边界不做 20 ms crossfade（评测指标对拼接不敏感；报告已声明，Phase 3 可加）。
     """
     from infer_file import preprocess                # noqa: E402
@@ -402,7 +406,10 @@ def _extract_windowed(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarr
     audio = np.asarray(audio[:samples], dtype=np.float32)
     mouth = np.asarray(mouth[:frames])
     out = np.zeros(samples, dtype=np.float32)
-    endpoint = LEFT + HOP                              # 首块绝对起点 = 0
+    filled = np.zeros(samples, dtype=bool)             # 逐样本记录是否被某个窗写入（覆盖率断言用）
+    # Studio 语义：首窗输出绝对 [0, HOP)，因此 endpoint 初值 = HOP + GUARD（不是 LEFT + HOP）。
+    # 旧值 LEFT+HOP=30720 会让首窗写 [21440, 29440)，[0, 21440)（1.34 s）永久静音 —— A4-1 bug。
+    endpoint = HOP + GUARD                             # 9280; abs_start = endpoint-(HOP+GUARD) = 0
     with runtime._lock, torch.inference_mode():
         while endpoint - (WINDOW - LEFT) < samples:
             wstart = endpoint - WINDOW
@@ -421,14 +428,33 @@ def _extract_windowed(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarr
             wav = torch.from_numpy(np.ascontiguousarray(win)).unsqueeze(0).to(runtime.device)
             emb = runtime.video_model(preprocess(mframes).to(runtime.device))
             pred = runtime.audio_model(wav, emb)[0, 0].float().cpu().numpy()
-            abs_start = endpoint - (WINDOW - LEFT)
+            abs_start = endpoint - (WINDOW - LEFT)     # = endpoint-(HOP+GUARD)，与 Studio start_sample 同义
             chunk = pred[LEFT:LEFT + HOP]
             lo2, hi2 = max(0, abs_start), min(samples, abs_start + HOP)
             if hi2 > lo2:
                 out[lo2:hi2] = chunk[lo2 - abs_start:hi2 - abs_start]
+                filled[lo2:hi2] = True
             endpoint += HOP
     if not np.isfinite(out).all():
         raise SystemExit("Falcon produced non-finite output.")
+    # 覆盖率断言：窗口拼接必须 100% 覆盖整段音频，任何未写样本都说明调度 bug（不允许静默留白）。
+    if not filled.all():
+        missing = np.flatnonzero(~filled)
+        gaps: list[tuple[int, int]] = []
+        start = prev = int(missing[0])
+        for idx in missing[1:]:
+            idx = int(idx)
+            if idx != prev + 1:
+                gaps.append((start, prev + 1))
+                start = idx
+            prev = idx
+        gaps.append((start, prev + 1))
+        shown = gaps[:8]
+        raise RuntimeError(
+            f"windowed inference coverage failure: {missing.size}/{samples} samples unwritten "
+            f"({missing.size / samples:.4%}); gaps(sample[start,end))={shown}"
+            + (" ..." if len(gaps) > len(shown) else "")
+        )
     return out
 
 

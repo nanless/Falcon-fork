@@ -41,6 +41,8 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
 </div>
 
 > Falcon is a causal audio-visual target speaker extraction (AVTSE) model that separates in a single encoder–decoder pass. It reaches state-of-the-art quality on RealSSA, LRS2-2Mix, LRS3-2Mix and VoxCeleb2-2Mix with 0.5 M trainable parameters, and runs live in video meetings on a laptop.
+>
+> **Reproduction note (2026-10-31)**: in this release the "causal" property is **window-causal** — `torch.stft(center=True)`, window-wide `cLNhw` and symmetric `AudioBlock` convolutions give a measured one-pass lookahead of **57 frames ≈ 456 ms** (not the 120 ms stated in the paper App. E), with no cross-window state; Studio therefore recomputes a 2 s window every 0.5 s. See `docs/understanding/THREE_ROUND_REVIEW_20261030.md` (A2-1/A9-1).
 
 ## 💥 News
 
@@ -226,6 +228,8 @@ Efficiency on a 2 s, 16 kHz clip with 50 mouth frames (RTX 3090 / Intel Xeon, ba
 | **Falcon (ours)** | **0.5** | 10.6 | 1361.2 | 51.3 | 125.3 | 364.7 |
 
 Dolphin and AV-Mossformer2 were re-implemented as causal variants under our training protocol; the other baselines follow the values reported by Swift-Net. Ablations and real-world NISQA results are in the [paper](https://arxiv.org/abs/2610.32749).
+
+> **Reproduction note**: the paper trains a separate model per benchmark. The released `falcon.pt` comes from `LRS3_complex_nonmoving` (epoch 714); evaluated on LRS2-2Mix it gives **7.03 / 7.71** (cross-corpus), while RealSSA-Sim gives **7.774 / 8.479** (paper 7.7/8.2). Reaching 14.1/14.7 on LRS2 requires an LRS2-trained checkpoint. Details: `docs/STATUS.md`.
 
 ## 🗂️ Repository layout
 

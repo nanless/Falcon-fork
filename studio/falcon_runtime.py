@@ -7,6 +7,7 @@ The browser/server is responsible for lip tracking and capture synchronization.
 from __future__ import annotations
 
 import copy
+import hashlib
 import os
 from pathlib import Path
 import threading
@@ -37,6 +38,18 @@ VARIANTS = {
 MODEL_CLASSES = {"FalconSpeakerContrastive": FalconSpeakerContrastive, "SpeakerContrastiveV2": SpeakerContrastiveV2}
 # The Hub counts a model download when config.yaml is requested; requests for the .pt weights are not counted.
 HUB_COUNTED_FILE = "config.yaml"
+
+
+def file_sha256(path: str | Path, chunk_size: int = 1 << 20) -> str | None:
+    """SHA-256 of a checkpoint file, or None when it cannot be read."""
+    try:
+        digest = hashlib.sha256()
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(chunk_size), b""):
+                digest.update(block)
+        return digest.hexdigest()
+    except OSError:
+        return None
 
 
 def variant_for(name: str) -> str:
@@ -139,6 +152,7 @@ class FalconRuntime:
         # Resolved (downloaded if needed) in load(); until then only the name is reported.
         local = checkpoint_path and not str(checkpoint_path).startswith("hf://")
         self.checkpoint_path = Path(checkpoint_path if local else VARIANTS[variant]["weights"])
+        self.checkpoint_sha256: str | None = None
         self._lock = threading.RLock()
         self.audio_model = None
         self.video_model = None
@@ -160,6 +174,7 @@ class FalconRuntime:
             self.ready = False
             self.error = None
             self.warning = None
+            self.checkpoint_sha256 = None
             self.requested_device = device
             try:
                 self.checkpoint_path = resolve_checkpoint(self.variant, self.checkpoint_spec)
@@ -193,6 +208,8 @@ class FalconRuntime:
                 self.audio_keys, self.video_keys = len(audio_state), len(video_state)
                 self.parameter_count = sum(p.numel() for m in (self.audio_model, self.video_model) for p in m.parameters())
                 del ckpt, state, audio_state, video_state
+                # Hash the exact bytes that were loaded; the file is already local at this point.
+                self.checkpoint_sha256 = file_sha256(self.checkpoint_path)
 
                 # Small recurrent kernels generally slow down with excessive CPU threads.
                 threads = max(1, min(8, int(os.environ.get("FALCON_CPU_THREADS", "4"))))
@@ -244,6 +261,7 @@ class FalconRuntime:
             "device": self.device,
             "requested_device": self.requested_device,
             "checkpoint": self.checkpoint_path.name,
+            "checkpoint_sha256": self.checkpoint_sha256,
             "sample_rate": SAMPLE_RATE,
             "video_fps": VIDEO_FPS,
             "window_seconds": 2.0,

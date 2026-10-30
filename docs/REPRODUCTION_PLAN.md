@@ -22,9 +22,9 @@
 | **L1 推理复现** | 用官方权重跑 Studio / 离线推理，验证参数量、形状、数值一致性 | ✅ **已完成** | 真实权重可加载，训练侧与 Studio 侧输出 **bit-identical**；参数 11.72 M / 可训练 0.5377 M；MACs 10.611 G 与 README 一致 |
 | **L2 评测复现** | 用官方权重在 RealSSA / LRS2-2Mix / LRS3-2Mix / VoxCeleb2-2Mix 上复现表中指标 | ⚠️ **可做，但要先拿数据 + 修评测代码** | RealSSA-Real 可下载（gated）；RealSSA-Sim 可申请（gated，522 GB）；**LRS2-2Mix 公开且已下载（16.47 GB，完整 AV：mix/s1/s2 + mouths/faces/landmarks）**；**LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库没有数据文件** |
 | **L3 训练复现** | 从零训练 Falcon，复现主表指标 | ❌ **当前不可直接做** | 缺：RealSSA-Sim 访问权限、数据格式转换、Comet/PL 等 P0 修复；**对比学习负样本（near 源波形）官方未发布**，只能近似或改配方 |
-| **L4 贡献/消融复现** | NASS 对比损失、MDCL、TFRB/GCI、因果性分析 | ⚠️ **部分可做** | 架构/因果性可复算（已做）；对比损失需替代负样本方案；**论文未公开**，消融设置只能靠代码与 README 推断 |
+| **L4 贡献/消融复现** | NASS 对比损失、MDCL、TFRB/GCI、因果性分析 | ⚠️ **部分可做** | 架构/因果性可复算（已做）；对比损失需替代负样本方案；~~论文未公开~~（已公开 arXiv:2610.32749），消融设置见 `PAPER_ALIGNMENT_20261030.md` |
 
-**最大的三个卡点**：① 论文还没有公开（README 明确写 "Paper link will be added when available"）；
+**最大的三个卡点**：① ~~论文还没有公开~~（**2026-10-23 已公开 arXiv:2610.32749**，协议见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`）；
 ② RealSSA-Sim 是需人工审批的 gated 数据集，且**不含近场干扰源的原始波形**（官方 dataset card 明确说明）；
 ③ LRS3-2Mix / VoxCeleb2-2Mix 训练数据未随 HF 数据集发布。
 
@@ -42,7 +42,7 @@
   - **RealSSA 数据集发布**（README 增加 RealSSA-Sim / RealSSA-Real 链接与说明；`689555c` 同步中文版）。
   - 新增 `space/`：Hugging Face ZeroGPU Space（record-then-separate，复用 `studio/` 运行时，`build.py` 组装）。
   - Studio 健壮性更新：设备启动超时上限、采集卡顿诊断（`window.falconDiagnostics()`）、i18n 动态更新。
-  - **论文仍未公开**：README 第 40 行 “Paper link will be added when available”。
+  - ~~**论文仍未公开**~~：2026-10-23 已公开 arXiv:2610.32749（README 已更新链接）。
 - 训练/评测代码（`look2hear/`、`audio_train.py`、`audio_visual_test.py`、`DataPreProcess/`）**未变化** → 我们之前发现的 P0 全部仍然存在。
 
 ### 1.2 环境与验证资产（已完成）
@@ -58,8 +58,7 @@
 
 ## 2. 论文状态与对复现的影响
 
-- **没有公开论文**：README 明确写 “Paper link will be added when available”；arXiv / OpenAlex / Semantic Scholar
-  检索均无该标题记录；项目页也没有 paper 链接。
+- ~~**没有公开论文**~~：2026-10-23 已公开 **arXiv:2610.32749**（28 页），README/项目页已有链接；协议核对见 `PAPER_ALIGNMENT_20261030.md`。
 - 数据集 card 只说 “accompanies Falcon (NeurIPS 2026)”，未给方法细节。
 - 影响：
   1. **RealSSA 生成参数**（房间尺寸范围、RT60、SIR、场景比例）只能从数据集 JSON 统计反推（拿到数据后）；
@@ -388,7 +387,7 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 
 | # | 风险/缺口 | 影响 | 应对 |
 |---|---|---|---|
-| R1 | **论文未公开** | 评测协议、训练细节、消融设置不确定 | 以代码/配置/README/card 为准；记录所有推断 |
+| R1 | ~~论文未公开~~ | 已于 2026-10-23 公开（arXiv:2610.32749） | 按论文 Table 16/App A.2 执行；差异写报告 |
 | R2 | **RealSSA-Sim 近场源波形未发布**（官方 card 明确） | NASS 对比损失无法精确复现 | 方案 1/2/3（§5.1 Step 4），报告中明确“非官方负样本” |
 | R3 | RealSSA-Sim gated 人工审批 | 时间不可控 | 尽早提交申请；先用 1 个 shard 验证管线 |
 | R4 | RealSSA-Sim 4ch、协议未声明 | 通道选择影响指标 | ch0/mean 两种都跑并报告 |

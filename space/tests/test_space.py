@@ -3,7 +3,6 @@ import base64
 import json
 import os
 from pathlib import Path
-import shutil
 import socket
 import subprocess
 import sys
@@ -71,14 +70,6 @@ def call(base, payload):
     return name.split(": ", 1)[1], json.loads(data.split(": ", 1)[1])
 
 
-def test_build_merges_space_files(build):
-    assert (build / "web" / "vendor" / "mediapipe" / "face_landmarker.task").is_file()
-    assert "import spaceMessages from './i18n-space.js'" in (build / "web" / "i18n.js").read_text()
-    assert (build / "web" / "app.js").read_text().startswith("// Falcon Studio on a ZeroGPU Space")
-    assert not list(build.rglob("__pycache__")) and not list(build.rglob("*.test.cjs"))
-    assert (build / "README.md").read_text().startswith("---\ntitle: Falcon Studio")
-
-
 def test_page_status_and_headers(base):
     status, headers, body = get(base + "/")
     assert status == 200 and b"/static/app.js" in body
@@ -109,8 +100,3 @@ def test_separate_round_trip(base, variant):
 def test_separate_reports_invalid_clip(base):
     event, data = call(base, encode_request(times=[0.0]))
     assert event == "error" and data["error"] == "嘴部画面数量与录音时长不符。"
-
-
-@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
-def test_every_chinese_string_has_an_english_translation(build):
-    subprocess.run(["node", str(SPACE / "tests" / "check_i18n.mjs"), str(build)], check=True)
