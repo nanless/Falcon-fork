@@ -1,0 +1,303 @@
+[
+ {
+  "issue_id": "S1-S1-01",
+  "final_verdict": "real_open",
+  "priority": "P1",
+  "evidence": "①文档侧：`grep -n -i \\\"streaming|causal|因果\\\" docs/understanding/PAPER_ALIGNMENT_20261030.md` 只命中标题引文(:5)与 TFRB 描述(:242)，全文仅 :283 出现一次 120 ms，且该行是「论文只报…lookahead 120 ms」，未与本实现并列；②as-built：01-model-core.md:506 / A20(:774) / 02-layers-dsp.md:482 = 57 帧=7,296 采样≈456 ms，含 cLNhw 无界；代码 `Falcon.py:765,801,814` 硬编码 causal=False；③R3 测量在 HEAD 仍成立：`git diff upstream/main -- look2hear/models/Falcon.py` 仅 +5 行（_mdcl_loss 别名 :1464-1467）；④论文侧缓存全文 /tmp/dsh-spill-b7byK2/session-113276a90dfe/0f0263a00387-web_fetch.txt 有两处硬冲突：App E「visual stream buffers three future frames, corresponding to 120 ms of lookahead … audio hop 128 samples = 8 ms … no additional future-chunk buffer」+ §6.4「at most 15 frames of lookahead」；Eq.3 段「All convolutions use left-aligned padding along time and symmetric padding along frequency, adding no temporal lookahead」——而 release 代码的 downsample/fusion/concat 是 causal=False（时间对称 padding）。",
+  "next_action": "docs/understanding/PAPER_ALIGNMENT_20261030.md 新增「延迟/因果对照」小节（建议放在 §5 之后、§7 之前）一行三列：论文 120 ms（=3 视频帧/15 音频帧，App E+§6.4）↔ as-built 456 ms（57 帧，关 cLNhw）/含 cLNhw 无界/端到端首变 −649 ms ↔ 差异来源 `Falcon.py:765,801,814` 的 causal=False、cLNhw 全窗统计、`torch.stft(center=True)`；同段写明论文 Eq.3 的「left-aligned padding along time, no temporal lookahead」与 release 代码不一致（这是论文-代码冲突，不是测量误差）。链到 01 §4.6/A20(:774) 与 02 §4.2/A49(:736)；并在 docs/understanding/FINAL_PROJECT_UNDERSTANDING.md §3.5「causal 声明 vs 实现」清单补一条禁止表述「不得写『与论文 120 ms lookahead 一致』/『复现了论文的 streaming 延迟』」。验收：PAPER_ALIGNMENT 内 grep 同时命中 `120 ms` 与 `456 ms`，且新行含上述三个 file:line。"
+ },
+ {
+  "issue_id": "S2（layers/DSP/视频骨干 + Studio 模型副本）-S2-3",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "实测（falcon 环境）：`studio/falcon_model/videomodels/frcnn_videomodel.py:90-95` 的 train() 无 `return self` → `FRCNNVideoModel().eval()` 输出 `studio eval() returns: NoneType | identity: False`，训练侧 `training eval() returns: FRCNNVideoModel | identity: True`；`studio/falcon_model/models/Falcon.py:1489` 调用 `self._mdcl_loss(...)`，而该文件只有 :1419 `_mdcl_loss_hard` 定义，运行时 `studio Falcon hasattr _mdcl_loss: False`（训练侧 look2hear/models/Falcon.py:1464-1467 有别名）；`studio/falcon_runtime.py:200-202` 注释仍写「The original video model's train() override does not return self」（对上游已不成立）；回归覆盖缺口：test_t5_backbone.py 只 `from look2hear.videomodels import FRCNNVideoModel`(:59)、`import look2hear.models`(:44)，`grep -rln falcon_model studio/tests/` 无命中；drift 规模：diff 有效行 Falcon.py 115 / frcnn_videomodel.py 233 / normalizations.py 25 行，远超 PROVENANCE.md:13-29 声明的 4 类允许差异。",
+  "next_action": "① 在 `studio/falcon_model/videomodels/frcnn_videomodel.py` 的 train() 末尾加 `return self`（可照抄 look2hear 版 docstring）；② 在 `studio/falcon_model/models/Falcon.py:1463` 附近（与训练侧同位置）加 `_mdcl_loss = _mdcl_loss_hard`；③ 删 `studio/falcon_runtime.py:200-202` 过时注释；④ 把 tools/repro/tests/test_t5_backbone.py:55-74 的两个测试参数化到 studio 副本（import 路径参数化，或新增 studio/tests/test_model_copy_contract.py）；⑤ 新增 drift 测试：按 allowlist（DropPath 导入、MPS CPU-FFT 分支、base_model/__init__ 头、去掉 resnet1D/sys.path）规范化后逐文件比较 look2hear 与 studio/falcon_model 的 12 个 .py。验收：`pytest tools/repro/tests/test_t5_backbone.py studio/tests -q` 全过（现 18 + 38）；手工删掉 `return self` 或别名时新增测试变红。"
+ },
+ {
+  "issue_id": "S3-S3-06",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh:43-45`：`for f in \\\"$DATA_ROOT/{tr,cv,tt}/mix.json\\\"; do [ -f \\\"$f\\\" ] && echo \\\"data ok: $f ($(python3 -c \\\"...len...\\\"))\\\"; done` —— 只查 mix.json，不查 target.json/near.json/mouths/*.pt/wav 可读性；计数用系统 `python3`（AGENTS.md §1 明令禁用；本机 /usr/bin/python3 为 3.8.10）；`$( )` 失败不影响 echo 的退出码，故 python3 缺失时仍打印「data ok」；数据侧 near.json 缺失只 `print WARNING` 后继续（look2hear/datas/avspeech_dataset_near.py:99-101）→ 负样本恒空；`grep -rn \\\"Paper_8gpu|volcano\\\" tools/repro/tests/*.py` → 无命中（该启动路径零测试覆盖）。与 S5-03 的 near 静默降 K 部分重叠，本条保留其独有部分：只查 mix、用 python3、无测试。",
+  "next_action": "改 `run_lrs2_paper_volcano_8gpu.sh`：① 三个 split 断言 mix/target/near.json 均存在且长度一致，缺失即 exit 2 并打印缺失文件；② 抽样 20 条 `sf.read(stop=100)`、20 个 `target[1]`/mix[1] mouth `.pt`（`torch.load(weights_only=True)`）；③ near 非自引用比例必须 100%（否则 exit 2，提示改用无 near 配置）；④ 计数改用 `$PYTHON_BIN`；⑤ 新增 `tools/repro/tests/test_phase2_launcher.py` 做静态断言（脚本内必须出现 `target.json`、`near.json`、`$PYTHON_BIN`，不得出现裸 `python3`）。near 可读性全量检查复用 S5-03 的 audit_near.py，不重复实现。验收：把 `/root/data/falcon_lrs2_2mix_paper/tr/near.json` 改名后脚本 5 s 内 exit 2；正常数据打印 `near coverage 100%`；新测试纳入 108 passed 基线。"
+ },
+ {
+  "issue_id": "S4-S4-04",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`tools/repro/phase2/eval_dnsmos.py:80-83`：注释写「超出时按峰值归一化（并返回提示由调用方记录）」，实际 `arr = arr/peak` 后 `return {sig_mos,bak_mos,ovrl_mos,p808_mos}`，无任何 flag；本轮实测 `score_array` 返回键就是 `['bak_mos','ovrl_mos','p808_mos','sig_mos']`，且同一 10 s 谐波信号 peak=0.55 → SIG 1.2322/BAK 1.1383/OVRL 1.1388/P808 2.2420，peak=1.10（被静默归一到 1.0）→ SIG 2.7557/BAK 3.2039/OVRL 2.3004/P808 2.2420，即 OVRL 虚高 +1.16 MOS；参考实现 `speechmos/dnsmos.py:52-54` 对 ndarray 越界直接 `raise ValueError(\\\"np.ndarray values must be between -1 and 1.\\\")`；CLI 无 rescale 开关（eval_dnsmos.py:200-210 只有 --input/--out/--model-type/--resample/--synthetic/--limit/--quiet）；54 段产物头无 peak 列：`DNSMOS-realssa-real-mean-full3/per_segment.csv:1` = inference_id,…,sig_mos,bak_mos,ovrl_mos,p808_mos,mix_*，无 est_peak/est_rescaled。历史数字本身暂未受影响（上一轮实测 est/mix peak 0.6452/0.6508 ≤1），但口径隐式。",
+  "next_action": "① `score_array` 返回体加 `peak` 与 `peak_normalized`，`score_file` 落进 eval_dnsmos 的逐文件 CSV/JSON；② 默认改为「|x|>1 即 raise」，新增 `--allow-rescale` 显式开启（与官方 runner 对齐）；③ `tools/repro/phase2/eval_realssa_real.py:667` 的 per_segment CSV 增列 `est_peak`、`est_rescaled`、`mix_peak`；④ 在 docs/verification/phase2/P2E-report.md §5.1 给 OVRL 2.7901 补注「未触发缩放（峰值 ≤1）」，并写明 DNSMOS 幅度敏感、跨数值比较须同工作点。验收：54 段 CSV 新列全部存在且 est_rescaled 有值；关闭 --allow-rescale 时对 |x|>1 输入非零退出；把 peak=1.10 的合成用例加进 `--synthetic` 自检。"
+ },
+ {
+  "issue_id": "S5 数据管线（look2hear/datas/*、DataPreProcess/*、tools/repro/*.py、docs/DATA_ACCESS_GUIDE.md）-S5-03",
+  "final_verdict": "real_open",
+  "priority": "P1",
+  "evidence": "全量核对 6 个 near.json（falcon 环境 json 脚本）：falcon_lrs2_2mix {tr,cv,tt} = 20000/5000/3000 条、falcon_lrs2_2mix_paper = 40000/10000/6000 条，**全部**指向 `/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/<split>/s2/*.wav`（_paper 另有 s1 一半），当前 missing=0，但该目录在仓库外且 17 GB（`du -sh` → 17G），`df -h /root` → 95% 使用率；静默降 K 代码：avspeech_dataset_near.py:130-132 只数「非空条目」（与可读性无关，日志仍打印 `20000/20000 samples have near-speaker entries`）、:192-199 短 near 静默 continue、:212-220 读失败仅 `warnings.warn` 后继续、启动时只探测第一条(:135-145)；审计工具不存在：`ls tools/repro/audit_near.py` → No such file or directory；`grep -rn \\\"near coverage\\\" tools/ docs/PHASE2_VOLCANO_LRS2_TRAINING.md` → 无命中。",
+  "next_action": "新增只读审计 `tools/repro/audit_near.py`：对给定 data_root 逐 split 读 near.json，全量（或 --sample N）`sf.info` 校验存在+可读+采样率，统计 K 直方图与自引用比例，缺失率>0 时 exit 1 并打印前 20 条缺失路径；接进 docs/PHASE2_VOLCANO_LRS2_TRAINING.md §2 与 09:185-186 迁移清单，并加 `tools/repro/tests/test_audit_near.py`（用 tmp 目录造 2 条好 1 条坏，断言 exit 1；全好断言 exit 0 且打印 `K=1 100%`）；转换器侧加 `--copy-near-audio` 让数据集自包含（+~7 GB，已在 build_lrs2_paper_data.py 有 --copy-wavs 雏形）。验收：把 /root/data/lrs2_2mix/lrs2_rebuild 临时改名（或软链断开）后审计 exit 1 并报缺失数；正常数据输出 28000/28000 可读、K=1。"
+ },
+ {
+  "issue_id": "S6-S6-1",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "直接跑门禁：`/root/miniforge3/envs/falcon/bin/python studio/scripts/check_environment.py` → rc=1，三行「torch: 已安装 2.8.0+cu128，应用需要 >=2.14.1,<3 / numpy: 已安装 2.2.6，应用需要 >=2.4.6,<3 / Pillow: 已安装 13.0.0，应用需要 >=12.3.0,<13」（源：studio/requirements.txt:3,4,9）；bootstrap.sh:24 用该脚本当门禁，失败后既不重建也不中止，:66-84 选 requirements-lock.txt 并无条件 `uv/pip install -r`，:84 复跑门禁（set -euo pipefail :3 下退出）；lock 值：:54 numpy==2.4.6、:60 pillow==12.3.0、:79 torch==2.14.1，`ls /root/wheelhouse | grep torch-2` 有 torch-2.14.1-cp311 wheel；launch.sh:6 `PYTHON_BIN=\\\"$(bootstrap.sh)\\\"`。破坏链需 FALCON_VENV 指向 falcon 环境才触发：默认 ENV_DIR=studio/.venv（不存在）或 ~/Library/Caches/FalconStudio/venv（不存在），本机 /usr/bin/python3=3.8.10 不满足 3.10–3.12，故裸跑会先在 :52 一带失败；但 README:117 明确宣传 FALCON_VENV，AGENTS §2 又规定 falcon 是唯一允许环境，指向它即会就地装 torch 2.14.1（pip 配置为清华镜像，无 find-links 到 /root/wheelhouse）。",
+  "next_action": "Studio 维护者 + 环境 owner：① `check_environment.py` 增 `--check-only`/`FALCON_MANAGED_ENV=1`：只比对并把版本不符降级为 warning（或按 docs/verification/conda-env-lock.txt 做 constraints）；② `bootstrap.sh` 在 `FALCON_MANAGED_ENV=1` 下只打印解释器路径并 exit 0，绝不进入 :66-84 的安装段；③ 任何 pip 调用前打印「将变更的包清单」并要求显式确认（`--yes` 才继续）；④ studio/requirements.txt:3-4,9 的 torch>=2.14.1 / numpy>=2.4.6 / Pillow<13 与 AGENTS §2/§4 的 2.8.0+cu128 / 2.2.6 / 13.0.0 冲突，需改成与项目锁一致或明确注明「仅独立 venv 使用，勿指向 falcon」。验收：`FALCON_MANAGED_ENV=1 FALCON_VENV=/root/miniforge3/envs/falcon studio/scripts/bootstrap.sh` 输出解释器路径、退出 0、全程无 pip，随后 `python -c 'import torch,numpy,PIL;print(torch.__version__,numpy.__version__,PIL.__version__)'` 仍为 2.8.0+cu128/2.2.6/13.0.0，`git status --short` 为空。"
+ },
+ {
+  "issue_id": "S8 证据链/可复现性（docs/verification/**、.gitignore、tools/repro/tests/**、conda-env-lock.txt、git 状态/tag；只读审计）-S8-08",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "本轮重跑对比：`pip freeze` 115 行 vs `docs/verification/conda-env-lock.txt` 115 行，包集合完全相同（only-freeze/only-lock 均为空），但 **18 条版本值不同**，全部是现网 `pkg @ file:///root/wheelhouse/…whl`（torch/torchaudio/torchvision/pytorch-lightning/triton + 13 个 nvidia-*）对 lock 的 `pkg==version`；`grep -c 'file://' docs/verification/conda-env-lock.txt` → 0；lock:98/102/104 = torch==2.8.0+cu128 / torchaudio==2.8.0+cu128 / torchvision==0.23.0+cu128（PyPI 无此本地版本，须 cu128 index），且 lock 头部（head -8）无任何重建命令注释；无护栏：`grep -rn 'file://' tools/repro/tests/*.py` 无命中，无 test_lock_portable；AGENTS.md:40-41 仍写「2026-10-24 已把 18 个 file:// 改写成 pkg==version，可直接 pip install -r 重建」，与 §4「安装后必须 pip freeze > conda-env-lock.txt」互相打架（下次任何安装都会把 18 条 file:// 写回）。",
+  "next_action": "Owner: ops。① 新增 `tools/repro/normalize_freeze.py`（`pkg @ file:///root/wheelhouse/*.whl#sha256=…` → `pkg==version`，保留 `+cu128` 本地版本号）；② 新增 `tools/repro/tests/test_lock_portable.py`：断言 lock 无 `file://`、无 `/root/` 绝对路径、包集合 == normalize(pip freeze)、且 lock 头部含两步重建命令注释；③ 在 lock 顶部加注释块：`pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 torchvision==0.23.0+cu128 --index-url https://download.pytorch.org/whl/cu128` 再 `pip install -r docs/verification/conda-env-lock.txt`；④ 把 AGENTS.md:40-41 的「可直接 pip install -r 重建」改为这两步原文，并在 §4 把「pip freeze 覆盖 lock」改成「先 normalize_freeze 再覆盖」。验收：`grep -c 'file://' docs/verification/conda-env-lock.txt`=0 且 `pytest -k lock_portable` 绿；干净 venv 按文档两步装成功且 `torch.__version__`=2.8.0+cu128。"
+ },
+ {
+  "issue_id": "S10-S10-4",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh:22` `DATA_ROOT=\\\"${DATA_ROOT:-/root/data/falcon_lrs2_2mix_paper}\\\"`、:34 `echo \\\"data_root = $DATA_ROOT\\\"`、:43 用它校验 mix.json，但脚本全文再无其他使用（不注入训练）；`configs/LRS2_2Mix_Paper_8gpu.yml:139-141` 写死 `/root/data/falcon_lrs2_2mix_paper/{tr,cv,tt}`；`audio_train.py` 无 env 展开（`grep -n \\\"DATA_ROOT|expandvars|os.environ\\\" audio_train.py` 仅 :224 COMET_API_KEY）；runbook `docs/PHASE2_VOLCANO_LRS2_TRAINING.md:76-78` 恰恰教 `DATA_ROOT=/data/falcon_lrs2_2mix_paper`，:103-104 评测命令指向 `/root/data/falcon_lrs2_2mix`（3000 条 tt）；迁移清单 `deepdive-20261024/09-benchmark-alignment.md:185-186` 只写 `_paper`（26 GB），未含该评测集。",
+  "next_action": "tools owner 二选一：① 脚本用 `sed`/`envsubst` 把 `$DATA_ROOT` 渲染进 `$TMPDIR/conf_$$.yml` 并以 `--conf_dir` 指向它（同时把 conf 里的 data_config 三个目录改写成可替换占位）；② 或 `configs/LRS2_2Mix_Paper_8gpu.yml` 用 `${DATA_ROOT}` 并在 `audio_train.py` 读 conf 后 `os.path.expandvars`。二者都要把 :34 的 echo 改成打印三个**生效**目录（从 conf 读回），并补一条断言「生效目录 == $DATA_ROOT，否则 exit 2」。同时把 `falcon_lrs2_2mix/tt`（3000 条）写进 runbook §2 与 09:185-186 迁移清单。验收：`DATA_ROOT=/tmp/xxx bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh` 打印的生效路径随 DATA_ROOT 变化（或明确 exit 2 报「不支持覆盖」）；迁移清单含 tt 3000 条。"
+ },
+ {
+  "issue_id": "R2-S1 交叉复核（第 2 轮）· 子域 S2 = 层/DSP/视频骨干（look2hear/layers + look2hear/models/Falcon.py 的 STFT/TFGN/TFRB/MHSA/normalization + look2hear/videomodels）-111",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "代码事实：`look2hear/videomodels/frcnn_videomodel.py:113-124` 的 `update_frcnn_parameter` 先 `model_dict = model.state_dict()`（含全部键）再 `model_dict.update(pretrained_dict)` 再 `load_state_dict(model_dict)` ⇒ strict 校验永远通过，缺键=保持随机初始化且随后 `requires_grad=False`；`init_from`(:86-88) 与 `__init__`(:71-73) 均无键数/哈希断言；调用路径：`audio_train.py:274-276` 直接按 `config['videonet']['videonet_config']` 传入，`configs/Falcon.yml:8` 的 pretrain 即 `pretrain_zoo/frcnn_128_512.backbone.pth.tar`；放大风险已由 `docs/verification/phase1/T5-report.md:52` 记录：small/big 的 video tensors **key 完全相同、60/137 个张量值不同** ⇒ 变体混用零告警；测试只覆盖 happy path（test_t5_backbone.py:125 test_exported_backbone_loads_into_frcnn）。",
+  "next_action": "训练/评测入口（audio_train.py:274-276、audio_visual_test.py 的 video_model 构造处）加载后断言：`set(pretrained) - {'tcn*'}` 的键集合 == `model.state_dict()` 键集合，或对 `missing = set(model.state_dict()) - set(pretrained)` 非空直接 raise（默认）并提供 `--allow-partial-backbone` 逃生口；另在 `tools/repro/extract_video_backbone.py` 导出的 pth.tar 里写 `meta={sha256, n_keys, variant}`，`init_from` 校验 variant 与 `video_params.layers` 一致。不改任何模型数值。验收：喂 103/137 键的 dict 时 raise 并打印 missing 键；`pytest tools/repro/tests/test_t5_backbone.py -q` 仍绿（新增 1 条 partial-load 用例）。"
+ },
+ {
+  "issue_id": "R2-S3 交叉复核（第 2 轮，复核 S4 损失/指标/评测）-121",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`audio_visual_test.py:466-471`：`for rank in range(world_size): shard=...; if os.path.isfile(shard): frames.append(pd.read_csv(shard))` —— 缺失 rank 静默跳过；只有「一个 shard 都没有」(:471-472) 与「utterance 行为空」(:477-478) 才 raise，无「期望条数/每 rank 条数」断言；world_size 来自 gpus 字符串（:451-455），可与 mp.spawn 实际启动数不等（:462-466）；合并后 :497-500 直接删除 per-rank shard ⇒ 事后无法补算或核对；测试缺口：`tools/repro/tests/test_eval_entry.py:137` 只测「忽略 per-rank avg/std 行」，无缺 shard 用例。",
+  "next_action": "eval owner：① 每个 rank 落盘时同写 `metrics_rank{r}.meta.json`（rank、rows、ckpt sha/epoch、limit、data_dir、started/finished 时间）；② `_merge_results` 先读所有 meta，断言 `len(meta)==world_size` 且 `sum(rows) == expected`（expected 从 test_dir 索引条数或 limit 推出），不符即非零退出并列出缺失 rank；③ 在 metrics_combined.csv 旁写 `metrics_combined.meta.json`（n_utterances、各 rank 行数、world_size、ckpt）；④ test_eval_entry.py 新增「删掉 metrics_rank1.csv → raises」用例。验收：手工只留 rank0 时 `_merge_results` 抛错（而非写出偏均值 CSV）；新用例在 108 基线内变绿。"
+ },
+ {
+  "issue_id": "R2-S5-131",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "`studio/README.md:114`（以及 README_zh.md:114）把 `./scripts/doctor.sh` 列为第一条命令并注释「check dependencies, Metal / CUDA and model downloads」；`studio/scripts/doctor.sh:2` `set -euo pipefail`、:5 `PYTHON_BIN=\\\"$(bootstrap.sh)\\\"`、:6 `\\\"$PYTHON_BIN\\\" check_environment.py`（无 --quiet）；本机实测 `/root/miniforge3/envs/falcon/bin/python studio/scripts/check_environment.py` → rc=1（三行版本不符）⇒ :6 在 set -e 下直接中止，:7-28 的 PyTorch/MPS/CUDA/两个 variant 权重诊断**一行都打印不出来**；且 :5 继承 bootstrap 的安装分支（S6-6-1），FALCON_VENV 指向 falcon 时会先装 lock。仅修 bootstrap 不足以修好本条（doctor 自己的 check_environment 仍会中止）。",
+  "next_action": "Studio 维护者：给 doctor.sh 加 `--check-only`/`FALCON_MANAGED_ENV=1` 路径——直接用 `FALCON_VENV`/`FALCON_PYTHON` 给定的解释器（不调用 bootstrap）、跳过安装、把 check_environment 的版本不符改成警告后继续执行 :7-28 的三段诊断；README:114（中英）同步注明 `./scripts/doctor.sh --check-only`。验收：`FALCON_VENV=/root/miniforge3/envs/falcon ./scripts/doctor.sh --check-only` 完整输出 PyTorch/CUDA/两个 variant 缓存状态（退出码 0 或 1 均可），且前后 `pip freeze` 一致、`git status --short` 为空。"
+ },
+ {
+  "issue_id": "R2-S8 交叉复核员（复核 S9 论文对齐）；只读，HEAD a3eb0d7、工作区 clean（git status --porcelain 空）-141",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`README.md:178` 尾部仍是原始 HTML 注释 `<!-- TODO: link to the backbone weights. -->`，`README_zh.md:178` 为 `<!-- TODO: 补充主干权重的下载链接。 -->`；同级正文要求「Put the lip-reading-pretrained visual backbone `frcnn_128_512.backbone.pth.tar` in `pretrain_zoo/`」，但 `ls -d pretrain_zoo` → No such file or directory；`configs/Falcon.yml:8` 的 pretrain 正指向该文件；我们已有可用替代但对外不可见：`tools/repro/extract_video_backbone.py` 存在且其 docstring 自述「The upstream README only has a TODO for this file, so this script rebuilds it from the published weights」，README 全文未引用该脚本；`docs/verification/phase1/T5-report.md` 小节 [3] 已证可导出 137 keys / 11,196,308 元素 / 44.8 MB。",
+  "next_action": "README/发布负责人：把 README.md:178 的 HTML 注释换成可执行内容——`python tools/repro/extract_video_backbone.py --ckpt /root/.cache/falcon_weights/falcon.pt --out pretrain_zoo/frcnn_128_512.backbone.pth.tar`（附「从发布权重导出、与论文同骨干、全冻结、11,186,688 参数」与 sha256），或给官方下载链接+sha256；README_zh.md:178 同步。验收：`grep -n \\\"TODO\\\" README.md README_zh.md` 无输出；全新机器按 README 训练段执行到「模型可前向」不需要猜。"
+ },
+ {
+  "issue_id": "S1-S1-02",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "configs/Falcon.yml:99 `mask_act: ReLU` → look2hear/models/Falcon.py:1233 `act_type=self.mask_act` 作用于 112 通道（RI 各 56）整块输出；本轮实测 MaskGenerator(n_src=1,audio_emb_dim=112,bottleneck_chan=112,k=1,RI_split=True,is2d=True).mask_generator(randn(1,112,20,129)) = min 0.0 / max 1.8539 / neg_frac 0.0（默认初始化权重），故 m_r,m_i≥0 成立。文档核对：issue 所引 01-model-core.md:246,373 实际不含掩码内容（行号漂移）；01:189 与 01:483 其实已写「ReLU（无上界、非 [0,1] 门）」「ReLU 非负」，但 01:178/:482 仍称其为「复数掩码」；PAPER_ALIGNMENT_20261030.md:261 只抄 Table 19 数字（complex 7.7 / real 7.3 / direct RI 7.1），全文 grep mask 仅 :107,:261，未登记 as-built 非负 RI 掩码与论文 complex mask 的偏离。因此「从未记录非负性」不成立，「未登记与 Table 19 的偏离」成立。",
+  "next_action": "PAPER_ALIGNMENT §2.1 增一行「输出参数化：as-built = 非负 RI 掩码（mask_act=ReLU，m_r,m_i≥0），非无约束 complex mask，未做 Table 19 消融」；01-model-core.md:178 把「复数掩码」改为「非负 RI 增益掩码（仅幅度缩放 + 第一象限相位旋转）」。若要把 Table 19 当结论引用，先跑 1 组去掉 ReLU 的同数据同预算对照（LRS2-2Mix 200 句，记 ±dB），否则禁止声称 complex-mask 消融已对齐。"
+ },
+ {
+  "issue_id": "S2（layers/DSP/视频骨干 + Studio 模型副本）-S2-4",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "look2hear/models/Falcon.py:991-996 对 self.audio_params/video_params 原地 `pop(\\\"repeats\\\")/pop(\\\"shared\\\")`，:1314-1315 又向同 dict 写 `causal`；audio_train.py:245 只为落盘 deepcopy 出 safe_config，:263 仍把原 dict 直接传给模型。本轮实测同一份 configs/Falcon.yml dict：build#1 = 523,113 参数（audio_repeats=1、fusion_repeats=1），构建后 audio_params 已无 repeats/shared 且多出 causal；build#2 无异常但 = 34,497 参数（repeats 0/0）；加上 14,584 参数的说话人分支即 issue 的 537,697 → 49,081（−90.9%）。防护侧：studio/falcon_runtime.py:172-173 有 deepcopy；tools/repro/tests/test_audio_train_entry.py:322-337 只断言 conf.yml 快照干净并显式断言 runtime dict 被污染（把污染当预期钉住），没有二次构造/幂等回归测试。",
+  "next_action": "在 Falcon.__init__ 与 Separator.__init__ 入口 `audio_params/video_params/fusion_params = copy.deepcopy(...)`（或 Separator 改用 .get 不 pop），audio_train.py:263 传 deepcopy；新增回归测试：同一 dict 连续构造两次，断言参数量两次相同（含 spk 分支时 537,697）、state_dict 键集相同、且构造后原 dict 仍含 repeats/shared；验收 `pytest tools/repro/tests/test_audio_train_entry.py` 全过。"
+ },
+ {
+  "issue_id": "S3-S3-07",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh:41 `assert torch.cuda.device_count() >= 8`（≥8 而非 ==8）、:24 `NPROC=\\\"${NPROC:-8}\\\"` 全脚本仅此一处（grep NPROC 只有 :14 注释与 :24，无 CUDA_VISIBLE_DEVICES、无设备列表）、:57 直接 `audio_train.py --conf_dir`；configs/LRS2_2Mix_Paper_8gpu.yml:117 `gpus: -1` → audio_train.py:127-129 `devices=list(range(visible))`，16 卡节点上 5×16=80 global batch 且 LR/调度不变。产物侧：audio_train.py:356-359 只打印 accelerator/devices/num_devices（无 global batch），grep global/world_size 全文件无命中；无 run_meta.json 生成（仅 tools/repro/phase2/eval_realssa_real.py:682 有 run_metadata.json）；Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/version_0/hparams.yaml:116 只有 training_gpus 张量，无 world_size/global_batch。",
+  "next_action": "脚本改为 `export CUDA_VISIBLE_DEVICES=$(seq -s, 0 $((NPROC-1)))` 且断言 `torch.cuda.device_count() == NPROC`；audio_train 在 exp_dir 写 run_meta.json（world_size、per-rank bs、global batch、loss/β 计划、seed、config 路径），启动日志打印 global_batch。验收：8 卡时 run_meta.world_size=8/global_batch=40，NPROC=4 时按 4 卡启动且 global_batch=20，12 卡可见时 assert 生效 exit 2。"
+ },
+ {
+  "issue_id": "S4-S4-05",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "docs/verification/phase2/P2E-realssa-sim-ch0-metrics_combined-20261030.csv：9,169 条逐句，sdr_i/pesq 各 3 条 nan（同一组 00003_02_41188.wav / 00012_02_84551.wav / 50016_74250.wav），si-snr_i 0 条；skipna 均值 7.976709/8.452396（= CSV avg 行 = 报告 7.977/8.452），严格有限子集 n=9166 均值 7.979320/8.452396。聚合无计数：look2hear/metrics/allwrapper.py:108-112 np.nanmean、audio_visual_test.py:484-486 pandas mean(skipna)，全文件 grep n_nan/n_inf 无命中。报告 P2E-realssa-sim-ch0-report.md:115 其实已披露 3 条 nan 且「聚合按有限值计算」，但 :102 标题写「全量 9,169 条结果」，无逐列有效 N。inf 子claim 未复现：core.sdr(randn, 同一 randn, filter_length=512/64) = 148.75 dB（有限），sine 141.9 dB，impulse/DC 返回 nan；core.py:168-177 确实只捕获异常、不夹取非有限值，但「一条近完美样本即把均值变 inf」缺证据，实际风险是 nan/非有限值无计数。",
+  "next_action": "① ALLMetricsTracker.get_mean/get_std 或 _merge_results 增补 n/n_nan/n_inf 并写 metrics_counts.json 或 avg 行旁注；② core.sdr 对非有限结果统一转 nan 并 warning（与 si_sdr 一致），加一条非有限输入单测；③ ch0/mean 报告与 09 文档把「全量 9,169 条」改为「SI-SNRi n=9169，SDRi/PESQ n=9166（3 条 NaN 已列）」，或同时给 skipna 与严格同集两值。影响面小（Δ 0.0003 dB），不阻塞主线。"
+ },
+ {
+  "issue_id": "S5 数据管线（look2hear/datas/*、DataPreProcess/*、tools/repro/*.py、docs/DATA_ACCESS_GUIDE.md）-S5-04",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "look2hear/datas/avspeech_dataset_near.py:111-122 在丢短样本时直接 `del mix_infos[i]/target_infos[i]/near_infos[i]`，隐含三份 JSON 等长；look2hear/datas/avspeech_dataset.py:166-170 直接 `src_inf[i]`；两处均无长度断言。该行为其实已被验证并记录：docs/verification/scripts/data_pipe/verify_dataset2.py:275,285（H1/H2）与 docs/verification/runs/data_pipe/verify_dataset.log:132,140 显示「length mismatch -> IndexError（no explicit check）」，docs/reviews/round1/05-data-pipeline-review-by-train-sys.md:110 A57 也记录；但未修、无单测（tools/repro/tests 仅 test_synthetic_data.py:90 正常路径）。near 比 mix 长/重排导致的静默错配未被任何测试覆盖。",
+  "next_action": "在两个 Dataset.__init__ 加 `len(mix)==len(target)` 与（use_near 且 near.json 存在时）`len(near)==len(mix)` 断言并给出清晰报错；tools/repro/tests 加「near.json 少一条/多一条 → 立即 ValueError（而非 IndexError 或静默继续）」单测。验收：新单测通过；现有 test_synthetic_data 与真实数据加载行为不变。低优先，3 行代码 + 1 测试。"
+ },
+ {
+  "issue_id": "S6-S6-2",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`python studio/server.py --help` 仅有 --host/--port/--device/--model/--no-browser（studio/server.py:290-298）；server.py:150-152 `_load()` 只把 variant 传给 FalconRuntime。底层能力已就绪：studio/falcon_runtime.py:133 构造参数 checkpoint_path、:140-141 本地文件、:165 resolve_checkpoint、:246 /api/status 已返回 checkpoint 字段。studio/README.md:144 与 README_zh.md:144 在 Studio 排错段写「pass a downloaded file with --checkpoint」，该 flag 在 server.py 不存在；README.md:126 的 --checkpoint 说明属 infer_file.py（studio/infer_file.py:91,98），那部分正确。deepdive 07:289 D1 已记为待办但未实现。",
+  "next_action": "server.py main() 增 `--checkpoint`（本地路径或 hf://），Engine.start_load/_load 透传 `FalconRuntime(variant, checkpoint_path)`，/api/status 的 checkpoint 字段标来源；README.md:144 与 README_zh.md:144 改成「--checkpoint 属于 infer_file.py 与 server.py」。验收：`python studio/server.py --checkpoint /root/.cache/falcon_weights/falcon.pt --device cpu --no-browser` 后 /api/status ready=true、checkpoint=falcon.pt；studio/tests 新增 CLI 解析与 status 字段 2 条用例（38→40 passed，不引入 skip）。"
+ },
+ {
+  "issue_id": "S7-S7-01",
+  "final_verdict": "real_open",
+  "priority": "P1",
+  "evidence": "falcon 环境 `python -c \\\"import gradio\\\"` / `import spaces` 均 ModuleNotFoundError；`pytest space/tests -q -m \\\"not slow\\\"` = 20 passed, 8 deselected；`pytest space/tests --collect-only -q` = 28 tests（test_space.py 6 个：:74 build、:82 页面/头、:96 往返×2、:109 错误、:115 i18n；另 2 个 slow 在 test_clip.py:135）。test_space.py:20 `pytestmark = pytest.mark.slow` 把不需要 gradio 的 :74 与 :115 一并挡掉——本轮单独跑这两条 = 2 passed in 2.23s（证明无需 gradio/spaces）。space/README.md:51 却要求 `python -m pytest space/tests`（当前必失败），AGENTS.md §3 基线完全没有 space/tests。issue 说「test_space.py 8 个测试」略有偏差：该文件 6 个（含 1 个参数化），8 deselected = 6 + test_clip 2。",
+  "next_action": "把 test_build_merges_space_files 与 test_every_chinese_string_has_an_english_translation 拆到 space/tests/test_static.py（去掉 slow 标记），6 个 HTTP/SSE 测试保留 slow；把 `pytest space/tests -m \\\"not slow\\\"` 与 `python space/build.py --out /tmp/... && node space/tests/check_i18n.mjs` 写进 AGENTS.md §3 与 docs/verification 基线；space/README.md:51 改成两档命令并写明 HTTP 测试需要 gradio 的独立环境。验收：falcon 环境 `pytest space/tests -m \\\"not slow\\\"` exit 0、≥22 passed、0 error，且输出含 i18n 断言。"
+ },
+ {
+  "issue_id": "S8 证据链/可复现性（docs/verification/**、.gitignore、tools/repro/tests/**、conda-env-lock.txt、git 状态/tag；只读审计）-S8-09",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "docs/verification/phase2/README.md:25,40,118 三处仍写「96 passed/6 skipped（102 collected，19:29Z）」；本轮 `pytest tools/repro/tests --collect-only -q` = 115 collected，7 条 skip 全在 test_phase1_regression.py（实测 14 passed/7 skipped），即 108 passed/7 skipped，与 96/6 不同。docs/understanding/deepdive-20261024/09-benchmark-alignment.md:406-407 写「origin/main = d076be9」；实测 `git rev-parse origin/main` = a3eb0d77 = HEAD。tag `repro-phase2-freeze-20261024` = 2582f61；`git log --oneline 2582f61..HEAD` 含 d076be9（论文校正 DNSMOS/channel/loss）与 a3eb0d7（ch0 证据），即冻结 tag 不包含它要冻结的最新结论。",
+  "next_action": "把 phase2/README.md:25,40,118 改为「历史值（102 collected/96 passed/6 skipped，19:29Z），当前 115 collected/108 passed/7 skipped（HEAD a3eb0d7）」；deepdive09:407 改 a3eb0d7；在 P2E-ch0-report 与 09 注明 freeze tag 只到 2582f61；由 release owner 决定重打 `repro-phase2-freeze-20261030`（含 a3eb0d7）或给旧 tag 加 `-pre-paper-alignment` 说明。验收：`grep -rn '96 passed' docs/` 只出现在标注为历史的行。"
+ },
+ {
+  "issue_id": "S9-S9-07",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "tools/repro/realssa_to_falcon.py:24-26 docstring 仍写「RealSSA-Sim is 4-channel and the paper's protocol is not documented」，:539 `--channel default=\\\"mean\\\"`，:58 用例也是 mean；而 docs/understanding/PAPER_ALIGNMENT_20261030.md:148,282 记录论文 App A.2 只用 channel-1（first-channel），:299 明确把该 docstring 列入「❌ 推翻」。ch0 已用 `--channel 0` 单独转换/评测（P2E-realssa-sim-ch0-report.md:41，9,169 条），但默认值未改；实测 mean vs ch0 的 SI-SNRi Δ=+0.202（report:157），新用户不加参数仍走非论文通道。",
+  "next_action": "把 `--channel` 默认改为 0（mean 保留为显式 opt-in），更新 :22-26 docstring 引论文 App A.2 并写明「论文=first channel」；CHANGELOG/report 注明默认已对齐。验收：无参数 dry-run 的 provenance.channel_policy 为 \\\"0\\\"（或强制显式选择并在缺省时报错），P2E-ch0-report 注明默认已改。"
+ },
+ {
+  "issue_id": "S10-S10-5",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "五个基线并存：docs/REPRODUCTION_PHASE1_REPORT.md:144「82 passed/82 collected」、docs/verification/phase2/README.md:40「96 passed/6 skipped」、docs/understanding/deepdive-20261024/00-SYNTHESIS.md:121「104 passed/1 failed/7 skipped」（同文 :238 又写 109/6，自相矛盾）、P0-FIX-report.md:110「109/6」、QA-report.md:16「111 passed/1 skipped」；AGENTS.md:66,101 写 studio 35/2。本轮实测 `pytest studio/tests -q` = 38 passed, 2 skipped（22.76s）。tools/repro/tests collect=115，7 条 skip 全部由 `_git_diff_names()`（tools/repro/tests/test_phase1_regression.py:499-512）在 clean tree 下触发（:516/:525/:534/:551/:568/:580/:604，`-rs` 实测 14 passed/7 skipped），所以 passed/skipped 取决于有无未提交改动。CI：.github/workflows/ 只有 pages.yml，仅 push project_page/** 触发（:5-8）且 :23 `if: ${{ !github.event.repository.private }}`，没有任何 pytest job。",
+  "next_action": "① 基线只留「0 failed」一个判据，并把 collected/passed/skipped + 采集时间 + HEAD 原样写进 AGENTS.md §3 与 phase2/README（当前 115/108/7@a3eb0d7），同步修正 AGENTS 35/2→38/2；② 7 条 git-diff 守卫改为对已提交 Phase1 范围求 diff 或标 `@pytest.mark.history` 默认 deselect，使 clean/dirty 两种状态计数一致；③ 加最小 CPU CI（tools/repro/tests -m \\\"not slow\\\" 子集 + studio/tests）。验收：clean tree 与带 1 个未提交改动时 passed/skipped 计数一致，PR 上有 CI 结果。"
+ },
+ {
+  "issue_id": "R2-S1 交叉复核（第 2 轮）· 子域 S2 = 层/DSP/视频骨干（look2hear/layers + look2hear/models/Falcon.py 的 STFT/TFGN/TFRB/MHSA/normalization + look2hear/videomodels）-112",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "Falcon.forward（look2hear/models/Falcon.py:1472-1476）不做任何「音频时长 ↔ 嘴部帧数」校验；NeuroSCNetFusion.forward 在 T_v≠T_a 时无条件 `F.interpolate(v_feat, size=T_a, mode=\\\"nearest\\\")`（Falcon.py:257-258）。本轮实测 `Falcon(**cfg)(torch.zeros(1,16000), torch.zeros(1,512,50))` → 正常返回 (1,1,16000)，无异常无 warning；zeros(1,32000) 同样正常（即 50 帧被拉伸 2 倍也照常前向）。文档 01-model-core.md:482 反而写「mouth 的 Tv 可以是 50（2 s@25fps），由 nearest 插值到 T'」，暗示任意 Tv 可用，未写 2 s/50 帧硬绑定；唯一护栏在 studio/falcon_runtime.py:122-123。",
+  "next_action": "在 Falcon.forward 加形状契约：若 mouth_embedding 时间维 ≠ round(audio_len/16000*25) 则 raise ValueError（附清晰提示「改窗必须重采 25 fps 嘴部帧」）；deepdive 02 §5 补一句硬绑定说明。不要改 fusion 的 nearest 插值方式（会动权重语义）。验收：1 s 音频 + 50 帧触发异常，2 s + 50 帧正常。"
+ },
+ {
+  "issue_id": "R2-S6 cross-check of S7 (Studio frontend / Space / project page / CI), read-only round 2-132",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "project_page/index.html:4-6 只有 charset/viewport/title，`grep -n '<meta\\\\|og:\\\\|twitter:\\\\|canonical'` 仅 :4-5 两条，无 description/og:*/twitter:card/canonical；:672-678 BibTeX 只有 title/author/booktitle/year，无 eprint/archivePrefix/note。线上 `curl https://cslikai.cn/Falcon/` = 200、54,238 B，与仓库文件 cmp 字节相同 ⇒ 缺失元数据已对外生效。",
+  "next_action": "在 <head> 补 <meta name=\\\"description\\\">、og:title/og:description/og:image（可用 assets 图或 s1.mp4 首帧）、twitter:card=summary_large_image、canonical；BibTeX 加 `eprint={2610.32749}, archivePrefix={arXiv}`。pages.yml 已按 project_page/** 自动发布，改完用 curl+cmp 与 `grep -c 'og:title'` 验收。"
+ },
+ {
+  "issue_id": "R2-S8 交叉复核员（复核 S9 论文对齐）；只读，HEAD a3eb0d7、工作区 clean（git status --porcelain 空）-142",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "configs/LRS2_2Mix_Paper_8gpu.yml:105 `sdr_type: pairwise_neg_snr`（val :111 是 sisdr）、:100 `beta_anneal_epochs: 200`、:146 bs5；该文件最后修改 29e19c7（2026-10-23，早于论文校正提交 d076be9）。PAPER_ALIGNMENT:69 只把 sdr_type 的 ❌ 挂在 configs/Falcon.yml:117，:277 对该文件只说「bs5、β200 需改」，未列 sdr_type；docs/PHASE2_VOLCANO_LRS2_TRAINING.md:18 的配方对照表只有 β 行标「config 原值」，全文无 loss/SNR 行；00-SYNTHESIS:6-8 仍写「论文级 8 卡配方已就绪但还没在 8 卡节点跑」。即按现文件启动，14.1 复跑会用负 SNR + β/200 训练，而非论文 Table 16 的 −SI-SNR + τ/1000。",
+  "next_action": "二选一并写进 00-SYNTHESIS 下一步②：(a) 新增 configs/LRS2_2Mix_Paper_v2.yml（train pairwise_neg_sisdr、beta_anneal_epochs 1000、batch_size 4/GPU，其余不动），旧文件标历史；(b) 保留 SNR 配方但把文件与 runbook 标题改为「近似配方（SNR/β200，偏离 Table 16）」，并在 PAPER_ALIGNMENT:277 的偏离清单补 sdr_type。验收：runbook 对照表逐行有「论文/仓库/判定」，与 PAPER_ALIGNMENT §2.1 一致；14.1 结果发布时带配方标签。"
+ },
+ {
+  "issue_id": "S1-S1-03",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "代码未变：Falcon.py:1490-1492 仍 `{\\\"n_src\\\": self.n_src}`；用 audio_train.py:402-403 同款 serialize 产物实测 `BaseModel.from_pretrain('/root/tmp/s3chk/ser2.pth')` → `TypeError: Falcon.__init__() missing 5 required positional arguments: 'n_src', 'enc_dec_params', 'audio_bn_params', 'audio_params', 'mask_generation_params'`。round-1 证据有一处错：base_model.py:53-63 根本不读 conf['model_args']，所以缺陷不是「from_pretrain 读空 args」，而是「重建所需的 ctor kwargs 没进文件」。audio_visual_test.py:264-266 明确拒绝该格式；README 全文不含 best_model.pth（:127 只说发布权重含 audio_model.*/video_model.*），「README 提到它」不成立。docs/understanding/01-model-core.md:332 与 deepdive-20261024/01:31 已把「不能重建」记为 known，03-training-system.md:591 Q7 仍未关。另实测到同源新缺陷：Falcon.py:991-996/:1314-1315 会 pop/写调用方传入的 audio_params/video_params，同一进程用同一 cfg 第二次构造时 537,697 参数/525 keys 塌成 49,081/20 keys，而 from_pretrain 只查 missing 不查 unexpected，会带着 505 unexpected 静默返回截断模型——这正是我首轮 round-trip 出现 505 unexpected 的原因。",
+  "next_action": "模型侧把 Falcon.get_model_args 返回 deepcopy 的完整 ctor kwargs（n_src/pretrained_vout_chan/causal/spk_embed_dim/video_bn_params/video_params/audio_bn_params/enc_dec_params/audio_params/mask_generation_params/fusion_params）；训练侧 audio_train.py:402 旁同时落 conf.yml；顺手在 Falcon.__init__ 入口 deepcopy(audio_params/video_params) 消除 :991-996 的入参污染；新增 tools/repro/tests/test_serialize_roundtrip.py：deepcopy(config)→serialize→tmp 保存→from_pretrain(path, **model_args)→断言 525 keys 且固定 2 s 输入 max|Δ|=0；并把 03-training-system.md Q7 关闭。"
+ },
+ {
+  "issue_id": "S2（layers/DSP/视频骨干 + Studio 模型副本）-S2-5",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "docs/verification/stubs/typeguard.py:1-6 与 docs/verification/scripts/verify_model_params.py:4-12 仍写 `/root/.venvs/falcon`（AGENTS.md §1 已声明删除）与「真实 typeguard>=3 已移除该 API」；实测唯一允许环境：`importlib.metadata.version('typeguard')=2.13.3`（与 conda-env-lock.txt:108 一致）且 `from typeguard import check_argument_types` 成功。`grep -rn '/root/.venvs/falcon' docs/verification/scripts/ | wc -l`=20；verify_model_params.py:20-22 与 model_core_r3_verify.py:20 等共 13 个脚本无条件 `sys.path.insert(0, stubs)`，而 stubs/ 下除 typeguard.py 还有 timm/models/layers.py 与 data_pipe/（会顶替真实 timm DropPath、torchvision、matplotlib）。我把该脚本复制到 /root/tmp 并去掉 stubs 注入、REPO 改绝对路径后 `PYTHONPATH=$PWD` 运行仍 exit=0，参数量与存档一致（AUDIO_MODEL 537,697；encoder 3,024 / audio_bn 13,104 / separator 492,312 / mask_gen 12,657 / decoder 2,016），证明 stub 当前纯属遮蔽。",
+  "next_action": "改 verify_model_params.py:4-12 与 stubs/typeguard.py:1-6 的说明为 `PYTHONPATH=$PWD` + conda falcon + typeguard 2.13.3；把 13 个脚本的 stubs 注入改为 `try: from typeguard import check_argument_types except ImportError: sys.path.insert(...)` 的条件注入，并删除 stubs/timm 与 stubs/data_pipe（或加 README 说明仅历史沙箱）；验收：`grep -rn '/root/.venvs/falcon' docs/verification/scripts/`=0，且不设 stubs 跑 verify_model_params.py / verify_causality.py exit=0。"
+ },
+ {
+  "issue_id": "S3-S3-08",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "look2hear/datas/avspeech_dataset.py:208-217：val 的 n_near 只从 `<mix>_meta.json` 读 `components.type=='near'`，读不到 `except: pass`→0；`/root/data/falcon_lrs2_2mix_paper/cv` 实测只有 mix.json/near.json/mouths（find -maxdepth 2 -type f = 479 个，`ls cv | grep -c _meta.json`=0），tools/repro/phase2/build_lrs2_paper_data.py 全文 0 处 `_meta`。后果实测：Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/version_0/metrics.csv 中 `val_pit_sisnr`(col34) 与 `val_pit_sisnr_0near`(col35) 三 epoch 逐位相等（-0.6235862970352173 / -0.24295949935913086 / 0.12476146221160889），无 `val_pit_sisnr_1near` 列，而同 run `train_n_samples_1near_epoch`=4.0（训练侧来自 near.json，见 av_litmodule_mdcl.py:110）。根因（_meta 无生成者）在 docs/reviews/round1/05…:26 P1-1 与 round2/05:60 A35 已记为 known，但「paper cv 上 val 桶全塌 0near、8 卡因此不会触发 F15」这一具体后果未被记录。",
+  "next_action": "look2hear/datas/avspeech_dataset.py:208-217 改为从同 split near.json 统计「非自引用」条数（或让 build_lrs2_paper_data.py 落 _meta.json sidecar）；av_litmodule.py:160-176 在 epoch 0 打印 5 桶覆盖数；验收：用 LRS2 paper cv 跑 1 epoch，metrics.csv 出现 `val_pit_sisnr_1near`≡`val_pit_sisnr`、`_0near` 缺失，启动日志打 `bucket coverage: 1near=10000`。"
+ },
+ {
+  "issue_id": "S4-S4-06",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "audio_visual_test.py:486 固定 `<exp_dir>/results/metrics_combined.csv`，:487 直接 to_csv（已存在即静默覆盖），:493-498 合并后 `os.remove(shard)`；全文件 `grep -n 'provenance|overwrite|sha256|shards/'` 0 命中。实测 `Experiments/checkpoint/Falcon/results/` 与 `/root/tmp/p2e_sim_ch0_20261030/Experiments/checkpoint/Falcon/results/` 都只有 1 个 metrics_combined.csv；ch0 日志第 6 行 `[eval] results dir : /root/tmp/p2e_sim_ch0_20261030/...` 证明那次结果靠换 cwd 保住。同仓库反例：tools/repro/phase2/eval_realssa_real.py:667 写 per_segment.csv、:682/:683 写 run_metadata.json+summary.json。",
+  "next_action": "audio_visual_test.py:486-500 增加 `run_provenance.json`（ckpt 绝对路径+sha256 前 8 位、data_dir、world_size、sample_rate、sdr filter_length、git rev、limit、UTC 时间）；`metrics_combined.csv` 已存在时默认 `raise SystemExit('use --overwrite')`；shard 保留到 `results/shards/`（或带时间戳）。验收：`--limit 2` 冒烟产出三件套；无 --overwrite 二次运行非零退出且旧文件仍在。"
+ },
+ {
+  "issue_id": "S5 数据管线（look2hear/datas/*、DataPreProcess/*、tools/repro/*.py、docs/DATA_ACCESS_GUIDE.md）-S5-05",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "tools/repro/phase2/build_lrs2_paper_data.py:127 `json.dump(obj, open(out/split/name,'w'))` 直写最终 JSON（无 tmp+replace）；:94-99 `if not dst.exists(): shutil.copyfile(...)`，中断留下的截断 wav 会被下次当成已完成；:120-122 仅 `Path(e['target'][1]).exists()` 过滤，全文无 mix==s1+s2 / mouth shape / 帧数 / 长度契约校验；只有 :56-58 的 .pt 落盘是 tmp+replace。对比 tools/repro/lrs2_2mix_to_falcon.py:344 `def validate_outputs` 有完整契约检查。conversion_stats.json 实测只含 mixtures/entries/unique_mouths/mouth_fails/elapsed_s，无任何校验字段。",
+  "next_action": "JSON 与 wav 全改 tmp+os.replace；存在性判断改按帧数/字节数；复用 lrs2_2mix_to_falcon.validate_outputs 做抽样校验并把 problems 写进 conversion_stats.json；验收：中途 kill -9 后重跑，抽样 200 条 mix-(s1+s2) max|Δ|<1e-3、mouth 帧数==samples//640、problems=0。"
+ },
+ {
+  "issue_id": "S6-S6-3",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "studio/infer_file.py:69-82 `extract()` 对整段一次 `runtime.audio_model(waveform, embedding)`，无分块、无长度上限、无显存/时延告警；argparse :85-92 只有 audio/mouth/out/model/checkpoint/device。对照 space/clip.py:27 `MAX_SECONDS=60` 与 :83-93 的 plan()/batch 循环。但 :15 docstring 明写 `The whole clip is processed in one pass, matching the evaluation protocol.`，studio/README 该节标题就是 “Offline inference on a clip”，所以「整段前向」是刻意语义；round-1 证据里的 `Setup Meeting Audio.command` 实际只是 `studio/Setup Meeting Audio.command:3 scripts/install-blackhole.sh` 的包装，并不把会议录音喂给 infer_file，故「会议级」这条论据不成立。真实缺口只剩「超长输入无护栏/无警告」，非 P2。",
+  "next_action": "保留整段语义但在 studio/infer_file.py:77 前加 `--max-seconds`（默认 60，超限报错并提示 `--allow-long`），超 2 s 时打印「显存随时长线性增长」警告；或提供 `--chunked` 复刻 space/clip.py 的 plan/batch；studio/tests 增加 60 s 合成输入用例（CPU 可跑、<120 s）。"
+ },
+ {
+  "issue_id": "S7-S7-02",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "studio/requirements.txt:3 `torch>=2.14.1,<3`、:4 `numpy>=2.4.6,<3`；studio/requirements-lock.txt:79 `torch==2.14.1`、:54 `numpy==2.4.6`；space/requirements.txt:2 `torch==2.13.0`；唯一已验证环境 docs/verification/conda-env-lock.txt:98 `torch==2.8.0+cu128`、:46 `numpy==2.2.6`（AGENTS.md §2）。space/build.py:30-33 把 studio/falcon_runtime.py + falcon_model + configs 复制进 Space，即同一份推理代码跑在第三个 torch 版本上。AGENTS.md:144 只口头说 studio 约束「与本机驱动不兼容」，仍无任何可重建文件能产出已记录的 38 passed/2 skipped 与 bit-identical 结论。",
+  "next_action": "环境负责人 + Space 维护者定单一事实源：以 conda-env-lock 的 torch 2.8.0+cu128 / numpy 2.2.6 重生成 studio/requirements-lock.txt，studio/requirements.txt 下限改到 ≤2.8.0；space/README.md 写明 ZeroGPU 实际 torch 2.13.0 与不适用本地 Studio 的原因；在 space/tests 加断言 space/requirements.txt 的 torch 满足 studio 下限；验收：三份文件要么一致、要么各自 README 显式标注不同目标。"
+ },
+ {
+  "issue_id": "S7-S7-12",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "实测（curl -I，各 <12 s）：`oss.cslikai.cn/demos/large/Dolphin.wav`→200、`.../large/dolphin.wav`→404、`.../small/dolphin.wav`→200，project_page/index.html:518 的大写 D 是 OSS 真实 key，媒体本身不是缺陷。但 docs/understanding/08-ops-tests-docs.md:33、:226、:441(D16)、:491、:552(A53)、:572(Q9) 仍把该处写为「P1（待线上确认）/很可能 404」，照它去「统一小写」会直接把按钮打成 404；且仓库无自动化 HEAD 校验。",
+  "next_action": "把 docs/understanding/08-ops-tests-docs.md D16 与 A53/Q9/§1 第 33 行改为「已确认非缺陷：large/Dolphin.wav=200、large/dolphin.wav=404，大写 D 为对象存储真实 key，禁止规范化」；在 .github/workflows 或 studio/tests 加一条 24 URL 的 HEAD 抽查并固化 large 两种大小写的 200/404 预期。"
+ },
+ {
+  "issue_id": "S8 证据链/可复现性（docs/verification/**、.gitignore、tools/repro/tests/**、conda-env-lock.txt、git 状态/tag；只读审计）-S8-10",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "(a) docs/verification/phase2/P2E-realssa-sim-ch0-report.md:148 的 cp 目标写 `...-metrics_combined.csv`，而 :183 与 `ls` 的实际文件是 `...-metrics_combined-20261030.csv`（1,178,293 字节）。(b) `find docs/verification -name '*.csv' -size 0` 仅 1 个：docs/verification/phase2/P2B-full-big-whole-real.csv（0 字节且 `git ls-files` 已跟踪；P2B-report.md:138-140 已声明「空文件、可忽略」）。(c) `git ls-files | grep '\\\\.pid$'` 返回 docs/verification/phase1/T6-download.pid 与 docs/verification/phase2/P2D-train.pid，而 .gitignore:40 已有 `*.pid`（:44-47 的负向规则只放行 log/csv/runs）。三条均未处置。",
+  "next_action": "docs/QA：把 :148 改为 `...-metrics_combined-20261030.csv` 并注明「勿覆盖 mean 基线」；0 字节 CSV 删除或改 `P2B-full-big-whole-real.csv.void` 并在 P2B-report 保留说明；`git rm --cached` 两个 pid（本地文件可留）；验收：`git ls-files | grep '\\\\.pid$'`=空、`find docs/verification -name '*.csv' -size 0`=空或带说明、按报告 :144-148 复跑后 `git status` 不出现新文件名。"
+ },
+ {
+  "issue_id": "S9-S9-08",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "docs/REPRODUCTION_PHASE2_REPORT.md:105-107 仍写「论文 3.276 与 P808 3.3285（+0.05）最接近」、:178 仍写「论文仍未公开」；docs/REPRODUCTION_PLAN.md:13 已声明论文 2026-10-23 公开且 §2 作废，但 §0 TL;DR :27、:61、§R1 :391、:457 仍写「论文未公开 / Paper link will be added」；deepdive-20261024/04:308-310、:505-508、:532 仍按 P808 猜口径，而同文件 :612-613 已写「论文=P.835、3.276 属 RealSSA-trained ckpt」；deepdive 09:13-15 结论段写「DNSMOS 口径未定」，:35 同一行既写「取决于 3.276 是 P808 还是 OVRL」又写「论文已确认=P.835」。正确版本见 PAPER_ALIGNMENT_20261030:24/:293-300 与 P2E-report:254-256。",
+  "next_action": "文档负责人：REPRODUCTION_PHASE2_REPORT 顶部加「historical；DNSMOS/论文状态以 PAPER_ALIGNMENT + P2E-report 2026-10-30 校正为准」并就地改 :105-107/:178；REPRODUCTION_PLAN :27/:61/:391/:457 划线或指向 :13；deepdive 04:308-310/:532 与 09:13-15/:35/:122/:176 统一为「P.835 已确认、3.276 属 RealSSA-trained ckpt、同 ckpt OVRL 2.79 不可比」；验收 `grep -rn '3.3285.*最接近\\\\|论文未公开' docs/` 只剩带 historical 横幅的上下文。"
+ },
+ {
+  "issue_id": "S10-S10-6",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "`grep -rn '/root/' tools/repro/tests/*.py | wc -l`=48，覆盖 13 个文件，另有 38 处 `pytest.skip`；功能性命中如 test_phase1_regression.py:43（/root/wt-base、/root/wt-main）、:253/:38（/root/.cache/falcon_weights/falcon.pt）、:641-643（/root/tmp/lrs2_eval_s1*）、:668-669/:676-678/:706-708（/root/tmp 数据与日志缺失→skip），test_phase2_data.py:20/:46-52（/root/data/falcon_lrs2_2mix）。本机这些路径都存在（故当前 115 collected / 108 passed / 7 skipped），换一台无 /root 的机器就大面积 skip。而 00-SYNTHESIS.md:136 的 P0 验收仍写「第三方 clone 后能复核每个『已复现』数字；pytest tools/repro/tests 全绿」——字面 0 failed 成立，但「每个数字被真算一遍」不可达成，且没有 offline/data 分层。",
+  "next_action": "文档 owner 拆 P0 验收为 (1) 证据可独立复算（已满足）与 (2) 测试分 `offline`（任何机器 0 failed/0 skipped）与 `data`（可 skip 但必须打印期望路径）两档，README 门禁只认 offline；tools/repro/tests 加 pytest marker，路径统一由 `FALCON_DATA_ROOT` 环境变量解析（默认 /root）；验收：`FALCON_DATA_ROOT=/nonexistent pytest -m offline` → 0 failed/0 skipped。"
+ },
+ {
+  "issue_id": "R2-S1 交叉复核（第 2 轮）· 子域 S2 = 层/DSP/视频骨干（look2hear/layers + look2hear/models/Falcon.py 的 STFT/TFGN/TFRB/MHSA/normalization + look2hear/videomodels）-113",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "Falcon.py:1469 签名 `mouth_embedding: torch.Tensor = None`，:1474 `video = self.video_bottleneck(mouth_embedding)`；实测（configs/Falcon.yml 构造 Falcon，eval 模式）`m(torch.randn(1,1,32000))` → `TypeError: conv1d() received an invalid combination of arguments - got (NoneType, Parameter, Parameter, tuple, tuple, tuple, int)`，调用栈落在 Falcon.py:92-104 的 ConvNormAct.forward。`_encode_audio`（Falcon.py:1345-1361）全仓唯一调用方是 docs/verification/scripts/model_core_verify.py:175，训练/评测都走 encode_stft，属「文档化替代路径 + 实际死方法」。",
+  "next_action": "Falcon.py:1469 把 mouth_embedding 改为必填，或在 :1470 加 `if mouth_embedding is None: raise ValueError('mouth_embedding required; use _encode_audio for audio-only inference')` 并在 docstring 说明 _encode_audio 语义；studio/falcon_model/models/Falcon.py 同步；在 tools/repro/tests 加一条断言该 ValueError（CPU、2 s 输入）。"
+ },
+ {
+  "issue_id": "R2-S3 交叉复核（第 2 轮，复核 S4 损失/指标/评测）-123",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "`grep -rln 'eval_dnsmos|eval_realssa_real|score_array' tools/repro/tests/` 无任何命中；tools/repro/tests 下 14 个文件只覆盖 audio_train/audio_visual_test 入口（test_eval_entry.py 36-160 只测 find_best_ckpt/_prepare_config/_merge_results/extract_state_dict）、转换器、metrics、数据管线。缺口实例仍在：eval_dnsmos.py:68-84 对 |x|>1 静默峰值归一化；eval_realssa_real.py:652 `sf.write(est_dir/f\\\"{inference_id}.wav\\\")` 在 inference_id 含 '/' 时抛异常并被 :657 吞成 row['error']；0 字节 CSV 与空输入都无断言。",
+  "next_action": "新增 tools/repro/tests/test_phase2_eval_tools.py（合成数组/tmp_path，无需 GPU）：score_array 对 |x|>1 的期望行为、_write_csv(empty) 可读 0 行且列名完整、--skip-model 与真实运行产物可区分、_summarize 对 error 行计数、inference_id 含 '/' 时估计落盘；先修 eval_realssa_real.py:652 的路径净化（`str(inference_id).replace('/','_')`），保证至少 1 条测试在修复前失败。"
+ },
+ {
+  "issue_id": "R2-S6 cross-check of S7 (Studio frontend / Space / project page / CI), read-only round 2-133",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "studio/tests/check_i18n.mjs 只遍历词典模块（:110-140）并对 index.html 做 data-i18n 校验（:139），全文不读 studio/web/app.js；space/tests/check_i18n.mjs:15-20 明确 `for (const file of ['web/app.js','clip.py','app.py'])` 抽字面量。实测 `node studio/tests/check_i18n.mjs` → `8 localization checks passed (363 dictionary entries audited)`；用同一 `'…'|\\\"…\\\"` 正则跑 studio/web/app.js 得 178 条含中文字面量（round-2 记 163，口径差异），今天全部有译，但新增漏译在 Studio 侧无人拦截。",
+  "next_action": "把 Space 的字面量扫描移植进 studio/tests/check_i18n.mjs（覆盖 app.js 单双引号 + 模板字符串中的固定片段），并补「index.html 初始英文不含汉字」断言（Space 版没有）；验收：临时删任一中文 literal 的词典键后 `node studio/tests/check_i18n.mjs` 变红，当前 178 条仍全绿。"
+ },
+ {
+  "issue_id": "R2-S9 交叉复核员（复核 S10 规划/运维/文档一致性）-143",
+  "final_verdict": "real_open",
+  "priority": "P2",
+  "evidence": "tools/repro/tests/test_phase1_regression.py:77-79 `_git_diff_names()` = `git diff --name-only main`；test_phase2_pipeline.py:327-341 用同一基线，并逐个 protected 路径（audio_train.py、look2hear/、studio/、configs/Falcon.yml）断言「与 main 零 diff」。当前分支就是 main，实测 `git diff --name-only main | wc -l`=0，两条守卫 1.69 s 内 `2 passed`——tracked-diff 部分恒为空；但需修正 round-2 的绝对化表述：两条守卫仍检查 untracked（test_phase1_regression.py:505-508、test_phase2_pipeline.py:333-337），那半仍有效。P0-FIX-report.md:104-110 把这两条计入 109 passed/0 failed 的收口结论。",
+  "next_action": "把基线改为固定区间（如 `689555c..HEAD`）或 `git merge-base origin/main HEAD`，使「直接提交到 main」仍被覆盖；若设计上 main 不适用则显式 `@pytest.mark.skip(reason=...)` 并在 P0 报告注明门禁不适用于 main；验收：故意改 audio_train.py 一行能让 test_diff_scope_only_allowed_files 失败（当前不会）。"
+ },
+ {
+  "issue_id": "S1-S1-04",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "复核：`grep -rn SpeakerContrastiveV2` 在 look2hear/ 下只命中 look2hear/system/av_litmodule_nass_v2.py:5 注释与 studio/falcon_runtime.py:20/37；look2hear/models/__init__.py 只导出 Falcon/FalconSpeakerContrastive（:2,:6）；audio_visual_test.py:288-296 与 audio_train.py:260-263 均 `getattr(look2hear.models, audionet_name)`，而 studio/configs/FalconBig.yml:88 `audionet_name: SpeakerContrastiveV2` → 必走 :289 的 AttributeError 分支。但该报错文案把原因硬编码为「shipped Experiments/checkpoint/Falcon/conf.yml still says …(stale snapshot)」，传入 studio/configs/FalconBig.yml 时诊断是错的。01-model-core.md:476 已写「SpeakerContrastiveV2 只用于 Studio big 推理」，所以『big 非主表模型』并非缺口；缺的仅是『官方 eval/train 入口对 big 不可用』这一条，且 01:476 的表述反而可能被读成 big 可被官方脚本载入。",
+  "next_action": "取 (b) 方案（不建议在 look2hear 再复制一份 studio 类，会加剧 R2-114 的双副本漂移）：① docs/understanding/deepdive-20261024/01-model-core.md §5.1 第 476 行后补一条 bullet「big 仅能经 studio/falcon_runtime（MODEL_CLASSES，falcon_runtime.py:37）加载；audio_train.py / audio_visual_test.py 会因 look2hear.models 无 SpeakerContrastiveV2 抛 AttributeError」，并在 09-benchmark-alignment.md 的 big 行（:72）引用；② 顺手把 audio_visual_test.py:290-294 的报错文案改成按实参 conf 命名（去掉硬编码的 Experiments 路径），避免误导。"
+ },
+ {
+  "issue_id": "S2（layers/DSP/视频骨干 + Studio 模型副本）-S2-6",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "复核（本轮实跑）：`WujianVideoModel()(torch.randn(1,1,50,88,88))` → RuntimeError `Expected 4D (unbatched) or 5D (batched) input to conv3d, but got input of size: [1, 1, 1, 50, 88, 88]`；`torch.randn(1,50,88,88)` → `(1, 256, 50)`。代码 look2hear/videomodels/wujian_videomodel.py:158 docstring 写 `x: [B, 1, T, H, W]`，:162 却 `self.front3d(x.unsqueeze(1))`（即要求 4D）。该模块仍在 look2hear/videomodels/__init__.py:2 与 __all__:18 默认导出，configs/ 未选用（当前 only FRCNN），属会浪费换骨干实验的死代码。",
+  "next_action": "视频骨干 owner：wujian_videomodel.py:158-163 二选一——(a) 兼容写法 `if x.dim()==5: x=x[:,0]` 再 unsqueeze；(b) 把 docstring 改成 `[B, T, H, W]` 并注明与 FRCNNVideoModel 的 `[B,1,T,H,W]` 契约相反。同时加 1 条构造+forward 用例（tools/repro/tests/test_t5_backbone.py 已有视频骨干测试骨架，可直接加 5D/4D 两断言），验收 `pytest tools/repro/tests/test_t5_backbone.py -q` 新用例通过。"
+ },
+ {
+  "issue_id": "S4-S4-07",
+  "final_verdict": "real_open",
+  "priority": "P3",
+  "evidence": "复核（本轮实跑官方 loader）：`read_recordings('/root/data/RealSSA-Real')` 返回 40 条，keys = ['prediction_aggregation','raw_recording_available','raw_transcript','recording_key','reference_audio','reference_file','reference_text','segment_ids','speaker_id']，**无 part_order** → eval_realssa_real.py:92-100 的 `order = record.get(\\\"part_order\\\")` 恒 None，重排块在当前唯一生效路径（discover_segments → _segments_from_official，:212-217 'official:read_recordings'）里是死代码。而 metadata/inference_segments.jsonl 的 part_order 取值域实测 [1,2,3,4]（1-based），若接到 recording 层 `ids[int(k)]` 会错位/IndexError 并被 :97 静默吞掉。11 个多 part 录音（54 段/40 录音）实测 segment_ids 已按 part_order 升序（12/12 抽样 sorted_by_part==segment_ids），故当前 DNSMOS 无影响。注：脚本默认 CANDIDATE_DATA=/root/data/realssa_real（:60）不存在，实盘是 /root/data/RealSSA-Real（有 scripts/load_inference.py），任何用默认路径的调用会得到 'missing'。",
+  "next_action": "eval owner：① 删除 eval_realssa_real.py:92-100 的猜测性重排，改在 segment dict 里保留原始 `part_order`（从 inference_segments.jsonl 按 inference_id join，而非从 recordings 取），排序时断言 `sorted(part_order)==list(range(1,n+1))` 并对不匹配直接 raise（不要 except pass）；② 把 :60 CANDIDATE_DATA 改成 /root/data/RealSSA-Real 或在 help 里写明需 --data 显式指定；③ 单测：构造 recordings.jsonl（无 part_order）+ segments（part_order=2,1）断言输出按 1→2 且不静默。仅当真要实现 S9 的 WER 拼接时才需要③的完整版。"
+ }
+]
