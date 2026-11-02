@@ -32,7 +32,7 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
   <a href="https://huggingface.co/datasets/JusperLee/RealSSA-Real">RealSSA-Real</a>
 </p>
 <p>
-  <a href="https://huggingface.co/papers/2610.32749"><img src="assets/hf-paper-of-the-day.svg" alt="#1 Paper of the Day on Hugging Face Daily Papers" width="224"></a>
+  <a href="https://huggingface.co/papers/2610.32749"><img src="assets/hf-paper-of-the-day.svg" alt="#2 Paper of the Day on Hugging Face Daily Papers" width="224"></a>
 </p>
 <p>
   <a href="https://visitor-badge.laobi.icu/"><img src="https://visitor-badge.laobi.icu/badge?page_id=JusperLee.Falcon&amp;left_text=Visitors&amp;left_color=%23555555&amp;right_color=%23007ec6&amp;radius=0" alt="Visitors (README views)"></a>
@@ -47,7 +47,7 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
 
 ## 💥 动态
 
-- **[2026-10-29]** 论文获 [Hugging Face Daily Papers](https://huggingface.co/papers/2610.32749) **#1 Paper of the Day**。
+- **[2026-10-29]** 论文获 [Hugging Face Daily Papers](https://huggingface.co/papers/2610.32749) **#2 Paper of the Day**。
 - **[2026-10-23]** 论文已发布在 [arXiv](https://arxiv.org/abs/2610.32749)。
 - **[2026-10-21]** **Falcon Studio** 上线 [Hugging Face ZeroGPU Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio)：在浏览器中录一段，再在 GPU 上分离。
 - **[2026-10-20]** 开源训练、评测与推理代码，并发布 **Falcon Studio**：可接入 Zoom / 腾讯会议的实时演示。
