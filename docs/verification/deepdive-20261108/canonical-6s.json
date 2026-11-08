@@ -1,0 +1,277 @@
+{
+ "stream_seconds": 6.0,
+ "samples": 96000,
+ "source": "6363283530274620169_00005",
+ "clips": [
+  "6363283530274620169_00005_0.02351_6335305254315087182_00057_-0.02351.wav",
+  "6363283530274620169_00005_0.0439_6341242617105082637_00110_-0.0439.wav",
+  "6363283530274620169_00005_0.16836_6351037719520253414_00001_-0.16836.wav"
+ ],
+ "crossfade_ms_at_join": 10,
+ "joins": [
+  32000,
+  63840
+ ],
+ "zero_tail": 320,
+ "studio": {
+  "range": [
+   0,
+   88000
+  ],
+  "chunks": 11,
+  "covered": true,
+  "metrics": {
+   "si_snr": 14.71,
+   "r": 0.9835,
+   "maxdev_peak": 0.534,
+   "maxdev_rms": 4.21,
+   "rms_ratio": 0.975
+  },
+  "steady_metrics_excl_cold_start": {
+   "si_snr": 16.72,
+   "r": 0.9895,
+   "maxdev_peak": 0.285,
+   "maxdev_rms": 2.25,
+   "rms_ratio": 0.987
+  },
+  "per_chunk_si_snr": [
+   7.8,
+   18.0,
+   22.7,
+   19.7,
+   11.5,
+   29.7,
+   18.4,
+   19.7,
+   20.5,
+   14.4,
+   17.0
+  ],
+  "per_chunk_mean": 18.11,
+  "per_chunk_median": 18.36,
+  "hard_splice": {
+   "si_snr": 14.72,
+   "r": 0.9835,
+   "maxdev_peak": 0.534,
+   "maxdev_rms": 4.21,
+   "rms_ratio": 0.975
+  }
+ },
+ "ref_tiling": {
+  "range": [
+   0,
+   88000
+  ],
+  "windows": 3,
+  "vs_whole": {
+   "si_snr": 18.66,
+   "r": 0.9933,
+   "maxdev_peak": 0.298,
+   "maxdev_rms": 2.35,
+   "rms_ratio": 0.987
+  },
+  "stitched_vs_ref": {
+   "si_snr": 15.26,
+   "r": 0.9854,
+   "maxdev_peak": 0.524,
+   "maxdev_rms": 4.18,
+   "rms_ratio": 0.987
+  }
+ },
+ "guard_stitch": [
+  {
+   "guard_ms": 80.0,
+   "chunks": 10,
+   "covered": true,
+   "si_snr": 14.51,
+   "r": 0.9828,
+   "maxdev_peak": 0.534,
+   "maxdev_rms": 4.24,
+   "rms_ratio": 0.974
+  },
+  {
+   "guard_ms": 160.0,
+   "chunks": 10,
+   "covered": true,
+   "si_snr": 15.19,
+   "r": 0.9852,
+   "maxdev_peak": 0.413,
+   "maxdev_rms": 3.29,
+   "rms_ratio": 0.972
+  },
+  {
+   "guard_ms": 320.0,
+   "chunks": 10,
+   "covered": true,
+   "si_snr": 15.01,
+   "r": 0.9846,
+   "maxdev_peak": 0.315,
+   "maxdev_rms": 2.5,
+   "rms_ratio": 0.977
+  },
+  {
+   "guard_ms": 456.0,
+   "chunks": 10,
+   "covered": true,
+   "si_snr": 16.71,
+   "r": 0.9895,
+   "maxdev_peak": 0.305,
+   "maxdev_rms": 2.42,
+   "rms_ratio": 0.985
+  },
+  {
+   "guard_ms": 640.0,
+   "chunks": 10,
+   "covered": true,
+   "si_snr": 15.57,
+   "r": 0.9864,
+   "maxdev_peak": 0.302,
+   "maxdev_rms": 2.4,
+   "rms_ratio": 0.974
+  }
+ ],
+ "guard_lookahead": [
+  {
+   "guard_ms": 80.0,
+   "window_samples": 32000,
+   "si_snr": 22.12,
+   "r": 0.9969,
+   "maxdev_peak": 0.086,
+   "maxdev_rms": 0.55,
+   "rms_ratio": 0.998
+  },
+  {
+   "guard_ms": 160.0,
+   "window_samples": 33280,
+   "si_snr": 22.19,
+   "r": 0.997,
+   "maxdev_peak": 0.082,
+   "maxdev_rms": 0.53,
+   "rms_ratio": 0.999
+  },
+  {
+   "guard_ms": 320.0,
+   "window_samples": 35840,
+   "si_snr": 22.55,
+   "r": 0.9972,
+   "maxdev_peak": 0.085,
+   "maxdev_rms": 0.55,
+   "rms_ratio": 1.0
+  },
+  {
+   "guard_ms": 456.0,
+   "window_samples": 38016,
+   "si_snr": 21.3,
+   "r": 0.9963,
+   "maxdev_peak": 0.126,
+   "maxdev_rms": 0.82,
+   "rms_ratio": 0.992
+  },
+  {
+   "guard_ms": 640.0,
+   "window_samples": 40960,
+   "si_snr": 22.92,
+   "r": 0.9975,
+   "maxdev_peak": 0.085,
+   "maxdev_rms": 0.55,
+   "rms_ratio": 0.999
+  }
+ ],
+ "align": [
+  {
+   "shift_ms": -250.0,
+   "covered": true,
+   "si_snr": 17.99,
+   "r": 0.9921,
+   "maxdev_peak": 0.15,
+   "maxdev_rms": 1.31,
+   "rms_ratio": 0.992
+  },
+  {
+   "shift_ms": -187.5,
+   "covered": true,
+   "si_snr": 16.67,
+   "r": 0.9894,
+   "maxdev_peak": 0.191,
+   "maxdev_rms": 1.66,
+   "rms_ratio": 0.991
+  },
+  {
+   "shift_ms": -125.0,
+   "covered": true,
+   "si_snr": 16.38,
+   "r": 0.9887,
+   "maxdev_peak": 0.231,
+   "maxdev_rms": 2.02,
+   "rms_ratio": 1.0
+  },
+  {
+   "shift_ms": -62.5,
+   "covered": true,
+   "si_snr": 17.42,
+   "r": 0.9911,
+   "maxdev_peak": 0.15,
+   "maxdev_rms": 1.31,
+   "rms_ratio": 0.988
+  },
+  {
+   "shift_ms": 0.0,
+   "covered": true,
+   "si_snr": 16.72,
+   "r": 0.9895,
+   "maxdev_peak": 0.227,
+   "maxdev_rms": 1.98,
+   "rms_ratio": 0.984
+  },
+  {
+   "shift_ms": 62.5,
+   "covered": true,
+   "si_snr": 15.86,
+   "r": 0.9873,
+   "maxdev_peak": 0.219,
+   "maxdev_rms": 1.91,
+   "rms_ratio": 0.996
+  },
+  {
+   "shift_ms": 125.0,
+   "covered": true,
+   "si_snr": 17.94,
+   "r": 0.9921,
+   "maxdev_peak": 0.161,
+   "maxdev_rms": 1.4,
+   "rms_ratio": 0.985
+  },
+  {
+   "shift_ms": 187.5,
+   "covered": true,
+   "si_snr": 17.56,
+   "r": 0.9913,
+   "maxdev_peak": 0.171,
+   "maxdev_rms": 1.5,
+   "rms_ratio": 0.988
+  },
+  {
+   "shift_ms": 250.0,
+   "covered": true,
+   "si_snr": 17.99,
+   "r": 0.9921,
+   "maxdev_peak": 0.15,
+   "maxdev_rms": 1.31,
+   "rms_ratio": 0.992
+  }
+ ],
+ "align_pairwise": {
+  "min": 17.02,
+  "min_pair_ms": [
+   -63,
+   62
+  ],
+  "max": 105.66,
+  "max_pair_ms": [
+   -250,
+   250
+  ],
+  "note": "pairs whose shifts differ by 0.5 s are the same grid phase and excluded"
+ },
+ "elapsed_s": 88.6
+}

@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "ckpt": "/root/.cache/falcon_weights/falcon.pt",
+    "epoch": 714,
+    "params": 537762,
+    "seed": 0,
+    "x_rms": 0.16495095193386078,
+    "pert_amp": 0.06865400075912476,
+    "p_start": 218,
+    "input_note": "in-domain `6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav` + `6330311066473698535_00011_2.6743_6343252661930009508_00067_-2.6743.wav`（各取前 2 s 拼接成 4 s）",
+    "n_swapped_total": 30,
+    "provenance": {
+      "tree": "/root/code/github_repos/Falcon-fork",
+      "head": "6c1d5b7",
+      "dirty_all": 44,
+      "dirty_model": [
+        " M look2hear/datas/avspeech_dataset.py",
+        " M look2hear/datas/avspeech_dataset_near.py",
+        " M look2hear/layers/normalizations.py",
+        " M look2hear/losses/pit_wrapper.py",
+        " M look2hear/losses/sisnri.py",
+        " M look2hear/models/Falcon.py",
+        " M look2hear/utils/lightning_utils.py"
+      ],
+      "model_dirty": true
+    }
+  },
+  "rows": [
+    {
+      "variant": "as_shipped",
+      "n_swapped": 0,
+      "n_ln4d": null,
+      "n_frames": 251,
+      "p_start_frame": 218,
+      "early_min_db": -40.199623107910156,
+      "early_max_db": -35.93810272216797,
+      "all_min_db": -40.199623107910156,
+      "first_resp_frame": 0,
+      "last_resp_frame": 250,
+      "lookback_frames": 218,
+      "sisnr_2s_vs_4s_db": 10.1188383102417,
+      "out2_rms": 0.00041162135312333703,
+      "out4_rms": 0.0004484511155169457,
+      "sep_rms": 1.0745340585708618
+    },
+    {
+      "variant": "ln_c",
+      "n_swapped": 30,
+      "n_ln4d": 90,
+      "n_frames": 251,
+      "p_start_frame": 218,
+      "early_min_db": -240.0,
+      "early_max_db": -75.28951263427734,
+      "all_min_db": -240.0,
+      "first_resp_frame": 108,
+      "last_resp_frame": 250,
+      "lookback_frames": 110,
+      "sisnr_2s_vs_4s_db": 10.038965225219727,
+      "out2_rms": 0.06978466361761093,
+      "out4_rms": 0.08256649971008301,
+      "sep_rms": 1.664989709854126
+    }
+  ]
+}

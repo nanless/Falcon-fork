@@ -1,0 +1,170 @@
+{
+ "what": "Studio 拼接流式 vs 整段一次前向的仲裁（6 s / 4 s 两段流）",
+ "script": "tools/repro/experiments/streaming_canonical.py",
+ "script_provenance": {
+  "copied_from": "falcon-deepdive-20261108/_scratch/R6/canonical.py",
+  "copied_from_sha256": "31d0877ebb59b057fa1a890b0d4e9f87e3c058a3b2a0b9bc4dc97e8481214f05",
+  "copied_from_lines": 149,
+  "changes": "只改三处非数值内容：补 shebang/来源说明；sys.path 的 /tmp/w212 加载器换成同目录 _falcon_cpu_common.py；加 --json/--seconds 参数。计算逻辑逐行未改。"
+ },
+ "generated": "2026-11-08",
+ "host": "di-20260825114741-2bbpx",
+ "device": "cpu",
+ "threads": 4,
+ "env": "conda falcon: Python 3.11.17 / torch 2.8.0+cu128 / numpy 2.2.6",
+ "checkpoint": {
+  "path": "/root/.cache/falcon_weights/falcon.pt",
+  "sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "epoch": 714
+ },
+ "raw_files": {
+  "6s": "canonical-6s.json",
+  "4s": "canonical-4s.json"
+ },
+ "streams": {
+  "6s": {
+   "raw_file": "canonical-6s.json",
+   "stream_seconds": 6.0,
+   "samples": 96000,
+   "source": "6363283530274620169_00005",
+   "clips": 3,
+   "joins": [
+    32000,
+    63840
+   ],
+   "studio_from_t0": {
+    "si_snr": 14.71,
+    "r": 0.9835,
+    "maxdev_peak": 0.534,
+    "maxdev_rms": 4.21,
+    "rms_ratio": 0.975
+   },
+   "steady_excl_cold_start": {
+    "si_snr": 16.72,
+    "r": 0.9895,
+    "maxdev_peak": 0.285,
+    "maxdev_rms": 2.25,
+    "rms_ratio": 0.987
+   },
+   "hard_splice": {
+    "si_snr": 14.72,
+    "r": 0.9835,
+    "maxdev_peak": 0.534,
+    "maxdev_rms": 4.21,
+    "rms_ratio": 0.975
+   },
+   "per_chunk_si_snr": [
+    7.8,
+    18.0,
+    22.7,
+    19.7,
+    11.5,
+    29.7,
+    18.4,
+    19.7,
+    20.5,
+    14.4,
+    17.0
+   ],
+   "per_chunk_mean": 18.11,
+   "ref_tiling_vs_whole": {
+    "si_snr": 18.66,
+    "r": 0.9933,
+    "maxdev_peak": 0.298,
+    "maxdev_rms": 2.35,
+    "rms_ratio": 0.987
+   },
+   "guard_stitch_si_snr_db": {
+    "80": 14.51,
+    "160": 15.19,
+    "320": 15.01,
+    "456": 16.71,
+    "640": 15.57
+   },
+   "align_pairwise": {
+    "min": 17.02,
+    "min_pair_ms": [
+     -63,
+     62
+    ],
+    "max": 105.66,
+    "max_pair_ms": [
+     -250,
+     250
+    ],
+    "note": "pairs whose shifts differ by 0.5 s are the same grid phase and excluded"
+   },
+   "elapsed_s": 88.6
+  },
+  "4s": {
+   "raw_file": "canonical-4s.json",
+   "stream_seconds": 4.0,
+   "samples": 64000,
+   "source": "6363283530274620169_00005",
+   "clips": 2,
+   "joins": [
+    32000
+   ],
+   "studio_from_t0": {
+    "si_snr": 14.14,
+    "r": 0.9813,
+    "maxdev_peak": 0.539,
+    "maxdev_rms": 4.34,
+    "rms_ratio": 0.968
+   },
+   "steady_excl_cold_start": {
+    "si_snr": 17.52,
+    "r": 0.9913,
+    "maxdev_peak": 0.207,
+    "maxdev_rms": 1.68,
+    "rms_ratio": 0.988
+   },
+   "hard_splice": {
+    "si_snr": 14.14,
+    "r": 0.9813,
+    "maxdev_peak": 0.539,
+    "maxdev_rms": 4.34,
+    "rms_ratio": 0.967
+   },
+   "per_chunk_si_snr": [
+    7.9,
+    18.3,
+    21.9,
+    22.6,
+    12.5,
+    30.5,
+    18.6
+   ],
+   "per_chunk_mean": 18.89,
+   "ref_tiling_vs_whole": {
+    "si_snr": 23.18,
+    "r": 0.9976,
+    "maxdev_peak": 0.116,
+    "maxdev_rms": 0.93,
+    "rms_ratio": 0.993
+   },
+   "guard_stitch_si_snr_db": {
+    "80": 13.73,
+    "160": 14.95,
+    "320": 14.92,
+    "456": 17.58,
+    "640": 15.99
+   },
+   "align_pairwise": {
+    "min": 17.05,
+    "min_pair_ms": [
+     -63,
+     62
+    ],
+    "max": 105.66,
+    "max_pair_ms": [
+     -250,
+     250
+    ],
+    "note": "pairs whose shifts differ by 0.5 s are the same grid phase and excluded"
+   },
+   "elapsed_s": 56.0
+  }
+ },
+ "read": "6 s 流（含冷启动首窗，Studio 从 t=0 起播）：SI-SNR +14.71 dB / r 0.9835 / 峰值偏差 53.4%；剔除冷启动首窗 +16.72 dB / 0.9895 / 28.5%。4 s 流：+14.14 / 0.9813 / 53.9%，稳态 +17.52 / 0.9913 / 20.7%。10 ms join 交叉淡化对 SI-SNR 无影响（6 s：14.71 → 硬切 14.72）。任意两种窗对齐互相 SI-SNR 最小 17.02 dB（6 s）/ 17.05 dB（4 s）。"
+}

@@ -1,0 +1,202 @@
+{
+  "stage": "variants",
+  "code": "tools/repro/experiments/video_ablation_check.py",
+  "repo": "/root/code/github_repos/Falcon-fork",
+  "git_head": "6c1d5b7",
+  "repo_dirty_tracked_files": [
+    "AGENTS.md",
+    "README.md",
+    "README_zh.md",
+    "audio_train.py",
+    "audio_visual_test.py",
+    "configs/LRS2_2Mix.yml",
+    "configs/LRS2_2Mix_Paper_8gpu.yml",
+    "configs/LRS2_2Mix_Paper_v2.yml",
+    "docs/DATA_ACCESS_GUIDE.md",
+    "docs/REPRODUCTION_PLAN.md",
+    "docs/STATUS.md",
+    "docs/understanding/deepdive-20261024/00-SYNTHESIS.md",
+    "docs/verification/phase2/P0-FIX-report.md",
+    "docs/verification/phase2/P2D-report.md",
+    "docs/verification/phase2/P2E-report.md",
+    "docs/verification/phase2/P2F-report.md",
+    "docs/verification/phase2/QA-report.md",
+    "docs/verification/phase2/README.md",
+    "docs/verification/phase2/REGRESSION-docs.md",
+    "docs/verification/scripts/data_pipe/verify_dataset2.py",
+    "evaluated_mac_params.py",
+    "look2hear/datas/avspeech_dataset.py",
+    "look2hear/datas/avspeech_dataset_near.py",
+    "look2hear/layers/normalizations.py",
+    "look2hear/losses/pit_wrapper.py",
+    "look2hear/losses/sisnri.py",
+    "look2hear/models/Falcon.py",
+    "look2hear/utils/lightning_utils.py",
+    "project_page/index.html",
+    "space/README.md",
+    "studio/README.md",
+    "studio/falcon_model/models/Falcon.py",
+    "studio/falcon_model/models/SISNRRepel.py",
+    "studio/falcon_model/models/Speaker_Contrastive_v2.py",
+    "tools/repro/phase2/eval_realssa_real.py",
+    "tools/repro/phase2/run_lrs2_paper_2gpu_smoke.sh",
+    "tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh",
+    "tools/repro/tests/test_litmodule_logging.py",
+    "tools/repro/tests/test_metrics.py",
+    "tools/repro/tests/test_phase1_regression.py",
+    "tools/repro/tests/test_phase2_pipeline.py"
+  ],
+  "ckpt": "/root/.cache/falcon_weights/falcon.pt",
+  "ckpt_sha256_16": "a1888b5a3484a38a",
+  "config": "/root/code/github_repos/Falcon-fork/configs/Falcon.yml",
+  "split": "tt",
+  "data_root": "/root/data/falcon_lrs2_2mix",
+  "n_clips": 40,
+  "select": "spread",
+  "start": 0,
+  "n_distinct_mouths": 40,
+  "n_distinct_target_speakers": 40,
+  "wrong_mode": "other",
+  "wrong_same_speaker_count": 0,
+  "device": "cpu",
+  "threads": 4,
+  "torch": "2.8.0+cu128",
+  "metric": {
+    "name": "SI-SDRi",
+    "sr": 16000,
+    "zero_mean": true,
+    "definition": "si_sdr(ref,est) - si_sdr(ref,mix), dB",
+    "reference_impl": "tools/repro/phase2/protocol_check.py:70-84"
+  },
+  "conditions": {
+    "real": "target speaker's own lips",
+    "zero_feat": "zeros after preprocessing (= flat mid-grey face)",
+    "black_pix": "raw pixel 0, shape kept (= z-score -2.552)",
+    "wrong_speaker": "another speaker's lips"
+  },
+  "stats": {
+    "real": {
+      "n": 40,
+      "mean_si_sdr_i": 7.113215945726912,
+      "median_si_sdr_i": 6.970368590102715,
+      "std_si_sdr_i": 2.1823075420873677,
+      "min_si_sdr_i": 2.6027364154849337,
+      "max_si_sdr_i": 11.518354488853255,
+      "mean_paired_delta_vs_real": 0.0,
+      "median_paired_delta_vs_real": 0.0,
+      "sem_paired_delta": 0.0,
+      "ci95_paired_delta": [
+        0.0,
+        0.0
+      ],
+      "n_better_than_real": 0,
+      "n_worse_than_real": 0
+    },
+    "zero_feat": {
+      "n": 40,
+      "mean_si_sdr_i": -8.87056136150641,
+      "median_si_sdr_i": -8.895600746796623,
+      "std_si_sdr_i": 12.051438073903203,
+      "min_si_sdr_i": -36.99210978030982,
+      "max_si_sdr_i": 8.57514314309889,
+      "mean_paired_delta_vs_real": -15.983777307233321,
+      "median_paired_delta_vs_real": -15.251049871216567,
+      "sem_paired_delta": 1.9022238232504411,
+      "ci95_paired_delta": [
+        -19.712136000804186,
+        -12.255418613662457
+      ],
+      "n_better_than_real": 1,
+      "n_worse_than_real": 39
+    },
+    "black_pix": {
+      "n": 40,
+      "mean_si_sdr_i": 3.9491623950235306,
+      "median_si_sdr_i": 5.104642578416168,
+      "std_si_sdr_i": 4.536683465983156,
+      "min_si_sdr_i": -9.92527813007352,
+      "max_si_sdr_i": 9.686552294514197,
+      "mean_paired_delta_vs_real": -3.1640535507033816,
+      "median_paired_delta_vs_real": -1.0009019145306688,
+      "sem_paired_delta": 0.7675131379053497,
+      "ci95_paired_delta": [
+        -4.6683793009978665,
+        -1.6597278004088962
+      ],
+      "n_better_than_real": 3,
+      "n_worse_than_real": 37
+    },
+    "wrong_speaker": {
+      "n": 40,
+      "mean_si_sdr_i": -4.562524139902902,
+      "median_si_sdr_i": -2.437025287978601,
+      "std_si_sdr_i": 10.645173217824327,
+      "min_si_sdr_i": -33.572081455119836,
+      "max_si_sdr_i": 9.158338895662059,
+      "mean_paired_delta_vs_real": -11.675740085629814,
+      "median_paired_delta_vs_real": -8.924167269065101,
+      "sem_paired_delta": 1.6848926968904157,
+      "ci95_paired_delta": [
+        -14.978129771535029,
+        -8.373350399724599
+      ],
+      "n_better_than_real": 0,
+      "n_worse_than_real": 40
+    }
+  },
+  "mixture_baseline": {
+    "mean_si_sdr": 5.340239320211938,
+    "median_si_sdr": 5.869507548757249
+  },
+  "cluster_stats": {
+    "zero_feat": {
+      "unit": "distinct mouth file",
+      "n_clusters": 40,
+      "mean_delta": -15.983777307233321,
+      "median_delta": -15.251049871216567,
+      "sem": 1.9022238232504411,
+      "ci95": [
+        -19.712136000804186,
+        -12.255418613662457
+      ]
+    },
+    "black_pix": {
+      "unit": "distinct mouth file",
+      "n_clusters": 40,
+      "mean_delta": -3.1640535507033816,
+      "median_delta": -1.0009019145306688,
+      "sem": 0.7675131379053497,
+      "ci95": [
+        -4.6683793009978665,
+        -1.6597278004088962
+      ]
+    },
+    "wrong_speaker": {
+      "unit": "distinct mouth file",
+      "n_clusters": 40,
+      "mean_delta": -11.675740085629814,
+      "median_delta": -8.924167269065101,
+      "sem": 1.6848926968904157,
+      "ci95": [
+        -14.978129771535029,
+        -8.373350399724599
+      ]
+    }
+  },
+  "elapsed_s": 93.16,
+  "forward_verify_max_abs_err": 0.0,
+  "skipped": [],
+  "paired_deltas_vs_real": {
+    "real": 0.0,
+    "zero_feat": -15.983777307233321,
+    "black_pix": -3.1640535507033816,
+    "wrong_speaker": -11.675740085629814
+  },
+  "caveats": [
+    "single split (tt), spread-selection, one checkpoint",
+    "effective visual sample size 40 (mouths deduplicated per utterance)",
+    "2 s clips, window-level inference; not the paper's full evaluation set",
+    "wrong-mouth mode=other",
+    "frozen FRCNN: 'vision off' is a neutral embedding, not zero cost"
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "stream_seconds": 6.0,
+  "source": "6363283530274620169_00005",
+  "items": [
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.02351_6335305254315087182_00057_-0.02351.wav",
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.0439_6341242617105082637_00110_-0.0439.wav",
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.16836_6351037719520253414_00001_-0.16836.wav"
+  ],
+  "device": "cpu",
+  "parameters": 11724385,
+  "checkpoint_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "anchor": "grid",
+  "whole_pass_seconds": 2.153919348027557,
+  "guard_sweep": [
+    {
+      "guard_samples": 1280,
+      "guard_ms": 80.0,
+      "windows": 9,
+      "first_end": 32000,
+      "emitted_range": [
+        22720,
+        94720
+      ],
+      "inference_seconds": 5.61,
+      "si_snr_vs_target": 11.124957721034523,
+      "whole_si_snr_vs_target": 11.529179633882622,
+      "si_snr": 18.201479545832978,
+      "pearson": 0.9925195522266198,
+      "max_dev_to_peak": 0.1882566511631012,
+      "rms_stream": 0.09346901625394821,
+      "rms_reference": 0.09453705698251724,
+      "seconds": 4.5
+    },
+    {
+      "guard_samples": 2560,
+      "guard_ms": 160.0,
+      "windows": 9,
+      "first_end": 32000,
+      "emitted_range": [
+        21440,
+        93440
+      ],
+      "inference_seconds": 5.61,
+      "si_snr_vs_target": 11.22755957277092,
+      "whole_si_snr_vs_target": 11.602288430031749,
+      "si_snr": 18.738238074017907,
+      "pearson": 0.9933806198022433,
+      "max_dev_to_peak": 0.1882566511631012,
+      "rms_stream": 0.09439236670732498,
+      "rms_reference": 0.0954364612698555,
+      "seconds": 4.5
+    },
+    {
+      "guard_samples": 5120,
+      "guard_ms": 320.0,
+      "windows": 9,
+      "first_end": 32000,
+      "emitted_range": [
+        18880,
+        90880
+      ],
+      "inference_seconds": 5.61,
+      "si_snr_vs_target": 11.284772697203122,
+      "whole_si_snr_vs_target": 11.771780099036263,
+      "si_snr": 18.715538173529012,
+      "pearson": 0.9933462761989157,
+      "max_dev_to_peak": 0.1882566511631012,
+      "rms_stream": 0.09654749184846878,
+      "rms_reference": 0.0976850762963295,
+      "seconds": 4.5
+    },
+    {
+      "guard_samples": 7296,
+      "guard_ms": 456.0,
+      "windows": 9,
+      "first_end": 32000,
+      "emitted_range": [
+        16704,
+        88704
+      ],
+      "inference_seconds": 5.61,
+      "si_snr_vs_target": 11.543470101448461,
+      "whole_si_snr_vs_target": 11.773603460144695,
+      "si_snr": 18.451667856459473,
+      "pearson": 0.9929338804144305,
+      "max_dev_to_peak": 0.33794263005256653,
+      "rms_stream": 0.09680141508579254,
+      "rms_reference": 0.09717164933681488,
+      "seconds": 4.5
+    },
+    {
+      "guard_samples": 10240,
+      "guard_ms": 640.0,
+      "windows": 9,
+      "first_end": 32000,
+      "emitted_range": [
+        13760,
+        85760
+      ],
+      "inference_seconds": 5.61,
+      "si_snr_vs_target": 11.366323689270486,
+      "whole_si_snr_vs_target": 11.726699684911594,
+      "si_snr": 16.692120007557968,
+      "pearson": 0.9894597931229986,
+      "max_dev_to_peak": 0.4376729130744934,
+      "rms_stream": 0.09527765959501266,
+      "rms_reference": 0.09667180478572845,
+      "seconds": 4.5
+    }
+  ],
+  "alignment_sweep": [
+    {
+      "shift_samples": 0,
+      "shift_ms": 0.0,
+      "windows": 9,
+      "emitted_range": [
+        22720,
+        94720
+      ],
+      "inference_seconds": 5.57,
+      "si_snr": 18.201479545832978,
+      "pearson": 0.9925195522266198,
+      "max_dev_to_peak": 0.1882566511631012,
+      "rms_stream": 0.09346901625394821,
+      "rms_reference": 0.09453705698251724,
+      "seconds": 4.5
+    },
+    {
+      "shift_samples": 4000,
+      "shift_ms": 250.0,
+      "windows": 8,
+      "emitted_range": [
+        26720,
+        90720
+      ],
+      "inference_seconds": 6.83,
+      "si_snr": 17.813917810314667,
+      "pearson": 0.9918298444013326,
+      "max_dev_to_peak": 0.24765199422836304,
+      "rms_stream": 0.09721893817186356,
+      "rms_reference": 0.09794031083583832,
+      "seconds": 4.0,
+      "si_snr_vs_shift_min": 19.831517560536838
+    }
+  ],
+  "alignment_pairwise": [
+    {
+      "shift": 4000,
+      "vs_shift": 0,
+      "si_snr": 19.831517560536838
+    }
+  ]
+}

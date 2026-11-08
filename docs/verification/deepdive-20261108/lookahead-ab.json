@@ -1,0 +1,41 @@
+{
+  "default": {
+    "paper_causal": false,
+    "video_lstm_batch_first": false,
+    "audio_future_frames": 124.9921875,
+    "video_future_frames": 24.9984375,
+    "ms": 428.7853171117604,
+    "sha": "ad0532a6e994921f"
+  },
+  "paper_causal": {
+    "paper_causal": true,
+    "video_lstm_batch_first": false,
+    "audio_future_frames": 124.9921875,
+    "video_future_frames": 24.9984375,
+    "ms": 428.46865695901215,
+    "sha": "093b917006dac143"
+  },
+  "video_lstm_batch_first": {
+    "paper_causal": false,
+    "video_lstm_batch_first": true,
+    "audio_future_frames": 124.9921875,
+    "video_future_frames": 24.9984375,
+    "ms": 431.90094106830657,
+    "sha": "f119eb048b129637"
+  },
+  "both": {
+    "paper_causal": true,
+    "video_lstm_batch_first": true,
+    "audio_future_frames": 124.9921875,
+    "video_future_frames": 24.9984375,
+    "ms": 456.59912400878966,
+    "sha": "e75c23104c714653"
+  },
+  "n_audio_keys": {
+    "default": 525,
+    "paper_causal": 525,
+    "video_lstm_batch_first": 525,
+    "both": 525
+  },
+  "out_sha_default": "ad0532a6e994921f"
+}
