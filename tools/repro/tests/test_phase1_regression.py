@@ -300,6 +300,7 @@ def fingerprints() -> dict:
 
 
 # =============================================================== 1) 环境/权重基线
+@_CI_SKIP
 def test_environment_and_weights(baseline):
     """conda falcon 环境 + 官方权重与基线一致（sha/size/keys 数）。"""
     import torch as _torch

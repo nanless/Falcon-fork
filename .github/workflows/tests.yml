@@ -72,7 +72,10 @@ jobs:
     name: Studio Python + repro tool tests (CPU)
     runs-on: ubuntu-latest
     steps:
+      # 多个回归用例用 `git show <固定基线>:<file>`，浅克隆会直接失败
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -84,7 +87,8 @@ jobs:
             --index-url https://download.pytorch.org/whl/cpu
           python -m pip install "numpy>=2.2,<3" "scipy<2" pandas pyyaml soundfile tqdm rich \
             packaging timm librosa torch-complex torch-optimizer opencv-python-headless \
-            matplotlib fast-bss-eval torch-mir-eval pystoi ptflops "typeguard<3" pesq
+            matplotlib fast-bss-eval torch-mir-eval pystoi ptflops "typeguard<3" pesq \
+            "pytorch-lightning==2.6.6"
           python -m pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" \
             "huggingface_hub>=2" einops pytest httpx
       - name: pypesq compatibility shim (see AGENTS.md §5)
