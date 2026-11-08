@@ -2,6 +2,7 @@
 
 > 本文件适用于在此仓库（`/root/code/github_repos/Falcon-fork`）工作的所有 AI agent 与人类开发者。
 > 最后更新：2026-11-08。这里记的是本机实测过的环境与代码事实；与本文件冲突的旧命令、旧文档按本文件执行，每条都写了照旧做法会碰到什么。
+> 入口说明：仓库根此前另有一个 `agents.md` 符号链接指向本文件，两个名字都被 git 跟踪；macOS/Windows 的大小写不敏感文件系统 checkout 时会互相覆盖。该软链已删除，**入口只保留 `AGENTS.md`**。
 
 ## 1. 运行环境
 
@@ -195,7 +196,7 @@ $ENV/bin/pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" "huggingface_h
 
 - `docs/` 下是本项目的分析产物（`understanding/` 文档、`reviews/` 评审、`verification/` 脚本与日志），
   按需追加即可，已有文件保持原样（删掉一份日志，引用它的结论就失去追溯路径）。复现计划见 **`docs/REPRODUCTION_PLAN.md`**（数据/缺口/分阶段执行/验收）。
-  最新理解与规划 v2 见 **`docs/understanding/deepdive-20261024/00-SYNTHESIS.md`**（01–09 为 2026-10-24 的 9 子代理深挖）；
+  2026-10-24 那一轮的理解快照见 **`docs/understanding/deepdive-20261024/`**（历史快照；数字与结论以 `docs/STATUS.md` 为准）；
   2026-11-08 一轮深挖见 **`docs/understanding/deepdive-20261108/00-SYNTHESIS.md`**（01–10 域深挖 + 11 论文对齐 + 12 因果性定论）。
   `docs/verification/**` 下的 `.log`/`.csv` 已通过 `.gitignore` 负向规则纳入版本控制（证据要能复核）。
 - 历史文档/日志中出现的 `/root/.venvs/falcon`、`/tmp/dp-verify` 等路径是旧环境/临时目录，

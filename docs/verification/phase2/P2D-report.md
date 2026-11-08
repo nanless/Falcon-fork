@@ -13,6 +13,7 @@
 > ④ §8.3 原写“论文训练配方（数据混合 / lr schedule / 轮数）未公开”，与已公开论文（arXiv:2610.32749，2026-10-23）
 > 不符：lr / epoch / batch / 硬件见 Table 16；论文没写的是 LRS2-2Mix 的 SNR 采样范围与 near 负样本生成脚本
 > （`deepdive-20261108/11` §7 G1/G9）。冻结证据未改。
+> **2026-11-09 复核（W1）**：§8.3 第 3 条的硬件与批口径按论文 Table 16 固定为 **8×3090、bs 4/GPU（global 32）**；旧稿写的“10 卡 / global 40”为误记，本文件其余处同按 Table 16 记。
 
 ## 1. 结论（阶段）
 
@@ -237,7 +238,7 @@ bash /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_p2d.sh <ckpt> /
    near 负样本生成脚本（`deepdive-20261108/11` §7 G1/G9；lr / epoch / batch / 硬件见 Table 16，已对齐）。
    **校正（2026-11-08）**：原文写“论文 10 卡、全局 batch 40”，与论文 Table 16/§4 不符——论文是 **8×RTX 3090、
    bs 4/GPU、全局 32**（`deepdive-20261108/11` §3）。因此本机等效 batch 比论文小 8×，这是差距的可量化因素之一；
-   “10 卡/40”来自早期复现计划，没有论文依据。
+   “10 卡/40”来自早期复现计划，没有论文依据，属误记（2026-11-09 复核）。
 4. 证据完整性：ep86 已于 2026-10-30 补跑（`P2D-eval-epoch86.csv`），**官方 / ep86 / ep99 / ep124 四份均有 3000 句逐句 CSV**；
    两条训练曲线已入库（`P2D-train-metrics-1gpu.csv` 5200 行 / `P2D-near-train-metrics.csv` 1560 行）。
 

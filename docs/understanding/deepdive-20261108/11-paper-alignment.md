@@ -394,7 +394,7 @@ x [B,112,T,F]
 | 17 | Random seed | 42 | `seed: 42` | ✅ | |
 | — | （论文未列）梯度裁剪 | — | v2 注释写 "grad clip 5"，但 `av_litmodule.py` 里 **grep 不到 `clip_grad`/`gradient_clip`** | ⚠️ | `grep clip look2hear/system/av_litmodule.py` 无输出 ⇒ 实际未裁剪 |
 
-**统计：17 行中 14 行 ✅、2 行 ⚠️（mouth 88 vs 96、梯度裁剪）、1 行依赖配置版本（第 13 行）。**
+**统计：17 行中 16 行 ✅、1 行 ⚠️（第 9 行 mouth：存盘 ROI 96×96、网络实际见 88×88）。第 13 行（重建损失）取决于配置版本，按 v2 记为 ✅，旧 `8gpu` 配置下为 ❌。表下梯度裁剪一行不属于这 17 行，判 ⚠️（v2 注释写 clip 5，但代码里 grep 不到 `clip_grad`）。**
 
 ### 4.4 「near 负样本」这一行是真缺口（不是笔误）
 

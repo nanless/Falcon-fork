@@ -1,5 +1,8 @@
 # Falcon 项目三轮详细 Review（2026-10-30）
 
+> **历史快照（2026-10-30）；现状以 [`docs/STATUS.md`](../STATUS.md) 为准。**
+> 本文是当时的问题清单与修复建议，不是当前状态准绳；文中「还没有 STATUS / 建议建 STATUS」是 10-30 的建议，STATUS 已于 2026-10-31 建立。
+
 > 执行：10 个 subagent/轮 × 3 轮（独立审计 → 交叉复核 → 闭环核实）+ 10 个 subagent 压缩复核（补足被输出上限截断的部分）
 > 仓库 `main` @ `a3eb0d7`（工作区 clean）· 环境 conda `falcon`（Py3.11 / torch 2.8.0+cu128 / 2×A800 空闲）
 > 论文已公开：arXiv:2610.32749（2026-10-23）· 关联：[00 总纲](deepdive-20261024/00-SYNTHESIS.md)、[09 基准对齐](deepdive-20261024/09-benchmark-alignment.md)、[PAPER_ALIGNMENT](PAPER_ALIGNMENT_20261030.md)

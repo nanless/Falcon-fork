@@ -40,7 +40,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python <script>.py
 | Node | 系统 `node v22.23.3`（不在 conda env 内；JS 测试直接用它） |
 | GPU | 2×A800；驱动 535.129 支持 cu12x，`torch.cuda.is_available()` 应为 True；CPU 也能完整跑（单窗约 0.6 s：口径 B=1、2 s 窗、CPU；4 线程实测 592–694 ms，1 线程约 1.0 s） |
 | 真实权重 | `/root/.cache/falcon_weights/falcon.pt`、`falcon-big.pt`（Lead 从 hf-mirror 下载并验证） |
-| 数据 | 无 LRS2/LRS3/RealSSA 数据、无 `pretrain_zoo/` → 训练/评测不可端到端复现，只能做代码级 + 最小验证 |
+| 数据 | LRS2-2Mix、RealSSA-Sim、RealSSA-Real 在 `/root/data`：7 个目录、单目录 12–38 G，硬链接去重 62 G（清单见 [`STATUS.md` §2.5](../STATUS.md)）；缺 LRS3-2Mix、VoxCeleb2-2Mix（上游未发布）与 `pretrain_zoo/`，这两个 benchmark 做不了；训练只到入口冒烟，论文 8 卡配方本机未跑 |
 
 ## 2. 关键 pin 与已知取舍
 

@@ -207,4 +207,4 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python audio_visual_test.py \
    RealSSA-Real DNSMOS 证据入库 `DNSMOS-realssa-real-mean-full3/`。
 5. **证据策略已修**：`.gitignore` 放行 `docs/verification/**/*.log` 与 `*.csv`（此前 `*.log` 被全量忽略、`runs/` 被忽略），
    训练曲线 `P2D-train-metrics-1gpu.csv` / `P2D-near-train-metrics.csv` 已入库。
-6. **当前状态与 v2 规划**：见 `docs/understanding/deepdive-20261024/00-SYNTHESIS.md` 与 `09-benchmark-alignment.md`。
+6. **当前状态**：见 `docs/STATUS.md`；`docs/understanding/deepdive-20261024/00-SYNTHESIS.md` 与 `09-benchmark-alignment.md` 是 2026-10-24 的历史快照（现状以 STATUS 与 `deepdive-20261108/` 为准）。

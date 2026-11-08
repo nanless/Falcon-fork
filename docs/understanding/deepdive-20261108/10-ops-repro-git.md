@@ -96,7 +96,7 @@ GPU 可见：**168 passed / 0 skipped / 0 failed / 约 148 s**（2026-11-08 实�
 ```
 
 - 被 **跟踪** 的 `__pycache__`/`.pyc`：**0 个**（`git ls-files | grep -cE "__pycache__|\.pyc$"` = 0）。
-- 被跟踪的 `.pid`：**0 个**；被跟踪的 ≤10 字节文件只有 `agents.md`（9 B，symlink → `AGENTS.md`）。
+- 被跟踪的 `.pid`：**0 个**；被跟踪的 ≤10 字节文件只有 `agents.md`（9 B，symlink → `AGENTS.md`）。（该软链已于 2026-11-09 删除，入口只保留 `AGENTS.md`）
 - 0 字节文件：`docs/verification` 下 **0 个**（唯一那个 0 字节 CSV 已在 2062528 删除，见 §2.4）。
 
 ---

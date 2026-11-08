@@ -8,14 +8,14 @@
 
 ## 0. 结论速览
 
-1. **0 次切窗**：`audio_visual_test.py:419` 把整段 `mix` 一次送进模型，全文没有 `window/hop/chunk/pad`；「2 s 窗 / 0.5 s hop / 80 ms guard」只属于 Studio 运行时与 RealSSA-Real 长音频评测器（`:415-425`、`Falcon.py:1480-1499`、`Falcon.py:1189-1195`）。
+1. **0 次切窗**：`audio_visual_test.py:479` 把整段 `mix` 一次送进模型，全文没有 `window/hop/chunk/pad`；「2 s 窗 / 0.5 s hop / 80 ms guard」只属于 Studio 运行时与 RealSSA-Real 长音频评测器（`:475-486`、`Falcon.py:1480-1499`、`Falcon.py:1189-1195`）。
 2. **1 路输出**：`n_src: 1`（`configs/LRS2_2Mix.yml:11`），`SI-SNRi = SI-SDR(ŝ, s1) − SI-SDR(mix, s1)`，逐句算，PIT 在 S=1 时退化为恒等（`core.py:75-79,152-155`）。这里既不是 2 源分离口径，也没有「best-of-2 输出通道」这一步。
 3. **5.3e-8 dB 的复现误差**：官方 `falcon.pt` 跑 5 条，`max|Δ|` 对 `P2D-eval-falcon-full.csv` 前 5 行为 5.3e-8 dB（SI-SNRi）、PESQ 2.3e-5；两次历史全量 run 之间 3.3e-7 dB。误差在 float32 内核噪声量级，评测本身确定性足够。
 4. **9,169 与 9,166 两个分母**：RealSSA-Sim 的 SI-SNRi 用 9,169 条，SDRi 与 PESQ 只有 **9,166** 条（3 条 NaN），STATUS 把两个口径写成了同一个数。avg 行可精确定位：LRS2 类 `:3002`、RealSSA-Sim 类 `:9171`，两份逐句 CSV 都能复算。
 5. **−1.6 ~ −2.3 dB 是协议伪影**：整段 vs 分窗，5 句实测 −1.648，300 句历史 −1.912/−2.318。2 s 片段上模拟流式时首窗有 1.42 s 零前缀，这个差值不能反过来解释论文 14.1 与本仓库 7.03 的差距。
 6. **−7.07 dB 来自 ckpt 训练语料**：`README.md:232` 写 `falcon.pt` 来自 `LRS3_complex_nonmoving`（epoch 714），LRS2-2Mix 上是跨语料结果。本机 LRS2 自训 ep124 得 8.858/9.270，仍差 −5.24/−5.43；SI-SNRi 的定义本身与论文同义（§2.3）。
 7. **+0.0040 OVRL 与一次确定性错误**：DNSMOS full3 → full4 的均值只涨 0.0040，但 full3 每条估计开头 21,440 样本（1.34 s）恒为 0，属输出确定性错误，4 个值作废（§4.4）。
-8. **0 处覆盖率断言**：`audio_visual_test.py` 全文 23 处 `raise` 没有一条校验「跑了几条/共几条」，只能靠日志 `utterances=N` 与 `metrics_counts.json.n_utterances` 事后核对。`eval_realssa_real.py` 在 `2062528` 才补上逐样本 `filled` 断言（`:428-459`）。
+8. **覆盖率断言：当时 0 处，2026-11-08 已补**：在 `6c1d5b7` 时点，`audio_visual_test.py` 全文 23 处 `raise`（按 `raise` 语句计）没有一条校验「跑了几条/共几条」，只能靠日志 `utterances=N` 与 `metrics_counts.json.n_utterances` 事后核对；`eval_realssa_real.py` 是在 `2062528` 才补上逐样本 `filled` 断言的（`:428-459`）。2026-11-08 已补三层覆盖率自检（rank 内「计划 vs 实际」、跨 rank 合计、合并 CSV 行数），并加 `--allow-partial`（`9a920ce`）；`raise` 现 28 处（`STATUS.md:141`，`grep -c 'raise '` 同值；其中 27 处为语句，另 1 处是文件头 docstring 的描述）。
 9. **0 条失败句被剔除**：`drop_utt/drop_len` 是永远打印 0 的死代码（`:162-175`）；指标级 NaN 由 `nanmean` 静默跳过，只在 `n_*` 列留痕。这是 §0-4 那个 9,166 的成因。
 10. **4 个 LRS2 数字都是 `limit=all`**：P2A(200/20)、P2B(300) 在报告里显式标注子集，没有子集被当全量（§3.5）。
 11. **可对外引用的 5 组数**：7.774/8.479（RealSSA-Sim mean，带 ckpt 与通道声明）、7.977/8.452（ch0）、2.7941/3.3365（DNSMOS full4）、7.029/7.713（LRS2 跨语料基线）、8.858/9.270（LRS2 自训 ep124）。full3 的四个 DNSMOS 值不进入任何对外表述；7.03 与 14.1 只能并列成「不可比」，写成「复现」是错的；47.1/56.5 ms 缺原始测量文件，只作线索。
@@ -24,39 +24,39 @@
 
 ## 1. 事实基线
 
-### 1.1 入口与参数表（`audio_visual_test.py:82-101`）
+### 1.1 入口与参数表（`audio_visual_test.py:110-139`）
 
 | 参数 | 默认 | 语义 | 代码行 |
 |---|---|---|---|
-| `--conf_dir` | `configs/Falcon.yml` | 训练配置 YAML，须含 `audionet`/`videonet`/`datamodule` | `:83-85`、`:174-178` |
-| `--data_dir` | `""` | JSON 索引目录，**覆盖** `datamodule.data_config.test_dir` | `:86-89`、`:186-202` |
-| `--ckpt_path` | `""` | `.ckpt` / `falcon.pt` / 裸 state_dict / `hf://org/repo/file` | `:90-93`、`:578-596` |
-| `--gpus` | `"0"` | 逗号分隔物理卡号；`""`/`cpu` 强制 CPU | `:94-97`、`:341-348` |
-| `--limit` | `0` | 只评前 N 条（0=全部） | `:98-101`、`:377-381` |
+| `--conf_dir` | `configs/Falcon.yml` | 训练配置 YAML，须含 `audionet`/`videonet`/`datamodule` | `:111-113`、`:211-215` |
+| `--data_dir` | `""` | JSON 索引目录，**覆盖** `datamodule.data_config.test_dir` | `:114-117`、`:223-239` |
+| `--ckpt_path` | `""` | `.ckpt` / `falcon.pt` / 裸 state_dict / `hf://org/repo/file` | `:118-121`、`:842-860` |
+| `--gpus` | `"0"` | 逗号分隔物理卡号；`""`/`cpu` 强制 CPU | `:122-125`、`:378-385` |
+| `--limit` | `0` | 只评前 N 条（0=全部） | `:126-132`、`:416-431` |
 
 - 无 `--batch_size`、无 `--window/--hop/--chunk`、无 `--min-duration`、无 `--seed`、无 `--out-dir`。
-- **结果落盘位置不受参数控制**：`<cwd>/Experiments/checkpoint/<exp_name>/results/`（`:386-388`、`:558-561`）。`exp_name` 来自配置（`LRS2_2Mix.yml:154` = `LRS2_2Mix`，`Falcon.yml:173` = `Falcon`）→ 同一 cwd 跑不同 ckpt **会互相覆盖**。历史上有 2 次直接写进了仓库树（`P2E-realssa-sim-eval-official.log` 的 results dir = `/root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results`，`P2D-eval-epoch124-contrastive.log` 同理）；因 `.gitignore` 有 `results/`，`git status` 仍干净，但这是**产物与源码混放**的风险点。
+- **结果落盘位置不受参数控制**：`<cwd>/Experiments/checkpoint/<exp_name>/results/`（`:446-448`、`:817-820`）。`exp_name` 来自配置（`LRS2_2Mix.yml:154` = `LRS2_2Mix`，`Falcon.yml:173` = `Falcon`）→ 同一 cwd 跑不同 ckpt **会互相覆盖**。历史上有 2 次直接写进了仓库树（`P2E-realssa-sim-eval-official.log` 的 results dir = `/root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/results`，`P2D-eval-epoch124-contrastive.log` 同理）；因 `.gitignore` 有 `results/`，`git status` 仍干净，但这是**产物与源码混放**的风险点。
 - 数据/索引解析：
-  - `_resolve_index_dir()` 依次尝试 `<path>/tt`、`<path>`，**必须同时存在 `mix.json` 与 `target.json`**（`:150-166`，判据在 `:157-160`）。→ 参考永远是**单一 `target`**，没有 `s1.json/s2.json` 这类 2 源索引。
-  - 占位符 `_expand_env_vars()` 递归展开 `${VAR}`/`$VAR`（`:107-118`），未解析的仍会打印 warning（`:180-184`）；但 `test_dir` 里的占位符会直接报错（`:196-200`）。
-  - `configs/Falcon.yml:161` 的 `test_dir: --` 是合法"未设置"哨兵（`:190-195`），所以用 `Falcon.yml` 必须给 `--data_dir`；`configs/LRS2_2Mix.yml:142` 则把 `test_dir` 硬编码成本机路径。
+  - `_resolve_index_dir()` 依次尝试 `<path>/tt`、`<path>`，**必须同时存在 `mix.json` 与 `target.json`**（`:187-203`，判据在 `:194-197`）。→ 参考永远是**单一 `target`**，没有 `s1.json/s2.json` 这类 2 源索引。
+  - 占位符 `_expand_env_vars()` 递归展开 `${VAR}`/`$VAR`（`:144-155`），未解析的仍会打印 warning（`:217-221`）；但 `test_dir` 里的占位符会直接报错（`:233-237`）。
+  - `configs/Falcon.yml:161` 的 `test_dir: --` 是合法"未设置"哨兵（`:227-232`），所以用 `Falcon.yml` 必须给 `--data_dir`；`configs/LRS2_2Mix.yml:142` 则把 `test_dir` 硬编码成本机路径。
 
 ### 1.2 checkpoint 加载：四条路径 + 两处严格校验
 
 ```
-ckpt_path 为空 → _find_best_ckpt(exp_dir)            # :389
-  ├─ best_k_models.json 中 val_loss 最低且本地存在    # :219-231（不存在则 warning 后降级）
-  ├─ last.ckpt                                     # :233-236
-  └─ epoch=*.ckpt 按**数值** epoch 取最大            # :238-246（epoch=1000 > epoch=742）
-ckpt_path 给定 → 直接用（不存在则 FileNotFoundError） # :390-391
+ckpt_path 为空 → _find_best_ckpt(exp_dir)            # :449
+  ├─ best_k_models.json 中 val_loss 最低且本地存在    # :256-268（不存在则 warning 后降级）
+  ├─ last.ckpt                                     # :270-273
+  └─ epoch=*.ckpt 按**数值** epoch 取最大            # :275-283（epoch=1000 > epoch=742）
+ckpt_path 给定 → 直接用（不存在则 FileNotFoundError） # :450-451
 ```
 
-- 反序列化：先 `torch.load(..., weights_only=True)`，失败才回落 `weights_only=False` 并打印原因（`:270-276`）。
-- 结构校验：`_extract_state_dict()` 要求 state_dict 里**至少有一个** `audio_model.*` / `video_model.*` 键（`:254-267`）；纯音频 `best_model.pth`（serialize 格式）会被明确拒绝（`:262-266`）。
-- 音频侧：按 `audionet_name` 从 `look2hear.models` 取类，`strict=True` 加载 `audio_model.*`（去掉前缀）（`:286-308`）；失败信息会提示"config 与 ckpt 架构不匹配"（`:302-307`）。
-- 视频侧：**先 `pop("pretrain")` 再传 `pretrain=None`**，绝不让预训练权重覆盖 ckpt 里的 137 个 key（`:311-322`）；只有在 state_dict 无 `video_model.*` 时才回落到 `pretrain` 路径（`:323-331`）。
+- 反序列化：先 `torch.load(..., weights_only=True)`，失败才回落 `weights_only=False` 并打印原因（`:307-313`）。
+- 结构校验：`_extract_state_dict()` 要求 state_dict 里**至少有一个** `audio_model.*` / `video_model.*` 键（`:291-304`）；纯音频 `best_model.pth`（serialize 格式）会被明确拒绝（`:299-303`）。
+- 音频侧：按 `audionet_name` 从 `look2hear.models` 取类，`strict=True` 加载 `audio_model.*`（去掉前缀）（`:323-345`）；失败信息会提示"config 与 ckpt 架构不匹配"（`:339-344`）。
+- 视频侧：**先 `pop("pretrain")` 再传 `pretrain=None`**，绝不让预训练权重覆盖 ckpt 里的 137 个 key（`:348-359`）；只有在 state_dict 无 `video_model.*` 时才回落到 `pretrain` 路径（`:360-368`）。
 - 复现日志实证（`P2D-eval-falcon-full.log:16-17`）：`✓ audio_model loaded: 525 keys`、`✓ video_model loaded: 137 keys from falcon.pt`。
-- 载入后 `model.eval()`、`video_model.eval()`、`torch.no_grad()`（`:333-334`、`:414`、`:427`）。
+- 载入后 `model.eval()`、`video_model.eval()`、`torch.no_grad()`（`:370-371`、`:474`、`:488`）。
 
 ### 1.3 数据加载：`AVSpeechEvalDataset`（`avspeech_dataset.py:130-219`）
 
@@ -77,19 +77,19 @@ ckpt_path 给定 → 直接用（不存在则 FileNotFoundError） # :390-391
 
 ### 1.4 逐句推理与切窗规则（核心问题的正面回答）
 
-worker 主循环（`audio_visual_test.py:415-425`）：
+worker 主循环（`audio_visual_test.py:475-486`）：
 
 ```python
-mix, sources, mouth, key, _ = tensors_to_device(dataset[idx], device=device)   # :416
-mouth_in  = _mouth_to_tensor(mouth).float().to(device)                        # :417  [1,1,F,96,96]
-mouth_emb = video_model(mouth_in)                                             # :418
-est_sources = model(mix.unsqueeze(0), mouth_emb)                              # :419  [1,n_src,T]
-metrics(mix=mix, clean=sources.unsqueeze(0), estimate=est_sources.squeeze(0), key=key)  # :420-423
+mix, sources, mouth, key, _ = tensors_to_device(dataset[idx], device=device)   # :476
+mouth_in  = _mouth_to_tensor(mouth).float().to(device)                        # :477  [1,1,F,96,96]
+mouth_emb = video_model(mouth_in)                                             # :478
+est_sources = model(mix.unsqueeze(0), mouth_emb)                              # :479  [1,n_src,T]
+metrics(mix=mix, clean=sources.unsqueeze(0), estimate=est_sources.squeeze(0), key=key)  # :480-483
 ```
 
 **切窗规则 = 不切窗。** 依据四条：
 
-1. 入口层：`:419` 把整段 `mix`（`[T]`）一次性 `unsqueeze(0)` 送进模型，循环体里**没有任何 `for start in range(0,T,hop)`**；全文无 `window`/`hop`/`chunk`/`pad` 字样（只有 `--limit` 与 progress bar）。
+1. 入口层：`:479` 把整段 `mix`（`[T]`）一次性 `unsqueeze(0)` 送进模型，循环体里**没有任何 `for start in range(0,T,hop)`**；全文无 `window`/`hop`/`chunk`/`pad` 字样（只有 `--limit` 与 progress bar）。
 2. 模型层：`Falcon.forward(audio_mixture, mouth_embedding)`（`Falcon.py:1480-1499`）是 `encoder → audio_bottleneck → separator → mask_generator → decoder` 的单遍直通，**无分块、无状态缓存**；`separator` 也只按 `fusion_repeats / audio_repeats` 顺序叠块（`Falcon.py:1032-1059`）。
 3. 时域边界：`torch.stft` **未传 `center=`** → PyTorch 默认 `center=True`，即两端 reflect-pad `win//2=128` 样本（`Falcon.py:1117-1123`，`win: 256 / hop_length: 128`，见 `configs/LRS2_2Mix.yml:23-31`）。**没有额外补零**。
 4. 输出拼接：`STFTDecoder.forward(x, input_shape)` 里 `length = input_shape[-1]`（`Falcon.py:1173`），`torch.istft(..., length=length)`（`:1189-1195`）→ 输出长度**恒等于输入长度**，不裁不补。因此 `est` 与 `clean`、`mix` 天然逐样本对齐，SI-SDR 不需要任何对齐/裁剪。
@@ -126,7 +126,7 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
 - 数值口径：SI-SDR `zero_mean=True`（`core.py:76`）；SDR = `fast_bss_eval.sdr_pit_loss(filter_length=512)`（`core.py:69,174`）；PESQ/PSTOI 采样率 16 kHz（`core.py:70`），STOI `extended=False`（`core.py:215`）。
 - 逐句写盘：`__call__` 里立刻 `writer.writerow(row)`（`allwrapper.py:136`），所以**崩溃前的行不会丢**（这也是历史 ep86 能"重跑补 CSV"的原因之一）。
 
-### 1.6 CSV 列定义与聚合（`allwrapper.py:52-64`；`:466-549`）
+### 1.6 CSV 列定义与聚合（`allwrapper.py:52-64`；`:702-808`）
 
 | 列 | 定义 | 来源 |
 |---|---|---|
@@ -135,17 +135,17 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
 | `si-snr`, `si-snr_i` | 零均值 SI-SDR / 相对 mix 的提升 | `core.py:152-162` |
 | `pesq`, `stoi` | `pesq(clean, est, 16000)`、`stoi(clean, est, 16000, extended=False)` | `core.py:196-217` |
 | `si-snr_mix`, `sdr_mix` | **逐句** mix 基线（2026-10-30 追加，A4-4） | `:104,108` |
-| `n_<metric>` | 该列**有限值**计数；逐句行留空，`avg`/`std` 行填真实计数（A4-3） | `:486-497` |
-| `avg` 行 | 逐句算术均值，NaN 跳过 | `:492` |
-| `std` 行 | **总体标准差 `ddof=0`**，NaN 跳过 | `:493`（`allwrapper.py:154-159` 的 `nanstd` 语义一致） |
+| `n_<metric>` | 该列**有限值**计数；逐句行留空，`avg`/`std` 行填真实计数（A4-3） | `:741-752` |
+| `avg` 行 | 逐句算术均值，NaN 跳过 | `:747` |
+| `std` 行 | **总体标准差 `ddof=0`**，NaN 跳过 | `:748`（`allwrapper.py:154-159` 的 `nanstd` 语义一致） |
 
-- 合并：多 rank 分片 `metrics_rank{r}.csv` 按 rank 顺序 `pd.concat`（`:469-476`）→ **多卡时行序是 rank 交织后的顺序，不是全局 idx 顺序**（单卡无影响）。合并后删除分片（`:545-548`）。
-- 恒等式校验（`:506-512`）：`|si-snr − si-snr_i − si-snr_mix|`，`max` 写入 `metrics_counts.json`。实测：
+- 合并：多 rank 分片 `metrics_rank{r}.csv` 按 rank 顺序 `pd.concat`（`:706-720`）→ **多卡时行序是 rank 交织后的顺序，不是全局 idx 顺序**（单卡无影响）。合并后删除分片（`:801-804`）。
+- 恒等式校验（`:761-767`）：`|si-snr − si-snr_i − si-snr_mix|`，`max` 写入 `metrics_counts.json`。实测：
   - `P2D-eval-epoch99-cols-20261031.counts.json` → `"max": 5.329e-15`, `finite_pairs: 3000`
   - `P2D-eval-falcon-full-cols-20261031.counts.json` → `"max": 4.441e-15`, `finite_pairs: 3000`
   - 我自己的 5 句 run → 逐行 `0 / 1.776e-15 / 0 / 1.776e-15 / 0`，max `1.776e-15`
   → **恒等式真的成立**（这是构造性的：`si-snr_i ≡ si-snr − si-snr_mix` 由 `:105` 直接相减得到，恒等式只能验证"CSV 没被手改"）。
-- `metrics_counts.json` 的 `n_utterances` 是**唯一的机器可读覆盖率凭据**（`:513-533`）。
+- `metrics_counts.json` 的 `n_utterances` 是**唯一的机器可读覆盖率凭据**（`:768-789`）。
 
 ---
 
@@ -157,7 +157,7 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
 |---|---|
 | `configs/Falcon.yml:12`、`configs/LRS2_2Mix.yml:11`、`configs/LRS2_2Mix_Paper_v2.yml:28` | `audionet_config.n_src: 1`（三份配置全为 1） |
 | `configs/*.yml` 的 `datamodule.data_config.n_src`（如 `LRS2_2Mix.yml:143`） | 也是 `1` |
-| `audio_visual_test.py:157-160` | 只认 `mix.json` + `target.json`（单参考），没有多源索引概念 |
+| `audio_visual_test.py:194-197` | 只认 `mix.json` + `target.json`（单参考），没有多源索引概念 |
 | `/root/data/falcon_lrs2_2mix/tt/target.json[0]` | `['.../target/xxx.wav', '.../mouths/xxx.pt', 32000]` —— **一条 target + 一个 mouth** |
 | `conversion_stats.json`（`/root/data/falcon_lrs2_2mix/`） | `"target": "s1"`、`"near_mode": "fallback"` |
 | `P2A-report.md:5` | "3000 条 LRS2-2Mix tt，**target=s1**" |
@@ -166,9 +166,9 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
 
 所以：**输入 = 2 人混合语音 + 目标说话人（s1）的唇部 ROI；输出 = 1 路 s1 估计**。这就是 AVTSE（音视频目标说话人提取）的评测口径，不是"分离出 2 路再匹配"。
 
-`Falcon.forward` 的输出形状印证：`separated_audios = self.decoder(emb, audio_mixture.shape)` → `view(batch, self.n_src, length)`（`Falcon.py:1490,1197`），`n_src=1` → `[1,1,T]`；入口 `est_sources.squeeze(0)` → `[1,T]`（`audio_visual_test.py:422`），`clean` → `[1,1,T]→[1,T]`。二者都是 1 路。
+`Falcon.forward` 的输出形状印证：`separated_audios = self.decoder(emb, audio_mixture.shape)` → `view(batch, self.n_src, length)`（`Falcon.py:1490,1197`），`n_src=1` → `[1,1,T]`；入口 `est_sources.squeeze(0)` → `[1,T]`（`audio_visual_test.py:482`），`clean` → `[1,1,T]→[1,T]`。二者都是 1 路。
 
-> 历史线索：`look2hear/metrics/splitwrapper.py:31-36` 还留着 `one_si-snr/one_si-snr_i` 与 `two_si-snr/two_si-snr_i` 的分裂式统计，说明更早版本确实区分"1 源/2 源"两种口径；**当前评测入口完全不用 `SPlitMetricsTracker`**（`audio_visual_test.py:66` 只 import `ALLMetricsTracker`）。
+> 历史线索：`look2hear/metrics/splitwrapper.py:31-36` 还留着 `one_si-snr/one_si-snr_i` 与 `two_si-snr/two_si-snr_i` 的分裂式统计，说明更早版本确实区分"1 源/2 源"两种口径；**当前评测入口完全不用 `SPlitMetricsTracker`**（`audio_visual_test.py:91` 只 import `ALLMetricsTracker`）。
 
 ### 2.2 SI-SNRi 的确切数学（逐句、相对未处理 mix）
 
@@ -237,7 +237,7 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 
 补充核对（P2D 报告正文与表的一致性）：
 - `P2D-report.md:204-207` 的 4 行与本表 #7/#8/#9/#10 完全一致（逐句 avg 值六位小数相同）。
-- `P2D-report.md:227` 写"论文 10 卡、全局 batch 40"——与 `STATUS.md`（`8×RTX3090、bs4/GPU、global 32`）和 `PAPER_ALIGNMENT_20261030.md:22`（**8×3090 / bs4 / global 32**）矛盾 → 见 §6-C3。
+- `P2D-report.md` §8.3 曾把论文硬件写成 10 卡/global 40，已于 `8b9d903`／2026-11-09 校正为 8×3090、bs4/GPU（global 32）——与 `STATUS.md`（`8×RTX3090、bs4/GPU、global 32`）和 `PAPER_ALIGNMENT_20261030.md:22`（**8×3090 / bs4 / global 32**）一致 → 见 §6-C3。
 - 跨文件一致性：`P2D-eval-falcon-full.csv` 与 `P2D-eval-falcon-full-cols-20261031.csv`（相隔 7 天的两次独立 run）逐行 `max|Δ|` = SDR **2.220e-07**、SI-SNR **2.308e-07**、SI-SNRi **2.308e-07**、PESQ **9.394e-05**、STOI **3.887e-08**；行序 3000/3000 完全相同。
 - `P2F-report.md` §TL;DR 1 的第三方对拍结论："核心指标与 CSV 最大差 **1.8e-7 dB**（要求 ≤0.05）、CSV avg/std == 逐句重算精确成立、由 CSV 反推 baseline 与独立计算差 4.5e-8 dB" → 与我的测量同量级，**指标实现本身无问题**。
 
@@ -271,10 +271,10 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 
 | 项 | `audio_visual_test.py` | `eval_realssa_real.py` |
 |---|---|---|
-| 覆盖率断言 | **无**。全文 23 处 `raise`（`:144,153,161,176,178,192,197,248,257,260,262,289,299,303,321,328,360,391,474,480,576,583,589`）没有一条校验"完成句数 == 总数" | **有**（`2062528` 新增）：逐样本 `filled[]` 位图，循环后 `if not filled.all(): raise RuntimeError("windowed inference coverage failure: …gaps…")`（`:428-459`） |
-| 事后可核 | `[eval] test index: … \| utterances=N \| this rank=M`（`:382-384`）+ `metrics_counts.json.n_utterances`（`:513-533`） | `summary.json` 的 `segments_total/segments_ok/segments_error`（`:544-563`） |
-| 失败行为 | 任一 `sf.read`/前向/指标异常 → 直接抛 → `traceback` + `sys.exit(1)`（`:606-610`）；**不会跳过继续** | 单段异常 → 记 `row["error"]` 继续（`:681-687`），`--fail-fast` 才中止（`:684-686`） |
-| 指标级 NaN | `nanmean` 静默跳过，仅 `n_*` 留痕（`allwrapper.py:147-160`、`audio_visual_test.py:486-497`） | `score_array` 遇到 NaN/Inf 直接 `raise`（`eval_dnsmos.py:76-77`） |
+| 覆盖率断言 | **当时（`6c1d5b7`）无**：全文 23 处 `raise`（`:144,153,161,176,178,192,197,248,257,260,262,289,299,303,321,328,360,391,474,480,576,583,589`）没有一条校验"完成句数 == 总数"。**2026-11-08 已补**三层自检：各 rank 的 planned/produced、跨 rank 合计 vs `planned_total`、合并 CSV 行数 vs `planned_total`（`_check_coverage`，`:570-700`），任一处不一致即非 0 退出；`--allow-partial` 显式降级为 warning 并把 `verified` 记 false（`9a920ce`）。`raise` 现 28 处（`STATUS.md:141`） | **有**（`2062528` 新增）：逐样本 `filled[]` 位图，循环后 `if not filled.all(): raise RuntimeError("windowed inference coverage failure: …gaps…")`（`:428-459`） |
+| 事后可核 | `[eval] test index: … \| utterances=N \| this rank=M`（`:435-436`）+ `metrics_counts.json.n_utterances`（`:768-789`） | `summary.json` 的 `segments_total/segments_ok/segments_error`（`:544-563`） |
+| 失败行为 | 任一 `sf.read`/前向/指标异常 → 直接抛 → `traceback` + `sys.exit(1)`（`:871-875`）；**不会跳过继续** | 单段异常 → 记 `row["error"]` 继续（`:681-687`），`--fail-fast` 才中止（`:684-686`） |
+| 指标级 NaN | `nanmean` 静默跳过，仅 `n_*` 留痕（`allwrapper.py:147-160`、`audio_visual_test.py:741-752`） | `score_array` 遇到 NaN/Inf 直接 `raise`（`eval_dnsmos.py:76-77`） |
 
 **实测分母修正**（这是最实质的一处口径瑕疵）：
 
@@ -309,7 +309,7 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 | P2E RealSSA-Sim（两版） | 未给 | **9169**（`limit=all`） | `P2E-report.md:246` | 否 |
 | RealSSA-Real DNSMOS | 未给 | **54/54 段**（`limit: 0`） | `run_metadata.json` 的 `"limit": 0` | 否 |
 
-结论：**没有发现 `--limit` 子集被当全量的实例**。唯一需要提醒的是 `audio_visual_test.py:377-381` 的 `--limit` 在 **多卡时先截断再 `indices[rank::world_size]`**，所以 `world_size=2 --limit 5` 得到 3+2 条（总数仍是 5，不会翻倍），语义正确。
+结论：**没有发现 `--limit` 子集被当全量的实例**。唯一需要提醒的是 `audio_visual_test.py:416-431` 的 `--limit` 在 **多卡时先截断再 `indices[rank::world_size]`**，所以 `world_size=2 --limit 5` 得到 3+2 条（总数仍是 5，不会翻倍），语义正确。
 
 ---
 
@@ -455,9 +455,9 @@ PYTHONPATH=$REPO OMP_NUM_THREADS=4 $ENV $REPO/tools/repro/phase2/compare_variant
 4. **`self.length = orig_len` 的静默截断隐患**（`:166-176`）：见 §1.3。加第二个 source json 会让数据集"合法地"只剩一半句数，而日志会打印 `Drop 0 utts … from N`，看不出异常。
 5. **`mix.json` 里的声明长度没人校验**（`:184-192` 用 `stop=None`）。RealSSA-Sim 的 `mix.json[0]` 声明 92,800、LRS2 声明 32,000 —— 一旦数据被替换，评测不会察觉。
 6. **PESQ/STOI 在 `n_src>1` 时是 nan，但 `n_src` 取自 `clean` 而非 `estimate`**（`allwrapper.py:101`）。若将来跑 2 源模型而 `clean` 仍是单 target，PESQ 会被"合法地"算出来但比的是 `est_src[0]`（`:113`），而 SI-SDR 走的是 PIT —— **两者会测不同的通道**。当前 `n_src=1` 不触发，但这是下一个改数据的人必踩的坑。
-7. **`--limit` + 多卡是"先截断后分片"**（`:377-381`）：语义正确但反直觉（`--limit 5 --gpus 0,1` → rank0 拿 3 条、rank1 拿 2 条）。
-8. **结果目录不看参数、只看 cwd + `exp_name`**（`:386-388`）：换 ckpt 不换 cwd = 覆盖上一条 CSV。历史上 P2E/P2D-epoch124 就是直接写进仓库树（`.gitignore` 的 `results/` 救了 git status）。
-9. **`_merge_results` 先删分片再返回**（`:545-548`）：`metrics_rank{r}.csv` 只在崩溃时留下，正常结束即消失 → 事后无法核对"逐句行是否被改动"，只能靠 `metrics_counts.json` + 恒等式。
+7. **`--limit` + 多卡是"先截断后分片"**（`:416-431`）：语义正确但反直觉（`--limit 5 --gpus 0,1` → rank0 拿 3 条、rank1 拿 2 条）。
+8. **结果目录不看参数、只看 cwd + `exp_name`**（`:446-448`）：换 ckpt 不换 cwd = 覆盖上一条 CSV。历史上 P2E/P2D-epoch124 就是直接写进仓库树（`.gitignore` 的 `results/` 救了 git status）。
+9. **`_merge_results` 先删分片再返回**（`:801-804`）：`metrics_rank{r}.csv` 只在崩溃时留下，正常结束即消失 → 事后无法核对"逐句行是否被改动"，只能靠 `metrics_counts.json` + 恒等式。
 10. **DNSMOS 的"整段"其实是 9.01 s 窗均值**（`speechmos/dnsmos.py:12,65-73`），且 `score_array` 在 `peak>1` 时会先做峰值归一（`eval_dnsmos.py:81-83`）。→ 与论文"DNSMOS=3.276"的自定义实现细节不可能逐位对齐。
 11. **PESQ 在 3 条 RealSSA-Sim 句子上报 `No utterances detected`**（`P2E-realssa-sim-eval-official.log:5,8,11`），`SDR` 有 6 次 `singular matrix`、`PESQ` 有 3 次。这些 NaN 被 `nanmean` 静默吞掉，**只有 `n_*` 列能看出来**（而 STATUS 引用的 10-24 版 CSV 还没有 `n_*` 列）。
 12. **恒等式通过不代表数字正确**：`si-snr_i ≡ si-snr − si-snr_mix` 是 `allwrapper.py:105` 直接相减得到的，恒等式只证明"CSV 没被手改"，不证明数值对。真正的外部校验是 `P2F` 的独立实现（1.8e-7 dB）。
@@ -470,7 +470,7 @@ PYTHONPATH=$REPO OMP_NUM_THREADS=4 $ENV $REPO/tools/repro/phase2/compare_variant
 |---|---|---|---|
 | C1 | `P2E-report.md:107`：「`infer_file.extract`（**整段推理**；模型输入按 2 s 窗口因果前向…）」 | `eval_realssa_real.py:461-464` 的 `separate()` **直接 return `_extract_windowed(...)`**；全脚本只有窗口化路径，整段前向已被 OOM 理由废弃（`:381-383` 注释） | 描述自相矛盾；会让人误以为 RealSSA-Real 是整段评测。应改为「窗口化推理（2 s/0.5 s/80 ms，**无 crossfade**）」 |
 | C2 | `P2E-report.md:246`：「RealSSA-Sim test（9,169 条…**整段推理**）」 | 这一条是**对的**：`P2E-realssa-sim-eval-official.log:24` 显示 `utterances=9169`、走 `audio_visual_test.py`（整段，无窗） | 与 C1 形成"同报告内两句口径不一致"，需分语料分别声明 |
-| C3 | `P2D-report.md:227`：「论文 **10 卡、全局 batch 40**」 | `STATUS.md` 与 `PAPER_ALIGNMENT_20261030.md:22` 均为 **8×RTX3090、bs4/GPU、global 32**（论文 Table 16） | 训练预算归因的基线数字错；"还差 5.2 dB"的分母被夸大 |
+| C3 | `P2D-report.md` §8.3 曾把论文硬件写成 10 卡/global 40，已于 `8b9d903`／2026-11-09 校正为 8×3090、bs4/GPU（global 32） | `STATUS.md` 与 `PAPER_ALIGNMENT_20261030.md:22` 均为 **8×RTX3090、bs4/GPU、global 32**（论文 Table 16） | 该句已校正；训练预算归因统一按 8×3090/global 32 计，"还差 5.2 dB"的分母不再被夸大 |
 | C4 | `STATUS.md:50`：「AudioBlock 对称卷积（`causal=False`）」 | 配置全链 `causal: true`（`LRS2_2Mix.yml:13,32,67,83`），只有 `gateway`/`projection` 两处硬编码 `causal=False`（`Falcon.py:727,736`）；`stft(center=True)` | 表述不完整 → 见 §5-1、§7-G2 |
 | C5 | `STATUS.md §3` 用 `P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv}` 花括号简写引用 | 两个实物都存在（`ls` 已核）；但花括号简写在 Markdown 里不可点击，且与同表其它行的裸文件名风格不一致 | 只是可读性/可点性问题，建议拆成两个完整文件名 |
 | C6 | `STATUS.md §3`「9,169 条」同时用于 SI-SNRi 与 SDRi | SI-SNRi n=9169，**SDRi/PESQ n=9166**（3 条 NaN；日志共 9 条 warning：6 次 SDR + 3 次 PESQ） | 分母不同却写成一个数 → 需修口径 |
@@ -505,7 +505,7 @@ PYTHONPATH=$REPO OMP_NUM_THREADS=4 $ENV $REPO/tools/repro/phase2/compare_variant
 
 | 文件 | 关键行 | 用途 |
 |---|---|---|
-| `audio_visual_test.py` | 33, 82-101, 150-166, 205-251, 254-276, 279-335, 364-441, 415-425, 466-549, 552-568, 571-875 | 入口全流程（文件现约 875 行；本列行号为改动前口径，偏移见 §索引） |
+| `audio_visual_test.py` | 33, 110-141, 144-240, 242-374, 378-399, 401-545, 550-568, 570-875 | 入口全流程（文件现 875 行；本列行号为现行口径） |
 | `look2hear/datas/avspeech_dataset.py` | 130-219（147-150, 162-176, 184-192, 194-206, 208-219） | 数据加载/整段读取/死代码 |
 | `look2hear/metrics/allwrapper.py` | 11-64（CSV schema）, 98-129, 132-145, 147-160 | 指标与 CSV |
 | `look2hear/metrics/core.py` | 69-79, 103-141, 152-185, 196-217 | SI-SDR/SDR/PESQ/STOI 实现 |

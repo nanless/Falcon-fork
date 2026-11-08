@@ -55,7 +55,7 @@ Falcon（arXiv:2610.32749，JusperLee/Falcon，2026 年因果音视频语音分�
 ## 3. 仓库骨架
 
 ```
-AGENTS.md / README.md / README_zh.md / agents.md(软链)
+AGENTS.md / README.md / README_zh.md / agents.md(软链)（该软链已于 2026-11-09 删除，入口只保留 `AGENTS.md`）
 audio_train.py (456L)  audio_visual_test.py (875L)  evaluated_mac_params.py (5.3K)
 configs/{Falcon,LRS2_2Mix,LRS2_2Mix_Paper_2gpu,LRS2_2Mix_Paper_2gpu_smoke,LRS2_2Mix_Paper_8gpu,LRS2_2Mix_Paper_v2}.yml
 look2hear/

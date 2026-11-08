@@ -2,7 +2,7 @@
 
 > 编写：Lead（2026-10-24）· 仓库 `/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`
 > 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800 80GB，当前全空）
-> **2026-10-31 起，当前状态/待办以 `docs/STATUS.md` 与 `docs/understanding/THREE_ROUND_REVIEW_20261030.md` 为准**；本文保留为 2026-10-24 的理解快照。
+> **2026-10-31 起，当前状态/待办以 `docs/STATUS.md` 为准**；本文保留为 2026-10-24 的理解快照（`THREE_ROUND_REVIEW_20261030.md` 同为历史快照，只作历史问题清单，不作现状依据）。
 > **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`，最后更新 2026-11-08）**：仅修正与事实冲突处，其余保留 2026-10-24 快照。
 > 已改 7 处：§0-1 论文已于 2026-10-23 公开（arXiv:2610.32749）；§0-4 补 RealSSA-Sim 实际分母；§0-5/§4.2/R6 改用 full4 DNSMOS 并写明口径；§0-6 的「3 份索引」状态已修；§7 两行旧文档状态已标已修；§8-1、§8-4 标为已解决。
 >

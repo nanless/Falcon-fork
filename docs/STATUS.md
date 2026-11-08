@@ -1,6 +1,6 @@
 # Falcon-fork 复现状态（STATUS · 单一事实源）
 
-> 最后更新 2026-11-08 · 分支 `main` · HEAD `6c1d5b7`（tag `repro-freeze-20261031` 指向该提交）· 环境 conda `falcon`
+> 最后更新 2026-11-09 · 分支 `main` · HEAD `5371df7`（2026-11-08 16:35 UTC；tag `repro-freeze-20261031` 仍指向 `6c1d5b7`）· 环境 conda `falcon`
 > 本文件回答三个问题：哪几层复现了、每个数字的口径是什么、接下来做什么。历史报告只作过程记录，与本文冲突时以本文为准。
 > 数字来源限定为本轮深挖报告 [`00-SYNTHESIS.md`](understanding/deepdive-20261108/00-SYNTHESIS.md) 与 01–12 号报告；记忆和旧稿里的数字不再引用。
 
@@ -28,9 +28,9 @@
 |---|---|
 | 仓库 | `dev_a800_2gpus:/root/code/github_repos/Falcon-fork` |
 | 分支 / 远端 | `main`；`origin = nanless/Falcon-fork`，`upstream = JusperLee/Falcon`（已合并上游 `439cbe9`） |
-| HEAD | `6c1d5b7`（2026-10-31 06:57 UTC） |
+| HEAD | `5371df7`（2026-11-08 16:35 UTC） |
 | tag | `repro-freeze-20261031`，指向 `6c1d5b7` |
-| 工作区 | 有未提交改动（含本文件重写）；`docs/understanding/deepdive-20261108/` 是未跟踪的报告目录 |
+| 工作区 | 提交 `5371df7` 时 `git status --porcelain` 0 行；`docs/understanding/deepdive-20261108/` 22 篇已在 HEAD 内跟踪 |
 | 规模 | 相对 upstream：396 文件 / +107,000 / −523 行，其中 `docs/verification` 占 72,118 行插入（67%）；真正运行的模型代码改动是 `look2hear/** +693/−196` |
 
 ### 2.2 运行环境
@@ -98,7 +98,7 @@ Space 复用 Studio 运行时是字节级的：`build.py` 直接拷 `studio/falc
 |---|---|---|
 | 模型定义 | `look2hear/models/Falcon.py` | `AudioBlock`、`Separator`、`MaskGenerator`、`STFTEncoder/Decoder` 都在这一个文件 |
 | 层与归一化 | `look2hear/layers/normalizations.py` | `cLNhw = GlobalLayerNorm(C,T,F) ∘ CumulateLN4D`；`layers/` 45 个类只用到 6 个 |
-| 视频前端 | `look2hear/models/frcnn_videomodel.py` | `frontend3D` 的 `Conv3d(k=(5,7,7), pad=(2,3,3))`；`train()` 已 `return self` |
+| 视频前端 | `look2hear/videomodels/frcnn_videomodel.py` | `frontend3D` 的 `Conv3d(k=(5,7,7), pad=(2,3,3))`；`train()` 已 `return self` |
 | 数据 | `look2hear/datas/avspeech_dataset_near.py` | `__len__ = train_samples`、`idx` 默认被丢弃；`mouth_start = int(rand_start / sample_rate * mouth_fps)`，默认 16000 Hz / 25.0 fps（等价旧行为），采样率不是 16000 时告警 |
 | 训练 | `audio_train.py`、`look2hear/system/av_litmodule_nass_v2.py` | 入口可跑；v2 模块负责 −SI-SDR 与 τ |
 | 评测 | `audio_visual_test.py`、`tools/repro/phase2/eval_realssa_real.py` | 前者整段一次前向；后者窗口化 DNSMOS |
@@ -261,12 +261,12 @@ L1 三行（参数 / MACs / 权重加载）不适用这条降级，结论仍是"
 
 ## 5 验证基线
 
-所有测试结论都带前提，但**测试基线本身不依赖 GPU**：有 GPU 与无 GPU 都是 **168 passed**（2026-11-08 双路实测）。
+所有测试结论都带前提，但**测试基线本身不依赖 GPU**：有 GPU 与无 GPU 都是 **168 passed**（2026-11-08 与 11-09 双路实测）。
 
 | 检查 | 实测 | 前提 | 耗时 / 备注 |
 |---|---|---|---|
-| `tools/repro/tests` | **168 passed / 0 skipped / 0 failed** | 有 GPU（`CUDA_VISIBLE_DEVICES=0`） | 约 147 s |
-| 同上，无 GPU | **168 passed / 0 skipped / 0 failed** | `CUDA_VISIBLE_DEVICES=`（`cuda_available=False` 已在断言里） | 约 170 s；修前此行是 166 passed / 2 failed，两处已修（见本节末段） |
+| `tools/repro/tests` | **168 passed / 0 skipped / 0 failed** | 有 GPU（`CUDA_VISIBLE_DEVICES=0`） | 约 147 s（多次 run 135–187 s） |
+| 同上，无 GPU | **168 passed / 0 skipped / 0 failed** | `CUDA_VISIBLE_DEVICES=`（`cuda_available=False` 已在断言里） | 约 170 s（多次 run 170–209 s）；修前此行是 166 passed / 2 failed，两处已修（见本节末段） |
 | Studio pytest | **51 passed / 2 skipped** | 有 CUDA | 18.74 s |
 | 同上，无 CUDA | **53 passed / 0 skipped** | `CUDA_VISIBLE_DEVICES=` | 42.39 s；两个 `skipif(torch.cuda.is_available())` 从 skip 变 run——这是修前无 GPU 2 failed 的来源之一 |
 | Studio Node | **8/8** | 无 | 约 4.0 s |
@@ -276,20 +276,27 @@ L1 三行（参数 / MACs / 权重加载）不适用这条降级，结论仍是"
 
 测试收集数是 168（166 个 `def test_` + 2 处参数化），但**分母会随数据前提变化**：25 处 skip 里 20 处在 `test_phase2_pipeline.py`，数据被清掉或换机时会静默变 skip。引用"168"时同时说明本机数据清单（§2.5）。
 
-测试基线（2026-11-08 实测）：有 GPU **168 passed**（约 147 s）；无 GPU **同样 168 passed**（约 170 s）。
+测试基线（2026-11-08 与 11-09 实测）：有 GPU **168 passed**（约 147 s，多次 run 135–187 s）；无 GPU **同样 168 passed**（约 170 s，多次 run 170–209 s）。
 修前无 GPU 为 166 passed / 2 failed：一处是指纹测试对 `torch` 线程数敏感（现已固定 `torch.set_num_threads`），
 一处是 `test_phase1_regression` 硬断言 studio `skipped == 2`（现已放宽为 `skipped in (0, 2)`）；
 另有 `audio_train.py` 校验顺序前移。见 `tools/repro/tests/test_phase1_regression.py` 与 `audio_train.py`。
 
-### 5.1 CI 现状：待修，不是已通过
+### 5.1 CI：只跑无 GPU 的轻量门禁，repro 证据套件留在本机
 
-`.github/workflows/tests.yml` 的 repro job 在无 GPU + 浅克隆的 runner 上**仍会失败**（推断：由代码和本地等价条件推出，未取到 GitHub Actions 运行记录）；下面第 1 条（无 GPU）已修，第 2 条（浅克隆）仍在：
+CI 已绿：`gh run list` 实测 `5371df7` 的 `tests` workflow 为 success（1 分 32 秒，2026-11-08 16:35 UTC）。`.github/workflows/tests.yml` 只有两个 job。
 
-1. **无 GPU**（修前）：`ubuntu-latest` 没有 CUDA，当时 `test_phase1_regression.py` 的 `assert skipped == 2` 会在此失败；
-   该断言已放宽为 `skipped in (0, 2)`，无 GPU 现在全绿（168 passed）。
-2. **浅克隆**：`actions/checkout` 未设 `fetch-depth`（`:75`），`test_phase1_regression.py:113-118` 的 `_phase1_base()` 在 `git cat-file -t 689555c` 失败时显式 `pytest.fail`，并连带打掉依赖 `_landed()` 的多条断言。
+- `frontend`（`:36-74`，不装 torch）：Studio Node 8 条、`space/build.py` 组装 + i18n 226 条、Space 静态测试 3 条、`conda-env-lock.txt` 检查（`:71` 的 `grep "@ file://"` 与 lock 现状一致，lock 里 `file://` 出现 0 次）。
+- `python`（`:76-124`，CPU torch）：`look2hear.*` / `audio_train` / `audio_visual_test` 导入、`studio/tests`、`space/tests/test_clip.py -q -m "not slow"`。
 
-同一 workflow 的 `frontend` job（`:31-69`）是安全的：只跑 Node、Space 与 lock 检查，`:66` 的 `grep "@ file://"` 与 lock 现状一致（lock 里 `file://` 出现 0 次）。修复方向见 §6 待办 1。
+不跑的三类，原因写在 workflow 头注释与 `:120-124`：
+
+- `tools/repro/tests/**`（168 条复现证据）：依赖 `/root/data`、`/root/.cache/falcon_weights`、`/root/tmp` 训练产物和本机 conda 环境锁，hosted runner 上都没有。
+- `space/tests/test_space.py`：需要 gradio / ZeroGPU 运行时。
+- `test_clip.py -m slow`：要加载真实 Falcon 权重。
+
+两处支撑已补齐：`8d6ca40` 给 `actions/checkout` 加 `fetch-depth: 0`（`:81-83`，回归用例要用 `git show <固定基线>:<file>`）并补 `pytorch-lightning==2.6.6`（`:96`）；`5371df7` 把 repro 套件移出 CI，`:120-124` 改成显式说明步。
+
+本机门禁照旧手动跑：`CUDA_VISIBLE_DEVICES=0 python -m pytest tools/repro/tests -q` → 168 passed（耗时见 §5 表）。
 
 ### 5.2 `checkpoints/` 里的废桩
 
@@ -315,7 +322,7 @@ L1 三行（参数 / MACs / 权重加载）不适用这条降级，结论仍是"
 
 | 序 | 事项 | 为什么先做 | 成本 | 验收 |
 |---|---|---|---|---|
-| 1 | 修 CI | 当前 repro job 必红（浅克隆），"测试全绿"无法被别人复核；**无 GPU 这一项已修**（skip 断言已放宽为 `skipped in (0,2)`，本地无 GPU 168 passed） | 低（估算：半天到 1 天） | 无 GPU + 浅克隆 runner 上 repro job 绿；剩余覆盖 `fetch-depth: 0`、给测试加 `enable_checkpointing=False` / tmp 落盘 |
+| 1 | 修 CI（2026-11-08 已完成） | `8d6ca40` 补 `fetch-depth: 0` 与 `pytorch-lightning==2.6.6`，`5371df7` 让 repro 套件退出 CI 门禁（改为本机手动门禁）；`gh run list` 实测 `5371df7` tests=success | 低（已收口） | CI 保持绿；本机照 §5.1 手动跑 168 条 |
 | 2 | 因果性重训 A/B | 论文声明的是无时域 lookahead，当前 as-shipped 是整窗；这是对外表述和产品定位的根 | 中，开关已就绪，成本在 2 卡重训与评估 | `paper_causal=True` 后几何 lookahead 回到 15 帧 / 120 ms；替换 `cLNhw` 后帧级依赖落到 113 帧；A/B 的 SI-SNRi 差距有数 |
 | 3 | 补消融 | 论文 6 组消融 0/6，是"论文级复现"最大的空洞，且不依赖 8 卡 | 中，2 卡小配方可跑 | Table 7 的阶段数、Table 9 的 τ 调度至少各一组，结果进 `docs/verification/` |
 | 4 | LRS2 论文列 14.1 / 14.7 | 主表唯一没复现的格子；当前 8.858 / 9.270 是旧配方单卡 | 高，需 8 卡；33–50 h 是旧估算，没有实测支撑；或向作者索取 LRS2-trained ckpt | tt 3,000 SI-SNRi ≥13.6 / SDRi ≥14.2，或拿到 ckpt 后重评 |
@@ -354,7 +361,7 @@ PYTHONPATH=$REPO $ENV docs/verification/scripts/verify_model_params.py
 PYTHONPATH=$REPO $ENV docs/verification/scripts/verify_real_weights.py
 PYTHONPATH=$REPO $ENV docs/verification/scripts/verify_causality.py
 
-# 复现测试（有 GPU 与无 GPU 均为 168 passed；约 147 / 170 s）
+# 复现测试（有 GPU 与无 GPU 均为 168 passed；有 GPU 约 147 s、无 GPU 约 170 s，多次 run 135–209 s）
 PYTHONPATH=$REPO $ENV -m pytest tools/repro/tests -q -rs
 
 # Studio（Python 与 Node）
@@ -410,7 +417,7 @@ CONF=configs/LRS2_2Mix_Paper_v2.yml DATA_ROOT=/root/data/falcon_lrs2_2mix_paper 
 | 论文对齐 | [`11-paper-alignment.md`](understanding/deepdive-20261108/11-paper-alignment.md) | 9 个宽度全中、配方 15/16、消融 0/6 |
 | 因果与延迟 | [`12-causality-latency.md`](understanding/deepdive-20261108/12-causality-latency.md) | 113 帧 / 904 ms、as-shipped 窗尾、跨窗 +14.71（稳态 +16.72）dB |
 
-以上 13 份 deepdive 报告在 `docs/understanding/deepdive-20261108/`，本轮未提交；clone 下来的仓库里这些链接是 404。
+上表 13 份报告，加上 `00-RECON-LEAD`、`14` 与 `R1–R7`，`docs/understanding/deepdive-20261108/` 共 22 篇，已随 `5371df7` 入库；clone 后链接可直接打开。
 
 关键证据文件：
 
@@ -422,12 +429,13 @@ CONF=configs/LRS2_2Mix_Paper_v2.yml DATA_ROOT=/root/data/falcon_lrs2_2mix_paper 
 - 阶段总结：[`REPRODUCTION_PHASE2_REPORT.md`](REPRODUCTION_PHASE2_REPORT.md)
 - 环境锁：[`conda-env-lock.txt`](verification/conda-env-lock.txt)
 - 数据说明：[`DATA_ACCESS_GUIDE.md`](DATA_ACCESS_GUIDE.md)
-- 历史审阅：[`THREE_ROUND_REVIEW_20261030.md`](understanding/THREE_ROUND_REVIEW_20261030.md)、[`PAPER_ALIGNMENT_20261030.md`](understanding/PAPER_ALIGNMENT_20261030.md)
+- 历史问题清单（2026-10-30 快照，不作现状依据）：[`THREE_ROUND_REVIEW_20261030.md`](understanding/THREE_ROUND_REVIEW_20261030.md)、[`PAPER_ALIGNMENT_20261030.md`](understanding/PAPER_ALIGNMENT_20261030.md)
 
 ## 9 变更记录
 
 | 日期 | 变更 |
 |---|---|
+| 2026-11-09 | 修正现用事实源：HEAD 改 `5371df7`、工作区改干净、deepdive 22 篇改为已入库；§5.1 重写为 "CI 双 job + repro 套件留本机"（`gh run list` 实测 success）；§2.7 视频前端路径改到 `look2hear/videomodels/`；§5 耗时补多次 run 区间 |
 | 2026-11-08 | 修正测试基线：实测无 GPU **同样 168 passed / 0 failed**（约 170 s），修前 166 passed / 2 failed 已由「指纹固定 `torch.set_num_threads`、studio skip 断言放宽为 `(0,2)`、`audio_train.py` 校验顺序前移」消除；§5 表、§5.1 CI、§8 命令同步，删掉「168 需 GPU 可见」这一前提 |
 | 2026-11-08 | 统一 RealSSA-Sim 判定为「数值吻合（非同协议）、不构成严格复现」：§1 总结句、§3 两行、§2.5 备注、§3.1/§4.5/§6/§8 措辞同步；新增 §4.10 记录 ckpt 与通道两轴口径；L1 三行不降级；§5.2 按 `checkpoints/` 已清空更新，无 GPU 行改写通过数表述 |
 | 2026-11-08 | 按 review 定稿：参数量改四层口径；Space 改 54 个文件；补评测覆盖率自检与 5 个忠实化开关；测试改 168；§7 增脚本索引 |

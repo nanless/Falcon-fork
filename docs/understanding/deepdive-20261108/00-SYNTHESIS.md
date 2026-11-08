@@ -49,7 +49,7 @@
     A800 的 47.1/56.5 ms **只有 md 表格没有原始测量文件**。
 12. **工程面**：Studio = 单进程回环 FastAPI + 纯静态前端 + 浏览器 MediaPipe；Space 字节级复用 Studio 运行时
     （54 个文件、约 39.87 MB，mediapipe wasm 占 98.8%）；测试 168（有/无 GPU 同值）/ studio 51+2 / node 8/8；
-    **CI 的 repro job 大概率是红的**（ubuntu 浅克隆；无 GPU 那一项已修）。
+    **CI 当时（`6c1d5b7`）是红的**（ubuntu 浅克隆；无 GPU 那一项已修）；**2026-11-09 已修**：`8d6ca40` 补 `pytorch-lightning` 与 `fetch-depth: 0`、`8008a7c` 修测试收集期异常、`5371df7` 把 repro 证据套件移出 CI，`gh run list` 实测 `5371df7` 的 `tests` = success（1m32s，UTC 11-08 16:35；`8008a7c` 那一跑仍是 failure）。
 
 ---
 
@@ -196,8 +196,8 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
     `conf.yml` 里 `main_args` 恒空，`--conf_dir/--ckpt_path` 落错 argparse 组（`parser_utils.py:143-148`）。
 
 **工程**
-21. `checkpoints/` 里 **88 个 5,269 B 废桩 ckpt**（2026-11-08 实测；每跑一次测试 +1），是 pytest 每次跑出来的副作用（`state_dict={'audio_model.w': ()}`）；
-    `*.ckpt` 被 ignore，`git status` 永远干净（10 §4、08 §4）。
+21. `checkpoints/` 里**曾有 88 个 5,269 B 废桩 ckpt**（2026-11-08 实测；每跑一次测试 +1），是 pytest 每次跑出来的副作用（`state_dict={'audio_model.w': ()}`）；
+    `*.ckpt` 被 ignore，`git status` 永远干净（10 §4、08 §4）。**2026-11-09 实测已清空为 0**，并在 `tools/repro/tests/conftest.py` 加了守卫：测试再往仓库根写 `checkpoints/*.ckpt` 就直接 fail。
 22. Studio **没有 pydantic**、`docs_url=None`，契约只能读 `decode_request`（`server.py:65-97`）。
 23. Studio 的 "80 ms right context" 不是感受野：窗内 cLN+全局注意力让任一输入样本影响**全部 32000 输出**；
     GUARD 真正挡的是窗尾 iSTFT 边界瞬态（末 320 样本能量 5.39× 中位数）（08 §4）。
@@ -287,7 +287,7 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 | 07 | `07-eval-benchmark.md` | 整段不切窗、TSE 口径、13 行数字逐条证据、5.3e-8 dB 复现、full3 作废 |
 | 08 | `08-studio.md` | 单进程 FastAPI、无 pydantic、分块几何、guard 真义、51+2/8/8 |
 | 09 | `09-space-project-page.md` | Space 复用 Studio 运行时、媒体 pipe 98.8%、i18n 226、CI 可过性 |
-| 10 | `10-ops-repro-git.md` | 168 需 GPU、CI 大概率红、证据链最硬、upstream diff 396 文件 |
+| 10 | `10-ops-repro-git.md` | 168 需 GPU、CI（2026-11-09 实测 `5371df7` tests=success；repro 套件不在 CI，本机门禁 168 passed）、证据链最硬、upstream diff 396 文件 |
 | 11 | `11-paper-alignment.md` | **论文逐条对齐**：9 个宽度全中、配方 15/16 行对上、因果/120 ms 与消融 0/6 不对 |
 | 12 | `12-causality-latency.md` | **定论**：几何 904 ms、as-shipped 窗尾、跨窗 +14.71（稳态 +16.72）dB、guard 覆盖不足但只值 +0.8 dB |
 
