@@ -12,6 +12,12 @@
 > `P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`、
 > `P2D-eval-{epoch86,epoch99,epoch124-contrastive,falcon-full}.{log,csv}`（**ep99 8.726/9.122**、官方全量 **7.029/7.713**）、`P2D-train-metrics-1gpu.csv`、
 > `P2D-near-train-metrics.csv`、`DNSMOS-realssa-real-mean-full3/`。完整现状见 `docs/understanding/deepdive-20261024/`（08/09）。
+>
+> **2026-11-08 校正（按 `deepdive-20261108/`，最后更新 2026-11-08）**：本索引 §1/§1.1/§2/§3.4 里
+> “RealSSA 403 待批 / 训练进行中 / 111 passed”都是 2026-10-21 的快照，已与磁盘不符：
+> ① RealSSA-Sim/Real 2026-10-22 已获批、下载、归档，Sim 9,169 条 **7.774/8.479**（SDRi 分母 9,166）、
+> ch0 **7.977/8.452**；RealSSA-Real DNSMOS 用 **full4 2.7941/3.3365**（full3 作废）；
+> ② P2-D 训练 2026-10-22 19:54 结束（best val ep99 13.2014）；③ 测试基线见 §3.5 校正。
 
 ## 1. 任务索引与状态
 
@@ -19,11 +25,11 @@
 |---|---|---|---|---|
 | **P2-A** | LRS2-2Mix 与论文差 ~7 dB：指标/协议变体排查 | loss-metric-eval | `P2A-report.md`、`P2A-*.log`、`tools/repro/phase2/gap_analysis.py` | ✅ 报告落盘（[P2A-report.md](P2A-report.md)）：200 条×14 变体，基线 6.95/7.62；**所有合理变体收益 ≤0.4 dB**；mouth=s2 −16.7 / 置黑 +2.16 / 错位 ±5/12 帧 −3.4~−5.9 / 96 不裁 −0.04 / 1ch ±0.00 / 不归一化 −0.45 / 补零 3 s −5.13；结论：**指标/协议不能解释 ~7 dB**，指向训练数据/配方（与 P2-B/P2-F 一致） |
 | **P2-B** | Falcon-Big vs Small、整句 vs 窗口化推理、mouth 分支贡献 | model-core | `P2B-report.md`、`tools/repro/phase2/compare_variants.py`、日志 | ✅ 报告落盘（[P2B-report.md](P2B-report.md)）：small 6.916/7.492、small windowed 5.004/5.762、big 7.887/8.403、big windowed 5.569/6.270；配对 big−small **+0.971**、窗口化 −1.912/−2.318；视觉消融 −15.089/−12.894/−4.375；**3000 基线行列序 P3 已修**（SI-SNR 12.023 / SDR 12.813） |
-| **P2-C** | LRS2-2Mix 全量 → `/root/data/falcon_lrs2_2mix` + JSON/near | data-pipe | `P2C-report.md`、`P2C-convert.log`、`tools/repro/lrs2_2mix_to_falcon.py`（QA 侧测试为 `tools/repro/tests/test_phase2_data.py`） | ✅ 报告落盘（[P2C-report.md](P2C-report.md)）：**全量 28000 条（tr 20000 / cv 5000 / tt 3000）转换完成，23.36 GiB**；三表等长、mouth `[50,96,96,3]` uint8、脚本/测试 sha256 已核、`test_lrs2_convert.py` **7 passed**；near=fallback→**K=0**（训练结果须声明无对比负项） |
+| **P2-C** | LRS2-2Mix 全量 → `/root/data/falcon_lrs2_2mix` + JSON/near | data-pipe | `P2C-report.md`、`P2C-convert.log`、`tools/repro/lrs2_2mix_to_falcon.py`（QA 侧测试为 `tools/repro/tests/test_phase2_data.py`） | ✅ 报告落盘（[P2C-report.md](P2C-report.md)）：**全量 28000 条（tr 20000 / cv 5000 / tt 3000）转换完成，23.36 GiB**；三表等长、mouth `[50,96,96,3]` uint8、脚本/测试 sha256 已核、`test_lrs2_convert.py` **7 passed**（2026-11-08 校正：P0 后为 10 passed）；near=fallback→**K=0**（训练结果须声明无对比负项） |
 | **P2-D** | LRS2-2Mix 训练复现（配置/冒烟/训练/评测） | train-sys | `P2D-report.md`、`P2D-*.csv/log`、`configs/LRS2_2Mix*.yml` | ✅ **终态**：单卡 100 epoch 于 2026-10-22 19:54 结束（best val ep99 13.2014），contrastive ep124 13.3909；tt 3000：官方跨语料 7.029/7.713、ep86 8.618/9.042、ep99 8.726/9.122、ep124 8.858/9.270（论文 14.1/14.7 未复现，需 8 卡论文配方）。详见 [P2D-report.md](P2D-report.md) §8 |
-| **P2-E** | RealSSA 评测（DNSMOS + Sim + Real 管线） | ops-tests-docs | `P2E-report.md`、`P2E-*.{log,json,csv}` | ✅ **终态**：RealSSA-Sim test 9,169 条 **7.774/8.479**（mean）、ch0 **7.977/8.452**；RealSSA-Real 54 段 DNSMOS 旧 run（P.835 OVRL 2.7901/P808 3.3285，窗口 bug 修复后重跑见 §10）；论文 3.276 属 RealSSA-trained ckpt、不可直接比 |
+| **P2-E** | RealSSA 评测（DNSMOS + Sim + Real 管线） | ops-tests-docs | `P2E-report.md`、`P2E-*.{log,json,csv}` | ✅ **终态**：RealSSA-Sim test 9,169 条 **7.774/8.479**（mean；SDRi/PESQ 分母 **9,166**）、ch0 **7.977/8.452**；RealSSA-Real 54 段 DNSMOS 用 **full4 OVRL 2.7941 / P808 3.3365**（full3 的 2.7901/3.3285 因窗口起点 bug 作废，见 `P2E-report.md` §10）；论文 3.276 属 P.835 + RealSSA-trained ckpt、不可直接比 |
 | **P2-F** | LRS2-2Mix 指标/协议第三方独立验证 | studio-backend | `P2F-report.md`、`tools/repro/phase2/protocol_check.py`、日志 | ✅ 报告落盘（[P2F-report.md](P2F-report.md)）：独立对拍 **4.8e-8/1.8e-7 dB**、baseline 4.994、target=s1 Δ+24.5、PIT 0、lag 0、无削波；**关键归因：发布 `falcon.pt` 训练集 = LRS3_complex_nonmoving（`conf.yml:99-102`）→ 7.03/7.71 属跨语料结果，不是论文 LRS2 列（14.1/14.7）的复现**；P5 基线 P3 已修（7.911） |
-| **P2-G** | Phase 2 独立 QA + 回归 | layers-dsp | `QA-report.md`、`QA-regression.log` | ✅ 历史值 111/1（2026-10-21 collector）；**当前基线见 `docs/STATUS.md` §5**（Phase1 skip 守卫已修） |
+| **P2-G** | Phase 2 独立 QA + 回归 | layers-dsp | `QA-report.md`、`QA-regression.log` | ✅ 历史值 111/1（2026-10-21 收集 112 条时）；**当前收集 168 条**，实测数字见 §3.5 校正（不再固定为 111/1 或 166） |
 | **P2-H** | 本索引 + 文档一致性 | studio-frontend | `README.md`、`REGRESSION-docs.md` | ✅ 历史快照（19:45Z 回归 96/6）；**当前状态以 `docs/STATUS.md` 为准** |
 
 > 说明：本表由 task-25 在终检时更新为 ✅/⚠️ 并补报告链接；其余任务以各自报告的“结论”节为准。
@@ -36,12 +42,14 @@
    要复现论文 LRS2-2Mix 14.1/14.7，需 **LRS2-trained ckpt**（P2-D 训练中）或作者提供 benchmark-specific ckpt。
 2. **数据/训练链路已就绪**：LRS2-2Mix 全量 28000 条转换完成（23.36 GiB，JSON/near 齐全）；P2-D 正式训练
    19:26:41Z 已启动（单卡 bs4，PID 4002894）；评测脚本（`audio_visual_test.py` / `eval_p2d.sh`）可用。
-3. **RealSSA 仍待审批**（Sim/Real 403）：工具链（DNSMOS/RealSSA-Real/Sim 1-shard）已预置并通过接口冒烟，
-   **本 Phase 不产出任何 RealSSA 指标结论**。
-4. **回归与一致性全绿**：`tools/repro/tests` 96 passed/6 skipped（102 collected）、Studio 35/2、Node 8/8、
+3. ~~**RealSSA 仍待审批**（Sim/Real 403）~~（2026-11-08 校正：2026-10-22 已获批；本 Phase 当时不产出 RealSSA 指标，
+   后续 P2-E 已产出——Sim 7.774/8.479、Real DNSMOS full4 2.7941/3.3365）。工具链（DNSMOS/RealSSA-Real/Sim 1-shard）
+   当时已预置并通过接口冒烟。
+4. **回归与一致性当时全绿**：`tools/repro/tests` 96 passed/6 skipped（102 collected）、Studio 35/2、Node 8/8、
    i18n 226、imports 10/10；HF 5 数据集事实与 GUIDE 一致；GUIDE RealSSA 状态已统一；2 处报告 P3 已修。
-5. **已知残留**：P2-D 训练结果待跑完；QA 终检独占重跑待回填；PLAN:138 路径 P3；FINAL/PHASE1_REPORT 的跨语料标注
-   建议（见 `REGRESSION-docs.md` §6）。
+   （2026-11-08 校正：测试收集数与 Studio 套件已变，见 §3.5。）
+5. **已知残留**：~~P2-D 训练结果待跑完~~（2026-10-22 19:54 已跑完，ep99 13.2014）；QA 终检独占重跑待回填；
+   PLAN:138 路径 P3；FINAL/PHASE1_REPORT 的跨语料标注建议（见 `REGRESSION-docs.md` §6）。
 
 ## 2. 已知基线（Phase 1 交付，Phase 2 的起点）
 
@@ -54,8 +62,9 @@
     解压 `/root/data/lrs2_2mix/lrs2_rebuild/`（17.39 GB；完整 2 s AV：`audio/wav{16,8}k/min/{tr,cv,tt}/{mix,s1,s2}`、
     `mouths` npz uint8 (50,96,96)、`faces` mp4、`landmarks`、`create_mix` 脚本/清单；tr 20000/cv 5000/tt 3000 组；raw 20,392）。
   - LRS2 评测集：`/root/tmp/lrs2_eval_tt_full`（Phase 1 构建，tt 3000 条，target=s1，mouths→(50,96,96,3).pt）。
-  - RealSSA-Sim / RealSSA-Real：**gated（manual）**，申请已提交（`docs/REPRODUCTION_PLAN.md` Phase 2 状态），
-    数据文件当前 403；大小/许可见 §5。
+  - RealSSA-Sim / RealSSA-Real：**gated（manual）**，**2026-10-22 已获批、下载并归档**（Sim 521.53 GB / 242 文件，
+    Real 12.84 GB / 422 文件；TOS `/aispeech-cfs/voiceprint/data/multimodal/`）；大小/许可见 §5。
+    （历史：2026-10-21 未获批时 dry-run 返回 403，现仅作时间线。）
 - **Phase 1 实测 LRS2-2Mix（官方 `falcon.pt`）**：全量 tt 3000 条 **SI-SNRi 7.03 / SDRi 7.71**（20 条子集 7.91/8.55；
   target=s1 已确证）；论文 LRS2-2Mix 14.1/14.7 → Phase 2 的 ~7 dB 差距是核心待查项。
   证据：`docs/REPRODUCTION_PHASE1_REPORT.md` §3.5；Phase 1 报告与回归见 `docs/verification/phase1/`。
@@ -100,10 +109,10 @@ $ENV audio_train.py --conf_dir configs/LRS2_2Mix.yml
 # 正式/后台训练命令与日志：docs/verification/phase2/P2D-train.log（P2-D 提供）
 ```
 
-### 3.4 RealSSA / DNSMOS（P2-E；待审批）
+### 3.4 RealSSA / DNSMOS（P2-E；2026-10-22 已获批并执行）
 
 ```bash
-# 只读探测（当前应显示 GatedRepoError 403）
+# 只读探测（2026-10-22 前应显示 GatedRepoError 403；现已获批，应显示可访问）
 $ENV tools/repro/fetch_data.py --dataset realssa-sim --dry-run --proxy http://127.0.0.1:17897
 $ENV tools/repro/fetch_data.py --dataset realssa-real --dry-run --proxy http://127.0.0.1:17897
 # 审批通过后的命令模板（P2-E 报告最终版为准）
@@ -115,8 +124,8 @@ $ENV tools/repro/fetch_data.py --dataset realssa-real --dry-run --proxy http://1
 ### 3.5 回归（P2-G / P2-H）
 
 ```bash
-$ENV -m pytest studio/tests -q                       # 期望 35 passed, 2 skipped
-$ENV -m pytest tools/repro/tests -q                  # 19:29Z 实测 96 passed, 6 skipped（102 collected；P2-G 新增 test_phase2_*）
+$ENV -m pytest studio/tests -q                       # 2026-11-08 实测 51 passed, 2 skipped（有 CUDA；无 CUDA 53/0）
+$ENV -m pytest tools/repro/tests -q                  # 2026-11-08 实测 168 passed / 约 147 s（有 GPU）；无 GPU 同样 168 passed / 约 170 s
 for f in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs; do node "$f"; done   # 8/8
 $ENV space/build.py --out /root/tmp/space-verify && node space/tests/check_i18n.mjs /root/tmp/space-verify   # i18n: 226
 PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.layers, look2hear.system, look2hear.metrics, look2hear.losses, look2hear.datas, look2hear.videomodels, look2hear.utils, audio_train, audio_visual_test; print('imports OK')"
@@ -143,6 +152,7 @@ PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.layers, look2hear.sy
 
 > 来源：Phase 1 的 HF API/tree 复核（`docs/verification/phase1/REGRESSION-docs-evidence.json`）与 dataset cards；
 > Phase 2 若申请获批，以届时 HF 页面/数据集所有者条款为准。
+> （2026-11-08 校正：RealSSA-Sim/Real 已于 2026-10-22 获批并归档，本条“若获批”已成立；实际归档位置见 `DATA_ACCESS_GUIDE.md` §1。）
 
 ## 6. 链接
 
@@ -160,3 +170,4 @@ PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.layers, look2hear.sy
 | 2026-10-21T18:50Z | `REPRODUCTION_PLAN.md` 增加 Phase 2/3 状态小节（仅状态+链接）；本 README §3 复跑命令定稿。 |
 | 2026-10-21T19:10Z | 回归全绿（82 passed/12 skipped；Studio 35/2、Node 8/8、i18n 226、imports 10/10）；`REGRESSION-docs.md` v0 落盘；GUIDE 9 处 RealSSA 状态同步 + LRS3 链接/§11 措辞修复；§1/§4 回填中间证据。 |
 | 2026-10-21T19:45Z | **v1 终检**：P2-A…F 报告落盘并逐项核对；回归 96/6；跨语料归因（P2-F）复核；2 处报告 P3 由 owners 修复并复核；§1/§1.1/§4 回填；PLAN Phase 2/3 状态升 19:45Z；`REGRESSION-docs.md` 升 v1。 |
+| 2026-11-08 | **按 `deepdive-20261108` 校正**：§1 的 P2-E/P2-G 行、§1.1-3/4/5、§2 数据行、§3.4 标题与注释、§3.5 测试期望改为当前事实（RealSSA 已归档并评测、DNSMOS full4、训练已结束、收集 168 条/有 GPU 与无 GPU 均 168 passed、Studio 51+2）；历史数字保留在括号内。 |

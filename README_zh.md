@@ -40,23 +40,29 @@ Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin
 
 </div>
 
-> Falcon 是一个因果音视频目标说话人提取（AVTSE）模型，在单次编码器–解码器前向中完成分离。它以 0.5 M 可训练参数在 RealSSA、LRS2-2Mix、LRS3-2Mix 和 VoxCeleb2-2Mix 上取得最优效果，并能在笔记本电脑上实时用于视频会议。
+> Falcon 是音视频**目标说话人提取**（AVTSE）模型：输入两说话人混合语音和目标说话人的嘴部视频，输出**一路**目标语音（`n_src = 1`，单次编码器–解码器前向）。各 benchmark 名字里的“-2Mix”指两说话人混合、只提取其中一路，不是两源分离；代码里 `n_src = 2` 会直接报错。它以 0.5 M 可训练参数在 RealSSA、LRS2-2Mix、LRS3-2Mix 和 VoxCeleb2-2Mix 上取得最优效果——这些是论文的数字，本发布实际复现了哪几行，见下文[“复现状态”](#复现状态)。
 >
-> **复现注记（2026-10-31）**：本发布代码的“因果”是**窗口级因果**——`torch.stft(center=True)`、全窗 `cLNhw` 与对称 `AudioBlock` 卷积使单遍 lookahead 实测 **57 帧≈456 ms**（不是论文 App E 的 120 ms），跨窗无状态；Studio 因此每 0.5 s 重算 2 s 窗口。详见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`（A2-1/A9-1）。
+> **复现注记（2026-11-08，代码对应 `6c1d5b7`）**：本发布代码的“因果”是**窗口级因果**，可拆成四条实测事实：
+> - **跨窗无状态。** 每个 2 s 窗口独立计算，Studio 每 0.5 s 重算一个。6 s 流（3×2 s LRS2 片段拼、join 处 10 ms 交叉淡化，Studio 从 t=0 开窗）按 Studio 方案分块拼接，与整段一次前向相当于 **+14.71 dB SI-SNR / 0.9835 / 最大偏差为峰值的 53.4%**，去掉冷启动首窗后为 **+16.72 dB / 0.9895 / 28.5%**。guard 从 80 ms 提到 456 ms，在“丢弃窗尾”语义下换来 **+2.2 dB**（非单调），在“补右上下文”语义下只有 **+0.8 dB**（456 ms 后饱和）；同一段音频把窗网格平移 ±250 ms，整段一致性只在 **15.9–18.0 dB** 间波动（2.1 dB），两个相位互相约 **17 dB**。误差主体是 `cLNhw` 的窗长依赖——同一 ckpt 下任意两种 2 s 窗方案互差 13–19 dB——不是 hop 或 guard。
+> - **单窗内几何 lookahead 是 113 帧≈904 ms**，不是论文 App E 写的 120 ms：一遍 AudioBlock 占 57 帧（其中 15 帧来自编码器阶梯，其余来自 GCI 与解码器），第二遍再叠加 56 帧。造成它的是 `AudioBlock` 卷积的对称 padding，与归一化无关。
+> - **发布权重实际依赖到窗尾。** 30 处 `cLNhw` 是整窗 `GroupNorm`，在帧 245 注入噪声仍会改变帧 0 的输出。换成论文的逐 (t,f) `LN_c` 后依赖回到 904 ms，但那需要重训，不是开关。
+> - **速度。** CPU 上单窗 **约 0.6 s**（口径 B=1、2 s 窗、CPU；4 线程实测 592–694 ms，随机器负载波动；1 线程约 1.0 s），相对 0.5 s 步长是 RTF **1.2–1.4**，CPU 上不能实时。A800 的 **47.1 ms** 引自早前表格，没有原始测量文件，本轮不作为独立结论。
+>
+> 依据：`docs/understanding/deepdive-20261108/00-SYNTHESIS.md`、`11-paper-alignment.md`、`12-causality-latency.md`；更早的注记见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`（A2-1/A9-1）。
 
 ## 💥 动态
 
 - **[2026-10-23]** 论文已发布在 [arXiv](https://arxiv.org/abs/2610.32749)。
 - **[2026-10-21]** **Falcon Studio** 上线 [Hugging Face ZeroGPU Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio)：在浏览器中录一段，再在 GPU 上分离。
-- **[2026-10-20]** 开源训练、评测与推理代码，并发布 **Falcon Studio**：可接入 Zoom / 腾讯会议的实时演示。
+- **[2026-10-20]** 开源训练、评测与推理代码，并发布 **Falcon Studio**：可接入 Zoom / 腾讯会议的交互式演示。
 - **[2026-09-24]** Falcon 被 **NeurIPS 2026** 接收。
 
 ## 🧩 概述
 
-通话、会议和助听等对延迟敏感的应用都需要流式 AVTSE。现有因果系统面临两个相互关联的缺口：一方面，常用基准把说话人数固定为两人，忽略了近场/远场干扰、混响和突发噪声；另一方面，性能强的因果架构对边缘设备来说太重，而轻量方案靠多次调用小型分离器来弥补容量，又抵消了节省下来的计算。
+通话、会议和助听等对延迟敏感的应用，需要能在短的因果步长上运行的 AVTSE。现有因果系统面临两个相互关联的缺口：一方面，常用基准把说话人数固定为两人，忽略了近场/远场干扰、混响和突发噪声；另一方面，性能强的因果架构对边缘设备来说太重，而轻量方案靠多次调用小型分离器来弥补容量，又抵消了节省下来的计算。
 
 - **RealSSA** 是一个真实感模拟场景的 AVTSE 基准，在四类场景中包含近场/远场干扰语音，并配有一个真实录制的评测集。
-- **Falcon** 是一个因果 AVTSE 框架。其 AudioBlock 在单次编码器–解码器中完成多尺度时频分离。
+- **Falcon** 是一个窗口级因果的 AVTSE 框架。其 AudioBlock 在单次编码器–解码器中完成多尺度时频分离。
 - **编码器空间说话人对比损失** 抑制近场串音，不增加任何推理开销，并且可以迁移到其他主干网络。
 - 与因果 AV-TFGridNet 基线相比，Falcon 的参数量减少 91.9%，计算量降低 20.2 倍，GPU 推理延迟降低 11.1 倍。
 
@@ -124,6 +130,8 @@ pip install -r studio/requirements.txt
 
 \*包含冻结的 11.2 M 参数 FRCNN 唇读编码器。论文只统计可训练参数（Falcon 为 0.5 M）。
 
+参数实测（2026-11-08，发布权重）：音频网络 **537,697** 个参数，其中 **5,568** 个从不执行（`concat_layers[2]` 从未被调用，实际可达 532,129）；冻结 FRCNN 另计 **11,186,688**，端到端 **11,724,385**。Falcon-Big 为 1,158,617 音频 / 12,345,305 端到端。冻结编码器不进优化器，但每次前向都要跑，延迟和 MACs 都要算它。
+
 不需要手动下载权重。Falcon Studio、`infer_file.py` 和 `FalconRuntime.from_pretrained` 会在首次使用时通过上面的 Hugging Face 短链下载权重，并缓存在 `~/.cache/huggingface`。每次加载还会对仓库里的 `config.yaml` 发一个 HEAD 请求，Hub 按这个文件统计下载量（`.pt` 权重不计数）；设置 `HF_HUB_DISABLE_TELEMETRY=1` 可关闭。访问 huggingface.co 较慢或无法访问时，可以设置镜像，例如 `export HF_ENDPOINT=https://hf-mirror.com`。也可以用 `--checkpoint` 传入本地文件，例如用 `hf download JusperLee/Falcon falcon.pt --local-dir weights` 下载的文件。
 
 权重文件只包含 `audio_model.*` 和 `video_model.*` 的参数。训练时还需要把预训练视觉主干 `frcnn_128_512.backbone.pth.tar` 放到 `pretrain_zoo/`（见下文「训练与评测」）。
@@ -188,16 +196,22 @@ python audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml --
 
 # 直接评测 Hugging Face 上发布的权重
 python audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml --ckpt_path hf://JusperLee/Falcon/falcon.pt --gpus 0
-
-# 参数量与 MACs
-python evaluated_mac_params.py
 ```
 
 评测从该 `conf.yml` 读取数据路径（同样需要修改）。不指定 `--ckpt_path` 时，会加载 `Experiments/checkpoint/<exp_name>/` 中最好的 checkpoint：优先取 `best_k_models.json` 中验证损失最低的一项，没有时用 `last.ckpt`，再没有时用最后一个 `epoch=*.ckpt`。结果写入 `Experiments/checkpoint/Falcon/results/metrics_combined.csv`。训练代码（`look2hear/`）和 Studio 运行时（`studio/falcon_model/`）在 `falcon.pt` 上的输出完全一致；Studio 中的副本只去掉了训练期依赖，并为 Apple Metal 增加了 CPU FFT 转接（见 [`PROVENANCE.md`](studio/falcon_model/PROVENANCE.md)）。
 
+### 参数量与 MACs（需要 1 张 GPU）
+
+```bash
+# 参数量与 MACs；读取 configs/Falcon.yml
+python evaluated_mac_params.py
+```
+
+这一段里唯一需要 GPU 的是 `evaluated_mac_params.py`：看不到 CUDA 设备时它以退出码 2 结束，并提示改用 `--device auto` 或 `--device cuda`（2026-11-08 实测）。`--device cpu` 可以强制走 CPU，脚本会自己打印一条警告，说明这组数字没有与 `docs/verification/runs/r3-macs.log` 复核。它只统计音频分支：冻结 FRCNN 在计数器之外先算完，论文的 10.6 G 就是这样得到的。
+
 ## 📊 实验结果
 
-因果 AVTSE 方法对比（SI-SNRi / SDRi，单位 dB；DNSMOS 在真实录制集上计算）。**粗体**为每列最优。
+因果 AVTSE 方法对比（SI-SNRi / SDRi，单位 dB；DNSMOS 在真实录制集上计算）。**粗体**为每列最优。表中数值均为论文报告值；本发布复现了哪几行，见下文“复现状态”。
 
 | 方法 | RealSSA SI-SNRi | SDRi | LRS2-2Mix SI-SNRi | SDRi | LRS3-2Mix SI-SNRi | SDRi | VoxCeleb2-2Mix SI-SNRi | SDRi | 真实场景 DNSMOS |
 |---|---|---|---|---|---|---|---|---|---|
@@ -227,9 +241,21 @@ python evaluated_mac_params.py
 | Dolphin | 5.6 | 18.1 | 2411.0 | 87.9 | 560.2 | 390.3 |
 | **Falcon（本文）** | **0.5** | 10.6 | 1361.2 | 51.3 | 125.3 | 364.7 |
 
+**10.6 G 的口径。** 表中 Falcon 一行只算**音频分支**：ptflops 口径，**含 LSTM**（约占 47%），**不含冻结 FRCNN**——视频嵌入在计数器启动前就算完了。冻结视觉前端按 88×88×50 帧计 **15.897 GMAC**，所以一个完整 2 s 窗口是 **26.51 GMAC**，视觉占 **60.0%**（2026-11-08 实测）。`torch.utils.flop_counter` 给音频约 5.38 GMAC，那是另一把尺子（该计数器不给 `aten::lstm` 记账），不能与 10.6 G 并列。0.5 M 指 537,697 个音频参数，其中 5,568 个从不执行。
+
 Dolphin 和 AV-Mossformer2 在我们的训练流程下重新实现为因果版本；其余基线采用 Swift-Net 报告的数值。消融实验和真实场景 NISQA 结果见[论文](https://arxiv.org/abs/2610.32749)。
 
-> **复现注记**：论文对每个 benchmark 分别训练模型；发布的 `falcon.pt` 来自 `LRS3_complex_nonmoving`（epoch 714），在 LRS2-2Mix 上实测 **7.03 / 7.71**（跨语料），在 RealSSA-Sim 上 **7.774 / 8.479**（论文 7.7/8.2）。要复现 LRS2 14.1/14.7 需 LRS2-trained ckpt。详见 `docs/STATUS.md`。
+### 复现状态
+
+对应 `6c1d5b7`（2026-11-08），按层级列出。✅ 有仓库内证据；⚠️ 数值对得上，但协议在某一轴不同，不构成严格复现；❌ 未复现，并写明卡在哪一环。
+
+- **L1 结构与权重 ✅** —— `falcon.pt` 按 `configs/Falcon.yml` 严格加载（missing 0 / unexpected 0）；音频 537,697、端到端 11,724,385 参数；训练侧与 Studio 侧副本输出逐位一致。
+- **RealSSA-Sim ⚠️** —— 发布权重在 9,169 条测试样本上 **7.774 / 8.479** SI-SNRi/SDRi，论文是 7.7 / 8.2。数值吻合，但不是严格复现：官方 `falcon.pt` 训在 `LRS3_complex_nonmoving`（epoch 714），不是 RealSSA-Sim；这一轮取四通道均值，论文协议用 channel 1（ch0 变体为 7.977 / 8.452）。checkpoint 与通道两轴都不同，只能说数值对得上。
+- **LRS2-2Mix ❌** —— 论文的 **14.1 / 14.7** 需要 LRS2-trained checkpoint。发布权重训在 `LRS3_complex_nonmoving`（epoch 714），所以这里的 LRS2-2Mix 是跨语料结果：**7.03 / 7.71**。单卡用旧的 −SNR 目标训到 130 轮计划中的第 124 轮时是 8.858 / 9.270。
+- **LRS3-2Mix 与 VoxCeleb2-2Mix ❌** —— 16.4/16.7 和 10.5/11.8 没有本地数据：两个 benchmark 都未发布，因此没跑。
+- **消融 0/6 ❌** —— 论文六组消融（Table 7、8、9、18、19、21）一组都没做；现有的是 big/small 对比（300 条配对，+0.97/+0.91 dB）和嘴部输入消融。
+
+证据与逐条细节：`docs/STATUS.md` 与 `docs/understanding/deepdive-20261108/`（01–12）。
 
 ## 🗂️ 目录结构
 

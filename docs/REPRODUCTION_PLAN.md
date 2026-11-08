@@ -12,6 +12,13 @@
 > **2026-10-30 更新**：上游已同步 `689555c → 439cbe9`（HF 下载计数 + README/项目页 arXiv 链接）；
 > **论文已于 2026-10-23 公开：arXiv:2610.32749**，因此本文 §2“论文未公开”及其派生推断作废，
 > 协议核对见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`（论文公开后对齐，进行中）。
+>
+> **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`）**：最后更新 2026-11-08。
+> ① RealSSA-Sim / RealSSA-Real 已于 2026-10-22 获批、下载并归档（TOS `_MANIFEST.json`：242 文件 / 521,532,645,652 B），
+> 不再是“待审批/403”；② RealSSA-Sim test 已转换并评测（SI-SNRi 7.774 / SDRi 8.479，SDRi 分母 9,166），
+> RealSSA-Real 已跑 DNSMOS（full4 OVRL 2.7941 / P808 3.3365）；③ Phase 2/3 的“训练进行中”已结束
+> （2026-10-22 19:54，best val ep99 13.2014）；④ 测试基线已变（`tools/repro/tests` 现收集 168 条，见 §7 校正）。
+> 其余历史叙述保留原样。
 
 ---
 
@@ -20,16 +27,17 @@
 | 层级 | 内容 | 当前状态 | 结论 |
 |---|---|---|---|
 | **L1 推理复现** | 用官方权重跑 Studio / 离线推理，验证参数量、形状、数值一致性 | ✅ **已完成** | 真实权重可加载，训练侧与 Studio 侧输出 **bit-identical**；参数 11.72 M / 可训练 0.5377 M；MACs 10.611 G 与 README 一致 |
-| **L2 评测复现** | 用官方权重在 RealSSA / LRS2-2Mix / LRS3-2Mix / VoxCeleb2-2Mix 上复现表中指标 | ⚠️ **可做，但要先拿数据 + 修评测代码** | RealSSA-Real 可下载（gated）；RealSSA-Sim 可申请（gated，522 GB）；**LRS2-2Mix 公开且已下载（16.47 GB，完整 AV：mix/s1/s2 + mouths/faces/landmarks）**；**LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库没有数据文件** |
-| **L3 训练复现** | 从零训练 Falcon，复现主表指标 | ❌ **当前不可直接做** | 缺：RealSSA-Sim 访问权限、数据格式转换、Comet/PL 等 P0 修复；**对比学习负样本（near 源波形）官方未发布**，只能近似或改配方 |
+| **L2 评测复现** | 用官方权重在 RealSSA / LRS2-2Mix / LRS3-2Mix / VoxCeleb2-2Mix 上复现表中指标 | ✅ **部分完成**（2026-11-08 校正） | RealSSA-Sim / RealSSA-Real **2026-10-22 已获批、下载、归档**：Sim test 9,169 条 **7.774/8.479**，Real 54 段 DNSMOS full4 **2.7941/3.3365**；LRS2-2Mix 已下载并跑出跨语料 **7.029/7.713**（14.1/14.7 需 LRS2-trained ckpt）；LRS3-2Mix / VoxCeleb2-2Mix 的 HF 仓库没有数据文件 |
+| **L3 训练复现** | 从零训练 Falcon，复现主表指标 | ⚠️ **已跑单机小配方**（2026-11-08 校正） | 访问/转换/P0 修复均已就绪；LRS2-2Mix 单卡 130 epoch 到 **8.858/9.270**（ep124），8 卡论文配方待跑；**对比学习负样本（near 源波形）官方未发布**，只能近似或改配方 |
 | **L4 贡献/消融复现** | NASS 对比损失、MDCL、TFRB/GCI、因果性分析 | ⚠️ **部分可做** | 架构/因果性可复算（已做）；对比损失需替代负样本方案；~~论文未公开~~（已公开 arXiv:2610.32749），消融设置见 `PAPER_ALIGNMENT_20261030.md` |
 
 **最大的三个卡点**：① ~~论文还没有公开~~（**2026-10-23 已公开 arXiv:2610.32749**，协议见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`）；
-② RealSSA-Sim 是需人工审批的 gated 数据集，且**不含近场干扰源的原始波形**（官方 dataset card 明确说明）；
+② ~~RealSSA-Sim 是需人工审批的 gated 数据集~~（2026-10-22 已获批并下载/归档），但它**不含近场干扰源的原始波形**（官方 dataset card 明确说明）；
 ③ LRS3-2Mix / VoxCeleb2-2Mix 训练数据未随 HF 数据集发布。
 
 **建议路线**：先做 **L2-RealSSA（用官方权重）** → 再谈 L3 训练。L2 不需要数据集里的近场源波形，也不需要视频骨干预训练权重，
 是性价比最高、最能验证 “我们真的理解了模型” 的一步。
+（校正 2026-11-08：L2-RealSSA 已完成——Sim **7.774/8.479**、Real DNSMOS full4 **2.7941/3.3365**；下一步是 LRS2-2Mix 8 卡论文配方。）
 
 ---
 
@@ -51,8 +59,9 @@
   详见 `AGENTS.md`、`docs/verification/conda-env-{lock.txt,yml}`。
 - 官方权重：`/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`（已验证格式、strict 加载、bit-identical）。
 - 验证脚本：`docs/verification/scripts/`（参数量/形状/因果性/真实权重/评测流程/指标/MACs 等 20+ 脚本）。
-- 测试：Studio `pytest studio/tests` → **35 passed / 2 skipped**；Node 测试 8/8；`space/tests` 的 Python 测试需要单独的
-  Space 依赖环境（`spaces`/`gradio`，见 §4.10），不属于 `falcon` 环境。
+- 测试：Studio `pytest studio/tests` → **35 passed / 2 skipped**（2026-10-22 快照；2026-11-08 实测 **51 passed / 2 skipped**，
+  无 CUDA 时 53/0）；Node 测试 8/8；`space/tests` 的 Python 测试需要单独的 Space 依赖环境（`spaces`/`gradio`，见 §4.10），
+  不属于 `falcon` 环境。
 
 ---
 
@@ -68,7 +77,11 @@
      MDCL 代码路径实际不可用）；
   4. 论文表格中 “Real-world DNSMOS” 只有 DNSMOS，与 RealSSA-Real “无干净参考、只能算参考无关指标” 一致。
 
-> 结论：**复现要以代码 + 配置 + README + 数据集 card 为准，论文只能等公开后补差异说明。**
+> ~~结论：复现要以代码 + 配置 + README + 数据集 card 为准，论文只能等公开后补差异说明。~~
+> **校正（2026-11-08）**：论文已公开，协议改为“论文 + 代码双向核对”。原“影响”1–3 的实际结果：
+> ① RealSSA-Sim 生成参数仍只能从数据集 JSON 统计反推（论文未逐项公开）；② 评测协议已可核对——
+> 论文 DNSMOS 用 **P.835**、RealSSA-Sim 用 **channel-1**、训练损失 **−SI-SNR**、β 0→1/1000 ep，偏差清单见
+> `deepdive-20261108/11`；③ 消融设置为论文 Table 7/8/9/18/19/21 六组，本地一组都没复现（0/6）。
 
 ---
 
@@ -78,7 +91,7 @@
 
 | Benchmark | 指标 | 论文值 | 验收容差（建议） |
 |---|---|---|---|
-| RealSSA（Sim，test 9,169 条） | SI-SNRi / SDRi | 7.7 / 8.2 | ±0.3 dB（同权重、同数据、同协议） |
+| RealSSA（Sim，test 9,169 条；SDRi 实测分母 9,166） | SI-SNRi / SDRi | 7.7 / 8.2 | ±0.3 dB（同权重、同数据、同协议） |
 | LRS2-2Mix | SI-SNRi / SDRi | 14.1 / 14.7 | ±0.3 dB |
 | LRS3-2Mix | SI-SNRi / SDRi | 16.4 / 16.7 | ±0.3 dB（数据未发布 → 暂不可做） |
 | VoxCeleb2-2Mix | SI-SNRi / SDRi | 10.5 / 11.8 | ±0.3 dB（数据未发布 → 暂不可做） |
@@ -112,8 +125,8 @@
 
 | 数据集 | 状态 | 内容 / 限制 |
 |---|---|---|
-| **RealSSA-Sim** | 🟡 gated（人工审批） | 522 GB，WebDataset TAR（tr 202 / cv 19 / tt 19 shards，500 条/shard）；每条：`mix.wav` 4ch 16k PCM16、`target.wav` 4ch、`.json`（场景/房间/RT60/components type,SIR,位置/transcript）、`mouths.pt` uint8 RGB `[T,96,96,3]`。**不含 near 源的原始波形** |
-| **RealSSA-Real** | 🟡 gated（人工审批） | 54 段/40 录音/10 说话人/8 场景，共 83.99 min；stereo 16k audio、224×224 25fps 人脸视频、嘴部 NPZ、68 点 landmarks、enrollment 音频、逐录音 transcript。**无干净 target，不能算 SI-SDR**；用于 DNSMOS / WER / speaker-similarity |
+| **RealSSA-Sim** | ✅ **已获批/已下载/已归档（2026-10-22）** | 521.53 GB / 242 文件（tr 202 / cv 19 / tt 19 shards，500 条/shard）；每条：`mix.wav` 4ch 16k PCM16、`target.wav` 4ch、`.json`（场景/房间/RT60/components type,SIR,位置/transcript）、`mouths.pt` uint8 RGB `[T,96,96,3]`。本地已转换 tt 9,169 条并评测；**不含 near 源的原始波形** |
+| **RealSSA-Real** | ✅ **已获批/已下载/已归档（2026-10-22）** | 54 段/40 录音/10 说话人/8 场景，共 83.99 min；stereo 16k audio、224×224 25fps 人脸视频、嘴部 NPZ、68 点 landmarks、enrollment 音频、逐录音 transcript。**无干净 target，不能算 SI-SDR**；已跑 DNSMOS（full4 OVRL 2.7941 / P808 3.3365） |
 | **LRS2-2Mix** | 🟡 公开（HF，非 gated） | `lrs2.tar.gz` **16,470,508,590 B 已下载并 sha256 校验**（`ebdfdf31…`）；tr/cv/tt 各 20000/5000/3000 组 2 s `mix/s1/s2` + mouths npz + faces + landmarks + create_mix 脚本；**完整 AV 数据，可直接用于复现**（需要 ≥40GB 解压空间） |
 | **LRS3-2Mix** | ❌ 数据未发布 | HF 仓库只有 README（无 tar/数据文件） |
 | **VoxCeleb2-2Mix** | ❌ 数据未发布 | 同上（仓库仅 README） |
@@ -138,9 +151,9 @@
 
 ### 5.1 RealSSA-Sim → 仓库训练格式（主训练集，建议优先）
 
-**Step 1：申请访问**
+**Step 1：申请访问**（2026-10-22 已获批并下载归档；以下保留为历史流程）
 - HF 页面 `JusperLee/RealSSA-Sim` → Request access（填姓名/单位/国家/用途，勾选非商用学术研究）。
-- 人工审批（时间未知）；批准后 `hf auth login`。
+- 人工审批（本机 2026-10-22 获批）；批准后 `hf auth login`。
 - 建议先只下 1 个 test shard 验证管线（`tt/tt-000000.tar`），再下全量（522 GB）。
 
 **Step 2：写转换脚本 `tools/repro/realssa_to_falcon.py`**（新增，不改上游逻辑；Phase 1 已落地该脚本）：
@@ -303,7 +316,7 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 > Phase 2 并行执行：① 7 dB 差距排查（falcon-big/协议变体）；② LRS2-2Mix 全量转换 + 训练复现；
 > ③ RealSSA 数据管线/DNSMOS 工具预置；④ Phase 2 QA。详见 `docs/REPRODUCTION_PHASE1_REPORT.md` 与后续 Phase 2 报告。
 >
-> **Phase 2 执行状态（2026-10-21T19:55Z，task-25 维护）**：索引与复跑命令见
+> **Phase 2 执行状态（2026-10-21T19:55Z 历史快照，task-25 维护；现状见下方 2026-11-08 校正）**：索引与复跑命令见
 > [`docs/verification/phase2/README.md`](verification/phase2/README.md)，回归/一致性见
 > [`docs/verification/phase2/REGRESSION-docs.md`](verification/phase2/REGRESSION-docs.md)。**P2-A/B/C/E/F 报告已落盘**：
 > P2-A（7 dB 排查：指标/协议变体 ≤0.4 dB）、P2-B（big +0.97 dB、窗口化 −1.9~−2.3 dB、视觉分支刚需）、
@@ -321,17 +334,24 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 > 已知起点不变：官方 `falcon.pt` 在 LRS2-2Mix tt 全量 3000 条 SI-SNRi **7.03** / SDRi **7.71**
 > （`REPRODUCTION_PHASE1_REPORT.md` §3.5）；**P2-F 归因：该权重训练集为 LRS3 派生数据 → 7.03/7.71 属跨语料结果**，
 > 论文 14.1/14.7 需 LRS2-trained ckpt。
-1. 申请 RealSSA-Sim 访问；下载 1 个 test shard 验证转换器；再下 tt（19 shards）做评测。
+>
+> **校正（2026-11-08，按 deepdive-20261108/07、10）**：上述状态是 2026-10-21/22 的快照，以下四项已变化——
+> ① RealSSA-Sim / RealSSA-Real **2026-10-22 已获批并下载归档**（TOS `_MANIFEST.json` 242 文件 / 521,532,645,652 B），“403 待批”作废；
+> ② RealSSA-Sim test 已转换并评测：9,169 条，SI-SNRi **7.774** / SDRi **8.479**（SDRi/PESQ 分母 9,166），ch0 7.977/8.452；
+> ③ RealSSA-Real 54 段 DNSMOS 已完成：full4 OVRL **2.7941** / P808 **3.3365**（full3 的 2.7901/3.3285 因窗口起点 bug 作废）；
+> ④ P2-D 单卡 100 epoch 训练已于 2026-10-22 19:54 结束（best val ep99 13.2014），“训练已启动/进行中”作废；
+> `pytest tools/repro/tests` 的 111 passed/1 skipped 也已过期，当前基线见本文件 §7 校正与 `docs/STATUS.md`。
+1. ~~申请 RealSSA-Sim 访问~~（2026-10-22 已获批）；下载 1 个 test shard 验证转换器；再下 tt（19 shards）做评测（已完成）。
 2. 转换器落地（4ch→mono、mouths.pt 直用、meta.json→near.json）。
 3. 用官方权重在 RealSSA-Sim test 上跑：
    - ch0 与 mean 两种通道；
    - 整段 vs 2 s 窗（论文口径未知，都记录）；
    - 目标：SI-SNRi 7.7 / SDRi 8.2（±0.3 dB）。
 4. 顺带修正指标实现，和 README 表核对。
-- **Gate G2**：RealSSA-Sim 指标复现成功（这是“模型 + 数据 + 评测”三条链路都通的标志）。
+- **Gate G2**：RealSSA-Sim 指标复现成功（这是“模型 + 数据 + 评测”三条链路都通的标志）。✅ **已通过**（7.774/8.479，论文 7.7/8.2）。
 
 ### Phase 3 —— RealSSA-Real + LRS2-2Mix + 其它（1–2 周，取决于数据许可）
-1. RealSSA-Real：gated 审批 → 下载 → DNSMOS 评测（目标 3.276）；WER/speaker-sim 可选。
+1. RealSSA-Real：~~gated 审批 → 下载~~（2026-10-22 已完成）→ DNSMOS 评测（论文 3.276 属 **P.835 + RealSSA-trained ckpt**，与官方 `falcon.pt` 的 2.7941 不可直接比；本次 full4 结果见 §7 校正）；WER/speaker-sim 可选。
 2. LRS2-2Mix：**已下载解压完成**（16.47 GB tar → 17.39 GB 成员）→ 用 `mix/s1/s2` + `mouths/*.npz` 直接构建 Falcon 数据；
    评测目标 14.1 / 14.7。**进展（2026-10-22，Phase 1 顺手完成）**：官方 `falcon.pt` 全量 tt（3000）实测
    SI-SNRi **7.03** / SDRi **7.71**（20 条子集 7.91/8.55；target=s1 已确证），与论文差 ~7 dB，需排查
@@ -342,12 +362,14 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
   **P2-F 归因**：发布权重为 LRS3 派生数据训练，7.03/7.71 是跨语料结果；复现 14.1/14.7 需 P2-D 训练 ckpt 或
   作者 benchmark-specific ckpt（P2-D 训练中）。RealSSA-Real 的 DNSMOS 工具已在 P2-E 预置（**待数据审批**，
   审批前不产出 RealSSA 结果）；LRS3-2Mix / VoxCeleb2-2Mix 维持“仓库无数据文件”。
+  （校正 2026-11-08：P2-D 训练已结束，ep99/8.726/9.122、ep124/8.858/9.270；RealSSA-Real 已评测
+  full4 OVRL 2.7941 / P808 3.3365；“待数据审批”作废。）
   任务索引：[`docs/verification/phase2/README.md`](verification/phase2/README.md)。
 - **Gate G3**：LRS2-2Mix 指标复现（或明确记录阻塞原因）。
 
 ### Phase 4 —— 训练复现（1–2 周，含调参）
-1. 训练数据：RealSSA-Sim tr（100,826 条），2 s 随机片段；batch 4/GPU × 2 GPU = 8，grad accumulation 5 → 等效 batch 40
-   （与论文 10 卡 ×4 对齐）；lr 按线性缩放或保持 1e-3 并说明。
+1. 训练数据：RealSSA-Sim tr（100,826 条），2 s 随机片段；batch 4/GPU × 2 GPU = 8，grad accumulation 4 → 等效 batch 32
+   （与论文 **8 卡 ×4 = 32** 对齐；2026-11-08 校正：原文写“10 卡/等效 40”，论文实为 8×3090、bs 4/GPU）；lr 按线性缩放或保持 1e-3 并说明。
 2. 负样本方案（先选 §5.1 Step 4 的方案 1 或 2，明确记录）。
 3. 冒烟训练：1 GPU、1k steps、看 val SI-SNRi 是否上升。
 4. 正式训练：1000 epochs（或 early stopping），2×A800 估计 2–4 天/次（见 §8）；跑 2–3 个配置（含/不含对比损失）。
@@ -364,6 +386,18 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 ### Phase 6 —— 报告与差异说明
 - 汇总：复现结果表、与论文差异、缺失/假设、数据协议、随机种子、硬件、耗时；
 - 产出 `docs/REPRODUCTION_REPORT.md`（模板见 §10）。
+
+### 测试基线校正（2026-11-08）
+
+`tools/repro/tests` 的收集数在 Phase 2 之后继续增长：2026-10-21 是 112 条（111 passed / 1 skipped），
+2026-10-30 记录 115 条（109 passed / 6 skipped），2026-11-08 实测 **168 条**：
+有 GPU 时 **168 passed / 0 failed / 约 147 s**；隐藏 CUDA（无 GPU）时**同样 168 passed / 0 failed / 约 170 s**
+（`cuda_available=False` 已在断言里）。
+修前无 GPU 是 **166 passed / 2 failed**（指纹测试对 `torch` 线程数敏感 + `test_phase1_regression` 的 studio
+skip 硬断言），两处已修，见 `tools/repro/tests/test_phase1_regression.py` 与 `audio_train.py`。
+`studio/tests` 现为 **51 passed / 2 skipped / 18.39 s**（无 CUDA 53/0）。
+因此旧文里的“166 passed / 136.5 s / 355 s / 111 passed”都不能再当固定基线；报告测试数字时要带
+“收集数 + 同时刻并发负载”，依据 `deepdive-20261108/10` §4 与本次复跑。
 
 ---
 
@@ -452,6 +486,8 @@ lrs2_rebuild/                                  # 249,670 entries；成员总大�
 
 ### 11.3 汇报口径
 
-- 对上级/作者沟通时用一句话：**“推理与参数已完全复现；评测复现需要 RealSSA/LRS 数据与代码修复；
-  训练复现被三件事卡住：论文未公开、RealSSA-Sim 需审批且缺 near 源波形、LRS3/Vox 数据未发布。”**
+- 对上级/作者沟通时用一句话（2026-11-08 校正；原文已过期，保留于注释）：**“推理与参数已完全复现；
+  RealSSA-Sim/Real 数据已获批并评测（7.774/8.479、DNSMOS full4 2.7941/3.3365）；LRS2-2Mix 论文列 14.1/14.7 仍差 5.2–5.6 dB，
+  需 LRS2-trained ckpt 或 8 卡论文配方；训练侧唯一硬缺口是官方未发布 near 源波形；LRS3/Vox 数据未发布。”**
+  （原文，作废：“训练复现被三件事卡住：论文未公开、RealSSA-Sim 需审批且缺 near 源波形、LRS3/Vox 数据未发布。”）
 - 本文件中所有“已确认”结论都可在 `docs/verification/` 找到脚本与日志；需要我把 Phase 1 的修复与脚本先落地，可以直接开工。

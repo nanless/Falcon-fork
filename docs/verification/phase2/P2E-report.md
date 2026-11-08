@@ -3,9 +3,15 @@
 > 任务：`task-22`（owner `ops-tests-docs`，状态 in_progress，未 complete）；分支 `repro/phase2`（HEAD `af74cca`）。
 > 环境：conda `falcon`（`/root/miniforge3/envs/falcon/bin/python`，Python 3.11.17，torch 2.8.0+cu128）。
 > 约束遵守：未改 Phase1 源码、未 commit；新增文件仅在 `tools/repro/phase2/` 与 `docs/verification/phase2/`；
-> RealSSA-Sim/Real 仍 gated（申请已提交、待批，数据文件 403），**本任务不伪造任何 RealSSA 指标**。
+> RealSSA-Sim/Real 当时仍 gated（申请已提交、待批，数据文件 403；**历史，2026-10-22 已获批**），**本任务不伪造任何 RealSSA 指标**。
 > 关联：`docs/DATA_ACCESS_GUIDE.md` §4/§5、`docs/verification/phase1/dataset-cards/RealSSA-{Sim,Real}-README.md`、
 > `docs/REPRODUCTION_PLAN.md` §4/§5.4/§7、`tools/repro/realssa_to_falcon.py`。
+>
+> **2026-11-08 校正（按 `deepdive-20261108/07`，最后更新 2026-11-08）**：本报告 §0–§6 是 task-22 当时（2026-10-21，
+> 数据未获批）的快照，其中“403/待审批/整段推理”的描述已过期或口径不准确；§9/§10 是后续终态。
+> 三处要点：① RealSSA 2026-10-22 已获批/下载/归档；② RealSSA-Real 的 DNSMOS 一律用 **full4**（OVRL 2.7941 / P808 3.3365），
+> full3 的 2.7901/3.3285 作废；③ RealSSA-Sim 评测是**整段一次前向**（`audio_visual_test.py`），
+> RealSSA-Real 是 `eval_realssa_real.py` 的**窗口化 2 s/0.5 s hop/80 ms guard 拼接**，两者不可混写。
 
 ---
 
@@ -15,11 +21,12 @@
 |---|---|---|
 | DNSMOS P.835 离线实现（speechmos/ONNX）装入 conda falcon | ✅ | `P2E-env-delta.txt`；`P2E-dnsmos-synthetic.log/.json` |
 | `tools/repro/phase2/eval_dnsmos.py`（wav → SIG/BAK/OVRL/P808，合成音频冒烟） | ✅ | 合成 4 例 PASS；LRS2 2 例实测 |
-| `tools/repro/phase2/eval_realssa_real.py`（54 段 → 整段分离 → DNSMOS CSV；`--limit/--channel/--device`） | ✅ 预置完成；真实数据待审批 | `P2E-smoke-realssa-real.log/.csv/.json`；官方 loader adapter 用 mock API 验证 |
-| RealSSA-Sim tt 转换+评测命令（复用 `realssa_to_falcon.py`，1 shard dry-run） | ✅ dry-run 通过（403 状态明确） | `tools/repro/phase2/realssa_sim_tt_pipeline.sh`；`P2E-sim-pipeline.log` |
+| `tools/repro/phase2/eval_realssa_real.py`（54 段 → 窗口化分离 → DNSMOS CSV；`--limit/--channel/--device`） | ✅ 预置完成（当时真实数据待审批；2026-10-24 已跑全量，见 §9/§10） | `P2E-smoke-realssa-real.log/.csv/.json`；官方 loader adapter 用 mock API 验证 |
+| RealSSA-Sim tt 转换+评测命令（复用 `realssa_to_falcon.py`，1 shard dry-run） | ✅ dry-run 通过（当时 403，属历史） | `tools/repro/phase2/realssa_sim_tt_pipeline.sh`；`P2E-sim-pipeline.log` |
 | 审批后执行清单/风险 | ✅ | 本报告 §5/§6 |
 
 **结论**：工具链已可离线运行并通过接口冒烟；审批通过后按 §5 执行即可出 DNSMOS（RealSSA-Real）与 SI-SNRi/SDRi（RealSSA-Sim）。
+（校正 2026-11-08：审批 2026-10-22 通过，执行结果已在 §9/§10——Sim 7.774/8.479、Real DNSMOS full4 2.7941/3.3365。）
 RealSSA-Real **只能算 DNSMOS**（无干净 target，不能算 SI-SDR）；DNSMOS 目标参考值为 **3.276 ±0.05**（`REPRODUCTION_PLAN.md` §4 表）。
 
 ---
@@ -104,7 +111,11 @@ LRS2-2Mix 2 条真实混合音频（`P2E-dnsmos-lrs2-smoke.csv`）：SIG 2.40/3.
 - `align_tail=True`（默认）：`T = min(mouth_frames, floor(audio_samples/640), landmark_frames)`；音频保留前 `T*640` 样本、mouth 保留前 `T` 帧；记录 `discarded_samples`；若丢弃 >70 ms+1 帧则 warning（card 规定 native 音频最多比 mouth 长 70 ms）。
 - `--channel mean|0|1`：stereo native 音频取均值 / 左 / 右；**默认 mean**（card 明确 channel 策略需报告）。
 - 视觉：mouth `uint8 [T,96,96]` 直接送 Falcon（与训练/Studio 相同 96→88 center crop）；若误给 landmark 形状会报清晰错误；RGB 4D 自动转 luma。
-- 分离：`FalconRuntime.from_pretrained("JusperLee/Falcon"|"JusperLee/Falcon-Big", device).load()` + `infer_file.extract(runtime, audio, mouth)`（整段推理；模型输入按 2 s 窗口因果前向，输出与 mouth 帧对齐）。
+- 分离：`FalconRuntime.from_pretrained("JusperLee/Falcon"|"JusperLee/Falcon-Big", device).load()`，逐段调用
+  `_extract_windowed()`：**2 s 窗（32,000 样本）/ 0.5 s hop（8,000）/ 80 ms guard（1,280）** 窗口化推理后拼接，
+  每窗取 `pred[22720:30720]`；循环后用 `filled` 数组断言整段 100% 被覆盖（`:402-455`）。
+  这是**窗口化协议**，不是 `infer_file.extract` 的一次性整段前向；输出与 mouth 帧对齐（`T*640` 样本）。
+  （2026-11-08 校正：旧文写“整段推理；模型输入按 2 s 窗口因果前向”，把“整段一次性前向”与“2 s 分窗拼接”混成一句。）
 - 指标：对 estimate 算 DNSMOS；`--baseline` 同时算 mixture DNSMOS（同段对照）。**不计算 SI-SDR**（无 clean target）。
 - 输出：`<out-dir>/realssa_real_dnsmos_per_segment.csv`（逐段：id/recording/scene/channel/align/audio_s/mouth_frames/used_frames/used_s/discarded/inference_ms/rtf/4×DNSMOS[/4×mix_DNSMOS]/error）、
   `summary.json`（整体 + 分场景 mean/std）、`run_metadata.json`（命令/版本/模型/loader/是否 smoke）。
@@ -160,7 +171,7 @@ FULL=1 bash tools/repro/phase2/realssa_sim_tt_pipeline.sh --execute   # tt 全�
 
 ```bash
 ENV=/root/miniforge3/envs/falcon/bin/python
-# 0) 授权只读检查（当前预期 403 → 等审批）
+# 0) 授权只读检查（当时预期 403 → 等审批；2026-10-22 已获批）
 $ENV tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --dry-run --proxy http://127.0.0.1:17897
 
 # 1) 下载 1 个 test shard（获批后）
@@ -180,12 +191,13 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 #    评测去掉 --limit；论文目标 SI-SNRi 7.7 / SDRi 8.2（±0.3），ch0 与 mean 两种通道都要记录。
 ```
 
-**当前 dry-run 结果**（`P2E-sim-pipeline.log`）：`gated 授权检查 ❌ 未获批（GatedRepoError 403）`；1 shard 匹配 `tt/tt-000000.tar` 2.33 GB；
-后续命令已打印但未执行。**待人工审批后执行**（不伪造结果）。
+**当时 dry-run 结果**（`P2E-sim-pipeline.log`，2026-10-21，历史）：`gated 授权检查 ❌ 未获批（GatedRepoError 403）`；
+1 shard 匹配 `tt/tt-000000.tar` 2.33 GB；后续命令已打印但未执行。该状态在 2026-10-22 获批后消失，
+实际执行与结果见 §9（全量 9,169 条评测）。
 
 ---
 
-## 5. 审批通过后的执行清单（可直接照做）
+## 5. 审批通过后的执行清单（2026-10-22 起已执行；保留作复跑参考）
 
 1. **确认授权**：`hf auth login`（账号 `nanless`）→ `python tools/repro/fetch_data.py --dataset realssa-sim --dry-run` 应显示已获批（非 403）。
 2. **RealSSA-Sim**：
@@ -206,13 +218,13 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 
 | 项 | 说明 | 处理 |
 |---|---|---|
-| RealSSA 数据仍 403 | 申请已提交、待人工审批（GUIDE §4/§5）；无法在本任务内产生真实数值 | 本报告只做接口冒烟；真实指标待批后按 §5 跑 |
+| RealSSA 数据当时仍 403（历史） | 2026-10-21 申请已提交、待人工审批；无法在本任务内产生真实数值 | 本报告只做接口冒烟；真实指标在 2026-10-22 获批后按 §5 跑，结果见 §9/§10 |
 | RealSSA-Real 无 SI-SDR | 无 clean target，enrollment 不是时间对齐参考（card 明确） | 只报 DNSMOS（+可选 WER/speaker-sim）；目标 3.276 |
 | DNSMOS 版本敏感 | speechmos 内置 DNS-Challenge P.835 模型；论文官方 DNSMOS 版本未说明 | 报告固定 `speechmos 0.0.1.1` + 模型 sha256；跨版本不可直接比 |
-| 官方 loader 适配 | 真实 `scripts/load_inference.py` 的返回字段未能在数据 403 时验证；已用 mock API 覆盖调用约定 | 首次真实运行时核对 `loader_kind` 与 CSV；若字段不同，按 `load_sample` 返回 dict 归一化逻辑小改即可 |
+| 官方 loader 适配 | 真实 `scripts/load_inference.py` 的返回字段当时（数据 403）无法验证；已用 mock API 覆盖调用约定 | 首次真实运行时核对 `loader_kind` 与 CSV；若字段不同，按 `load_sample` 返回 dict 归一化逻辑小改即可 |
 | 计算成本 | RealSSA-Real 54 段共 83.99 min（avg ~93 s/段）；分离 RTF ~0.06–0.1，DNSMOS 9.01 s/1 s hop 约 30–40 s/段（CPU onnxruntime）；`--baseline` 翻倍 | 先 `--limit 5`；全量预计 ~30–60 min；必要时去掉 baseline/分批 |
 | 通道/对齐口径 | 论文未声明 channel 与整段/窗口口径 | 三种 channel 都记录；align_tail=True 默认；报告写清 |
-| `docs/DATA_ACCESS_GUIDE.md` 状态行不一致 | 第 18 行写“申请已提交待批”，第 39 行仍写“未提交任何访问申请”（Phase1 残留）；不在本 task 写 scope | 建议 Lead/QA 修 GUIDE 第 39 行（避免读者误解） |
+| `docs/DATA_ACCESS_GUIDE.md` 状态行不一致 | 当时第 18 行写“申请已提交待批”，第 39 行仍写“未提交任何访问申请”（Phase1 残留）；不在本 task 写 scope | 建议 Lead/QA 修 GUIDE 第 39 行（避免读者误解）。（2026-11-08：GUIDE 已统一为“已获批/已下载/已归档”，此行仅存历史） |
 | 环境 lock/AGENTS 未更新 | AGENTS §4 要求安装后更新 lock + §2；本 task 写 scope 不含这两处 | 见 `P2E-env-delta.txt`；请 Lead/QA 合并 |
 
 ---
@@ -225,7 +237,7 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 - `P2E-smoke-official-loader.log`：mock 官方 `load_inference.py` API → official adapter 验证。
 - `P2E-smoke-loader-dryrun.log`：mock 目录 loader dry-run 清单。
 - `P2E-smoke-synthetic-per-segment.csv`：合成 + fallback loader + DNSMOS（--skip-model）。
-- `P2E-sim-pipeline.log`：RealSSA-Sim tt pipeline dry-run（403 状态 + 完整命令）。
+- `P2E-sim-pipeline.log`：RealSSA-Sim tt pipeline dry-run（当时 403 状态 + 完整命令；历史）。
 - `P2E-env-delta.txt`：新增依赖 freeze 行/安装命令/许可/来源（待并入 lock）。
 - 工具：`tools/repro/phase2/{eval_dnsmos.py,eval_realssa_real.py,realssa_sim_tt_pipeline.sh}`。
 - 原始输出（仓库外）：`/root/data/falcon_eval/_smoke_lrs2/`、`/root/data/falcon_eval/_smoke_official/` 等。
@@ -241,19 +253,27 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 ## 9. 2026-10-24 状态更新（终态）
 
 - **RealSSA-Sim / RealSSA-Real 已于 2026-10-22 获批并下载**：Sim 521,532,645,652 B / 242 文件（240 shard），
-  Real 12.84 GB；已 rsync 归档到 TOS `/aispeech-cfs/voiceprint/data/multimodal/`（`_archive_done.json` 两条 `ok:true`）。
+  Real 12.84 GB；已 rsync 归档到 TOS `/aispeech-cfs/voiceprint/data/multimodal/`（当时记录 `_archive_done.json` 两条 `ok:true`）。
   本报告 §0/§5 的“403/待审批”描述作废。
-- **RealSSA-Sim test（9,169 条，channel=mean，整段推理，官方 falcon.pt）**：SI-SNRi **7.774307** / SDRi **8.479395** /
+  （2026-11-08 复核：TOS 上现可见 `realssa_sim/_MANIFEST.json`（242 文件 / 521,532,645,652 B，2026-10-23T17:03:21Z）
+  与 `realssa_real/`（422 文件 / 12.84 GB）；`_archive_done.json` 已不在该路径，归档状态以上述清单为准。）
+- **RealSSA-Sim test（9,169 条，channel=mean，整段一次前向，官方 falcon.pt）**：SI-SNRi **7.774307** / SDRi **8.479395** /
   PESQ 2.093770 / STOI 0.817290（论文 7.7 / 8.2）。证据：`P2E-realssa-sim-eval-official.log`、
   `P2E-realssa-sim-metrics_combined.csv`（9,171 行=9,169 逐句+avg/std）、`P2E-realssa-sim-convert.log`。
-- **RealSSA-Real（54 段，channel=mean，align_tail=True，窗口化分离后整段 DNSMOS）**：
-  SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285；mixture 基线 2.4176 / 1.7908 / 1.7599 / 2.6765。
-  证据：`DNSMOS-realssa-real-mean-full3/{summary.json,run_metadata.json,per_segment.csv}`。
-- **论文 DNSMOS 3.276 的列名仍未确认**：按 P808 为 +0.05，按 OVRL 为 −0.49；报告必须同时给两列并注明口径。
+  （校正 2026-11-08：本行的“整段”指 `audio_visual_test.py` 的整段一次前向，**不切窗**；SI-SNRi 分母 9,169，
+  SDRi/PESQ 实际分母 **9,166**——6 次 `SDR computation failed`、3 次 `PESQ … No utterances detected` 被 `nanmean` 跳过，
+  见 `deepdive-20261108/07` §3.4。同报告 RealSSA-Real 走的是窗口化协议，见下一条与 §10。）
+- **RealSSA-Real（54 段，channel=mean，align_tail=True，2 s 窗/0.5 s hop 拼接后对整段算 DNSMOS）**：
+  ~~SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285~~ → **已作废（full3）**；有效值为 **full4：SIG 3.2226 /
+  BAK 3.6981 / OVRL 2.7941 / P808 3.3365**，mixture 基线 2.4176 / 1.7908 / 1.7599 / 2.6765（逐位不变）。
+  证据：`DNSMOS-realssa-real-mean-full4-20261031/{summary.json,run_metadata.json,realssa_real_dnsmos_per_segment.csv}`；
+  full3 目录只作历史（首块 1.34 s 静音 bug，见 §10）。
+- ~~**论文 DNSMOS 3.276 的列名仍未确认**：按 P808 为 +0.05，按 OVRL 为 −0.49；报告必须同时给两列并注明口径。~~
+  （2026-10-30 已确认是 **P.835**，且属 RealSSA-trained ckpt；本机 full4 P808 3.3365 与 3.276 的 +0.06 只是数值巧合。）
 
 > **2026-10-30 论文公开后校正（arXiv:2610.32749）**：论文的 “Real-world DNSMOS 3.276” 引用 **DNSMOS P.835**（不是 P.808），
-> 且该数字对应 **RealSSA-trained ckpt**；我们用的官方 `falcon.pt` 在同一数据上 P.835 OVRL = **2.7901**，
-> 与 3.276 **不可直接比较**（P808 3.3285 只是数值巧合）。另：论文 RealSSA-Sim **只用 channel-1**（代码 `--channel 0`），
+> 且该数字对应 **RealSSA-trained ckpt**；我们用的官方 `falcon.pt` 在同一数据上 P.835 OVRL = **2.7941**（full4；
+> full3 的 2.7901 已作废），与 3.276 **不可直接比较**（P808 3.3365 只是数值巧合）。另：论文 RealSSA-Sim **只用 channel-1**（代码 `--channel 0`），
 > 我们此前用 4ch mean；ch0 复评已排期。详见 `docs/understanding/PAPER_ALIGNMENT_20261030.md`。
 
 ---

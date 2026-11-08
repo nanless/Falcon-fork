@@ -3,6 +3,8 @@
 > 编写：Lead（2026-10-24）· 仓库 `/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`
 > 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800 80GB，当前全空）
 > **2026-10-31 起，当前状态/待办以 `docs/STATUS.md` 与 `docs/understanding/THREE_ROUND_REVIEW_20261030.md` 为准**；本文保留为 2026-10-24 的理解快照。
+> **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`，最后更新 2026-11-08）**：仅修正与事实冲突处，其余保留 2026-10-24 快照。
+> 已改 7 处：§0-1 论文已于 2026-10-23 公开（arXiv:2610.32749）；§0-4 补 RealSSA-Sim 实际分母；§0-5/§4.2/R6 改用 full4 DNSMOS 并写明口径；§0-6 的「3 份索引」状态已修；§7 两行旧文档状态已标已修；§8-1、§8-4 标为已解决。
 >
 > 本文是 9 个子代理深挖文档（01–09）的汇总入口。**每一条关键结论都指向 01–09 中的证据章节**；
 > 数字与口径以 01–09 为准，本文只做交叉索引与决策建议。
@@ -12,8 +14,8 @@
 ## 0. 三十秒版
 
 1. **这是什么**：NeurIPS 2026 论文 *Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World
-   Acoustic Scenes*（Falcon）的官方仓库 + 工程演示（Falcon Studio）。**论文本身仍未公开**（README：“Paper link
-   will be added when available”）。
+   Acoustic Scenes*（Falcon）的官方仓库 + 工程演示（Falcon Studio）。**论文 2026-10-23 已公开**（arXiv:2610.32749；
+   本快照编写时 README 仍写 “Paper link will be added when available”）。
 2. **模型有多大**：音频主干 **537,697 参数（0.538 M，论文“0.5 M”口径）**，其中前向真正生效 532,129、
    扣训练期对比头 523,113；+ 冻结唇读编码器 11,186,688 = **11,724,385（≈11.72 M）**；MACs **10.611 G**（不含视觉编码器）。
 3. **架构一句话**：STFT（win256/hop128）→ 112 通道瓶颈 → 4 级 AudioBlock（每级融合冻结 FRCNN 视频特征）→
@@ -21,12 +23,14 @@
    它是**窗口级因果（window-causal）+ 无跨窗状态**，**不是逐采样流式**（lookahead 57 帧≈456 ms）。
 4. **已经复现了什么**：L1 推理/结构 100%；**RealSSA-Sim 主结果已闭合**：官方权重在 test 9,169 条上
    **SI-SNRi 7.774 / SDRi 8.479**（论文 7.7/8.2，+0.07/+0.28 dB）。这是唯一“数据+权重+指标”三者同时在手的同分布锚点。
+   （校正 2026-11-08：SI-SNRi 分母 9,169；SDRi/PESQ 实测分母 **9,166**，3 条退化样本被 `nanmean` 静默跳过，见 `deepdive-20261108/07` §3.4。）
 5. **还差什么**：LRS2-2Mix 列（论文 14.1/14.7）——官方权重是 LRS3 训练的，跨语料只有 7.03/7.71；我们自己单卡
    130 epoch 训到 **8.858/9.270**，论文级 **8 卡配方已就绪但还没在 8 卡节点跑**。LRS3-2Mix / VoxCeleb2-2Mix 数据
    未发布，**不可复现**。RealSSA-Real 的 DNSMOS 已测（full4：P808 3.3365 / OVRL 2.7941；full3 的 3.3285/2.7901 因窗口起点 bug 作废）。**2026-10-30 论文公开校正**：论文 DNSMOS 引用 P.835，
-   3.276 属 RealSSA-trained ckpt；我们用官方 falcon.pt 得到的 OVRL 2.7901 不可与之比，P808 3.3285 只是巧合。
+   3.276 属 RealSSA-trained ckpt；我们用官方 falcon.pt 得到的 full4 OVRL 2.7941 不可与之比，P808 3.3365 只是数值巧合
+   （full3 的 2.7901/3.3285 因窗口起点 bug 已作废，2026-11-08 校正为 full4）。
 6. **最大的隐患不是模型，是证据**：`*.log` 被 `.gitignore` 全量忽略（phase2 29 个日志未入库）、全量评测 CSV 被
-   同路径覆盖、3 份索引仍写“RealSSA 403 / 训练进行中”（实际已归档、训练已结束）、`tools/repro/tests` 现状
+   同路径覆盖、3 份索引仍写“RealSSA 403 / 训练进行中”（实际已归档、训练已结束；2026-11-08 已修这些索引）、`tools/repro/tests` 现状
    104 passed / **1 failed** / 7 skipped。**“已复现”要附证据级别**（L1 硬证据入库 / L2 实测但未入库 / L3 转述 / L4 估计）。
 7. **下一步主线**：① P0 证据收口（1 天，无 GPU）；② LRS2 8 卡论文配方（唯一能显著缩小 14.1 差距的动作）；
    ③ RealSSA 评测口径补强（ch0/整句 vs 窗口、DNSMOS 口径澄清）；④ 可选：RealSSA-Sim 从零训练（需 TOS 450 GB 恢复）。
@@ -96,7 +100,7 @@
 | Benchmark | 论文 | 实测 | 结论 |
 |---|---|---|---|
 | RealSSA-Sim SI-SNRi / SDRi | 7.7 / 8.2 | mean **7.774/8.479**；ch0（论文通道）**7.977/8.452** | ✅ 复现（±0.3，两通道均成立） |
-| RealSSA-Real DNSMOS | 3.276 | P808 **3.3285** / OVRL 2.7901 | ⚠️ 口径未定 |
+| RealSSA-Real DNSMOS | 3.276 | P808 **3.3365** / OVRL **2.7941**（full4；full3 的 3.3285/2.7901 作废） | ⚠️ 口径已定：论文是 P.835 且属 RealSSA-trained ckpt（2026-10-30 校正） |
 | LRS2-2Mix SI-SNRi / SDRi | 14.1 / 14.7 | 官方跨语料 7.029/7.713；自训 8.618/9.042；+对比 8.858/9.270 | ❌ 未复现（差 5–7 dB） |
 | LRS3-2Mix / VoxCeleb2-2Mix | 16.4/16.7、10.5/11.8 | 无数据 | ❌ 不可复现 |
 | 参数量 / MACs | 0.5 M / 10.6 G | 537,697 / 10.611 G | ✅ |
@@ -152,11 +156,11 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 | # | 风险 | 级别 | 证据/影响 |
 |---|---|---|---|
 | R1 | **证据不在 git**：`*.log` 被忽略、CSV 被覆盖、关键日志在 `/root/tmp` | P0 | 08 §4-R1/R2；“已复现”无法第三方复核 |
-| R2 | **文档/索引过期**：仍写 RealSSA 403、训练进行中、best 13.118 | P0 | 08 §4-R3；与磁盘/事实矛盾 |
+| R2 | **文档/索引过期**：仍写 RealSSA 403、训练进行中、best 13.118（2026-11-08 已修：403→已归档、训练→已结束、best→ep99 13.2014） | P0 | 08 §4-R3；与磁盘/事实矛盾 |
 | R3 | **LRS2 14.1 训练配方未公开**：8 卡配方是“合理复现”不是论文配方；near=另一说话人、K=1 使 β no-op | P0（科学） | 04 §5.3；09 §5 |
 | R4 | **RSSA-Sim 训练未就绪**：tr/cv 在 TOS、无训练配置、near 缺波形（K=0） | P1 | 03 §5.2；05 §2 |
 | R5 | **RealSSA-Sim 评测协议未证同论文**：整段 4.6–5.8 s clip，非 2 s 流式 | P1（科学） | 08 §4-R4 |
-| R6 | **DNSMOS 口径未定**：3.276 是 P808 还是 OVRL？窗口化推理自带偏差 | P1 | 04 §5.4；09 §1 |
+| R6 | **DNSMOS 口径曾未定**：3.276 是 P808 还是 OVRL？（2026-10-30 已定：论文为 P.835、属 RealSSA-trained ckpt；窗口化推理偏差仍在） | P1 | 04 §5.4；09 §1；论文 arXiv:2610.32749 |
 | R7 | **“causal/streaming/51.3 ms”表述风险**：窗口级因果、51.3 ms 是 3090 单窗前向 | P1（对外） | 01 §5.4；06 §0 |
 | R8 | **同名不同义**：训练 PIT=负 SNR、val=SI-SDR(est)、评测=SI-SNRi | P1（报告） | 04 §5.2 |
 | R9 | **8 卡 DDP 风险**：F15 per-bucket all_gather、`gpus:-1` 全局 batch 随卡数变、DATA_ROOT 只用于自检、CSVLogger version_1 | P1 | 03 §5.3 |
@@ -173,18 +177,19 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 | `docs/understanding/FINAL_PROJECT_UNDERSTANDING.md`（2026-10-22） | §10 的 F1–F6 等 P0 多数已修；"训练入口不可跑"已不成立；LRS2 7.03/7.71 的归因已由 Phase 2 完成 | 保留历史，勿再引用其 P0 清单作为现状；以 03 为准 |
 | `docs/REPRODUCTION_PLAN.md`（2026-10-21） | Phase 2/3 状态、RealSSA gated、LRS2 目标“用官方权重复现 14.1”、F1–F12 待办 | 以 09 §5 的差异表为准；P0–P5 取代其分阶段计划 |
 | `docs/REPRODUCTION_PHASE2_REPORT.md` | §5 编号混排（5.1–5.4）；“训练继续中/最佳 13.118”过期；§5.4 未提交 | P0 修复：补 ep99 评测、更正训练结束时间、提交 §5.4 |
-| `docs/verification/phase2/{README,P2D-report,P2E-report,QA-report}` | README 停在 `af74cca`；P2D 只写到 epoch 0；P2E 写 403；QA 写 111/1 | P0 统一更新索引与状态 |
-| `docs/DATA_ACCESS_GUIDE.md` | 仍写 RealSSA 403 待批（多处） | P0 更新为“已获批/已下载/已归档” |
+| `docs/verification/phase2/{README,P2D-report,P2E-report,QA-report}` | README 停在 `af74cca`；P2D 只写到 epoch 0；P2E 写 403；QA 写 111/1（2026-11-08 已按 deepdive-20261108 统一校正） | P0 统一更新索引与状态 |
+| `docs/DATA_ACCESS_GUIDE.md` | 仍写 RealSSA 403 待批（多处；2026-11-08 已改为“已获批/已下载/已归档”，403 留作历史） | P0 更新为“已获批/已下载/已归档” |
 | `docs/understanding/0X-*.md`（Phase 0，8 份 ~900 行） | 行号/结论部分过期（comet、PL1.x、严格因果等） | 01–08 已做逐条【确认/修正/推翻】，引用以深挖版为准 |
 
 ---
 
 ## 8. 未解问题 Top 10
 
-1. 论文未公开：训练配方、消融设置、评测协议细节都无法核对（R1）。
+1. ~~论文未公开~~：2026-10-23 已公开（arXiv:2610.32749），训练配方、消融设置、评测协议已可逐条核对
+   （见 `deepdive-20261108/11`）；论文宣称的“无时域 lookahead/120 ms”与代码不符，改列本表第 9 条。
 2. 官方 `falcon.pt` 只在 `conf.yml` 里留下 `LRS3_complex_nonmoving`/ep714；它与 RealSSA-Sim 的“同分布”是推断，不是作者确认。
 3. LRS2 14.1 需要 LRS2-trained ckpt；作者 issue #1 未见回复。
-4. RealSSA-Real DNSMOS 3.276 的列名未定。
+4. ~~RealSSA-Real DNSMOS 3.276 的列名未定~~：2026-10-30 已定，论文用 **P.835** 且属 RealSSA-trained ckpt；本机 full4 OVRL 2.7941 不可直接比。
 5. LRS3-2Mix / VoxCeleb2-2Mix 数据不存在。
 6. `concat_layers[2]` 5,568 参数闲置是否为上游漏调用。
 7. F15 DDP all_gather 在 8 卡的挂死风险未验证。

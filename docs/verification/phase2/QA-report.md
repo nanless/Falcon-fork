@@ -4,8 +4,16 @@
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800）。
 > 写作用域：`tools/repro/tests/test_phase2_*.py`（+ 对 `test_phase1_regression.py` 的基线路径/白名单/分阶段
 > skip 条件维护）、`docs/verification/phase2/`。
-> 本报告 **v1 = 终检**（快照时间 2026-10-21T19:52Z；P2-D 正式训练仍在进行，见 §6）。
+> 本报告 **v1 = 终检**（快照时间 2026-10-21T19:52Z；当时 P2-D 正式训练仍在进行，见 §6）。
 > 日志：`docs/verification/phase2/QA-regression.log`。
+>
+> **2026-11-08 校正（按 `deepdive-20261108/10`，最后更新 2026-11-08）**：本文是 2026-10-21 的快照，
+> 两处已过期。① **测试基线**：`tools/repro/tests` 现收集 **168** 条；2026-11-08 实测有 GPU 时
+> **168 passed / 0 failed / 148.07 s**，隐藏 CUDA 时**同样 168 passed / 0 failed / 170.47 s**
+> （修前为 166 passed / 2 failed，两处已修，见 `tools/repro/tests/test_phase1_regression.py` 与 `audio_train.py`）；
+> 本文的 111 passed/1 skipped（112 收集）与 35/2 的 Studio 套件均已过时——Studio 现为 **51 passed / 2 skipped / 18.39 s**。
+> ② **训练状态**：P2-D 单卡 100 epoch 已于 2026-10-22 19:54 结束，best val ep99 13.2014（ep99 全量 8.726/9.122）。
+> 正文数字保留为当时证据；引用测试/训练状态时以本段为准。
 
 ## 1. 结论（v1 终检）
 
@@ -13,22 +21,23 @@
 |---|---|---|
 | pristine 基线 worktree `/root/wt-base`（detached `689555c`） | ✅ 已建并保持干净 | `git worktree list`（§2） |
 | `test_phase1_regression.py` 跨分支基线优先 `/root/wt-base`、fallback `/root/wt-main`（断言不变） | ✅ | `BASELINE_WT_CANDIDATES` + `_baseline_worktree()`；数值不变量测试通过（§2） |
-| 全量回归 `pytest tools/repro/tests -q -rs`（112 collected） | ✅ **111 passed / 1 skipped / 0 failed**，106.62s | §3.1；skip = `configs/Falcon.yml` 未被改动（条件跳过） |
+| 全量回归 `pytest tools/repro/tests -q -rs`（112 collected） | ✅ **111 passed / 1 skipped / 0 failed**，106.62s（2026-10-21 快照；**2026-11-08 校正**：收集 168 条，有 GPU 168 passed / 约 147 s，无 GPU 同样 168 passed / 约 170 s） | §3.1；skip = `configs/Falcon.yml` 未被改动（条件跳过） |
 | Studio 回归 `pytest studio/tests -q` | ✅ 35 passed / 2 skipped，18.81s | §3.2 |
 | 官方权重 4 条指纹（eval / train-est / sep_emb / video） | ✅ 与 Phase1 基线**逐位一致**（Phase2 未改数值） | §3.3 |
 | Phase2 新增 QA 测试 23 条（data 5 + pipeline 18） | ✅ 全绿（数据未落盘时自动 skip） | §4 |
 | P2-C 转换数据（28000 条 / 23.36 GiB / target=s1 / mix=s1+s2） | ✅ 5/5 数据 QA 通过 | §5.3 |
 | P2-A 200 条指标变体（报告表 mean±std/Δ） | ✅ 由 JSON 独立复算一致 | §5.1 |
 | P2-B 7 组 CSV + 6 组配对统计 | ✅ 独立复算与报告**逐项一致**（均值 3 位小数、胜场数、总体 std） | §5.2 |
-| P2-D 训练/评测管线 + 数字 | ✅ 冒烟与评测数字可追溯；正式训练 epoch 0 完成、持续中 | §6 |
+| P2-D 训练/评测管线 + 数字 | ✅ 冒烟与评测数字可追溯；正式训练 epoch 0 完成（**当时**持续中；2026-10-22 19:54 已跑完 100 epoch，best ep99 13.2014） | §6 |
 | P2-E DNSMOS（环境/lock/sha256/分数域） | ✅ 版本与 conda lock 一致，4 个 ONNX sha256 齐全，分数 ∈ [1,5] | §5.5 |
 | P2-F 指标实现独立对拍 | ✅ 自实现 vs `look2hear.metrics.core` vs 评测 CSV：最大差 **4.8e-8 / 1.8e-7 dB** | §5.6 |
 | diff 范围守卫（Phase1/2 源码零改动） | ✅ protected 源码 vs main 差异 = **0**；tracked 改动仅文档/QA 测试 | §7 |
 | 未 commit / 未改源码 | ✅ | `git status`（§7） |
 
 **结论：Phase 2 交付物在“数值不变量、数据契约、指标实现、报告可追溯性、改动范围”五个维度全部通过
-独立 QA；无 P0/P1。唯一未收口项是 P2-D 正式训练仍在进行（外部 GPU 资源限制），其已完成部分（冒烟、
-epoch 0 曲线、评测管线）均通过校验，见 §6/§8。**
+独立 QA；无 P0/P1。当时唯一未收口项是 P2-D 正式训练仍在进行（外部 GPU 资源限制），其已完成部分（冒烟、
+epoch 0 曲线、评测管线）均通过校验，见 §6/§8。（2026-11-08 校正：训练已结束，ep99 13.2014；测试基线与 Studio 套件
+数字见文首校正段。）**
 
 ## 2. 基线 worktree 与跨分支基线修复
 
@@ -57,8 +66,9 @@ epoch 0 曲线、评测管线）均通过校验，见 §6/§8。**
 ```bash
 cd /root/code/github_repos/Falcon-fork
 $ENV/bin/python -m pytest tools/repro/tests -q -rs --durations=10
-# → 111 passed, 1 skipped, 0 failed, 43 warnings in 106.62s (0:01:46)
-#   collected = 112
+# → 111 passed, 1 skipped, 0 failed, 43 warnings in 106.62s (0:01:46)   ← 2026-10-21 快照
+#   2026-11-08 复跑：# → 168 passed, 43 warnings in 148.07s (0:02:28)；collected = 168
+#   collected（2026-10-21）= 112
 #   SKIPPED [1] test_phase1_regression.py:576: configs/Falcon.yml 未被改动（条件跳过：只有该文件被改时才校验注释级改动）
 ```
 
@@ -73,9 +83,12 @@ $ENV/bin/python -m pytest tools/repro/tests -q -rs --durations=10
 ### 3.2 Studio
 
 ```bash
-$ENV/bin/python -m pytest studio/tests -q     # → 35 passed, 2 skipped in 18.81s
+$ENV/bin/python -m pytest studio/tests -q     # → 35 passed, 2 skipped in 18.81s（2026-10-21）
+# 2026-11-08 复跑：51 passed, 2 skipped in 18.39s
 ```
 与 Phase1 基线（35 passed / 2 skipped）一致；全量 repro 套件内的 `test_studio_pytest_regression` 亦通过。
+（2026-11-08 校正：Studio 套件已扩到 53 条——有 CUDA 时 51 passed / 2 skipped，无 CUDA 时 53 passed / 0 skipped；
+`test_studio_pytest_regression` 原先硬断言 skip 数 == 2，无 GPU 时会因此失败，**该断言已放宽为 `skipped in (0, 2)`**，两种环境现在都通过。）
 
 ### 3.3 官方权重指纹（Phase2 不得改变任何数值）
 
@@ -174,11 +187,11 @@ QA 用 `test_phase2_p2b_paired_stats_and_report_consistency` 从 7 个逐句 CSV
 |---|---|---|
 | 2-GPU 100-step 冒烟 | 2.97 it/s（global bs8 ≈23.8 clips/s）、wall 73 s；val 1.946 / test 1.912 dB | `P2D-smoke.log`、`P2D-report.md` §3 |
 | 1-GPU 冒烟 | `P2D-smoke-1gpu.log`（配置/显存/吞吐） | `tools/repro/phase2/smoke_lrs2_1gpu.yml` |
-| 正式训练 | PID 4002894，2026-10-21T19:26:41Z 启动；单卡 bs4、train_samples=10000 ⇒ **2500 step/epoch**、epochs=100 | `P2D-train.pid` / `P2D-train.log` / `/root/tmp/p2d_train/.../metrics.csv` |
+| 正式训练 | PID 4002894，2026-10-21T19:26:41Z 启动；单卡 bs4、train_samples=10000 ⇒ **2500 step/epoch**、epochs=100；**2026-10-22 19:54 结束**（2026-11-08 校正） | `P2D-train.pid` / `P2D-train.log` / `P2D-train-metrics-1gpu.csv` |
 | epoch 0（已完成） | train_loss_epoch **−6.697**；**val_pit_sisnr 6.732**、test_pit_sisnr 6.815 dB；beta=0；K=0（0near=4，1near+ 全 0） | metrics.csv（QA `test_phase2_p2d_training_curve_sane` 解析） |
-| epoch 1（进行中） | beta=0.005（=1/200，符合 0→1 over 200 epoch）；训练 step 持续 | 同上 |
+| epoch 1（当时进行中；快照） | beta=0.005（=1/200，符合 0→1 over 200 epoch）；训练 step 持续 | 同上 |
 | 评测管线冒烟 | 100-step 冒烟 ckpt 在 5 条 LRS2 tt：sdr 3.585 / sdr_i −1.784 / si-snr 2.811 / si-snr_i −2.490 / pesq 1.141 / stoi 0.762（**仅证明管线可用，不作为结果**） | `P2D-eval-epoch_0.csv`（QA 复算 avg=逐句均值，且报告数字可追溯） |
-| 正式训练后续 | ⏳ 训练持续中（受外部 GPU 占用限制，单卡 ~14 min/epoch；100 epoch 远超本轮时间窗） | — |
+| 正式训练后续 | ✅ 已完成 100 epoch：best val **ep99 13.2014**；contrastive 微调 ep124 13.3909；ep99 全量 **8.726/9.122**、ep124 **8.858/9.270**（2026-11-08 校正） | `P2D-train-metrics-1gpu.csv`、`P2D-eval-epoch99.{log,csv}`、`P2D-near-train-metrics.csv` |
 
 > QA 已把“训练曲线合理性”固化为测试：epoch 0 step < 2500、K=0 语义、beta 从 0 单调增长、
 > 损失有限且不恶化、val PIT SI-SNR 有限为正。后续 epoch 落盘后可直接重跑该测试复核。
@@ -198,8 +211,8 @@ QA 用 `test_phase2_p2b_paired_stats_and_report_consistency` 从 7 个逐句 CSV
 
 ## 8. 发现与风险（不阻塞，均已记录）
 
-1. **P2-D 正式训练未完成**（P2-G 唯一开放项）：epoch 0 已通过 QA，但 100 epoch 需要数小时；论文级
-   LRS2-2Mix 数字需训练完成后再评测。属资源/时间限制，非实现缺陷。
+1. ~~**P2-D 正式训练未完成**（P2-G 唯一开放项）~~：2026-10-22 19:54 已完成 100 epoch 并补测 ep99（8.726/9.122）；
+   论文级 14.1/14.7 仍差 5.2–5.6 dB，需 8 卡论文配方或 LRS2-trained ckpt。
 2. `P2B-full-big-whole-real.csv` 为 0 字节占位（全量 big 评测因时间窗中止）；报告已注明“未跑全量”，
    不影响已交付的 300 条配对结论。建议后续清理或补跑。
 3. `P2D-train.log` 在 epoch 结束前只含启动段（PL 进度条写入方式导致缓冲）；逐 step 曲线以
@@ -215,10 +228,10 @@ QA 用 `test_phase2_p2b_paired_stats_and_report_consistency` 从 7 个逐句 CSV
 
 ```bash
 cd /root/code/github_repos/Falcon-fork
-$ENV/bin/python -m pytest tools/repro/tests -q -rs          # 111 passed, 1 skipped（本机快照）
+$ENV/bin/python -m pytest tools/repro/tests -q -rs          # 168 passed（2026-11-08 实测：有 GPU 约 147 s；无 GPU 同样 168 passed，约 170 s）
 $ENV/bin/python -m pytest tools/repro/tests/test_phase2_data.py -q
 $ENV/bin/python -m pytest tools/repro/tests/test_phase2_pipeline.py -q
-$ENV/bin/python -m pytest studio/tests -q                   # 35 passed, 2 skipped
+$ENV/bin/python -m pytest studio/tests -q                   # 51 passed, 2 skipped（有 GPU；无 GPU 53/0）
 git worktree list                                           # 校验 /root/wt-base = 689555c detached
 ```
 
@@ -230,5 +243,5 @@ git worktree list                                           # 校验 /root/wt-ba
   （旧收集导致的报告证据失败，已修）；P2-C 数据落盘 → 数据 QA 5 passed。
 - **v1（19:52Z，本版）**：Phase2 QA 扩到 23 条（新增 P2A/P2B/P2C/P2D/P2E/P2F 证据复算 11 条）；
   `_landed` merge-aware 恢复 Phase1 T1/T3/T5 验收覆盖（skip 6→1）；终检
-  **111 passed / 1 skipped / 0 failed, 106.62s**；P2-A..F 数字独立复算全部一致；P2-D epoch 0 通过；
+  **111 passed / 1 skipped / 0 failed, 106.62s**（2026-10-21 快照；现行数字见文首校正段）；P2-A..F 数字独立复算全部一致；P2-D epoch 0 通过；
   无源码改动、未 commit。**task-24 保持 in_progress（P2-D 训练未完成，等 Lead 收口）。**

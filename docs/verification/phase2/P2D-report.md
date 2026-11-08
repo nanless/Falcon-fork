@@ -3,8 +3,16 @@
 > 分支：`repro/phase2`（未 commit）。环境：`/root/miniforge3/envs/falcon/bin/python`
 > （Python 3.11.17 / torch 2.8.0+cu128 / pytorch-lightning 2.6.6 / 2×A800 共享机）。
 > 写作用域：`configs/LRS2_2Mix.yml`、`tools/repro/phase2/`、`docs/verification/phase2/`。
-> **状态：进行中** —— 配置 + 2-GPU 冒烟已完成；正式训练等待 P2-C 全量数据（`/root/data/falcon_lrs2_2mix`）
-> 与 GPU 可用窗口；评测脚本已就绪。
+> **状态：已结束（2026-10-22 19:54）** —— 配置 + 2-GPU 冒烟已完成；单卡 100 epoch 训练已跑完，
+> best val ep99 13.2014；评测见 §8。原“进行中/等待数据与 GPU”的描述已过期，正文 §1/§4 保留为当时的快照。
+>
+> **2026-11-08 校正（按 `deepdive-20261108/07`，最后更新 2026-11-08）**：① 训练已结束，`13.118` 只是 ep86 的
+> 历史最佳、真正最佳是 **ep99 13.2014**；② “论文 10 卡、全局 batch 40”的说法与论文不符——论文是 **8×3090、
+> bs 4/GPU、全局 32**，本机单卡 bs4 即全局 4（见 §8.3 校正）；③ 本报告不含 RealSSA-Sim 评测，
+> “9,169 条”这一分母问题属 `P2E-report.md`/`STATUS.md`（SDRi/PESQ 实为 **9,166**），不在本文件；
+> ④ §8.3 原写“论文训练配方（数据混合 / lr schedule / 轮数）未公开”，与已公开论文（arXiv:2610.32749，2026-10-23）
+> 不符：lr / epoch / batch / 硬件见 Table 16；论文没写的是 LRS2-2Mix 的 SNR 采样范围与 near 负样本生成脚本
+> （`deepdive-20261108/11` §7 G1/G9）。冻结证据未改。
 
 ## 1. 结论（阶段）
 
@@ -13,8 +21,8 @@
 - 100 step 时 **val SI-SDR ≈ 1.95 dB / test ≈ 1.91 dB**（从零初始化，仅 35 s 训练；曲线见 §3）。
 - 正式训练（10000 样本/epoch × 100 epoch，2×A800 batch 4/GPU）预计 **≈7 min/epoch、满 100 epoch ≈11.7 h**；
   1–2 h 可覆盖约 8–17 个 epoch（early stop patience=30 大概率不会在 1–2 h 内触发）。
-- 阻塞项：① P2-C 数据尚未落盘；② 机器 2×A800 当前被其它 Phase2 评测任务占用（见 §5），
-  2 卡同时训练可能 OOM —— 需要 Lead 协调 GPU 时间窗（或先用单卡跑曲线）。
+- 阻塞项（历史，均已解除）：① P2-C 数据尚未落盘 → 已落盘 28000 条 / 23.36 GiB；
+  ② 机器 2×A800 被其它 Phase2 评测占用 → Lead 批准单卡 GPU0 方案，训练已于 2026-10-22 19:54 跑完 100 epoch。
 
 ## 2. 配置（`configs/LRS2_2Mix.yml`，基于 `configs/Falcon.yml`）
 
@@ -224,8 +232,12 @@ bash /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_p2d.sh <ckpt> /
 2. **官方权重跨语料基线复跑确认：7.029 / 7.713**，与 Phase-1 的 LRS2 全量评测数字一致（同一脚本、同一 3000 条），
    说明该基线可复现，不是一次性波动。
 3. 自训 ckpt 比官方跨语料权重高 **+1.697 SI-SNRi / +1.409 SDRi**（同数据同协议），符合"已在 LRS2 上训练"的预期；
-   但距论文 14.1 / 14.7 仍差 **−5.374 / −5.578 dB**，归因不变：单卡 bs4（论文 10 卡、全局 batch 40）、
-   100（+30）epoch、LRS2 无 near 导致负项失效或只能近似，以及论文训练配方（数据混合 / lr schedule / 轮数）未公开。
+   但距论文 14.1 / 14.7 仍差 **−5.374 / −5.578 dB**，归因不变：单卡 bs4（全局 batch 4）、
+   100（+30）epoch、LRS2 无 near 导致负项失效或只能近似，以及论文没写 LRS2-2Mix 的 SNR 采样范围与
+   near 负样本生成脚本（`deepdive-20261108/11` §7 G1/G9；lr / epoch / batch / 硬件见 Table 16，已对齐）。
+   **校正（2026-11-08）**：原文写“论文 10 卡、全局 batch 40”，与论文 Table 16/§4 不符——论文是 **8×RTX 3090、
+   bs 4/GPU、全局 32**（`deepdive-20261108/11` §3）。因此本机等效 batch 比论文小 8×，这是差距的可量化因素之一；
+   “10 卡/40”来自早期复现计划，没有论文依据。
 4. 证据完整性：ep86 已于 2026-10-30 补跑（`P2D-eval-epoch86.csv`），**官方 / ep86 / ep99 / ep124 四份均有 3000 句逐句 CSV**；
    两条训练曲线已入库（`P2D-train-metrics-1gpu.csv` 5200 行 / `P2D-near-train-metrics.csv` 1560 行）。
 

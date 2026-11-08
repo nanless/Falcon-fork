@@ -11,6 +11,14 @@
 > 不依赖 T3 的 `look2hear/metrics/core.py`；`core.py` 与 Phase-1 CSV 只作为**被验证对象**参与对拍。
 > GPU：本任务 GPU 实验（N=50 推理、N=20 mouth 消融）在 Lead 通知 GPU 协调前已完成并结束；
 > 之后全部改为 CPU 复算（`data/recheck/static` 阶段），当前无本任务 GPU 进程/显存占用（GPU 已释放）。
+>
+> **2026-11-08 校正（按 `deepdive-20261108`，最后更新 2026-11-08；冻结证据未改）**：论文于 2026-10-23 公开
+> （arXiv:2610.32749）。§5.2/§6 里“论文未公开”是当时的判断，现改为“当时无法核对、现已公开可核对”，协议核对见
+> [PAPER_ALIGNMENT_20261030.md](../../understanding/PAPER_ALIGNMENT_20261030.md) 与
+> [11-paper-alignment.md](../../understanding/deepdive-20261108/11-paper-alignment.md)（Table 15/16 的架构与训练配方
+> 逐行对齐、App A/B/D 的数据与窗口协议）。另外 RealSSA-Sim/Real
+> 2026-10-22 已获批、下载、归档，Sim test 9,169 条 2026-10-30 评测 **7.774/8.479**，§6 的“申请待批”是当时状态。
+> 本文的 7.03/7.71 与 N=50 / N=20 证据未改。
 
 ## 1. 结论（TL;DR）
 
@@ -133,7 +141,7 @@ zero-mean −0.02、target 能量/RMS 缩放 ±0.00、best-of-s1/s2 +0.02 ——
 | 窗口化推理 | small −1.91/−1.73、big −2.32/−2.13 dB（P2-B） | Phase-1 全量用整句，未用窗口化 | ❌ 不适用 |
 | 视觉分支未生效 | 置零 −14.4 dB、换说话人 −23.3 dB | 0（工作正常） | ❌ 排除 |
 | **训练语料/配方与论文 LRS2 列不匹配** | 发布 ckpt 训练集=LRS3_complex_nonmoving（conf 快照）；论文按 benchmark 训练 | **~6 dB 主因** | ✅ 主因（[推断] 强证据） |
-| 论文 LRS2 列的其他训练细节（负样本、数据混合、epoch、调参）未公开 | 仓库无 LRS2 训练配置/日志 | 未知残余 | ❓ 需 P2-D/作者 |
+| 论文 LRS2 列有两处细节论文没写：SNR 采样范围、near 负样本生成脚本（`deepdive-20261108/11` §7 G1/G9；lr / epoch / batch / 硬件见 Table 16） | 仓库无 LRS2 训练配置/日志 | 未知残余 | ❓ 需作者给数据构建参数 |
 | LRS2-2Mix test 版本差异 | 数据卡：固定 1.5 h test split，3000 条 2 s clip；与本地一致 | 0 | ❌ 排除 |
 
 ### 5.3 要复现 14.1/14.7 还缺什么
@@ -152,9 +160,13 @@ zero-mean −0.02、target 能量/RMS 缩放 ±0.00、best-of-s1/s2 +0.02 ——
 - mouth 偏移/换说话人消融在 GPU 交接前以 N=20 完成（数值见 §4-P5）；`protocol_check.py --stage variants`
   可在单卡 GPU 上复跑（CPU 太慢）。A/V 包络相关探针（mouth 开合代理 vs 音频包络）结果弱/不可判
   （mean peak corr 0.21，lag 不稳定），本报告只把它当补充，不作为对齐结论；对齐结论以模型 mouth-offset 消融为准。
-- 论文未公开（README: “Paper (TODO)”），无法直接核对论文的训练/评测细节；“发布 ckpt 为 LRS3 训练”由仓库内
-  conf 快照推断（[推断] 强证据），非作者确认。
+- 当时论文未公开（README: “Paper (TODO)”），无法直接核对论文的训练/评测细节；2026-10-23 论文已公开
+  （arXiv:2610.32749），协议核对见 [PAPER_ALIGNMENT_20261030.md](../../understanding/PAPER_ALIGNMENT_20261030.md)
+  与 [11-paper-alignment.md](../../understanding/deepdive-20261108/11-paper-alignment.md)。“发布 ckpt 为 LRS3 训练”
+  由仓库内 conf 快照推断（[推断] 强证据），非作者确认。
 - RealSSA-Sim/Real、LRS3-2Mix、VoxCeleb2-2Mix 数据不可得，无法做跨 benchmark 交叉验证（RealSSA 申请待批，见 P2-E）。
+  **2026-11-08 校正**：RealSSA-Sim/Real 2026-10-22 已获批并归档，Sim 已于 2026-10-30 评测 **7.774/8.479**；
+  LRS3-2Mix / VoxCeleb2-2Mix 仍无数据。
 
 ## 7. 复跑命令
 

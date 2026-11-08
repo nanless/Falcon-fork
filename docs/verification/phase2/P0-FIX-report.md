@@ -3,6 +3,12 @@
 > 执行：Lead + 4 个子代理（train-system / verify-ops / data-pipeline / model-core）
 > 分支 `repro/phase2`，基于 HEAD `2beec38`；环境 conda `falcon`（Py3.11 / torch 2.8.0+cu128 / 2×A800）
 > 依据：`docs/understanding/deepdive-20261024/09-benchmark-alignment.md` §9（证据审计）与 §4（P0–P5 规划）。
+>
+> **2026-11-08 校正（按 `deepdive-20261108/07、10`，最后更新 2026-11-08；冻结证据未改）**：① RealSSA-Sim 的“9,169 条”
+> 只对 SI-SNRi 成立，**SDRi/PESQ 实际分母 9,166**（6 次 SDR 奇异 + 3 次 PESQ 无语音，`nanmean` 静默跳过）；
+> ② 本报告 §2.7 的回归数字已过时——`tools/repro/tests` 现收集 168 条，2026-11-08 实测有 GPU
+> **168 passed / 148.07 s**、无 GPU **同样 168 passed / 170.47 s**；Studio 套件 **51 passed / 2 skipped**；
+> ③ RealSSA-Real DNSMOS 一律用 full4（2.7941/3.3365），full3 的 2.7901/3.3285 作废。
 
 ---
 
@@ -68,8 +74,9 @@ P0–P5 规划 v2、证据审计补遗）。
 
 ## 2. 复核数字（不变项 + 新增项）
 
-### 2.1 RealSSA-Sim（官方 `falcon.pt`，test 9,169，channel=mean，整段）
+### 2.1 RealSSA-Sim（官方 `falcon.pt`，test 9,169，channel=mean，整段一次前向不切窗）
 - **SI-SNRi 7.774307 / SDRi 8.479395 / PESQ 2.093770 / STOI 0.817290**（论文 7.7/8.2）。
+  校正（2026-11-08）：SI-SNRi 分母 9,169；**SDRi/PESQ 分母 9,166**（`deepdive-20261108/07` §3.4）。
 - 证据：`P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`。
 
 ### 2.2 RealSSA-Real（54 段，channel=mean，align_tail，窗口化分离后整段 DNSMOS）
@@ -101,7 +108,7 @@ P0–P5 规划 v2、证据审计补遗）。
 |---|---|---|---|
 | 官方权重 LRS2 full（3,000） | ✅ 完成（14:26Z，exit 0） | SDR 12.813387 / SDRi **7.712925** / SI-SNR 12.022821 / SI-SNRi **7.029101** / PESQ 2.195634 / STOI 0.916350 | `P2D-eval-falcon-full.{log,csv}`（3,003 行） |
 | ep99 LRS2 full（3,000） | ✅ 完成（14:26Z，exit 0） | SDR 14.222311 / SDRi **9.121848** / SI-SNR 13.719868 / SI-SNRi **8.726148** / PESQ 2.577971 / STOI 0.943988 | `P2D-eval-epoch99.{log,csv}`（3,003 行） |
-| RealSSA-Sim ch0（9,169，P1） | ✅ 完成（2026-10-30T04:49Z，exit 0） | SI-SNRi **7.977** / SDRi **8.452**（对论文 +0.28/+0.25；与 mean 差 +0.20/−0.03） | `P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}` |
+| RealSSA-Sim ch0（9,169；SDRi/PESQ 分母 9,166，P1） | ✅ 完成（2026-10-30T04:49Z，exit 0） | SI-SNRi **7.977** / SDRi **8.452**（对论文 +0.28/+0.25；与 mean 差 +0.20/−0.03） | `P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}` |
 
 > 说明：首轮两个 eval 因"每进程 300+ 线程 + 共享机 load≈72"18 分钟未写出首行 CSV，已终止并用
 > `OMP/MKL_NUM_THREADS=4` 重启（20 条基准 17 s ≈ 0.55 s/utt，预计 30–45 min/全量）。
@@ -109,7 +116,11 @@ P0–P5 规划 v2、证据审计补遗）。
 ### 2.7 回归 / 环境（本轮）
 - `pytest tools/repro/tests`：修复前 **104 passed / 1 failed / 7 skipped**；修复后 **109 passed / 6 skipped / 0 failed**
   （115 collected，150 s，exit=0；原 2 个 diff-scope 守卫失败由 `.gitignore` 未入白名单引起，已修）。
-- `pytest studio/tests`：35 passed / 2 skipped（不变）。
+  **校正（2026-11-08）**：套件此后继续扩充，现收集 **168** 条；实测有 GPU **168 passed / 148.07 s**，
+  隐藏 CUDA **同样 168 passed / 170.47 s**（修前为 166 passed / 2 failed，两处已修：指纹固定线程数、
+  studio skip 断言放宽）。109/6 只是当时的数字。
+- `pytest studio/tests`：35 passed / 2 skipped（不变）。**校正（2026-11-08）**：现为 **51 passed / 2 skipped / 18.39 s**
+  （无 GPU 时 53 passed / 0 skipped）。
 - `import look2hear.models` / `py_compile`：OK。
 - `docs/verification/conda-env-lock.txt`：115 行、无 `file://`。
 
@@ -181,11 +192,12 @@ $ENV tools/repro/realssa_to_falcon.py --src /root/data/RealSSA-Sim \
 
 - `git fetch upstream`：`689555c → 439cbe9`（HF 下载计数、README/项目页 arXiv 链接），已合并进 main；
   `audio_visual_test.py` 冲突手工解决（保留本地重写 + 移植上游下载计数代码块），`py_compile` 通过。
-- 论文公开：**arXiv:2610.32749**（2026-10-23），“论文未公开”类推断作废，协议核对见 `PAPER_ALIGNMENT_20261030.md`。
+- 论文公开：**arXiv:2610.32749**（2026-10-23），当时的“论文未公开”类推断作废，协议核对见 `PAPER_ALIGNMENT_20261030.md`。
 - 分支收口：仅保留 `main`；删除本地与远端 `repro/phase1`、`repro/phase2`；移除 worktree `wt-main`（保留 detached `wt-base`）。
 - 新增提交：`714e1a5`（mouths.pt 原子写）、`d9ec1e8`（upstream merge）、`3d36b78`/`d076be9`（文档）。
 - **已 push**：`origin/main = d076be9`；远端 `repro/phase1`、`repro/phase2` 已删除，仅剩 `main` + tag。
 - 回归：合并后 `studio/tests` **38 passed / 2 skipped**；`tools/repro/tests` 见同步后的最终运行结果。
+  **校正（2026-11-08）**：Studio 现为 51 passed / 2 skipped；`tools/repro/tests` 现收集 168 条，有 GPU 168 passed / 148.07 s。
 
 ## 6. 本轮变更文件（提交前清单）
 

@@ -38,7 +38,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python <script>.py
 | 训练侧依赖 | numpy **2.2.6**、scipy 1.17.1、pandas 3.0.6、PyYAML 6.0.3、soundfile 0.14.0、librosa 0.11.0、torch-complex 0.4.4、**typeguard 2.13.3**、timm 1.0.30、torch-optimizer 0.3.0、opencv-python 5.0.0.93、matplotlib 3.11.2、fast-bss-eval 0.1.4、torch-mir-eval 0.4、pystoi 0.4.1、ptflops 0.7.5、rich 15.0.0、tqdm 4.70.1 |
 | Studio 依赖 | fastapi 0.156.8、uvicorn 0.54.0、Pillow 13.0.0、huggingface_hub 2.2.0、einops 0.8.2、pytest 9.1.1、httpx 0.28.1 |
 | Node | 系统 `node v22.23.3`（不在 conda env 内；JS 测试直接用它） |
-| GPU | 2×A800；驱动 535.129 支持 cu12x，`torch.cuda.is_available()` 应为 True；CPU 也能完整跑（2 s 窗口≈2.5 s） |
+| GPU | 2×A800；驱动 535.129 支持 cu12x，`torch.cuda.is_available()` 应为 True；CPU 也能完整跑（单窗约 0.6 s：口径 B=1、2 s 窗、CPU；4 线程实测 592–694 ms，1 线程约 1.0 s） |
 | 真实权重 | `/root/.cache/falcon_weights/falcon.pt`、`falcon-big.pt`（Lead 从 hf-mirror 下载并验证） |
 | 数据 | 无 LRS2/LRS3/RealSSA 数据、无 `pretrain_zoo/` → 训练/评测不可端到端复现，只能做代码级 + 最小验证 |
 

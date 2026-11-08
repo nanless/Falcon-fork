@@ -4,8 +4,18 @@
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800）+ 系统 `node v22`
 > 写入范围：`docs/verification/phase2/`（本文件）、`docs/REPRODUCTION_PLAN.md`（仅状态小节）、
 > `docs/DATA_ACCESS_GUIDE.md`（仅状态/链接/证据措辞）；**未改源码、未 commit**。
-> 状态：**v1（终检）**——P2-A…F 报告全部落盘并逐项核对；回归终值 **111 passed / 1 skipped / 0 failed**（QA 终检 19:52Z 独占重跑；96/6 为 19:29Z 中间值）；文档一致性/链接/HF 事实已核；
+> 状态：**v1（终检）**——P2-A…F 报告全部落盘并逐项核对；回归终值 **111 passed / 1 skipped / 0 failed**（2026-10-21 快照，QA 终检 19:52Z 独占重跑；96/6 为 19:29Z 中间值）；文档一致性/链接/HF 事实已核；
 > 2 处报告 P3 勘误已由 owners 修复并复核；P2-D 正式训练 19:26:41Z 已启动（结果待跑完）、RealSSA 仍待审批（见 §6）。
+>
+> **2026-11-08 校正（按 `deepdive-20261108`，最后更新 2026-11-08；冻结证据未改）**：本文是 2026-10-21T19:50Z 的快照，
+> 正文数字保留原样作当时证据；下面四项与当前磁盘已不一致，引用时以本段为准。
+> ① 测试基线：`tools/repro/tests` 现收集 **168** 条，2026-11-08 实测有 GPU **168 passed / 0 failed / 148.07 s**，
+> 隐藏 CUDA **同样 168 passed / 0 failed / 170.47 s**（修前无 GPU 为 166 passed / 2 failed，两处已修：
+> 指纹测试固定线程数、studio skip 硬断言放宽，见 `test_phase1_regression.py` 与 `audio_train.py`）；
+> ② Studio 套件现为 **51 passed / 2 skipped**（有 CUDA）/ **53 passed / 0 skipped**（无 CUDA）；Node 8 个仍 **8/8**；
+> ③ RealSSA-Sim/Real 2026-10-22 已获批、下载、归档，Sim test 9,169 条 2026-10-30 评测 **7.774/8.479**，
+> §2.1 与 §6 的“403 待批”是 2026-10 的状态；
+> ④ P2-D 训练 2026-10-22 19:54 已结束（100 epoch，best val ep99 13.2014），§6 第 1 条“训练运行中”同属当时状态。
 
 ---
 
@@ -13,11 +23,11 @@
 
 | # | 项目 | 命令 | 结果 | 判定 |
 |---|---|---|---|---|
-| 1 | Studio Python | `$ENV -m pytest studio/tests -q` | **35 passed, 2 skipped**（33.33 s，18:57Z） | ✅ 与 Phase 1 基线一致 |
-| 2 | Studio Node（8 个） | `for f in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs; do node "$f"; done` | **8/8 rc=0**（18:57Z） | ✅ |
+| 1 | Studio Python | `$ENV -m pytest studio/tests -q` | **35 passed, 2 skipped**（33.33 s，18:57Z；2026-10 快照；2026-11-08 实测 **51 passed / 2 skipped** 有 CUDA、**53 passed** 无 CUDA） | ✅ 与 Phase 1 基线一致 |
+| 2 | Studio Node（8 个） | `for f in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs; do node "$f"; done` | **8/8 rc=0**（18:57Z；2026-11-08 复核仍 8/8） | ✅ |
 | 3 | Space 组装 + i18n | `$ENV space/build.py --out /root/tmp/space-verify2` → `node space/tests/check_i18n.mjs /root/tmp/space-verify2` | `Assembled /root/tmp/space-verify2`；**`i18n: 226 Chinese strings translated`**（18:57Z） | ✅ 与 Phase 1 相同 |
 | 4 | 导入面 | `PYTHONPATH=$PWD $ENV -c "import look2hear.{models,layers,system,metrics,losses,datas,videomodels,utils}, audio_train, audio_visual_test"` | **10/10 imports OK**（18:57Z） | ✅ |
-| 5 | 新增测试（全量） | `$ENV -m pytest tools/repro/tests -q` | **111 passed, 1 skipped, 0 failed**（QA 终检 19:52Z 独占重跑；中间值 96/6 为 19:27–19:29Z）；历史：19:04Z 82/12（94）→ 19:16Z AGENTS.md 致 2 failed → QA 19:20/19:23 白名单修复 → 19:26Z 守卫 2 passed；P2-C 数据使 5 条数据测试由 skip 转 passed | ✅ 全绿（QA 终检独占重跑后以终值替换） |
+| 5 | 新增测试（全量） | `$ENV -m pytest tools/repro/tests -q` | **111 passed, 1 skipped, 0 failed**（2026-10-21 快照，QA 终检 19:52Z 独占重跑；中间值 96/6 为 19:27–19:29Z）；历史：19:04Z 82/12（94）→ 19:16Z AGENTS.md 致 2 failed → QA 19:20/19:23 白名单修复 → 19:26Z 守卫 2 passed；P2-C 数据使 5 条数据测试由 skip 转 passed；**2026-11-08 实测**收集 168 条，有 GPU **168 passed / 约 147 s**，无 GPU **同样 168 passed / 约 170 s** | ✅ 全绿（QA 终检独占重跑后以终值替换） |
 | 6 | Phase2 QA 框架 | `$ENV -m pytest tools/repro/tests/test_phase2_data.py tools/repro/tests/test_phase2_pipeline.py -q` | **12 passed**（数据 5 + 管线 7；P2-C 数据落盘后 5 条由 skip 转 passed） | ✅ |
 | 7 | 官方权重指纹 | QA `test_phase2_official_weight_fingerprints_unchanged` | 4 条指纹与 Phase 1 基线**逐位一致**（Phase2 未改数值） | ✅ |
 | 8 | Phase2 源码保护 | QA `test_phase2_diff_scope_guard` | `audio_train.py`/`audio_visual_test.py`/`look2hear/`/`studio/`/`configs/Falcon.yml` 与 main **零 diff** | ✅ |
@@ -62,7 +72,7 @@
 - **处置**（GUIDE 内 9 处，仅状态措辞、不改数据结论）：§0 Real 行、§1 标题、§1 Sim/Real 两行、§1 “未做”行、
   §4.2 gated 行、§4.3 现状行、§5.2 gated 行、§5.3 现状行；§11 增加“更新记录”两条（含本条）。
 - **现状**：GUIDE / PLAN / PHASE1_REPORT / `phase2/README.md` 四处口径一致 ✅：
-  “Sim/Real 申请已提交（2026-10-22，`nanless`/USTC/CN），待人工审批，数据文件仍 403”。
+  “Sim/Real 申请已提交（2026-10-22，`nanless`/USTC/CN），待人工审批，数据文件仍 403”——**2026-10 快照**；2026-11-08 校正：Sim/Real 已于 2026-10-22 获批并归档，Sim test 9,169 条 2026-10-30 评测 **7.774/8.479**（`docs/STATUS.md`、`P0-FIX-report.md`）。
 - 附：`docs/DATA_ACCESS_GUIDE.md` 的 `git diff main` 由 2 行变为 32 行（20+/12-），全部为本任务状态同步与
   §3.3 链接/§11 证据措辞修复；**无数据集大小/许可/格式数字变化**。
 
@@ -242,10 +252,10 @@ $ENV tools/repro/phase2/eval_realssa_real.py --help
 
 ## 6. 待办与风险（v1 终检后仍开放）
 
-1. **P2-D 正式训练运行中**（19:26:41Z 启动，单卡 bs4，PID 4002894）：**epoch 0 已完成（19:45Z）——val_pit_sisnr **6.73 dB**（cv）、test_pit_sisnr **6.81 dB**（tt 3000；`metrics.csv`）**，训练继续中；跑完/到可评测节点后用 `eval_p2d.sh` 复测并与官方权重（7.03/7.71）、论文（14.1/14.7）对比，结果由 P2-D 报告 v1 记录（本任务不等训练结束）。
+1. **P2-D 正式训练运行中**（19:26:41Z 启动，单卡 bs4，PID 4002894）：**epoch 0 已完成（19:45Z）——val_pit_sisnr **6.73 dB**（cv）、test_pit_sisnr **6.81 dB**（tt 3000；`metrics.csv`）**，训练继续中；跑完/到可评测节点后用 `eval_p2d.sh` 复测并与官方权重（7.03/7.71）、论文（14.1/14.7）对比，结果由 P2-D 报告 v1 记录（本任务不等训练结束）。**2026-11-08 校正**：训练已于 2026-10-22 19:54 结束（100 epoch，best val ep99 13.2014；ep99 全量 8.726/9.122），本条为当时状态。
 2. **QA 终检独占重跑**：`pytest tools/repro/tests -q -rs`（当前 96/6/0；QA 报告 v1 落盘后以终值替换 §1 #5/#6）。
 3. **RealSSA 纪律**：Sim/Real 数据仍 403（申请待批）；任何报告不得产出 RealSSA 指标结论，只能记录工具预置与
-   合成冒烟（P2-E 已按此执行；P2-F/P2-A 亦未使用 RealSSA）。
+   合成冒烟（P2-E 已按此执行；P2-F/P2-A 亦未使用 RealSSA）。**2026-10 快照**；2026-11-08 校正：Sim/Real 2026-10-22 已获批归档，Sim 已于 2026-10-30 评测 7.774/8.479，Real 已归档。
 4. **跨语料标注**：建议 Lead 在 `FINAL_PROJECT_UNDERSTANDING.md`/`REPRODUCTION_PHASE1_REPORT.md` 定稿时补
    “7.03/7.71 = LRS3-trained 官方权重在 LRS2-2Mix 的跨语料结果”（§2.5；本任务未改这两份文档）。
 5. **P3 残留**：`docs/REPRODUCTION_PLAN.md:138` 的 `DataPreProcess/realssa_to_falcon.py` → 实际 `tools/repro/realssa_to_falcon.py`；
@@ -256,6 +266,7 @@ $ENV tools/repro/phase2/eval_realssa_real.py --help
 
 ## 7. Changelog
 
+- **2026-11-08（v1.2）**：按 `deepdive-20261108` 校正（**冻结证据未改**）：补测试基线当前实测（收集 168 条 / 有 GPU 168 passed / 约 147 s / 无 GPU 同样 168 passed）、Studio 51+2 与 53+0、Node 8/8、RealSSA 已获批归档；正文 2026-10-21 快照保留。
 - **2026-10-21T19:50Z（v1.1）**：P2-D 训练 epoch 0 完成（val 6.73 / test 6.81 dB，`metrics.csv`），§6 更新；其余同 v1。
 - **2026-10-21T19:45Z（v1，终检）**：P2-A…F 报告全部落盘并逐项核对（§2.4）；P2-F 跨语料归因独立复核（§2.5）；2 处报告 P3 勘误由 owners 修复并复核（§2.6）；回归终值 **96 passed/6 skipped（102 collected）**；链接审计更新（62 文件/30 链接/0 真 404）；PLAN 状态小节升 19:45Z；README §1 全部状态 ✅/⚠️ 回填。
 - **2026-10-21T19:31Z（v0.5）**：白名单修复后全量复跑 **96 passed/6 skipped（102 collected，146 s）**；QA 回信确认 AGENTS.md 授权注释 + 终检独占重跑计划；§1/§1.1 更新。

@@ -13,6 +13,10 @@
 > `/aispeech-cfs/voiceprint/data/multimodal/`；RealSSA-Sim test 9,169 条已转换并评测（**SI-SNRi 7.774 / SDRi 8.479**），
 > RealSSA-Real 54 段 DNSMOS 已完成（旧 run：P808 3.3285 / P.835 OVRL 2.7901；论文 3.276 属 RealSSA-trained ckpt、P.835，**不可直接比**；窗口起点 bug 修复后 full4：P808 3.3365 / OVRL 2.7941，见 P2E-report §10）。证据见
 > `docs/verification/phase2/P2E-report.md` §9、`P2E-realssa-sim-*.{log,csv}`、`DNSMOS-realssa-real-mean-full3/`。
+>
+> **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`，最后更新 2026-11-08）**：正文里“RealSSA 403 待批”的现状
+> 一律改为“**2026-10-22 已获批/已下载/已归档**”，2026-10-21 的 403 探测结果作为历史保留；DNSMOS 采用 full4
+> （OVRL 2.7941 / P808 3.3365，full3 作废）；§1 补硬链接与 62 G 并集的容量口径。
 
 ---
 
@@ -26,7 +30,8 @@
 | **LRS3-2Mix** | `JusperLee/LRS3-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 622 B） | 只有数据卡 | ❌ 不能复现该列；需联系作者或自建 |
 | **VoxCeleb2-2Mix** | `JusperLee/VoxCeleb2-2Mix` | ❌ 公开 | ⚠️ 仓库**无数据文件** | 0 B（仅 README 756 B） | 只有数据卡 | ❌ 同上 |
 
-**一句话**：现在唯一能立即下载的是 LRS2-2Mix（**完整 2 s AV 数据**：音频 mix/s1/s2 + mouths + faces + landmarks，16.47 GB 压缩/17.39 GB 解压）；RealSSA-Sim/Real 需人工审批；LRS3/Vox 的 2Mix
+**一句话**：LRS2-2Mix（**完整 2 s AV 数据**：音频 mix/s1/s2 + mouths + faces + landmarks，16.47 GB 压缩/17.39 GB 解压）已下载；
+RealSSA-Sim/Real **2026-10-22 已获批、下载、归档**（见 §1/§4/§5）；LRS3/Vox 的 2Mix
 发布仓库里没有数据。训练用的 **near 源波形官方未发布**，RealSSA-Real **不能算 SI-SDR**（无干净参考）。
 
 ---
@@ -37,9 +42,9 @@
 |---|---|---|
 | token 文件 | 存在：`/root/.cache/huggingface/token`（37 B） | `ls -l /root/.cache/huggingface/token` |
 | 登录身份 | `whoami()` → **`nanless`（type=user）**，token 有效 | `python -c "from huggingface_hub import HfApi; print(HfApi().whoami()['name'])"` |
-| RealSSA-Sim 授权 | 🟡 **申请已提交待批（2026-10-22）**；仍**未获批**：dry-run 探测 `tt/tt-000000.tar` → `GatedRepoError 403` | `python tools/repro/fetch_data.py --dataset realssa-sim --dry-run` |
-| RealSSA-Real 授权 | 🟡 **申请已提交待批（2026-10-22）**；仍**未获批**：dry-run 探测 `INFERENCE.md` → `GatedRepoError 403` | 同上 `--dataset realssa-real` |
-| gated 元数据可见性 | ✅ 可读：数据集卡/文件清单/大小对未获批账号可见（HF 设计），但**数据文件不可下载** | `HfApi().dataset_info(...)` 成功；非 README 文件 403 |
+| RealSSA-Sim 授权 | ✅ **已获批（2026-10-22）**，已下载并归档（242 文件 / 521,532,645,652 B）。历史：2026-10-21 未获批时 dry-run 探测 `tt/tt-000000.tar` 返回 `GatedRepoError 403` | `python tools/repro/fetch_data.py --dataset realssa-sim --dry-run`；TOS `_MANIFEST.json` |
+| RealSSA-Real 授权 | ✅ **已获批（2026-10-22）**，已下载并归档（422 文件 / 12.84 GB；TOS 实测 12,843,582,409 B）。历史：2026-10-21 未获批时 dry-run 探测 `INFERENCE.md` 返回 `GatedRepoError 403` | 同上 `--dataset realssa-real`；TOS `realssa_real/` |
+| gated 元数据可见性 | ✅ 可读：数据集卡/文件清单/大小对未获批账号可见（HF 设计）；未获批账号的数据文件不可下载（本机账号 2026-10-22 已获批，不受此限） | `HfApi().dataset_info(...)` 成功；获批前非 README 文件返回 403 |
 | LRS2-2Mix | ✅ 公开，可下载 | `--dataset lrs2-2mix --dry-run` 列出 `lrs2.tar.gz` 16.47 GB |
 | LRS3/VoxCeleb2-2Mix | ✅ 公开但只有 README（文件数 2） | `dataset_info` 文件清单 |
 | **未做** | 未修改账号、未分享 token（访问申请由用户于 2026-10-22 自行提交，见 §11） | 只读探测 |
@@ -55,6 +60,11 @@
   `tools/repro/fetch_data.py` 支持 `--proxy`、`--endpoint`、以及环境变量 `HF_ENDPOINT`/`http(s)_proxy`；
   若某天 hf-mirror 恢复，可直接 `--endpoint https://hf-mirror.com`（无需改代码）。
 - 磁盘：`/root`（vepfs，15 TB 可用）；LRS2 全量 + RealSSA-Sim 全量需预留 **≥600 GB**。
+- **容量口径（2026-11-08 实测，重要）**：4 个 Falcon 数据目录的 `mouths/` 互为硬链接（同一 inode），
+  `falcon_lrs2_2mix`、`falcon_lrs2_2mix_paper`、`falcon_realssa_sim`、`falcon_realssa_sim_ch0`。
+  `du -s --count-links` 逐目录相加是 **113,582,506 KiB（≈108 GiB，旧口径记 110 G）**，一次 `du -sc` 覆盖四个目录
+  去重后是 **64,035,241 KiB（≈61 GiB，旧口径记 62 G）**。容量规划/迁移按 **62 G** 算；按 110 G 会高估约 48 G。
+  （单看某一目录的 `du -sh` 也会低估：`_paper` 的 mouths 在目录内共享、`_ch0` 的 mouths 与 mean 共享。）
 
 ---
 
@@ -221,7 +231,7 @@ tt 3,000 组、每组 2 s → 模型 2 s 窗口正好覆盖整段，可按 clip 
 | 项 | 值 |
 |---|---|
 | HF 数据集 | <https://huggingface.co/datasets/JusperLee/RealSSA-Sim> |
-| gated | **manual**（人工审批）；本机账号 `nanless` 申请已提交（2026-10-22）**待批**，当前仍 **403** |
+| gated | **manual**（人工审批）；本机账号 `nanless` **2026-10-22 已获批**并完成下载/归档（242 文件 / 521,532,645,652 B）。历史：获批前 dry-run 返回 `GatedRepoError 403` |
 | 许可证 | **CC BY-NC-ND 4.0**（TED 内容），另有各噪声源条款；仅限**非商业学术研究** |
 | 规模 | **242 个文件 / 240 个 shard**：**521.53 GB**；`tr/` 202 shards=441.42 GB、`cv/` 19 shards=39.97 GB、`tt/` 19 shards=40.14 GB；另有 README/.gitattributes 2 个文件 |
 | 样例数 | train 100,826 / validation 9,133 / test 9,169（shard 500 条；4 个训练样本缺 JSON/mouth 被排除） |
@@ -247,8 +257,10 @@ WebDataset tar shards `{tr,cv,tt}/{tr,cv,tt}-NNNNNN.tar`，每个例 `<id>` 为�
 
 ### 4.3 本机现状与获批后操作
 
-- 当前：可读 README/文件清单/大小；访问申请已提交（2026-10-22，待批），下载数据仍返回 403（`GatedRepoError`）。
-- 获批后：
+- 当前（2026-11-08 校正）：**已获批、已下载并归档**（2026-10-22）。本地保留 tt 19 shard（38 G），全量在 TOS
+  `/aispeech-cfs/voiceprint/data/multimodal/realssa_sim`（`_MANIFEST.json`：242 文件 / 521,532,645,652 B）。
+  历史：2026-10-21 未获批时下载返回 403（`GatedRepoError`）。
+- 获批后的操作（已执行，保留作复跑参考）：
   ```bash
   hf auth login                     # 用获批账号；或 export HF_TOKEN=...
   export https_proxy=http://127.0.0.1:17897 http_proxy=http://127.0.0.1:17897
@@ -276,7 +288,7 @@ WebDataset tar shards `{tr,cv,tt}/{tr,cv,tt}-NNNNNN.tar`，每个例 `<id>` 为�
 | 项 | 值 |
 |---|---|
 | HF 数据集 | <https://huggingface.co/datasets/JusperLee/RealSSA-Real> |
-| gated | **manual**（人工审批）；申请已提交（2026-10-22）**待批**，当前仍 **403** |
+| gated | **manual**（人工审批）；**2026-10-22 已获批**并下载/归档（422 文件 / 12.84 GB）。历史：获批前返回 403 |
 | 许可证 | **没有单独的通用数据集 license**；按 card 的 “Access, consent and permitted use” 研究用途条款（个人数据、参与者授权） |
 | 规模 | 422 个文件，**12.84 GB**（其中 `raw/` 11.38 GB 原始视频/参考录音，`mouth/` 0.74 GB，`audio/` 0.60 GB 等） |
 | 内容 | 两个 view：`inference`（54 个物理段/40 个逻辑录音/10 speakers/8 scenes/83.99 min）与 `original_recordings`（34 个逻辑录音/71.12 min）；无 train/dev split（只有 test） |
@@ -306,8 +318,10 @@ scripts/                    load_inference.py 等 loader
 
 ### 5.3 本机现状与获批后操作
 
-- 当前：metadata/card 可读；访问申请已提交（2026-10-22，待批），数据文件仍 403。
-- 获批后：
+- 当前（2026-11-08 校正）：**已获批、已下载并归档**（2026-10-22）；本地 `/root/data/RealSSA-Real` 12 G，
+  TOS `/aispeech-cfs/voiceprint/data/multimodal/realssa_real`（422 文件 / 12.84 GB），已跑完 54 段 DNSMOS。
+  历史：2026-10-21 未获批时数据文件返回 403。
+- 获批后的操作（已执行，保留作复跑参考）：
   ```bash
   hf auth login
   export https_proxy=http://127.0.0.1:17897 http_proxy=http://127.0.0.1:17897
@@ -357,14 +371,14 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
 
 ## 8. 批准前能做什么 / 不能做什么
 
-| 现在（未获批） | 获批后 |
+| 2026-10-21 时（未获批） | 获批后（2026-10-22 已兑现） |
 |---|---|
 | ✅ LRS2-2Mix：下载+解压 → 完整 2 s AV（mix/s1/s2 + mouths + faces + landmarks）→ 转 Falcon 数据并跑通 LRS2-2Mix **AV** 评测/训练数据构建（无需 LRS2 原始视频） | ✅ RealSSA-Sim：1 shard 验证 → test 全量 → 训练全量；L2 评测 + L3 训练（需转换/负样本方案） |
 | ✅ 读 RealSSA-Sim/Real 的 dataset card、文件清单、大小、loader 协议（HF 元数据公开） | ✅ RealSSA-Real：DNSMOS/WER/speaker-similarity；报告 channel/align 策略 |
 | ✅ 用合成数据/伪 ckpt 跑通评测代码与指标实现（见 `tools/repro/make_synthetic_data.py` 等） | ✅ 与论文数字对齐（受通道、整句口径、SDR 实现 bug 影响，需同时修 F7/F8 等 P0/P1） |
 | ✅ 修训练/评测代码 P0（Comet logger、conf.yml 类名、mono→0 维、PL 2.x 接口等，见 REPRODUCTION_PLAN §6） | ⚠️ 训练：near 源缺失 → 必须替代负样本或关对比损失，并显式标注“非官方配方” |
 | ✅ 做 L1 推理复现（真实权重，已完成） | ❌ LRS3-2Mix / VoxCeleb2-2Mix：HF 无数据，仍需联系作者或自建 |
-| ❌ 不能下载/使用 RealSSA-Sim/Real 数据文件（403）；不能提交他人名义申请 | ❌ 仍不能转发/再分发 RealSSA 与 LRS 派生数据 |
+| ❌ ~~不能下载/使用 RealSSA-Sim/Real 数据文件（403）~~（2026-10-22 已获批、已下载）；仍不能提交他人名义申请 | ❌ 仍不能转发/再分发 RealSSA 与 LRS 派生数据 |
 
 ---
 
@@ -385,7 +399,7 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| `GatedRepoError 403` | 账号未获批（RealSSA-Sim/Real） | 按 §4.1/§5.1 申请；批准后 `hf auth login`；只读 `--dry-run` 可先确认状态 |
+| `GatedRepoError 403` | 账号未获批（RealSSA-Sim/Real）；本机账号已于 2026-10-22 获批，换账号/换机器仍会遇到 | 按 §4.1/§5.1 申请；批准后 `hf auth login`；只读 `--dry-run` 可先确认状态 |
 | `SSL_ERROR_SYSCALL` / `hf-mirror.com` 连接失败 | 本机 hf-mirror TLS 不可达 | 用 `--endpoint https://huggingface.co` + `--proxy http://127.0.0.1:17897`（或 export http(s)_proxy） |
 | `RepositoryNotFoundError 404` | 把 **dataset** 当 **model** 查（`model_info` vs `dataset_info`），或仓库名错 | 用 `api.dataset_info(repo)` / `hf_hub_download(repo_type="dataset", ...)` |
 | LRS2 下载中断 | 网络/代理抖动 | 重跑同一 `fetch_data.py` 命令，curl `-C -` 续传；日志看 `T6-data-fetch.log` |
@@ -410,3 +424,8 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
   - 2026-10-22（Phase 2 · task-25）：同步 RealSSA 访问申请状态（§0 汇总表 RealSSA-Real 行、§1 表、§4.2/§5.2
     gated 行、§4.3/§5.3 现状行）：Sim/Real 均为“申请已提交（2026-10-22，`nanless`/USTC/CN）待批，数据文件仍 403”，
     与 `REPRODUCTION_PLAN.md` Phase 2 状态、`REPRODUCTION_PHASE1_REPORT.md` §6 一致。数据集大小/许可/格式数字未变。
+  - **2026-11-08（按 `deepdive-20261108` 校正）**：§0、§1 两张授权表、§4.1/§4.3、§5.1/§5.3、§8、§10 的
+    “403/待批”改为“2026-10-22 已获批/已下载/已归档”，403 探测结果作为历史保留；§1 补硬链接容量口径
+    （逐目录 `--count-links` 相加 113,582,506 KiB vs 一次 `du -sc` 去重 64,035,241 KiB，即旧口径 110 G vs 62 G）；
+    顶栏 DNSMOS 改为 full4 2.7941/3.3365（full3 作废）。依据：`deepdive-20261108/06` §3.1（硬链接实测）、
+    `07` §4.4（full3→full4）、`10` §4；TOS `realssa_sim/_MANIFEST.json`（242 文件 / 521,532,645,652 B）。

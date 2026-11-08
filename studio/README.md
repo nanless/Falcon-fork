@@ -92,15 +92,78 @@ Chrome keeps capturing camera frames when you switch to the meeting window; othe
 | Audio | microphone resampled to 16 kHz mono |
 | Video | 25 fps; the tracked or manual mouth crop scaled to 96×96 grayscale, center-cropped to 88×88 by the model |
 | Window | the latest 2 s of audio and video |
-| Hop | 0.5 s; each result plays the newest 0.5 s, keeping 80 ms of right context |
+| Hop | 0.5 s; each result plays the newest 0.5 s. The last 80 ms of every window is the guard band: it is discarded, so a sample is played only after the end of its 2 s window has arrived |
 | Joins | short crossfade between consecutive outputs; band-limited resampling to the device rate |
 | Overload | bounded queue; stale windows are skipped instead of building up latency |
 
-The first output needs about 0.58 s of valid input plus computation. Each fresh target starts with 1.42 s of silent left context and its first valid mouth frame, so the first output starts at the real capture boundary instead of dropping the opening words. The synthetic history is excluded from both recordings. Stopping also drains clips shorter than the first hop; the saved audio ends at the instant Stop was clicked. Initial separation quality can differ from a full real-context window. In steady state the designed delay is about 0.7–0.8 s (0.5 s hop + 80 ms context + inference + playback buffer). Every hop recomputes the full 2 s window, because the model exposes no streaming state; this is windowed inference, not a native streaming model. On an Apple M5 Pro, a 2 s window takes about 0.12 s on Metal and about 0.65 s on the CPU, so the CPU may skip windows.
+The first output needs about 0.58 s of valid input plus computation. Each fresh target starts with 1.42 s of silent left context and its first valid mouth frame, so the first output starts at the real capture boundary instead of dropping the opening words. The synthetic history is excluded from both recordings. Stopping also drains clips shorter than the first hop; the saved audio ends at the instant Stop was clicked. Initial separation quality can differ from a full real-context window. In steady state the designed delay is about 0.7–0.8 s (0.5 s hop + 80 ms guard band + inference + playback buffer). Every hop recomputes the full 2 s window from the captured history: no hidden state, no audio cache and no per-sample recursion is carried between windows, so this is **windowed streaming (2 s window, 0.5 s hop)**, not a causal or native streaming model.
 
 Auto tracking produces a landmark-guided square mouth crop, not the full face alignment used to build the training data, so live input can differ from training conditions. Large head turns, occlusion and lighting changes can lower quality.
 
 The input and output panels show scrolling spectrograms of the last ~8 s (0–8 kHz, −90 to 0 dBFS). After stopping, click the waveform, spectrogram or progress bar to play from any point. Recordings and spectrograms stay in page memory until the page is closed; use **Export WAV** to keep audio.
+
+### Windowed streaming, measured
+
+The 80 ms guard band is the **end of the emission geometry, not a receptive field**: inside one 2 s window
+every output sample depends on the whole window (global feature normalisation plus attention), so no output
+sample sees only 80 ms of context. What the guard band removes is the window-tail transient of the inverse
+STFT and of the convolutions — on this checkpoint the last 20 ms of a window carries about 3–5x the median
+energy of the window. It is a real quality knob that costs 80 ms of latency, not bookkeeping.
+
+`tools/repro/experiments/streaming_consistency.py` measures what windowing costs against the offline
+reference (the whole clip in one forward pass, `infer_file.extract`). One CPU run, 4 threads, 6 s of real
+`falcon_lrs2_2mix` test audio (3 items concatenated with 10 ms crossfades at the joins; every window is
+paired with the 50 mouth crops the browser would send for it). The cross-window rows below are the
+adjudicated numbers for the grid Studio actually runs, which opens its first window at t=0;
+`tools/repro/experiments/streaming_canonical.py` reproduces exactly these (about 90 s on 4 CPU threads).
+The older `streaming_consistency.py` evaluates a grid that starts at 1.42 s, so its own output is more
+optimistic than the values quoted here:
+
+| Quantity | Measured |
+|---|---|
+| whole-clip pass, 6 s of audio | 2.0–3.8 s depending on machine load (2–3x realtime) |
+| one 2 s window | about 0.6 s (B=1, 2 s window, CPU; 4 threads measure 0.58–0.74 s), i.e. RTF 1.16–1.27 against the 0.5 s hop |
+| stitched stream vs whole-clip pass, 80 ms guard, Studio grid from t=0 | **+14.71 dB SI-SNR, r = 0.9835, max deviation 53.4% of the reference peak** |
+| same, steady state (cold-start first window dropped) | **+16.72 dB, r = 0.9895, max deviation 28.5%** |
+| stitched stream vs the clean target (in-repo script grid, from t=1.42 s) | +11.1 dB; the whole-clip pass reaches +11.5 dB, so stitching costs about 0.4 dB |
+| guard band sweep 80 / 160 / 320 / 456 / 640 ms, fixed absolute chunk (the chunk discards the window tail) | 14.51 / 15.19 / 15.01 / 16.71 / 15.57 dB vs whole-clip — non-monotonic, +2.2 dB at 456 ms |
+| one fixed 0.5 s chunk, 80 → 640 ms of extra right context inside the forward pass | 22.12 / 22.19 / 22.55 / 21.30 / 22.92 dB vs whole-clip — only +0.8 dB, saturated past 456 ms |
+| same audio, window grid shifted by ±250 ms | agreement with the whole-clip pass moves only across 15.9–18.0 dB (2.1 dB spread); two phases agree with each other at about 17 dB |
+
+Those last rows answer two different questions and should not be mixed. The guard band is *where* the
+emitted chunk sits inside the window: moving it is free (the latency does not change), buys about 2 dB and
+is not monotonic. Right context is *how much audio the window contains after the chunk*: adding it costs
+latency one-for-one but is worth only about 0.8 dB, because the result is already saturated at 80 ms — the
+geometric shortfall against the 456–904 ms lookahead measured inside the model is a small quality term, not
+the main one. Neither knob dominates: on this one checkpoint any two 2 s windowing schemes differ by 13–19 dB
+SI-SNR, because the 30 window-wide `cLNhw` layers make the output depend on the window length itself.
+
+Two consequences. First, a CPU that measures an RTF above 1 cannot keep the 0.5 s cadence, so windows are
+skipped and the output is discontinuous by design (`--device cuda` or Metal is the real-time path). Second,
+the result depends on where the window grid falls and not only on the audio, because the model is recomputed
+per window: over ±250 ms of grid shift, agreement with the whole-clip pass moves only between 15.9 and
+18.0 dB, while two different phases agree with each other at about 17 dB SI-SNR, a residual of roughly 14%
+in amplitude. Nothing about the signal changed, only the window boundaries.
+
+Reproduce with:
+
+```bash
+# the adjudicated cross-window numbers: Studio grid from t=0, 6 s stream (~90 s on 4 CPU threads)
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py
+# the same on the 4 s stream
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py --seconds 4
+# Studio's geometry (2 s windows, 0.5 s hop, guard band = emission offset)
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py
+# how much right context does one 0.5 s chunk actually need
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --mode lookahead
+# a shorter sweep, and a custom clip
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --guards 80,456 --clips 2
+```
+
+The per-window timings quoted elsewhere in this project (0.65 s on an Apple M5 Pro CPU, 47.1 ms for Falcon
+small on an A800) are reference values taken from earlier notes; this repository holds no measurement file
+for them, and this machine's CPU measures 0.58 s per window. The numbers above are the ones this checkout
+reproduces on demand.
 
 ## Command line
 
