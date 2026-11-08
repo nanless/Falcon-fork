@@ -106,7 +106,19 @@ def test_falcon_forward_accepts_near_audio():
     assert torch.isfinite(mdcl)
 
 
-@pytest.mark.skipif(not CKPT.is_file(), reason=f"missing released checkpoint {CKPT}")
+def _safe_is_file(path) -> bool:
+    """收集期守卫用：不可读/无权限一律当作"不存在"，避免 PermissionError 打断收集。
+
+    CI（github runner）上 `/root/.cache` 不可穿越，`Path.is_file()` 会抛
+    PermissionError；本地有缓存时行为不变。
+    """
+    try:
+        return Path(path).is_file()
+    except OSError:
+        return False
+
+
+@pytest.mark.skipif(not _safe_is_file(CKPT), reason=f"missing released checkpoint {CKPT}")
 def test_extract_state_dict_from_released_checkpoint():
     """Extraction helper yields exactly the 137 `video_model.*` tensors, prefix stripped."""
     mod = _load_extractor()
@@ -121,7 +133,7 @@ def test_extract_state_dict_from_released_checkpoint():
     assert payload["meta"]["num_keys"] == 137
 
 
-@pytest.mark.skipif(not EXPORT.is_file(), reason=f"missing exported backbone {EXPORT}")
+@pytest.mark.skipif(not _safe_is_file(EXPORT), reason=f"missing exported backbone {EXPORT}")
 def test_exported_backbone_loads_into_frcnn():
     """`FRCNNVideoModel(pretrain=<export>)`: 11,186,688 params, all frozen, correct forward shape."""
     from look2hear.videomodels import FRCNNVideoModel

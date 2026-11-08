@@ -312,7 +312,19 @@ def test_studio_frcnn_copy_strict():
         assert loaded.eval() is loaded  # studio train() 已同步 return self
 
 
-@pytest.mark.skipif(not REAL_BACKBONE.is_file(), reason="real FRCNN backbone export not cached")
+def _safe_is_file(path) -> bool:
+    """收集期守卫用：不可读/无权限一律当作"不存在"，避免 PermissionError 打断收集。
+
+    CI（github runner）上 `/root/.cache` 不可穿越，`Path.is_file()` 会抛
+    PermissionError；本地有缓存时行为不变。
+    """
+    try:
+        return Path(path).is_file()
+    except OSError:
+        return False
+
+
+@pytest.mark.skipif(not _safe_is_file(REAL_BACKBONE), reason="real FRCNN backbone export not cached")
 def test_real_exported_backbone_loads_strictly():
     """真实导出的 137-key 骨干必须 strict 通过（这是训练/评测实际使用的文件）。"""
     payload = torch.load(REAL_BACKBONE, map_location="cpu", weights_only=False)
@@ -323,7 +335,7 @@ def test_real_exported_backbone_loads_strictly():
     assert not any(p.requires_grad for p in model.parameters())
 
 
-@pytest.mark.skipif(not REAL_CKPT.is_file(), reason="official falcon.pt not cached")
+@pytest.mark.skipif(not _safe_is_file(REAL_CKPT), reason="official falcon.pt not cached")
 def test_official_audio_weights_strict_and_numeric_unchanged():
     """官方 falcon.pt audio 权重 strict 加载：525 key / 537,697 参数（数值不变量）。"""
     ck = torch.load(REAL_CKPT, map_location="cpu", weights_only=False)
