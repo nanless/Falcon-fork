@@ -95,10 +95,42 @@ def _normalize_gpus_spec(value):
     )
 
 
+#: 与硬件无关的 GPU 索引上界。
+#:
+#: 存在的唯一目的：让"明显非法"的索引（如 99）在**没有 CUDA 的机器上**也报错 ——
+#: 与可见卡数相关的上界只有 `torch.cuda.device_count()` 知道，无 GPU 时那是 0，
+#: 若直接拿 0 当上界，`configs/Falcon.yml` 的 `gpus: [0..9]` 在纯 CPU 机器上（合法的
+#: “降级为 CPU”用法）也会被误判为非法。所以这里给一个硬件无关的宽松上界：单机 GPU 索引
+#: 不会达到 64；有 GPU 时真正的校验仍由 `resolve_accelerator_and_devices` 用可见卡数收紧。
+_MAX_GPU_INDEX = 64
+
+
+def _validate_gpu_indices(indices):
+    """GPU 索引列表的**硬件无关**校验：空列表 / 重复 / 负数 / 超出上界 → ValueError。
+
+    与 `torch.cuda.is_available()` 无关，因此同一份非法配置在任何机器上都报错。
+    "索引是否落在**本机可见卡**范围内"属于硬件相关部分，由调用方用 device_count() 判。
+    """
+    if len(indices) == 0:
+        raise ValueError(
+            "training.gpus is an empty list; provide GPU indices (e.g. [0, 1]), "
+            "a GPU count (e.g. 2), or omit the key to use a single GPU"
+        )
+    if len(set(indices)) != len(indices):
+        raise ValueError(f"training.gpus={indices} contains duplicate GPU indices")
+    bad = [idx for idx in indices if idx < 0 or idx >= _MAX_GPU_INDEX]
+    if bad:
+        raise ValueError(
+            f"training.gpus={indices} contains out-of-range GPU index(es) {bad}; "
+            f"indices must be in [0, {_MAX_GPU_INDEX}) on any machine"
+        )
+
+
 def resolve_accelerator_and_devices(training_cfg):
     """Resolve PL 2.x (`accelerator`, `devices`, `num_devices`, `strategy`) from config.
 
     Rules (see :func:`_normalize_gpus_spec`):
+      * invalid index list              -> ``ValueError`` on **any** machine (no CUDA too)
       * no CUDA                        -> ("cpu", 1, 1, "auto")
       * ``gpus`` missing               -> single GPU
       * ``gpus: <int N>``              -> N GPUs (clamped to the visible count)
@@ -108,12 +140,22 @@ def resolve_accelerator_and_devices(training_cfg):
 
     Invalid configurations raise ``ValueError`` here (instead of a delayed
     ``MisconfigurationException`` from ``pl.Trainer``): empty index list,
-    duplicated indices, or indices that do not exist on this machine.
-    ``configs/Falcon.yml`` ships a 10-GPU index list; on machines with fewer
-    visible GPUs it is clamped to the visible subset (with a warning).
+    duplicated indices, out-of-range indices, or indices that do not exist on
+    this machine.  ``configs/Falcon.yml`` ships a 10-GPU index list; on machines
+    with fewer visible GPUs it is clamped to the visible subset (with a warning),
+    and on machines without CUDA it degrades to CPU.
+
+    校验顺序（2026-11-08 修）：**与硬件无关的参数合法性校验必须在
+    ``torch.cuda.is_available()`` 提前返回之前执行**，否则无 CUDA 的机器上
+    ``[]`` / ``[0, 0]`` / ``[99]`` 都会被"安静降级为 CPU"，同一份非法配置在有卡
+    与无卡的机器上行为不同（跑测因此不可测）。
     """
     training_cfg = training_cfg or {}
     kind, payload = _normalize_gpus_spec(training_cfg.get("gpus"))
+
+    # ── 参数合法性校验：硬件无关部分，先于 is_available() / device_count() ──
+    if kind == "indices":
+        _validate_gpu_indices(payload)
 
     if not torch.cuda.is_available():
         return "cpu", 1, 1, "auto"
@@ -138,15 +180,8 @@ def resolve_accelerator_and_devices(training_cfg):
                 f"{visible} visible -> using {num_devices}"
             )
         devices = num_devices
-    else:  # kind == "indices"
+    else:  # kind == "indices" —— 结构校验已在 is_available() 之前完成
         indices = payload
-        if len(indices) == 0:
-            raise ValueError(
-                "training.gpus is an empty list; provide GPU indices (e.g. [0, 1]), "
-                "a GPU count (e.g. 2), or omit the key to use a single GPU"
-            )
-        if len(set(indices)) != len(indices):
-            raise ValueError(f"training.gpus={indices} contains duplicate GPU indices")
         valid = [idx for idx in indices if 0 <= idx < visible]
         if not valid:
             raise ValueError(

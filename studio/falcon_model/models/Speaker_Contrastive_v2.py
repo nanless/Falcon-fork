@@ -136,5 +136,12 @@ class SpeakerContrastiveV2(SISNRRepel):
         return separated_audios
 
     def get_model_args(self):
-        model_args = {"n_src": self.n_src}
+        """Parent's full ctor kwargs + the contrastive head width.
+
+        ``SISNRRepel.get_model_args`` returns every Falcon/base ctor kwarg (including the
+        two fidelity switches); the head adds the only extra keyword, so
+        ``SpeakerContrastiveV2(**model.get_model_args())`` rebuilds the model unchanged.
+        """
+        model_args = super().get_model_args()
+        model_args["spk_embed_dim"] = self.spk_embed_dim
         return model_args

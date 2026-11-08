@@ -1,3 +1,27 @@
+"""Falcon 用到的归一化算子。
+
+本文件中 Falcon 生产配方实际实例化的只有三个：`LayerNormalizationHW`（别名
+`cLNhw`，30 个）、`CumulateLN4D`（30 个，作为 `cLNhw` 的第二段）、
+`LayerNormalization4D`（60 个）；`gLN` / `cLN` / `bN` / `LN` 在 Falcon 前向里
+一次都没有被构造，属 Conv-TasNet / Asteroid 遗留（详见 `02-layers-dsp.md`）。
+
+关于 `cLNhw` 的三条硬事实（实测见 `tools/repro/experiments/ln_variant.py`）：
+
+1. `cLNhw` == ``GlobalLayerNorm(C,T,F)`` ∘ ``CumulateLN4D``：前者是
+   ``nn.GroupNorm(num_groups=1, C)``，即**逐样本**在 ``(C,T,F)`` 上取标量均值/方差；
+   后者沿 ``T`` 累积、统计量只跨 ``C``（对 ``F`` 逐频点独立）。
+2. 初始态下第一段近似**空操作**：``|cLNhw(x) - CumulateLN4D(x)|max = 3.576e-07``
+   （全窗 GN 的归一化被后一段的归一化重新吸收）；把 GN 的 affine 随机化后差异升到
+   ``1.232``，所以这段的净增量实质上只有 ``2*C`` 个仿射参数。
+3. 因为第一段用了**全窗**统计，``cLNhw`` 使窗内**完全非因果**：窗内任一帧的输出都
+   依赖窗内所有帧。实测（2 s 窗 / 251 帧 / `falcon.pt` epoch 714）：扰动尾部 1 帧，
+   帧 0..120 的相对响应是 -40.2 dB（处处响应）；把 30 个 `cLNhw` 换成逐 (t,f) 的
+   ``LayerNormalization4D((C,1))`` 后，同一段降到 -240 dB（数值零）。
+
+注意：本文件只做文档说明，任何改动都不得触碰计算路径——`cLNhw` 的数值行为是
+`falcon.pt` 复现基线的一部分。
+"""
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -132,6 +156,16 @@ class CumulateLN(nn.Module):
         )
 
 class GlobalLayerNorm(nn.Module):
+    """全窗归一化：``nn.GroupNorm(num_groups=1, num_channels=C)``。
+
+    输入 ``(B,C,T,F)`` 时统计量落在 ``(C,T,F)`` 全部轴上（每个样本一组标量
+    mean/var），因此**任意一帧的输出都依赖整个窗口**——在时间维上非因果。
+    等价实现与手算 ``mean over (C,T,F)`` 的差为 2.384e-07（实测）。
+
+    Falcon 只在 ``cLNhw`` 内部以第一段的形式用到它；它自己的仿射参数是
+    ``2*C`` 个（``GroupNorm`` 的 weight/bias）。
+    """
+
     def __init__(self, num_channels: int = 1, eps: float = EPS):
         super(GlobalLayerNorm, self).__init__()
         self.num_channels = num_channels
@@ -144,6 +178,19 @@ class GlobalLayerNorm(nn.Module):
 
 
 class LayerNormalization4D(nn.Module):
+    """可配置统计轴的 4D LayerNorm（Falcon 里 60 个实例，全在 attention/DPRNN 内部）。
+
+    ``input_dimension`` 是 ``(C, F)`` 二元组，构造时据此决定统计轴：
+
+    * ``F > 1`` → ``self.dim = (1, 3)``，即跨 ``C`` 与 ``F``、**逐帧**独立（因果，
+      但同帧内跨频点耦合）；Falcon 的 ``MultiHeadSelfAttention2D`` 用这个。
+    * ``F == 1`` → ``self.dim = (1,)``，即只跨 ``C``、逐 ``(t,f)`` 独立（因果）；
+      ``DualPathRNN`` 用这个，本文件里 ``ln_variant.py`` 的 ``ln_c`` 变体也用它来
+      替换 ``cLNhw``。
+
+    ``gamma/beta`` 形状都是 ``(1, C, 1, F)``；``eps`` 加在 ``var`` 上再开方。
+    """
+
     def __init__(self, input_dimension: Iterable, eps: float = EPS):
         super(LayerNormalization4D, self).__init__()
         assert len(input_dimension) == 2
@@ -163,6 +210,22 @@ class LayerNormalization4D(nn.Module):
         return x_hat
     
 class CumulateLN4D(nn.Module):
+    """4D 累积层归一化：沿 ``H``（= 时间轴 ``T``）累积，统计量只跨 ``C``。
+
+    对输入 ``(B,C,H,W)``，``step_sum = x.sum(dim=1)`` 先跨通道求和，再沿 ``H`` 做
+    ``cumsum``；分母 ``arange(C, C*(H+1), C)`` 即"截至该步已见过的元素数"，因此
+
+        mean_t = (1/(t*C)) * sum_{t'<=t} sum_c x[t',c]
+        var_t  = E[x^2]_{t'<=t} - mean_t^2
+
+    逐 ``(b,w)`` 独立，最后一个 ``H`` 步的输出只用到 ``t'<=t``——**时间上因果**，
+    但记忆**无界**（输出是全部历史的函数）。``eps`` 加在 ``var`` 上再开方。
+
+    实测：与手算（cum over H、stats over C）差 ``0.0``；把 ``hidden`` 侧输入换成
+    逐 (t,f) 的 ``LayerNormalization4D((C,1))`` 后，2 s 窗上"扰动尾部→帧 0..120"
+    的相对响应从 -40.2 dB 掉到 -240 dB（数值零），即因果性的唯一来源就是这一段。
+    """
+
     def __init__(self, dimension, eps=1e-8, trainable=True):
         super(CumulateLN4D, self).__init__()
         self.eps = eps
@@ -202,6 +265,29 @@ class CumulateLN4D(nn.Module):
         return x * self.gain + self.bias
 
 class LayerNormalizationHW(nn.Module):
+    """``cLNhw``：``GlobalLayerNorm(C,T,F)`` ∘ ``CumulateLN4D``（Falcon 的主力归一化）。
+
+    输入 ``(B,C,H=T,W=F)``，两步串联：
+
+    1. ``GlobalLayerNorm`` → ``nn.GroupNorm(1,C)``，逐样本在 ``(C,T,F)`` 上取标量
+       均值/方差。**这一步就注定了窗内非因果**：任何一帧的统计量都含其它所有帧。
+    2. ``CumulateLN4D`` → 沿 ``T`` 累积、统计量只跨 ``C``、对 ``F`` 逐频点独立，
+       本身是因果的，但它作用在已混入未来信息的张量上，救不回来。
+
+    两条容易踩的量化事实：
+
+    * **初始态下第 1 步近似空操作**：``|cLNhw(x) - CumulateLN4D(x)|max = 3.576e-07``
+      （全窗 GN 的归一化被第 2 步重新吸收）；把 GN 的 affine 随机化后该差升到
+      ``1.232``。所以第 1 步的净增量实质上只有 ``2*C`` 个仿射参数。
+    * **非因果性可测**：2 s 窗（251 帧）上扰动尾部一帧，``falcon.pt`` 的
+      separator 特征在帧 0..120 的相对响应为 -40.2 dB（处处响应）；把全部 30 个
+      ``cLNhw`` 换成逐 (t,f) 的 ``LayerNormalization4D((C,1))`` 后同一段为
+      -240 dB（数值零）。复现脚本：``tools/repro/experiments/ln_variant.py``。
+
+    只接受 4D 输入：3D 会在 ``CumulateLN4D`` 的 ``B,C,H,W = input.size()`` 处
+    ``ValueError``。
+    """
+
     def __init__(self, num_channels, eps=1e-8):
         super(LayerNormalizationHW, self).__init__()
         # GlobalLayerNorm for W dimension

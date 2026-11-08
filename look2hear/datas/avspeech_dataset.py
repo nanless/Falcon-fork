@@ -9,6 +9,7 @@ import os
 import shutil
 import zipfile
 import json
+import warnings
 from typing import Dict, Iterable, List, Iterator
 from .transform import get_preprocessing_pipelines
 from torchvision import transforms
@@ -20,7 +21,128 @@ def normalize_tensor_wav(wav_tensor, eps=1e-8, std=None):
         std = wav_tensor.std(-1, keepdim=True)
     return (wav_tensor - mean) / (std + eps)
 
+
+# ---------------------------------------------------------------------------
+# Mouth / audio alignment contract
+# ---------------------------------------------------------------------------
+# The stored mouth clips were generated at MOUTH_REF_SR_DEFAULT (16 kHz): video
+# frame k covers audio samples [k * 16000/25, (k+1) * 16000/25)
+# == [640k, 640k + 640). That reference rate -- not ``sample_rate`` -- is what
+# maps an audio sample offset onto a mouth frame. The two are deliberately
+# independent because ``sample_rate`` only governs how the audio is read; wiring
+# the mouth timeline to it silently shifts the video whenever the audio rate is
+# not 16 kHz. ``mouth_ref_sr``/``mouth_fps`` expose the two historical constants
+# (``/ 16000``, ``* 25``) with their default behaviour unchanged.
+MOUTH_FPS_DEFAULT = 25.0
+MOUTH_REF_SR_DEFAULT = 16000
+
+
+def _warn_mouth_sample_rate(
+    sample_rate,
+    mouth_ref_sr=MOUTH_REF_SR_DEFAULT,
+    mouth_fps=MOUTH_FPS_DEFAULT,
+):
+    """Warn when the audio rate differs from the rate the mouth crops were built for.
+
+    The historical code hard-coded ``16000`` and ``25`` when converting an audio
+    sample offset into a mouth-frame offset. The mouth timeline keeps using that
+    reference rate (``mouth_ref_sr``/``mouth_fps``), so a different
+    ``sample_rate`` -- which only controls audio decoding -- does not shift the
+    video; it does mean the audio and video timelines come from different sample
+    rates. Surface that once per dataset instance instead of per crop.
+    """
+    if int(sample_rate) != int(mouth_ref_sr):
+        warnings.warn(
+            "sample_rate={} != mouth_ref_sr={}: the stored mouth crops were built for "
+            "{} Hz audio at {:g} fps (one video frame = {:g} audio samples), so the "
+            "audio/video timeline stays aligned with mouth_ref_sr/mouth_fps rather "
+            "than sample_rate/mouth_fps. sample_rate is only used for audio reading; "
+            "verify this dataset before training.".format(
+                sample_rate, mouth_ref_sr, mouth_ref_sr, mouth_fps,
+                float(mouth_ref_sr) / float(mouth_fps),
+            ),
+            stacklevel=3,
+        )
+
+
+def _fit_mouth_frames(source_mouth, expected, pad_mouth, where):
+    """Validate the mouth clip length; optionally pad it by repeating its last frame.
+
+    The loader slices ``[mouth_start : mouth_start + fps_len]``, so a clip shorter
+    than the audio window yields fewer frames than the model expects. Historically
+    that silently produced a short clip which then broke ``torch.stack`` inside the
+    default collate. Now the mismatch is explicit.
+
+    Parameters
+    ----------
+    source_mouth : np.ndarray
+        Clip of shape ``[T, H, W]`` returned by the lipreading pipeline.
+    expected : int
+        Frames required for the requested segment, ``int(segment * mouth_fps)``.
+    pad_mouth : bool
+        ``False`` (default) raises ``ValueError`` when frames are missing.
+        ``True`` pads by repeating the last frame (opt-in; keeps default numeric
+        behaviour unchanged for datasets that already have enough frames).
+    where : str
+        Short context string for the error message.
+    """
+    got = int(source_mouth.shape[0])
+    if got == expected:
+        return source_mouth
+    if got > expected:
+        # Unreachable through ``[mouth_start : mouth_start + fps_len]`` slicing; kept
+        # so a future indexing change cannot silently return a longer clip.
+        return source_mouth[:expected]
+    if pad_mouth and got > 0:
+        pad = expected - got
+        return np.concatenate(
+            [source_mouth, np.repeat(source_mouth[-1:], pad, axis=0)], axis=0
+        )
+    raise ValueError(
+        "mouth clip has {} frame(s) but {} are required for this segment ({}). "
+        "The clip is shorter than the audio window, so audio and video would drift. "
+        "Pass pad_mouth=True to repeat the last frame, request a shorter segment, or "
+        "fix the dataset (each video frame covers mouth_ref_sr/mouth_fps audio "
+        "samples)."
+        .format(got, expected, where)
+    )
+
+
 class AVSpeechTrainDataset(Dataset):
+    """Training dataset that streams mixture/target audio + a pre-cropped mouth clip.
+
+    Opt-in knobs, all defaulting to the historical behaviour so existing results
+    stay bit-identical:
+
+    ``respect_index`` (default ``False``)
+        ``False`` - historical mode: ``__getitem__`` ignores ``idx`` and draws
+        ``random.randint`` from the whole index on every call. Consequences: the
+        DataLoader's ``shuffle=True`` is a no-op, sampling is *with replacement*,
+        and ``__len__`` (``train_samples``) is decoupled from the number of
+        samples on disk. Kept as the default because every recorded run used it.
+        ``True`` - honour ``idx`` exactly, and ``__len__`` returns ``len(self.mix)``
+        so an epoch covers each sample once and ``shuffle=True`` becomes meaningful.
+        The audio crop offset stays random, so successive epochs still see
+        different windows of the same utterance.
+
+    ``mouth_fps`` (default ``25.0``)
+        Frame rate of the stored mouth crops.
+
+    ``mouth_ref_sr`` (default ``16000``)
+        Audio sample rate the stored mouth crops were generated at: one video
+        frame covers ``mouth_ref_sr / mouth_fps`` audio samples (640 by default).
+        ``mouth_fps`` + ``mouth_ref_sr`` replace the historical hard-coded
+        ``int((rand_start / 16000) * 25)`` in the mouth offset, so their defaults
+        reproduce that expression exactly for *any* ``sample_rate``.
+        ``sample_rate`` is used only to read/decode the audio and never moves the
+        mouth timeline; when the two differ a single warning is emitted.
+
+    ``pad_mouth`` (default ``False``)
+        ``False`` - raise ``ValueError`` if the clip has fewer than
+        ``int(segment * mouth_fps)`` frames (loud failure instead of a short tensor
+        that breaks ``torch.stack``).
+        ``True`` - pad by repeating the last frame.
+    """
     def __init__(
         self,
         json_dir: str = None,
@@ -28,6 +150,10 @@ class AVSpeechTrainDataset(Dataset):
         segment: float = 4.0,
         normalize_audio: bool = False,
         samples: int = None,
+        respect_index: bool = False,
+        mouth_fps: float = MOUTH_FPS_DEFAULT,
+        mouth_ref_sr: int = MOUTH_REF_SR_DEFAULT,
+        pad_mouth: bool = False,
     ):
         super().__init__()
         if json_dir == None:
@@ -39,8 +165,14 @@ class AVSpeechTrainDataset(Dataset):
         self.transform = transforms.Grayscale(num_output_channels=1)
         print("lipreading_preprocessing_func: ", self.lipreading_preprocessing_func)
 
+        self.respect_index = respect_index
+        self.mouth_fps = float(mouth_fps)
+        self.mouth_ref_sr = int(mouth_ref_sr)
+        self.pad_mouth = pad_mouth
+        _warn_mouth_sample_rate(self.sample_rate, self.mouth_ref_sr, self.mouth_fps)
+
         self.seg_len = int(segment * sample_rate)
-        self.fps_len = int(segment * 25)
+        self.fps_len = int(segment * self.mouth_fps)
 
         self.test = self.seg_len is None
         mix_json = os.path.join(json_dir, "mix.json")
@@ -82,12 +214,24 @@ class AVSpeechTrainDataset(Dataset):
         self.length = samples
 
     def __len__(self):
+        if self.respect_index:
+            return len(self.mix)
         return self.length
 
     def __getitem__(self, idx: int):
         self.EPS = 1e-8
-        # Randomly select an index from the actual data
-        mix_index = random.randint(0, len(self.mix) - 1)
+        if self.respect_index:
+            # Opt-in: honour idx so shuffle=True actually shuffles and an
+            # epoch covers every sample once (no replacement).
+            mix_index = idx if idx >= 0 else idx + len(self.mix)
+            if not 0 <= mix_index < len(self.mix):
+                raise IndexError(
+                    "respect_index=True: idx={} out of range for {} samples"
+                    .format(idx, len(self.mix))
+                )
+        else:
+            # Historical default: ignore idx, draw uniformly with replacement.
+            mix_index = random.randint(0, len(self.mix) - 1)
 
         if self.test:
             rand_start = 0
@@ -105,11 +249,21 @@ class AVSpeechTrainDataset(Dataset):
             self.sources[mix_index][0], start=rand_start, stop=stop, dtype="float32"
         )[0]
 
-        mouth_start = int((rand_start / 16000) * 25)
+        # Mouth frames follow the crop reference rate, never the audio rate:
+        # this is the historical int((rand_start / 16000) * 25) when the
+        # mouth_ref_sr/mouth_fps defaults are used, whatever sample_rate is.
+        mouth_start = int((rand_start / self.mouth_ref_sr) * self.mouth_fps)
 
         source_mouth = self.lipreading_preprocessing_func(
             self.transform(torch.load(self.sources[mix_index][1], weights_only=True).permute(0,3,1,2)).squeeze(1).numpy()
         )[mouth_start : self.fps_len + mouth_start]
+        source_mouth = _fit_mouth_frames(
+            source_mouth, self.fps_len, self.pad_mouth,
+            "respect_index={}, rand_start={}, mouth_start={}, "
+            "sample_rate={}, mouth_ref_sr={}, mouth_fps={}".format(
+                self.respect_index, rand_start, mouth_start,
+                self.sample_rate, self.mouth_ref_sr, self.mouth_fps),
+        )
 
         # F5 fix (docs/REPRODUCTION_PLAN.md §6.1): `sf.read` returns (samples,) for mono
         # wavs and (samples, channels) for multi-channel wavs. A bare ``mean(-1)`` on a
@@ -233,6 +387,10 @@ class AVSpeechDataModule(object):
         pin_memory: bool = False,
         persistent_workers: bool = False,
         train_samples: int = 10000,
+        respect_index: bool = False,
+        mouth_fps: float = MOUTH_FPS_DEFAULT,
+        mouth_ref_sr: int = MOUTH_REF_SR_DEFAULT,
+        pad_mouth: bool = False,
     ) -> None:
         super().__init__()
         if train_dir == None or valid_dir == None or test_dir == None:
@@ -252,6 +410,10 @@ class AVSpeechDataModule(object):
         self.pin_memory = pin_memory
         self.persistent_workers = persistent_workers
         self.train_samples = train_samples
+        self.respect_index = respect_index
+        self.mouth_fps = mouth_fps
+        self.mouth_ref_sr = mouth_ref_sr
+        self.pad_mouth = pad_mouth
 
         self.data_train: Dataset = None
         self.data_val: Dataset = None
@@ -264,6 +426,10 @@ class AVSpeechDataModule(object):
             segment=self.segment,
             normalize_audio=self.normalize_audio,
             samples=self.train_samples,
+            respect_index=self.respect_index,
+            mouth_fps=self.mouth_fps,
+            mouth_ref_sr=self.mouth_ref_sr,
+            pad_mouth=self.pad_mouth,
         )
         self.data_val = AVSpeechEvalDataset(
             json_dir=self.valid_dir,

@@ -4,6 +4,10 @@
 # 默认配置：configs/LRS2_2Mix_Paper_v2.yml（论文 arXiv:2610.32749 App D Table 16）
 #   - 重建损失 -SI-SNR；对比温度 tau(beta) 0->1 线性退火，前 1000 epoch
 #   - batch 4/GPU × 8 = global batch 32；epochs 1000；EarlyStopping(patience 30)；seed 42
+#   - ⚠ global batch 是 **算出来的**：batch_size × NPROC × accumulate_grad_batches。
+#     上面这个 32 只对「默认 CONF（accum 1）+ NPROC=8」成立；一旦 NPROC<8，或把 CONF 换成
+#     accum>1 的配置（如 configs/LRS2_2Mix_Paper_2gpu.yml 的 accum 5），实际值会偏离 32 ——
+#     第 3 步只在启动时打印 "global batch = ..." 并在 ≠32 时打 WARNING，**不拦截**。
 #   - lr 1e-3 AdamW / wd 0.01、ReduceLROnPlateau(15, 0.5)、grad clip 5
 #   - 数据：LRS2-2Mix “论文配方”双向 target（s1/s2 对调）+ near=另一说话人
 # 旧配置 configs/LRS2_2Mix_Paper_8gpu.yml 标记为 LEGACY（bs5 / -SNR / beta-200），保留不删。
@@ -106,10 +110,19 @@ bs = int(dc["batch_size"])
 samples = int(dc.get("train_samples", 10000))
 accum = int((conf.get("training") or {}).get("accumulate_grad_batches", 1) or 1)
 global_batch = bs * nproc
+effective = global_batch * accum
 print(f"global batch = batch_size x NPROC = {bs} x {nproc} = {global_batch} "
-      f"(x accum {accum} = {global_batch * accum} effective)")
-print(f"optimizer steps/epoch ~= train_samples / global_batch = {samples} / {global_batch} "
-      f"= {samples // max(global_batch, 1)}")
+      f"(x accum {accum} = {effective} effective)")
+# optimizer 步数按「有效 batch」算：train_samples / (bs x NPROC x accum)。
+# 旧版漏掉了 accum（分母只用 global_batch），accum>1 的配置会把步数高估 accum 倍。
+print(f"optimizer steps/epoch ~= train_samples / (global_batch x accum) = {samples} / "
+      f"({global_batch} x {accum}) = {samples // max(effective, 1)}")
+# 论文 Table 16 的 global batch 是 8 x bs4 x accum1 = 32；不等于 32 就不是 Table-16 口径，
+# 这里显式告警，避免 NPROC 被改小 / CONF 换成 accum5 时**静默**偏离论文配方。
+if effective != 32:
+    print(f"WARNING: effective batch = {effective} != paper Table 16 global batch 32 "
+          f"(8 x 4 x 1). This run is NOT a Table-16-parity run "
+          f"(NPROC={nproc}, accum={accum}).")
 PY
 
 # 2) 数据自检（只用 $PYTHON_BIN，不用系统 Python）：mix/target/near 三个索引都要在

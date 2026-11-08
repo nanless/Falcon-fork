@@ -201,8 +201,14 @@ p("E1 normalize_audio: per-segment mean removal, target scaled by MIXTURE std",
 evalset = AVSpeechEvalDataset(json_dir=os.path.join(INDEX, "tr"), sample_rate=16000, normalize_audio=False)
 p("F1 eval set keeps short utt (8 entries, no filtering)", len(evalset) == 8, str(len(evalset)))
 ev = evalset[0]
-p("F2 mono wav -> mixture/source collapse to 0-dim tensor (unguarded .mean(-1) bug)",
-  ev[0].ndim == 0 and ev[1].ndim == 0, f"mix.shape={tuple(ev[0].shape)}, src.shape={tuple(ev[1].shape)}")
+# F2 (updated 2026-11-08): this check used to *document* the pre-F5 regression (a bare
+# .mean(-1) on mono wavs averaged over time and collapsed the waveform to 0-dim). The F5 mono
+# guard (docs/REPRODUCTION_PLAN.md §6.1) keeps mono 1-D, so the check now asserts the guarded
+# contract; it was the only pre-existing FAIL (with J1) and is unrelated to the dataset knobs.
+p("F2 mono wav -> mixture/source stay 1-D [F5 guard] (was 0-dim before the fix)",
+  ev[0].ndim == 1 and ev[1].ndim == 1
+  and tuple(ev[0].shape) == (48000,) and tuple(ev[1].shape) == (48000,),
+  f"mix.shape={tuple(ev[0].shape)}, src.shape={tuple(ev[1].shape)}")
 p("F3 eval mouth = whole sequence center-cropped (75,88,88) float32",
   ev[2].shape == (75, 88, 88) and ev[2].dtype == np.float32, f"{tuple(ev[2].shape)} {ev[2].dtype}")
 p("F4 n_near parsed from <stem>_meta.json", ev[4] == 2, f"key={ev[3]}, n_near={ev[4]}")
@@ -293,40 +299,92 @@ for s, nf in [("s0", 75), ("s1", 40)]:
     sf.write(os.path.join(SM, "target", s + ".wav"), np.zeros(n, np.float32), SR)
     torch.save(torch.zeros(nf, 96, 96, 1), os.path.join(SM, "mouths", s + ".pt"))
 write_manifest(SM, ["s0", "s1"])
+# NOTE: __init__ appends in reverse (see B7), so self.mix[0] is the LAST stem (s1, 40-frame
+# clip) and self.mix[1] is s0 (75-frame clip, full 50-frame window).
 sm = AVSpeechTrainDatasetWithNear(json_dir=SM, segment=2.0, samples=2, use_near=False)
-random.randint = patched(0, 10000)
-try:
-    i0 = sm[0]
-finally:
-    random.randint = orig_randint
 random.randint = patched(1, 10000)
 try:
-    i1 = sm[1]
+    i0 = sm[1]  # s0: 75-frame clip -> full 50-frame window, OK
 finally:
     random.randint = orig_randint
+
+# H3a (updated 2026-11-08): pad_mouth=False is the default. A clip shorter than the audio
+# window used to come back silently short (25 frames for a 50-frame window); the dataset now
+# raises ValueError with the expected/actual frame counts instead of letting the default
+# collate fail later with an opaque "stack expects each tensor to be equal size".
+h3_err = None
+random.randint = patched(0, 10000)
+try:
+    sm[0]  # s1: 40-frame clip -> only 25 frames left for a 50-frame window
+except ValueError as e:
+    h3_err = str(e)
+finally:
+    random.randint = orig_randint
+p("H3a short mouth clip + pad_mouth=False (default) -> ValueError naming expected/actual frames",
+  h3_err is not None and "25 frame(s)" in h3_err and "50 are required" in h3_err,
+  h3_err or "no error raised")
+
+# H3b (updated 2026-11-08): pad_mouth=True is the opt-in escape hatch - pad to
+# int(segment * mouth_fps) by repeating the last real frame, then the pair stacks cleanly.
+sm_pad = AVSpeechTrainDatasetWithNear(json_dir=SM, segment=2.0, samples=2, use_near=False,
+                                      pad_mouth=True)
+random.randint = patched(0, 10000)
+try:
+    i1 = sm_pad[0]  # s1 (40-frame clip) + pad_mouth=True
+finally:
+    random.randint = orig_randint
+h3_frames = int(2.0 * sm_pad.mouth_fps)
+h3_tail = np.array_equal(i1[2][25:], np.repeat(i1[2][24:25], h3_frames - 25, axis=0))
 err3 = None
 try:
     collate_with_near([i0, i1])
 except Exception as e:  # noqa: BLE001
     err3 = f"{type(e).__name__}: {e}"
-p("H3 mouth .pt shorter than audio timeline -> per-sample F<50 -> collate stack fails",
-  sorted([i0[2].shape[0], i1[2].shape[0]]) == [25, 50] and err3 is not None,
-  f"F={i0[2].shape[0]}/{i1[2].shape[0]}, {err3}")
-d8 = AVSpeechTrainDatasetWithNear(json_dir=os.path.join(INDEX, "tr"), sample_rate=8000,
-                                  segment=2.0, normalize_audio=False, samples=1, use_near=False)
-random.randint = patched(0, 10000)
+p("H3b pad_mouth=True -> padded to int(segment*mouth_fps), tail repeats last frame, collate stacks",
+  i1[2].shape[0] == h3_frames and h3_tail and err3 is None,
+  f"F={i1[2].shape[0]} (expect {h3_frames}), tail_repeat={h3_tail}, collate={err3 or 'OK'}")
+# H4 (updated 2026-11-08, R1 P1 fix): the mouth offset is
+# int(rand_start / mouth_ref_sr * mouth_fps) with the *independent* crop reference
+# rate mouth_ref_sr defaulting to 16000. sample_rate only governs audio reading, so
+# sample_rate=8000 must NOT move the mouth timeline: the frame index stays 15, i.e.
+# exactly the historical int((rand_start / 16000) * 25). A mismatch between the audio
+# rate and the rate the crops were built for still warns once.
+# The frame index is read back out of the returned clip (index fixture stores the frame
+# number in every pixel), so this notices a change in the implementation, not just a
+# locally recomputed formula. u4 has 75 frames, enough after mouth_start=15 for the
+# 50-frame window, so no padding is needed here.
+import warnings as _warnings
+with _warnings.catch_warnings(record=True) as _caught:
+    _warnings.simplefilter("always")
+    d8 = AVSpeechTrainDatasetWithNear(json_dir=os.path.join(INDEX, "tr"), sample_rate=8000,
+                                      segment=2.0, normalize_audio=False, samples=1,
+                                      use_near=False)
+h4_warns = [w for w in _caught if "mouth_ref_sr" in str(w.message)]
+h4_sr_warned = any(
+    "sample_rate=8000" in str(w.message) and "mouth_ref_sr=16000" in str(w.message)
+    for w in h4_warns
+)
+# self.mix is reverse-ordered (index 0 == u5, only 25 frames), so target index 1 (= u4, 75 frames).
+random.randint = patched(1, 10000)
 try:
-    i8 = d8[0]
+    i8 = d8[1]
 finally:
     random.randint = orig_randint
-ms_actual = int((10000 / 16000) * 25)
-ms_correct_8k = int((10000 / 8000) * 25)
-p("H4 sample_rate=8000: mouth_start uses hard-coded 16000 (frame 15 instead of 31)",
-  d8.seg_len == 16000 and ms_actual == 15 and ms_correct_8k == 31,
-  f"seg_len={d8.seg_len}, mouth_start={ms_actual}, correct={ms_correct_8k}")
+ms_impl = int(round((float(i8[2][0, 0, 0]) * 0.165 + 0.421) * 255))
+ms_old_hardcoded = int((10000 / 16000) * 25)
+p("H4 sample_rate=8000: mouth_start stays on mouth_ref_sr (frame 15 == old hard-coded) + warns once",
+  (d8.seg_len == 16000 and getattr(d8, "mouth_ref_sr", None) == 16000
+   and ms_impl == ms_old_hardcoded == 15 and len(h4_warns) == 1 and h4_sr_warned
+   and i8[2].shape[0] == int(2.0 * d8.mouth_fps)),
+  f"seg_len={d8.seg_len}, mouth_ref_sr={getattr(d8, 'mouth_ref_sr', None)}, "
+  f"mouth_start(from clip)={ms_impl}, old_hardcoded={ms_old_hardcoded}, "
+  f"warns={len(h4_warns)}, warned={h4_sr_warned}, frames={i8[2].shape[0]}")
 sil = "/tmp/dp-verify/silence"
 os.system(f"rm -rf {sil} && cp -r {SM} {sil}")
-dn = AVSpeechTrainDatasetWithNear(json_dir=sil, segment=2.0, normalize_audio=True, samples=1, use_near=False)
+# H5 (updated 2026-11-08): sil is a copy of SM, whose 40-frame clip is 25 frames short of the
+# 50-frame window -> pad_mouth=True is required to reach the normalize_audio code path.
+dn = AVSpeechTrainDatasetWithNear(json_dir=sil, segment=2.0, normalize_audio=True, samples=1,
+                                  use_near=False, pad_mouth=True)
 random.randint = patched(0, 10000)
 try:
     isn = dn[0]
@@ -347,7 +405,10 @@ print("==    config keys not in signature:", missing)
 print("==    signature params absent from config:", extra,
       "-> train_samples default =", sig.parameters["train_samples"].default)
 p("I1 every YAML data_config key is accepted by __init__", missing == [])
-p("I2 no unexpected extra ctor arg required (only train_samples, has default)", extra == ["train_samples"])
+p("I2 extra ctor args (not in YAML) all have defaults, so every config stays valid",
+  "train_samples" in extra
+  and all(sig.parameters[k].default is not inspect.Parameter.empty for k in extra),
+  f"extra={extra}")
 p("I3 data_name key is not passed to ctor (class imported directly)", "data_name" not in conf_keys,
   cfg["datamodule"]["data_name"])
 exp_conf = yaml.safe_load(open(os.path.join(REPO, "Experiments", "checkpoint", "Falcon", "conf.yml")))
@@ -375,8 +436,9 @@ dm2 = AVSpeechDataModuleWithNear(**data_cfg2, use_near=False)
 dm2.setup()
 _, _, test_set = dm2.make_sets
 mix, sources, mouth, key, nn = test_set[0]
+# J1 (updated 2026-11-08): same F5-guard staleness as F2 - mono stays 1-D, not 0-dim.
 p("J1 eval-style module: use_near stripped then forced False; make_sets[2] usable",
-  mix.ndim == 0 and mouth.shape[1:] == (88, 88), f"mix={tuple(mix.shape)}, mouth={tuple(mouth.shape)}")
+  mix.ndim == 1 and mouth.shape[1:] == (88, 88), f"mix={tuple(mix.shape)}, mouth={tuple(mouth.shape)}")
 bad_valid = dict(data_cfg2)
 bad_valid["valid_dir"] = "/tmp/dp-verify/does_not_exist/cv"
 err4 = None

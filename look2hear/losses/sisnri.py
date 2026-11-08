@@ -1,9 +1,23 @@
 import torch
 from itertools import permutations
 
-class SISNRi(object):
+from torch import nn
+
+
+class SISNRi(nn.Module):
+    """Utterance-level PIT SI-SNR improvement (SI-SNRi).
+
+    ``sisnr`` is the per-utterance improvement ``SI-SNR(est, ref) - SI-SNR(mix, ref)`` in dB.
+    ``compute_loss`` returns ``-mean(max_perm SI-SNRi)`` over the batch (negated so it can be
+    minimised), i.e. the standard "higher improvement = lower loss" convention.
+
+    Inherits ``torch.nn.Module`` so it behaves like the other losses in this package
+    (``.to(device)`` / ``.eval()``) and ``SISNRi(...)`` dispatches to :meth:`forward`, which is
+    an alias of :meth:`compute_loss`. Both entry points are numerically identical.
+    """
+
     def __init__(self):
-        super(Loss, self).__init__()
+        super().__init__()
     
     def sisnr(self, mix, est, ref, eps = 1e-8):
         """
@@ -40,3 +54,7 @@ class SISNRi(object):
         # B
         max_pmt, _ = torch.max(sisnr_mat, dim=0)
         return -torch.mean(max_pmt)
+
+    def forward(self, mix, ests, refs):
+        """Alias of :meth:`compute_loss` so ``SISNRi(...)`` works like a torch loss."""
+        return self.compute_loss(mix, ests, refs)

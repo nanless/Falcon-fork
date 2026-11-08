@@ -704,8 +704,13 @@ class AudioBlock(nn.Module):
         is2d: bool = False,
         causal: bool = False,
         n_freqs: int = 129, # 新增参数：需要知道初始的频点数来计算后续层的维度
+        paper_causal: bool = False,  # fidelity switch (default = released behaviour):
+        #   True  -> the 3 hard-coded ``causal=False`` sites below (downsample / fusion /
+        #            concat) follow ``self.causal``, i.e. left-aligned causal padding;
+        #   False -> keep the historical symmetric padding (bit-exact with falcon.pt).
     ):
         super(AudioBlock, self).__init__()
+        self.paper_causal = paper_causal
         self.in_chan = in_chan
         self.hid_chan = hid_chan
         self.kernel_size = kernel_size
@@ -764,7 +769,7 @@ class AudioBlock(nn.Module):
                     groups=self.hid_chan,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )
             
@@ -800,7 +805,7 @@ class AudioBlock(nn.Module):
                     kernel_size=self.kernel_size,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )
         
@@ -813,7 +818,7 @@ class AudioBlock(nn.Module):
                     kernel_size=self.kernel_size,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )        
         
@@ -917,8 +922,13 @@ class VideoBlock(nn.Module):
         use_short_conv: bool = True,
         use_output_correction: bool = True,
         use_inner_decay: bool = True,
+        video_lstm_batch_first: bool = False,  # fidelity switch (default = released
+        #   behaviour): the frame axis has always been fed to a batch_first=False LSTM as if
+        #   it were the batch axis, so the 50 video frames never recursed over time.
+        #   True -> batch_first=True, i.e. a real temporal recurrence along 25 fps frames.
     ):
         super(VideoBlock, self).__init__()
+        self.video_lstm_batch_first = video_lstm_batch_first
         self.in_chan = in_chan
         self.hid_chan = hid_chan
         self.kernel_size = kernel_size
@@ -953,6 +963,7 @@ class VideoBlock(nn.Module):
                 input_size=self.hid_chan,
                 hidden_size=self.hid_chan,
                 bidirectional=False,
+                batch_first=self.video_lstm_batch_first,
             )
         
         self.residual_conv = ConvNormAct(
@@ -967,6 +978,10 @@ class VideoBlock(nn.Module):
         residual = self.gateway(x)
         x_enc = self.projection(residual)
         
+        # [B, C, T] -> [B, T, C]. The RNN's reading of this tensor depends on
+        # ``video_lstm_batch_first``: False (released behaviour) reads it as [T, B, C], i.e.
+        # the frame axis becomes the batch axis and no recurrence happens across frames;
+        # True makes the LSTM recur along the 25 fps frame axis.
         x_enc = x_enc.transpose(1, 2).contiguous()
         x_rnn, _ = self.rnn(x_enc)
         x_rnn = x_rnn.transpose(1, 2).contiguous()
@@ -1303,6 +1318,8 @@ class Falcon(BaseModel):
         fusion_params: dict = dict(),
         sample_rate=16000,
         causal: bool = False,
+        paper_causal: bool = False,
+        video_lstm_batch_first: bool = False,
         mdcl_margin: float = 0.0,    # SI-SNR threshold (dB): penalise if SI-SNR(ŝ, s_int) > margin
         mdcl_alpha: float = 0.15,    # weight for contrastive repulsion loss
     ):
@@ -1320,6 +1337,8 @@ class Falcon(BaseModel):
         self.fusion_params = copy.deepcopy(fusion_params)
         self.mask_generation_params = copy.deepcopy(mask_generation_params)
         self.causal = causal
+        self.paper_causal = paper_causal
+        self.video_lstm_batch_first = video_lstm_batch_first
         self.mdcl_margin = mdcl_margin
         self.mdcl_alpha = mdcl_alpha
 
@@ -1331,6 +1350,10 @@ class Falcon(BaseModel):
 
         self.audio_params['causal'] = self.causal
         self.video_params['causal'] = self.causal
+        # Fidelity switches are pushed into the sub-configs exactly like ``causal`` above,
+        # so Separator's ``**params`` forwarding reaches AudioBlock/VideoBlock.
+        self.audio_params['paper_causal'] = self.paper_causal
+        self.video_params['video_lstm_batch_first'] = self.video_lstm_batch_first
 
         self.separator = Separator(
             audio_params=self.audio_params,
@@ -1524,6 +1547,8 @@ class Falcon(BaseModel):
             "fusion_params": copy.deepcopy(self.fusion_params),
             "sample_rate": self.sample_rate(),
             "causal": self.causal,
+            "paper_causal": self.paper_causal,
+            "video_lstm_batch_first": self.video_lstm_batch_first,
             "mdcl_margin": self.mdcl_margin,
             "mdcl_alpha": self.mdcl_alpha,
         }

@@ -3,6 +3,43 @@ import torch
 from torch import nn
 from scipy.optimize import linear_sum_assignment
 
+
+def _promote_single_source(ests, targets):
+    """Return ``(ests, targets)`` with a source axis, accepting the 2-D ``(batch, time)`` form.
+
+    ``pit_from="pw_pt"`` evaluates the loss one ``(estimate, target)`` pair at a time, so a
+    single-source input has no source axis to slice and ``(batch, time)`` is both the natural
+    and the most common shape for it. The wrapper matrix is indexed ``[batch, est, target]``
+    and needs the rank, so promote ``(B, T) -> (B, 1, T)``. A 3-D input is returned unchanged,
+    hence every existing 3-D call site stays bit-identical.
+    """
+    if ests.ndim == 2 and targets.ndim == 2:
+        return ests.unsqueeze(1), targets.unsqueeze(1)
+    if ests.ndim == 3 and targets.ndim == 3:
+        return ests, targets
+    raise ValueError(
+        "pit_from='pw_pt' requires matching 2-D (batch, time) or 3-D (batch, n_src, time) "
+        "inputs, got ests.ndim=%d and targets.ndim=%d" % (ests.ndim, targets.ndim)
+    )
+
+
+def _call_pair_loss(loss_func, est_src, target_src, **kwargs):
+    """Call ``loss_func`` on one ``(B, T)`` pair, re-adding the source axis if the loss needs it.
+
+    Pairwise losses disagree about the rank of a single pair: ``SingleSrcNegSDR`` documents
+    ``(batch, time)`` while ``PairwiseNegSDR`` raises ``TypeError`` unless it receives
+    ``(batch, n_src, time)``. Rather than duplicate every loss per wrapper mode, honour the
+    loss contract first and retry once with a singleton source axis when it rejects the rank.
+    The ``"shape"`` guard keeps unrelated ``TypeError``s (bad kwargs, dtype) from being masked.
+    """
+    try:
+        return loss_func(est_src, target_src, **kwargs)
+    except TypeError as exc:
+        if "shape" not in str(exc).lower():
+            raise
+        return loss_func(est_src.unsqueeze(1), target_src.unsqueeze(1), **kwargs)
+
+
 class new_PITLossWrapper(nn.Module):
     def __init__(
         self, loss_func, pit_from="pw_mtx", equidistant_weight=False, perm_reduce=None, threshold_byloss=True
@@ -21,6 +58,9 @@ class new_PITLossWrapper(nn.Module):
 
     def forward(self, ests, ests_bn, targets, epoch=None, return_ests=False, reduce_kwargs=None, **kwargs):
         # est_sources, est_sources_bn, targets, self.current_epoch
+        if self.pit_from == "pw_pt":
+            # 2-D (batch, time) is the natural single-source form; see _promote_single_source.
+            ests, targets = _promote_single_source(ests, targets)
         n_src = targets.shape[1]
         if self.pit_from == "pw_mtx":
             pw_loss = self.loss_func(ests, ests_bn, targets, epoch, **kwargs)
@@ -79,9 +119,9 @@ class new_PITLossWrapper(nn.Module):
         pair_wise_losses = targets.new_empty(B, n_src, n_src)
         for est_idx, est_src in enumerate(ests.transpose(0, 1)):
             for target_idx, target_src in enumerate(targets.transpose(0, 1)):
-                pair_wise_losses[:, est_idx, target_idx] = loss_func(
-                    est_src, target_src, **kwargs
-                )
+                pair_wise_losses[:, est_idx, target_idx] = _call_pair_loss(
+                    loss_func, est_src, target_src, **kwargs
+                ).reshape(B)
         return pair_wise_losses
 
     def best_perm_from_perm_avg_loss(self, loss_func, ests, targets, **kwargs):
@@ -166,6 +206,9 @@ class PITLossWrapper(nn.Module):
             )
 
     def forward(self, ests, targets, return_ests=False, reduce_kwargs=None, **kwargs):
+        if self.pit_from == "pw_pt":
+            # 2-D (batch, time) is the natural single-source form; see _promote_single_source.
+            ests, targets = _promote_single_source(ests, targets)
         n_src = targets.shape[1]
         if self.pit_from == "pw_mtx":
             pw_loss = self.loss_func(ests, targets, **kwargs)
@@ -241,9 +284,9 @@ class PITLossWrapper(nn.Module):
         pair_wise_losses = targets.new_empty(B, n_src, n_src)
         for est_idx, est_src in enumerate(ests.transpose(0, 1)):
             for target_idx, target_src in enumerate(targets.transpose(0, 1)):
-                pair_wise_losses[:, est_idx, target_idx] = loss_func(
-                    est_src, target_src, **kwargs
-                )
+                pair_wise_losses[:, est_idx, target_idx] = _call_pair_loss(
+                    loss_func, est_src, target_src, **kwargs
+                ).reshape(B)
         return pair_wise_losses
 
     def best_perm_from_perm_avg_loss(self, loss_func, ests, targets, **kwargs):

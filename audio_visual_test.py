@@ -17,10 +17,35 @@ Phase1/T3 rewrite (docs/REPRODUCTION_PLAN.md §6.2 F7/F8):
   state-dict file, or ``hf://<org>/<repo>/<file>``;
 * ``_find_best_ckpt`` falls back to ``epoch=*.ckpt`` with **numeric** epoch
   sorting (``epoch=1000`` > ``epoch=742``);
-* ``--limit N`` evaluates only the first N test utterances (smoke runs);
+* ``--limit N`` evaluates only the first N test utterances (smoke runs). A run with
+  ``N < len(dataset)`` is a **subset run**: ``metrics_counts.json.coverage`` records
+  ``limit`` / ``dataset_len`` / ``is_subset`` and forces ``verified=false`` with
+  ``reason: "subset run: --limit N of M"``, because N-of-M numbers are not full-set
+  coverage even when every planned utterance produced a row;
+* ``--allow-partial`` downgrades only the *planned-vs-produced row-count* check to a
+  warning (deliberately truncated debugging runs). It is a different failure mode
+  from a subset run and it cannot make ``--limit`` output full-set coverage;
 * an eval worker does **not** build dataloaders and does not require the
   train/valid splits; it instantiates :class:`AVSpeechEvalDataset` on the
   resolved test index directly (whole-utterance inference, batch size 1).
+
+Three facts about this protocol that are easy to get wrong when quoting numbers
+(they are the most common source of mis-attribution around this repo):
+
+1. **Whole-clip single forward, no sliding window.** ``est = model(mix[None],
+   video_model(mouth[None, None]))`` runs once per utterance and the decoder
+   emits ``istft(..., length=T_in)``, so the estimate is sample-aligned with the
+   input: no 2 s window, no hop, no extra padding, no chunk stitching. The
+   2 s / 0.5 s hop / 80 ms guard protocol belongs to ``studio/server.py`` and to
+   ``eval_realssa_real.py`` (long RealSSA-Real recordings), **not** to the
+   LRS2-2Mix / RealSSA-Sim numbers this script produces.
+2. **``n_src=1``: single-output target-speaker extraction, not 2-source
+   separation.** The reference side is one ``target`` waveform (``target.json``),
+   so PIT over sources degenerates to the identity permutation and there is no
+   best-of-2 output-channel selection anywhere in the metric path.
+3. **``si-snr_i = si-snr - si-snr_mix``, per utterance**: ``si-snr_mix`` is the
+   SI-SDR of *that* unprocessed mixture against the same target (not a
+   corpus-level average mixture). See ``look2hear/metrics/allwrapper.py``.
 
 Usage::
 
@@ -76,6 +101,9 @@ from rich.progress import (
 
 warnings.filterwarnings("ignore")
 
+#: Rank-0 coverage report, written next to the per-rank metric shards (W1-07).
+COVERAGE_FILENAME = "coverage_rank0.json"
+
 # ==========================================
 # 1. Argument Parsing
 # ==========================================
@@ -98,7 +126,16 @@ parser.add_argument("--gpus",
 parser.add_argument("--limit",
                     type=int,
                     default=0,
-                    help="Evaluate only the first N test utterances (0 = all)")
+                    help="Evaluate only the first N test utterances (0 = all). Any N < the "
+                         "dataset length makes this a SUBSET run: the numbers stay valid for "
+                         "those N utterances only, and metrics_counts.json.coverage records "
+                         "is_subset=true with verified=false")
+parser.add_argument("--allow-partial",
+                    action="store_true",
+                    help="Downgrade only the planned-vs-produced row-count check to a warning "
+                         "(deliberately truncated debugging runs). It is unrelated to --limit: "
+                         "a subset run already reports verified=false and this flag cannot "
+                         "turn it into full-set coverage")
 
 
 # ==========================================
@@ -368,6 +405,8 @@ def process_worker(rank, world_size, config):
     sample_rate = int(data_cfg.get("sample_rate", 16000))
     normalize_audio = bool(data_cfg.get("normalize_audio", False))
     test_dir = config["test_dir"]
+    allow_partial = bool(config.get("allow_partial", False))
+    n_done = 0  # utterances that actually produced a metrics row (coverage check input)
 
     dataset = AVSpeechEvalDataset(
         json_dir=test_dir,
@@ -378,10 +417,31 @@ def process_worker(rank, world_size, config):
     limit = int(config.get("limit") or 0)
     if limit > 0:
         indices = indices[:limit]
+    # Coverage invariant (W1-07): ``--limit`` is applied *before* sharding, so the
+    # planned set is exactly ``min(limit, len(dataset))`` and ``indices[rank::world_size]``
+    # partitions it across ranks. The explicit equality locks that against refactors
+    # (e.g. applying ``--limit`` after the stride would silently shrink the plan).
+    planned_total = len(indices)
+    if planned_total != (min(limit, len(dataset)) if limit > 0 else len(dataset)):
+        raise RuntimeError(
+            f"[eval] internal error: planned_total={planned_total} but "
+            f"min(limit={limit or 'all'}, dataset={len(dataset)}) disagrees"
+        )
+    is_subset_run = limit > 0 and limit < len(dataset)
     local_indices = indices[rank::world_size]
+    expected_local = len(local_indices)
     if rank == 0:
+        planned_per_rank = [len(range(planned_total)[r::world_size]) for r in range(world_size)]
         print(f"[eval] test index: {test_dir} | utterances={len(indices)} "
               f"| this rank={len(local_indices)} | device={device}")
+        print(f"[eval] coverage plan: planned={planned_total} "
+              f"(min(limit={limit or 'all'}, dataset={len(dataset)})) "
+              f"| world_size={world_size} | planned per rank={planned_per_rank}")
+        # A --limit run that truncates the set must announce itself: its means are
+        # valid for these N utterances but are NOT full-set coverage.
+        if is_subset_run:
+            print(f"[eval] SUBSET run: --limit {limit} of {len(dataset)}; "
+                  f"results are NOT full-set coverage")
 
     exp_dir = os.path.join(
         os.getcwd(), "Experiments", "checkpoint", train_conf.get("exp", {}).get("exp_name", "eval")
@@ -421,6 +481,7 @@ def process_worker(rank, world_size, config):
                             clean=sources.unsqueeze(0),
                             estimate=est_sources.squeeze(0),
                             key=key)
+                    n_done += 1
                     if idx_count % 50 == 0:
                         metricscolumn.update(metrics.get_mean())
     else:
@@ -434,10 +495,53 @@ def process_worker(rank, world_size, config):
                         clean=sources.unsqueeze(0),
                         estimate=est_sources.squeeze(0),
                         key=key)
+                n_done += 1
 
     metrics.final()
+
+    # ---- coverage self-check (W1-07) ---------------------------------------
+    # ``n_done`` counts utterances that produced a metrics row; ``expected_local``
+    # is what this rank was asked to evaluate. A mismatch means a sample was
+    # silently skipped (a future ``continue`` on failure, a filter, ...), which
+    # would turn the reported mean into an unannounced subset: refuse, never warn.
     if rank == 0:
+        print(f"[eval] coverage: evaluated {n_done}/{expected_local} on rank0 "
+              f"(planned={planned_total}, world_size={world_size}, limit={limit or 'all'})")
         print(f"[eval] per-utterance results: {metrics_file}")
+    if n_done != expected_local:
+        coverage_msg = (
+            f"[eval] coverage mismatch on rank {rank}: evaluated {n_done} of "
+            f"{expected_local} planned utterances (planned_total={planned_total}, "
+            f"world_size={world_size}, limit={limit or 'all'}); the reported mean would be a subset"
+        )
+        if allow_partial:
+            print(f"[eval] WARNING (--allow-partial): {coverage_msg}")
+        else:
+            raise RuntimeError(
+                coverage_msg + "; pass --allow-partial to downgrade this to a warning"
+            )
+    if rank == 0:
+        coverage_path = os.path.join(ex_save_dir, COVERAGE_FILENAME)
+        with open(coverage_path, "w", encoding="utf-8") as coverage_file:
+            json.dump(
+                {
+                    "schema_version": 1,
+                    "producer": "audio_visual_test.process_worker",
+                    "rank": 0,
+                    "world_size": world_size,
+                    "limit": limit,
+                    "dataset_len": len(dataset),
+                    "planned_total": planned_total,
+                    "planned_per_rank": [len(range(planned_total)[r::world_size]) for r in range(world_size)],
+                    "rank0_evaluated": n_done,
+                    "allow_partial": allow_partial,
+                    "test_dir": test_dir,
+                },
+                coverage_file,
+                indent=2,
+                ensure_ascii=False,
+            )
+            coverage_file.write("\n")
 
 
 # ==========================================
@@ -463,13 +567,153 @@ def _run_workers(config):
     return world_size
 
 
-def _merge_results(exp_dir, world_size):
+def _check_coverage(ex_save_dir, world_size, rows_per_rank, n_rows, allow_partial=False):
+    """Verify that every planned utterance produced exactly one metrics row (W1-07).
+
+    Two independent verdicts are reported, and they must not be conflated:
+
+    * **row accounting**: did every *planned* utterance produce exactly one row on
+      every rank? A mismatch raises ``RuntimeError`` (the CLI then exits non-zero)
+      unless ``allow_partial`` is set, in which case it only warns.
+    * **coverage scope**: was the run the *whole* test set? A ``--limit N`` run with
+      ``N < dataset_len`` is a **subset run**. Its numbers stay valid for those N
+      utterances, but they are not full-set coverage, so ``verified`` is forced to
+      ``False`` with ``reason: "subset run: --limit N of M"`` even when the row
+      accounting is perfect. Downstream consumers read ``limit`` / ``dataset_len`` /
+      ``is_subset`` here (mirrored into ``metrics_counts.json.coverage``) and must
+      never quote a subset as an M-utterance result.
+
+    ``rows_per_rank`` are the per-shard per-utterance row counts, ``n_rows`` the
+    merged row count. The plan comes from ``coverage_rank0.json``, written by rank 0
+    after its inference loop. Returns a JSON-serializable report describing both
+    verdicts.
+    """
+    path = os.path.join(ex_save_dir, COVERAGE_FILENAME)
+    if not os.path.isfile(path):
+        message = (
+            f"[eval] no coverage report at {path}: no rank recorded how many utterances it "
+            "planned to evaluate (worker died, or the run predates the coverage check)"
+        )
+        if allow_partial:
+            print(f"[eval] WARNING (--allow-partial): {message}")
+            return {
+                "verified": False,
+                "limit": None,
+                "dataset_len": None,
+                "is_subset": None,  # unknown: no plan to derive the scope from
+                "reason": "missing coverage report",
+            }
+        raise RuntimeError(message + "; pass --allow-partial to downgrade this to a warning")
+
+    with open(path, encoding="utf-8") as coverage_file:
+        plan = json.load(coverage_file)
+
+    # ---- declared coverage scope (W1-07b) ----------------------------------
+    # ``limit`` is written by the worker as the raw CLI value (0 = "all"); normalise
+    # 0/absent to None so ``is_subset`` is exactly ``limit is not None and
+    # limit < dataset_len``. An unknown ``dataset_len`` cannot certify full-set
+    # coverage, so it is a problem rather than an assumption of completeness.
+    try:
+        raw_limit = int(plan.get("limit") or 0)
+    except (TypeError, ValueError):
+        raw_limit = 0
+    limit = raw_limit if raw_limit > 0 else None
+    try:
+        dataset_len = int(plan["dataset_len"])
+    except (KeyError, TypeError, ValueError):
+        dataset_len = None
+    is_subset = limit is not None and dataset_len is not None and limit < dataset_len
+
+    problems = []
+    planned_total = int(plan.get("planned_total", -1))
+    planned_per_rank = [int(value) for value in plan.get("planned_per_rank", [])]
+    if dataset_len is None:
+        problems.append("coverage report has no dataset_len (cannot certify full-set scope)")
+    if planned_total < 0:
+        problems.append("coverage report has no planned_total")
+    if len(planned_per_rank) != world_size:
+        problems.append(
+            f"coverage report lists {len(planned_per_rank)} ranks but world_size={world_size}"
+        )
+    if planned_total != sum(planned_per_rank):
+        problems.append(
+            f"coverage report is self-inconsistent: planned_total={planned_total} but "
+            f"planned_per_rank sums to {sum(planned_per_rank)}"
+        )
+    if dataset_len is not None and planned_total >= 0:
+        expected_total = min(limit, dataset_len) if limit is not None else dataset_len
+        planned_label = limit if limit is not None else "all"
+        if planned_total != expected_total:
+            problems.append(
+                f"coverage report planned {planned_total} utterances but "
+                f"min(limit={planned_label}, dataset_len={dataset_len})={expected_total}"
+            )
+    for rank, (planned, produced) in enumerate(zip(planned_per_rank, rows_per_rank)):
+        if planned != produced:
+            problems.append(f"rank {rank}: planned {planned} utterances, produced {produced} rows")
+    if sum(rows_per_rank) != planned_total:
+        problems.append(
+            f"all shards produced {sum(rows_per_rank)} rows in total but {planned_total} were planned"
+        )
+    if n_rows != planned_total:
+        problems.append(
+            f"merged CSV has {n_rows} per-utterance rows but {planned_total} were planned"
+        )
+
+    # ``verified`` means "this CSV is the full test set, row for row": a subset run can
+    # never be verified, no matter how clean its row accounting is.
+    report = {
+        "verified": False if is_subset else not problems,
+        "limit": limit,
+        "dataset_len": dataset_len,
+        "is_subset": is_subset,
+        "planned_total": planned_total,
+        "planned_per_rank": planned_per_rank,
+        "rows_per_rank": rows_per_rank,
+        "rows_merged": n_rows,
+        "allow_partial": bool(allow_partial),
+    }
+    if problems:
+        report["problems"] = list(problems)
+        if not is_subset:
+            report["reason"] = "[eval] coverage check failed: " + "; ".join(problems)
+    if is_subset:
+        report["reason"] = f"subset run: --limit {limit} of {dataset_len}"
+
+    if problems:
+        message = "[eval] coverage check failed: " + "; ".join(problems)
+        if allow_partial:
+            print(f"[eval] WARNING (--allow-partial): {message}")
+            return report
+        raise RuntimeError(message + "; pass --allow-partial to downgrade this to a warning")
+
+    if is_subset:
+        print(
+            f"[eval] coverage rows OK ({planned_total}/{planned_total}) but this is a SUBSET run: "
+            f"--limit {limit} of {dataset_len}; verified=false, NOT full-set coverage"
+        )
+    else:
+        print(
+            f"[eval] coverage OK: {planned_total}/{planned_total} planned utterances produced rows "
+            f"(per rank {rows_per_rank}, world_size={world_size})"
+        )
+    return report
+
+def _merge_results(exp_dir, world_size, enforce_coverage=False, allow_partial=False):
     ex_save_dir = os.path.join(exp_dir, "results")
     frames = []
+    rows_per_rank = []
     for rank in range(world_size):
         shard = os.path.join(ex_save_dir, f"metrics_rank{rank}.csv")
         if os.path.isfile(shard):
-            frames.append(pd.read_csv(shard))
+            frame = pd.read_csv(shard)
+            frames.append(frame)
+            # every shard carries its own trailing ``avg``/``std`` rows (ALLMetricsTracker.final)
+            rows_per_rank.append(
+                int((~frame["snt_id"].astype(str).isin(["avg", "std"])).sum())
+            )
+        else:
+            rows_per_rank.append(0)
     if not frames:
         raise RuntimeError(f"no per-rank metrics CSV found in {ex_save_dir}")
 
@@ -478,6 +722,17 @@ def _merge_results(exp_dir, world_size):
     utterances = combined[~snt_ids.isin(["avg", "std"])].copy()
     if utterances.empty:
         raise RuntimeError("no per-utterance metric rows were produced (empty test split?)")
+
+    # ---- coverage check (W1-07): planned vs produced, per rank and in total ----
+    coverage = None
+    if enforce_coverage:
+        coverage = _check_coverage(
+            ex_save_dir,
+            world_size,
+            rows_per_rank,
+            n_rows=len(utterances),
+            allow_partial=allow_partial,
+        )
 
     # A4-4: mixture baselines (`si-snr_mix`/`sdr_mix`) are now per-utterance columns, so
     # `si-snr - si-snr_mix == si-snr_i` can be re-derived offline from metrics_combined.csv.
@@ -525,6 +780,7 @@ def _merge_results(exp_dir, world_size):
             "n_<col>": "number of finite (non-NaN) utterance values; identical on avg and std rows",
         },
         "si_snr_identity_check": identity,
+        "coverage": coverage,
         "combined_csv": final_csv_path,
     }
     counts_json_path = os.path.join(ex_save_dir, "metrics_counts.json")
@@ -546,6 +802,9 @@ def _merge_results(exp_dir, world_size):
         shard = os.path.join(ex_save_dir, f"metrics_rank{rank}.csv")
         if os.path.isfile(shard):
             os.remove(shard)
+    coverage_path = os.path.join(ex_save_dir, COVERAGE_FILENAME)
+    if os.path.isfile(coverage_path):
+        os.remove(coverage_path)  # the verified snapshot lives in metrics_counts.json
     return final_csv_path
 
 
@@ -565,7 +824,12 @@ def main(config):
     print(f"[eval] results dir : {os.path.join(exp_dir, 'results')}")
 
     world_size = _run_workers(config)
-    return _merge_results(exp_dir, world_size)
+    return _merge_results(
+        exp_dir,
+        world_size,
+        enforce_coverage=True,
+        allow_partial=bool(config.get("allow_partial", False)),
+    )
 
 
 if __name__ == "__main__":
@@ -601,6 +865,7 @@ if __name__ == "__main__":
         "ckpt_path": ckpt_path,
         "gpus": args.gpus,
         "limit": args.limit,
+        "allow_partial": args.allow_partial,
         "train_conf": raw_conf,
     }
     try:

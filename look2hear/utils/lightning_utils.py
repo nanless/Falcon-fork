@@ -19,9 +19,18 @@ from rich.progress import (
 )
 from rich import print, reconfigure
 
+# Single choke point for every training-side log line (``audio_train.py`` calls ``print_only``).
+#
+# ``rich.print("[audio_train] x")`` treats ``[audio_train]`` as a style tag and prints only ``" x"``,
+# so the ``[audio_train]`` / ``[data]`` prefixes were silently missing from every training log.
+# ``markup=False`` keeps the brackets literal; ``highlight=False`` keeps ANSI styling out of the
+# log; ``soft_wrap=True`` stops the 80-column auto-wrap that was splitting long paths across lines.
+_log_console = Console()
+
+
 @rank_zero_only
 def print_only(message: str):
-    print(message)
+    _log_console.print(message, markup=False, highlight=False, soft_wrap=True)
 
 @dataclass
 class RichProgressBarTheme:

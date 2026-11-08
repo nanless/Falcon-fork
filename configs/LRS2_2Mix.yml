@@ -1,3 +1,4 @@
+# 本配置 train loss = pairwise_neg_snr（负 SNR，非尺度不变）；论文 Table 16 是 −SI-SNR，见 configs/LRS2_2Mix_Paper_v2.yml
 videonet:
   videonet_name: FRCNNVideoModel
   videonet_config:

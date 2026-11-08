@@ -383,8 +383,11 @@ def _extract_windowed(runtime, audio: np.ndarray, mouth: np.ndarray) -> np.ndarr
 
     长录音（RealSSA-Real 单段可达数分钟）整段前向会产生 O(T) 大特征图导致 OOM；这里按 Studio 调度：
     endpoint 是“当前窗输出终点（session 坐标，不含）”；每个窗取 pred[LEFT:LEFT+HOP]，对应绝对
-    [endpoint-GUARD-HOP, endpoint-GUARD)。与 studio/server.py:266（start_sample=endpoint-GUARD-HOP,
-    end_sample=endpoint-GUARD）和 studio/web/app.js:624（首窗 end=sessionEpoch+HOP+GUARD）一致：
+    [endpoint-GUARD-HOP, endpoint-GUARD)。与 studio/server.py:328（响应里写
+    start_sample=endpoint-GUARD-HOP / end_sample=endpoint-GUARD；真正的切片在
+    OutputSlicer.take，studio/server.py:106-117，其中 :110 取
+    pred[WINDOW-GUARD-HOP:WINDOW-GUARD]）和 studio/web/app.js:624
+    （首窗 end=sessionEpoch+HOP+GUARD）一致：
     **首窗 endpoint=HOP+GUARD**，首窗输出覆盖 [0, HOP)，不会留下 1.34 s 静音前缀（A4-1 修复）。
     输出覆盖率断言：整段 out 必须 100% 被写；否则列出未覆盖区间并 raise。
     边界不做 20 ms crossfade（评测指标对拼接不敏感；报告已声明，Phase 3 可加）。

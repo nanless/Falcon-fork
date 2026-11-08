@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -704,8 +706,13 @@ class AudioBlock(nn.Module):
         is2d: bool = False,
         causal: bool = False,
         n_freqs: int = 129, # 新增参数：需要知道初始的频点数来计算后续层的维度
+        paper_causal: bool = False,  # fidelity switch (default = released behaviour):
+        #   True  -> the 3 hard-coded ``causal=False`` sites below (downsample / fusion /
+        #            concat) follow ``self.causal``, i.e. left-aligned causal padding;
+        #   False -> keep the historical symmetric padding (bit-exact with falcon.pt).
     ):
         super(AudioBlock, self).__init__()
+        self.paper_causal = paper_causal
         self.in_chan = in_chan
         self.hid_chan = hid_chan
         self.kernel_size = kernel_size
@@ -764,7 +771,7 @@ class AudioBlock(nn.Module):
                     groups=self.hid_chan,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )
             
@@ -800,7 +807,7 @@ class AudioBlock(nn.Module):
                     kernel_size=self.kernel_size,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )
         
@@ -813,7 +820,7 @@ class AudioBlock(nn.Module):
                     kernel_size=self.kernel_size,
                     norm_type=self.norm_type,
                     is2d=self.is2d,
-                    causal=False, 
+                    causal=self.causal if self.paper_causal else False,
                 )
             )        
         
@@ -917,8 +924,13 @@ class VideoBlock(nn.Module):
         use_short_conv: bool = True,
         use_output_correction: bool = True,
         use_inner_decay: bool = True,
+        video_lstm_batch_first: bool = False,  # fidelity switch (default = released
+        #   behaviour): the frame axis has always been fed to a batch_first=False LSTM as if
+        #   it were the batch axis, so the 50 video frames never recursed over time.
+        #   True -> batch_first=True, i.e. a real temporal recurrence along 25 fps frames.
     ):
         super(VideoBlock, self).__init__()
+        self.video_lstm_batch_first = video_lstm_batch_first
         self.in_chan = in_chan
         self.hid_chan = hid_chan
         self.kernel_size = kernel_size
@@ -953,6 +965,7 @@ class VideoBlock(nn.Module):
                 input_size=self.hid_chan,
                 hidden_size=self.hid_chan,
                 bidirectional=False,
+                batch_first=self.video_lstm_batch_first,
             )
         
         self.residual_conv = ConvNormAct(
@@ -967,6 +980,10 @@ class VideoBlock(nn.Module):
         residual = self.gateway(x)
         x_enc = self.projection(residual)
         
+        # [B, C, T] -> [B, T, C]. The RNN's reading of this tensor depends on
+        # ``video_lstm_batch_first``: False (released behaviour) reads it as [T, B, C], i.e.
+        # the frame axis becomes the batch axis and no recurrence happens across frames;
+        # True makes the LSTM recur along the 25 fps frame axis.
         x_enc = x_enc.transpose(1, 2).contiguous()
         x_rnn, _ = self.rnn(x_enc)
         x_rnn = x_rnn.transpose(1, 2).contiguous()
@@ -985,8 +1002,12 @@ class Separator(nn.Module):
         fusion_params: dict,
     ):
         super(Separator, self).__init__()
-        self.audio_params = audio_params
-        self.video_params = video_params
+        # Deep-copy the sub-configs before popping keys (A1-1): the pops below mutate the
+        # dicts, and SISNRRepel keeps a reference to them, so without this the model's own
+        # ``audio_params`` lost ``repeats``/``shared`` and ``Model(**get_model_args())``
+        # rebuilt a separator-less model. Mirrors studio Falcon.py / look2hear Falcon.py.
+        self.audio_params = copy.deepcopy(audio_params)
+        self.video_params = copy.deepcopy(video_params)
         self.audio_bn_chan = audio_bn_chan
         self.video_bn_chan = video_bn_chan
         
@@ -1299,20 +1320,29 @@ class SISNRRepel(BaseModel):
         fusion_params: dict = dict(),
         sample_rate=16000,
         causal: bool = False,
+        paper_causal: bool = False,
+        video_lstm_batch_first: bool = False,
         mdcl_margin: float = 0.0,    # SI-SNR threshold (dB): penalise if SI-SNR(ŝ, s_int) > margin
         mdcl_alpha: float = 0.15,    # weight for contrastive repulsion loss
     ):
         super(SISNRRepel, self).__init__(sample_rate=sample_rate)
         self.n_src = n_src
         self.pretrained_vout_chan = pretrained_vout_chan
-        self.audio_bn_params = audio_bn_params
-        self.video_bn_params = video_bn_params
-        self.enc_dec_params = enc_dec_params
-        self.audio_params = audio_params
-        self.video_params = video_params
-        self.fusion_params = fusion_params
-        self.mask_generation_params = mask_generation_params
+        # Deep-copy every sub-config (A1-1): the lines below write ``causal`` /
+        # ``paper_causal`` / ``video_lstm_batch_first`` into the audio/video params and
+        # Separator pops ``repeats`` / ``shared`` from them, so keeping the caller's dicts
+        # by reference polluted configs. Copies also keep the stored sub-configs (and hence
+        # ``get_model_args``) complete and reusable. Mirrors Falcon.__init__.
+        self.audio_bn_params = copy.deepcopy(audio_bn_params)
+        self.video_bn_params = copy.deepcopy(video_bn_params)
+        self.enc_dec_params = copy.deepcopy(enc_dec_params)
+        self.audio_params = copy.deepcopy(audio_params)
+        self.video_params = copy.deepcopy(video_params)
+        self.fusion_params = copy.deepcopy(fusion_params)
+        self.mask_generation_params = copy.deepcopy(mask_generation_params)
         self.causal = causal
+        self.paper_causal = paper_causal
+        self.video_lstm_batch_first = video_lstm_batch_first
         self.mdcl_margin = mdcl_margin
         self.mdcl_alpha = mdcl_alpha
 
@@ -1324,6 +1354,10 @@ class SISNRRepel(BaseModel):
 
         self.audio_params['causal'] = self.causal
         self.video_params['causal'] = self.causal
+        # Fidelity switches are pushed into the sub-configs exactly like ``causal`` above,
+        # so Separator's ``**params`` forwarding reaches AudioBlock/VideoBlock.
+        self.audio_params['paper_causal'] = self.paper_causal
+        self.video_params['video_lstm_batch_first'] = self.video_lstm_batch_first
 
         self.separator = Separator(
             audio_params=self.audio_params,
@@ -1494,5 +1528,26 @@ class SISNRRepel(BaseModel):
         return separated_audios
 
     def get_model_args(self):
-        model_args = {"n_src": self.n_src}
-        return model_args
+        """Return the full, JSON-serializable constructor kwargs (A1-2).
+
+        Mirrors studio/falcon_model/models/Falcon.py::get_model_args so a big-model
+        checkpoint can be rebuilt from its hparams, and carries the two fidelity
+        switches (``paper_causal`` / ``video_lstm_batch_first``).
+        """
+        return {
+            "n_src": self.n_src,
+            "enc_dec_params": copy.deepcopy(self.enc_dec_params),
+            "audio_bn_params": copy.deepcopy(self.audio_bn_params),
+            "audio_params": copy.deepcopy(self.audio_params),
+            "mask_generation_params": copy.deepcopy(self.mask_generation_params),
+            "pretrained_vout_chan": self.pretrained_vout_chan,
+            "video_bn_params": copy.deepcopy(self.video_bn_params),
+            "video_params": copy.deepcopy(self.video_params),
+            "fusion_params": copy.deepcopy(self.fusion_params),
+            "sample_rate": self.sample_rate(),
+            "causal": self.causal,
+            "paper_causal": self.paper_causal,
+            "video_lstm_batch_first": self.video_lstm_batch_first,
+            "mdcl_margin": self.mdcl_margin,
+            "mdcl_alpha": self.mdcl_alpha,
+        }

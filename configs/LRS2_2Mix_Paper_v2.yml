@@ -1,5 +1,8 @@
 # LRS2-2Mix 论文 Table 16 配方（v2，2026-10-30）
 #
+# [事实 2026-11-08] train_samples=10000 是每 epoch **有放回**抽 10000 个随机 2 s 窗口（avspeech_dataset_near.py:147-157）；tr 池 40000 条 → 1 epoch 只覆盖约 22% 的唯一 mix，不是「遍历一遍数据集」。
+# [事实 2026-11-08] beta/τ 退火在本数据上**不生效**：每样本恰好 1 个 near（K≡1），而 nass_contrastive_loss.py:68 的 K==1 分支不含 β → beta_* 只影响 train_beta 这条日志曲线，不进梯度。
+#
 # 论文依据：Falcon (arXiv:2610.32749) §5.2 + App D Table 16：
 #   - 重建损失 L_recon = -SI-SNR（不是 -SNR）           -> loss.train.sdr_type: pairwise_neg_sisdr
 #   - 对比温度 tau（代码里叫 beta）0->1 线性退火，前 1000 epoch，之后固定 1
