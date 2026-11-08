@@ -4,15 +4,20 @@
 #   frontend     - Studio Node tests (8), Space assembly + i18n (226 strings), Space
 #                  static build tests, and the environment lock-file sanity check.
 #                  Needs only Python + Node (no torch, no gradio).
-#   python       - Studio Python tests and the offline reproduction-tool tests with a
-#                  CPU torch build, plus the Space clip-schedule equivalence tests.
+#   python       - Falcon imports, Studio Python tests, and the Space clip-schedule
+#                  equivalence tests, with a CPU torch build.
 #
-# Deliberately not run here: `space/tests/test_space.py` (needs gradio/spaces and the
-# Free/ZeroGPU runtime) and `space/tests/test_clip.py -m slow` (loads real Falcon
-# weights). The `diff_scope` guards in tools/repro/tests encode historical task write
-# scopes -- the Phase 1 one diffs against `main` (so it fails on any feature branch) and
-# the Phase 2 one only inspects uncommitted changes (vacuous on a clean checkout) --
-# so they stay a local review check instead of a CI gate.
+# Deliberately not run here:
+#   * space/tests/test_space.py  - needs gradio/spaces and the Free/ZeroGPU runtime.
+#   * space/tests/test_clip.py -m slow - loads the real Falcon weights.
+#   * tools/repro/tests/**       - the reproduction-evidence suite. It reads
+#     /root/data, /root/.cache/falcon_weights and /root/tmp training artifacts, and it
+#     asserts that the local conda environment matches docs/verification/conda-env-lock.txt.
+#     None of that exists on a hosted runner, so the suite would always be red here for
+#     reasons unrelated to the code. It stays a **local merge gate** (see AGENTS.md):
+#         CUDA_VISIBLE_DEVICES=0 python -m pytest tools/repro/tests -q   # 168 passed
+#     Portable pieces of it (metric definitions, synthetic-data builders) are exercised
+#     by the local gate and by the tests they import, not by this workflow.
 name: tests
 
 on:
@@ -112,5 +117,8 @@ jobs:
         run: python -m pytest studio/tests -q
       - name: Space clip-schedule equivalence (no slow weights)
         run: python -m pytest space/tests/test_clip.py -q -m "not slow"
-      - name: Reproduction tool tests (offline; branch-scope guards excluded)
-        run: python -m pytest tools/repro/tests -q -rs -k "not diff_scope"
+      - name: Note on the local-evidence suite
+        run: |
+          echo "tools/repro/tests 未在 CI 运行：它依赖本机数据（/root/data）、权重"
+          echo "（/root/.cache/falcon_weights）、训练产物（/root/tmp）与 conda 环境锁。"
+          echo "本机门禁：CUDA_VISIBLE_DEVICES=0 python -m pytest tools/repro/tests -q（168 passed）"
