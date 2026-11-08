@@ -17,6 +17,15 @@ fallback `/root/wt-main`（Phase1 合并后的 main，数值仍应一致）。
   且**不调用 eval()**（基线在默认 training=True、BatchNorm 使用批内统计下生成，见 §QA-report）。
 - 任一 T* 修复尚未落地时，对应“修复后不变量”测试会 skip（而不是 fail），便于分阶段 QA；
   全部落地后应 0 skip。
+- **CPU 线程数约束**：数值指纹是 float32 原始字节 sha256，随 torch 线程数逐位变化，而
+  baseline JSON 录制于 64 线程（1/4 线程分别是另一套 sha）。`fingerprints` fixture 会把线程数
+  钉成录制值 64（`finally` 恢复），所以 `OMP_NUM_THREADS=4` 等外部约定不再翻红；若本机后端
+  拒绝该设置则数值测试 skip（附复现命令）。**不要重新生成 baseline JSON**（它是证据）。
+  最小复现（OMP 怎么设都不影响结果）::
+
+      OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES= PYTHONPATH=. \
+        /root/miniforge3/envs/falcon/bin/python -m pytest \
+        tools/repro/tests/test_phase1_regression.py -q -k forward_fingerprint
 """
 from __future__ import annotations
 
@@ -28,10 +37,20 @@ import os
 import re
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
 import torch
+
+#: 这些指纹是本机（A800 / 64 线程 / 该 torch 构建）录制的**字节级证据**。
+#: 换机器或换 BLAS 后端后，浮点归约顺序不同，sha256 必然不同 —— 那不是回归，是尺子换了。
+#: 因此 CI（github runner，x86 CPU + 不同后端）上跳过数值指纹；本机仍作为合并门禁。
+_IN_CI = os.environ.get("CI", "").lower() in ("1", "true")
+_CI_SKIP = pytest.mark.skipif(
+    _IN_CI,
+    reason="字节级指纹只在本机录制环境下可比；CI 上跳过（见模块 docstring 的线程/硬件约束）",
+)
 
 REPO = Path(__file__).resolve().parents[3]
 PY = sys.executable
@@ -57,6 +76,54 @@ def _tensor_sha(t) -> str:
     """与基线生成脚本一致的指纹：float32 CPU contiguous 原始字节 sha256。"""
     t = t.detach().to("cpu").contiguous()
     return _sha256_bytes(t.numpy().tobytes())
+
+
+#: 指纹的**录制线程数**（baseline-fingerprint.json 的录制环境）。
+#:
+#: 为什么需要一个常量：`_tensor_sha` 是"float32 原始字节 sha256"，没有数值容差，而 CPU 前向的
+#: float32 归约顺序（MKL/oneDNN 分块）随 intra-op 线程数变化 —— 于是**线程数本身是指纹的一部分**，
+#: 不是可以随手改的环境噪声。实测（HEAD，同权重同代码，本机 128 vCPU；见 2026-11-08
+#: 回归归因报告《13-regression-attribution》§5.4 线程扫描）：
+#:
+#:     torch 线程数 1  -> eval_sha = fe52176dc4aa…（≠ baseline）
+#:     torch 线程数 4  -> eval_sha = a09288c50e9d…（≠ baseline；Lead 报告口径 OMP_NUM_THREADS=4）
+#:     torch 线程数 64 -> eval_sha = ad0f20a0e67e…（= baseline JSON，且 set_num_threads(64)
+#:                        能覆盖 OMP_NUM_THREADS=4 后精确复现 baseline 的三条 sha）
+#:
+#: 结论：不能"固定成 1"（那是另一套字节，与 baseline 不可比），只能**固定在录制值 64**。
+#: 因此 fixture 在计算期间钉死该值（`finally` 恢复原值），并用 `_require_recorded_threads()`
+#: 兜底：若本机 torch 后端拒绝该设置（实际线程数 != 录制值），数值测试 skip 而不是 fail ——
+#: 因为此时 sha 与 baseline 不可比，红是环境噪声、不是回归。
+#: **baseline JSON 不重新生成**：它是 Phase1 的证据，重录会把"数值没变"变成循环论证。
+BASELINE_THREADS = 64
+
+
+@contextmanager
+def _pinned_cpu_threads(n: int):
+    """在 with 块内把 torch intra-op 线程数钉成 `n`，退出时（含异常）恢复原值。
+
+    yield 出的是**实际生效**的线程数（某些后端/clamp 之下可能 != n），供调用方判断可比性。
+    """
+    prev = torch.get_num_threads()
+    torch.set_num_threads(n)
+    try:
+        yield torch.get_num_threads()
+    finally:
+        torch.set_num_threads(prev)
+
+
+def _require_recorded_threads(fp: dict) -> None:
+    """线程数必须等于指纹录制值，否则 sha256 与 baseline 逐位不可比 → skip（附最小复现命令）。"""
+    got = fp.get("cpu_threads")
+    if got != BASELINE_THREADS:
+        pytest.skip(
+            f"CPU 线程数 {got} != 指纹录制值 {BASELINE_THREADS}：float32 归约顺序不同，"
+            "原始字节 sha256 不可比（fixture 已主动 torch.set_num_threads(录制值)，"
+            "说明本机 torch 后端未接受该设置）。"
+            "最小复现： cd /root/code/github_repos/Falcon-fork && CUDA_VISIBLE_DEVICES= "
+            f"PYTHONPATH=. {PY} -m pytest "
+            "tools/repro/tests/test_phase1_regression.py -q -k forward_fingerprint"
+        )
 
 
 def _file_sha256(path: Path) -> str:
@@ -151,61 +218,85 @@ def baseline() -> dict:
 
 @pytest.fixture(scope="session")
 def fingerprints() -> dict:
-    """按基线的**精确算子顺序**重算官方权重数值指纹（只算一次）。"""
-    import yaml
+    """按基线的**精确算子顺序**重算官方权重数值指纹（只算一次）。
 
-    sys.path.insert(0, str(REPO))
-    import look2hear.models as models
-    from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
+    **线程约束（2026-11-08 修）**：`_tensor_sha` 是 float32 原始字节 sha256，对多线程归约
+    顺序逐位敏感，所以 CPU 线程数是**指纹的一部分**（见 `BASELINE_THREADS`）。本 fixture 在
+    计算期间 `torch.set_num_threads(BASELINE_THREADS=64=录制值)` 并在 `finally` 恢复原值，
+    因此 `OMP_NUM_THREADS=4` 之类的外部跑测约定不再把指纹翻红。**baseline JSON 未重生成**
+    （它是 Phase1 的证据；重录会把"数值没变"变成循环论证）。
 
-    cfg = yaml.safe_load((REPO / "configs/Falcon.yml").read_text())
-    acfg = copy.deepcopy(cfg["audionet"]["audionet_config"])
-    ckpt = torch.load(WEIGHTS, map_location="cpu", weights_only=False)
-    sd = ckpt["state_dict"]
-    audio_sd = {k[len("audio_model."):]: v for k, v in sd.items() if k.startswith("audio_model.")}
-    video_sd = {k[len("video_model."):]: v for k, v in sd.items() if k.startswith("video_model.")}
+    若某台机器上 torch 后端拒绝该设置（实际线程数 != 录制值），依赖本 fixture 的数值测试会
+    skip（`_require_recorded_threads`）而不是 fail —— 此时 sha 与 baseline 不可比。
 
-    # --- 与 baseline-fingerprint.json 相同的顺序：seed → 输入 → 建模 ---
-    torch.manual_seed(0)
-    audio = torch.randn(1, 32000)
-    mouth_emb = torch.randn(1, 512, 50)
+    最小复现（不需要 GPU；OMP 怎么设都不影响结果）：
 
-    audio_model = models.FalconSpeakerContrastive(sample_rate=16000, **copy.deepcopy(acfg))
-    audio_model.load_state_dict(audio_sd, strict=True)
-    audio_model.eval()
-    with torch.no_grad():
-        eval_out = audio_model(audio, mouth_emb)
+        cd /root/code/github_repos/Falcon-fork
+        OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES= PYTHONPATH=. \\
+          /root/miniforge3/envs/falcon/bin/python -m pytest \\
+          tools/repro/tests/test_phase1_regression.py -q -k forward_fingerprint
+    """
 
-    audio_model.train()
-    with torch.no_grad():
-        train_est, sep_emb = audio_model(audio, mouth_emb)
+    def _compute() -> dict:
+        import yaml
 
-    torch.manual_seed(1)
-    video_in = torch.randn(1, 1, 50, 88, 88)
-    video_model = FRCNNVideoModel(pretrain=None)
-    video_model.load_state_dict(video_sd, strict=True)
-    # 基线**未**显式调用 eval()/train(False)：FRCNNVideoModel 默认 training=True，
-    # BatchNorm 使用批内统计；调用 eval() 会改变指纹（sum 5955.7 vs 7832.3）。T5 的 return self
-    # 修复不影响本路径（本文件不调用 eval）。
-    with torch.no_grad():
-        video_out = video_model(video_in)
+        sys.path.insert(0, str(REPO))
+        import look2hear.models as models
+        from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
 
-    return {
-        "audio_params": sum(p.numel() for p in audio_model.parameters()),
-        "video_params": sum(p.numel() for p in video_model.parameters()),
-        "audio_keys": len(audio_sd),
-        "video_keys": len(video_sd),
-        "eval_shape": tuple(eval_out.shape),
-        "eval_sha": _tensor_sha(eval_out),
-        "eval_sum": float(eval_out.sum()),
-        "train_est_shape": tuple(train_est.shape),
-        "train_est_sha": _tensor_sha(train_est),
-        "sep_shape": tuple(sep_emb.shape),
-        "sep_sha": _tensor_sha(sep_emb),
-        "video_shape": tuple(video_out.shape),
-        "video_sha": _tensor_sha(video_out),
-        "video_sum": float(video_out.sum()),
-    }
+        cfg = yaml.safe_load((REPO / "configs/Falcon.yml").read_text())
+        acfg = copy.deepcopy(cfg["audionet"]["audionet_config"])
+        ckpt = torch.load(WEIGHTS, map_location="cpu", weights_only=False)
+        sd = ckpt["state_dict"]
+        audio_sd = {k[len("audio_model."):]: v for k, v in sd.items() if k.startswith("audio_model.")}
+        video_sd = {k[len("video_model."):]: v for k, v in sd.items() if k.startswith("video_model.")}
+
+        # --- 与 baseline-fingerprint.json 相同的顺序：seed → 输入 → 建模 ---
+        torch.manual_seed(0)
+        audio = torch.randn(1, 32000)
+        mouth_emb = torch.randn(1, 512, 50)
+
+        audio_model = models.FalconSpeakerContrastive(sample_rate=16000, **copy.deepcopy(acfg))
+        audio_model.load_state_dict(audio_sd, strict=True)
+        audio_model.eval()
+        with torch.no_grad():
+            eval_out = audio_model(audio, mouth_emb)
+
+        audio_model.train()
+        with torch.no_grad():
+            train_est, sep_emb = audio_model(audio, mouth_emb)
+
+        torch.manual_seed(1)
+        video_in = torch.randn(1, 1, 50, 88, 88)
+        video_model = FRCNNVideoModel(pretrain=None)
+        video_model.load_state_dict(video_sd, strict=True)
+        # 基线**未**显式调用 eval()/train(False)：FRCNNVideoModel 默认 training=True，
+        # BatchNorm 使用批内统计；调用 eval() 会改变指纹（sum 5955.7 vs 7832.3）。T5 的 return self
+        # 修复不影响本路径（本文件不调用 eval）。
+        with torch.no_grad():
+            video_out = video_model(video_in)
+
+        return {
+            "audio_params": sum(p.numel() for p in audio_model.parameters()),
+            "video_params": sum(p.numel() for p in video_model.parameters()),
+            "audio_keys": len(audio_sd),
+            "video_keys": len(video_sd),
+            "eval_shape": tuple(eval_out.shape),
+            "eval_sha": _tensor_sha(eval_out),
+            "eval_sum": float(eval_out.sum()),
+            "train_est_shape": tuple(train_est.shape),
+            "train_est_sha": _tensor_sha(train_est),
+            "sep_shape": tuple(sep_emb.shape),
+            "sep_sha": _tensor_sha(sep_emb),
+            "video_shape": tuple(video_out.shape),
+            "video_sha": _tensor_sha(video_out),
+            "video_sum": float(video_out.sum()),
+        }
+
+    with _pinned_cpu_threads(BASELINE_THREADS) as threads:
+        fp = _compute()
+    fp["cpu_threads"] = threads
+    return fp
 
 
 # =============================================================== 1) 环境/权重基线
@@ -223,6 +314,7 @@ def test_environment_and_weights(baseline):
 
 
 # =============================================================== 2) 参数量不变量
+@_CI_SKIP
 def test_parameter_counts_match_baseline(fingerprints, baseline):
     """官方权重严格加载后：audio 537,697 / video 11,186,688 / 合计 11,724,385。"""
     assert fingerprints["audio_keys"] == baseline["weights"]["audio_keys"] == 525
@@ -233,8 +325,10 @@ def test_parameter_counts_match_baseline(fingerprints, baseline):
 
 
 # =============================================================== 3) 数值指纹不变量
+@_CI_SKIP
 def test_eval_forward_fingerprint_unchanged(fingerprints, baseline):
     """eval 前向：形状 [1,1,32000]、sha256 与基线完全一致（max|Δ|=0 的等价证据）。"""
+    _require_recorded_threads(fingerprints)
     b = baseline["eval_forward"]
     assert list(fingerprints["eval_shape"]) == b["shape"] == [1, 1, 32000]
     assert fingerprints["eval_sha"] == b["sha256"], (
@@ -243,8 +337,10 @@ def test_eval_forward_fingerprint_unchanged(fingerprints, baseline):
     assert abs(fingerprints["eval_sum"] - b["sum"]) < 1e-5
 
 
+@_CI_SKIP
 def test_train_forward_fingerprint_unchanged(fingerprints, baseline):
     """train 模式 (est, sep_emb)：est sha256 + sep_emb [1,1,112,251,129] sha256 与基线一致。"""
+    _require_recorded_threads(fingerprints)
     b = baseline["train_forward"]
     assert list(fingerprints["train_est_shape"]) == b["est_shape"] == [1, 1, 32000]
     assert fingerprints["train_est_sha"] == b["est_sha256"]
@@ -252,8 +348,10 @@ def test_train_forward_fingerprint_unchanged(fingerprints, baseline):
     assert fingerprints["sep_sha"] == b["sep_sha256"]
 
 
+@_CI_SKIP
 def test_video_forward_fingerprint_unchanged(fingerprints, baseline):
     """视频前端（默认 training 模式）输出 [1,512,50]，sha256 与基线一致。"""
+    _require_recorded_threads(fingerprints)
     b = baseline["video_forward"]
     assert list(fingerprints["video_shape"]) == b["shape"] == [1, 512, 50]
     assert fingerprints["video_sha"] == b["sha256"], (
@@ -269,6 +367,9 @@ import torch, yaml
 
 REPO = {repo!r}
 WEIGHTS = {weights!r}
+THREADS = {threads!r}
+# 与父进程同口径：指纹只在录制线程数下与 baseline 逐位可比（见 BASELINE_THREADS）。
+torch.set_num_threads(THREADS)
 sys.path.insert(0, REPO)
 import look2hear.models as models
 from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
@@ -304,6 +405,7 @@ with torch.no_grad():
     vy = v(vin)
 
 print(json.dumps({{
+    "cpu_threads": torch.get_num_threads(),
     "audio_params": sum(p.numel() for p in m.parameters()),
     "video_params": sum(p.numel() for p in v.parameters()),
     "eval_sha": sha(y),
@@ -315,18 +417,23 @@ print(json.dumps({{
 '''
 
 
+@_CI_SKIP
 def test_numeric_invariance_vs_main_worktree(fingerprints, baseline, tmp_path):
     """在 pristine 基线 worktree（优先 /root/wt-base，fallback /root/wt-main）复算指纹，
     验证当前分支（Phase1/Phase2 修复）与原始 main 数值逐位一致。"""
+    _require_recorded_threads(fingerprints)
     wt = _baseline_worktree()
     if not (wt / "look2hear/models/Falcon.py").is_file():
         pytest.skip(f"基线 worktree 不存在（候选 {[str(p) for p in BASELINE_WT_CANDIDATES]}），跳过跨分支数值对比")
     script = tmp_path / "fp_baseline.py"
-    script.write_text(_MAIN_WT_SCRIPT.format(repo=str(wt), weights=str(WEIGHTS)))
-    env = {"PYTHONPATH": str(wt)}
+    script.write_text(_MAIN_WT_SCRIPT.format(repo=str(wt), weights=str(WEIGHTS), threads=BASELINE_THREADS))
+    # `_run` 会继承 os.environ（含 OMP_NUM_THREADS）；子进程脚本自己 set_num_threads(录制值)，
+    # 这里再钉一次环境变量，保证"当前分支 vs main"两侧线程口径完全一致。
+    env = {"PYTHONPATH": str(wt), "OMP_NUM_THREADS": str(BASELINE_THREADS)}
     r = _run([PY, str(script)], cwd=wt, env=env, timeout=900)
     assert r.returncode == 0, f"基线 worktree({wt}) 指纹脚本失败:\nSTDOUT={r.stdout[-3000:]}\nSTDERR={r.stderr[-3000:]}"
     got = json.loads(r.stdout.strip().splitlines()[-1])
+    _require_recorded_threads({"cpu_threads": got.get("cpu_threads")})
     # main 侧自身应与基线一致（验证基线 JSON 可复现）
     assert got["eval_sha"] == baseline["eval_forward"]["sha256"]
     assert got["train_est_sha"] == baseline["train_forward"]["est_sha256"]
@@ -372,17 +479,28 @@ def test_import_completeness():
 
 # =============================================================== 6) Studio 回归
 def test_studio_pytest_regression():
-    """Studio Python 测试维持基线：≥35 passed / 2 skipped / 0 failed。"""
+    """Studio Python 测试维持基线：0 failed；skip 与 run 两种口径都可接受。
+
+    历史实现硬断言 `skipped == 2`，但那只在**有 GPU 的机器**上成立：`studio/tests/test_device.py`
+    的 2 条用例是 `skipif(torch.cuda.is_available() …)`（"无 CUDA 的机器" / "无 GPU 时报错"），
+    有 GPU 时它们被 skip（51 passed / 2 skipped），清空 `CUDA_VISIBLE_DEVICES` 后它们真正运行
+    （53 passed / 0 skipped）。两者都是"跑通了"，差别不是回归，因此只断言 0 failed + 总量不下降。
+    """
     r = _run([PY, "-m", "pytest", "studio/tests", "-q"], cwd=REPO, timeout=900)
     out = r.stdout + r.stderr
     if r.returncode != 0:
         pytest.fail(f"studio/tests 回归失败（rc={r.returncode}）:\n{out[-4000:]}")
     m_pass = re.search(r"(\d+) passed", out)
     m_skip = re.search(r"(\d+) skipped", out)
+    m_fail = re.search(r"(\d+) failed", out)
     passed = int(m_pass.group(1)) if m_pass else 0
     skipped = int(m_skip.group(1)) if m_skip else 0
+    failed = int(m_fail.group(1)) if m_fail else 0
+    assert failed == 0, f"Studio 出现 {failed} failed:\n{out[-4000:]}"
     assert passed >= 35, f"Studio 通过数下降：{passed} (<35)\n{out[-2000:]}"
-    assert skipped == 2, f"Studio skip 数变化：{skipped} (期望 2)\n{out[-2000:]}"
+    # 有 GPU：51 passed + 2 skipped；无 GPU：53 passed + 0 skipped。两种都合法。
+    assert skipped in (0, 2), f"Studio skip 数与 GPU 可见性无关的变化：{skipped}（期望 0 或 2）\n{out[-2000:]}"
+    assert passed + skipped >= 37, f"Studio 用例总量下降：{passed}+{skipped}\n{out[-2000:]}"
 
 
 # =============================================================== 7) 指标第二意见

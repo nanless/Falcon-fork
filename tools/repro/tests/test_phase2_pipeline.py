@@ -11,6 +11,12 @@
 
 数据/脚本/报告缺失时自动 skip，不阻塞仓库内回归。
 运行：/root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/tests/test_phase2_pipeline.py -q
+指纹的线程约束见本文件 `BASELINE_THREADS`：torch 线程数被钉成录制值 64（`OMP_NUM_THREADS`
+不再是变量），baseline JSON 不重新生成。最小复现（OMP 怎么设都不影响结果）::
+
+    OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES= PYTHONPATH=. \
+      /root/miniforge3/envs/falcon/bin/python -m pytest \
+      tools/repro/tests/test_phase2_pipeline.py -q -k official_weight_fingerprints
 """
 from __future__ import annotations
 
@@ -24,10 +30,20 @@ import os
 import re
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
 import torch
+
+#: 这些指纹是本机（A800 / 64 线程 / 该 torch 构建）录制的**字节级证据**。
+#: 换机器或换 BLAS 后端后，浮点归约顺序不同，sha256 必然不同 —— 那不是回归，是尺子换了。
+#: 因此 CI（github runner，x86 CPU + 不同后端）上跳过数值指纹；本机仍作为合并门禁。
+_IN_CI = os.environ.get("CI", "").lower() in ("1", "true")
+_CI_SKIP = pytest.mark.skipif(
+    _IN_CI,
+    reason="字节级指纹只在本机录制环境下可比；CI 上跳过（见模块 docstring 的线程/硬件约束）",
+)
 
 REPO = Path(__file__).resolve().parents[3]
 PY = sys.executable
@@ -53,6 +69,39 @@ def _tensor_sha(t) -> str:
     return hashlib.sha256(t.numpy().tobytes()).hexdigest()
 
 
+#: 指纹的**录制线程数**（= Phase1 baseline-fingerprint.json 的录制环境），与
+#: `test_phase1_regression.py::BASELINE_THREADS` 同一常量同一理由：float32 原始字节 sha256
+#: 对多线程归约顺序逐位敏感，线程数是指纹的一部分而不是环境噪声。实测（HEAD，本机 128 vCPU）：
+#: 线程 1→fe52176d…，4→a09288c5…，64(=录制值)→ad0f20a0…；`torch.set_num_threads(64)`
+#: 能覆盖 `OMP_NUM_THREADS=4` 后精确复现 baseline，故钉死录制值而**不重生成 baseline JSON**。
+BASELINE_THREADS = 64
+
+
+@contextmanager
+def _pinned_cpu_threads(n: int):
+    """在 with 块内把 torch intra-op 线程数钉成 `n`，退出时（含异常）恢复原值。"""
+    prev = torch.get_num_threads()
+    torch.set_num_threads(n)
+    try:
+        yield torch.get_num_threads()
+    finally:
+        torch.set_num_threads(prev)
+
+
+def _require_recorded_threads(fp: dict) -> None:
+    """线程数必须等于指纹录制值，否则 sha256 与 baseline 逐位不可比 → skip（附复现命令）。"""
+    got = fp.get("cpu_threads")
+    if got != BASELINE_THREADS:
+        pytest.skip(
+            f"CPU 线程数 {got} != 指纹录制值 {BASELINE_THREADS}：float32 归约顺序不同，"
+            "原始字节 sha256 不可比（fixture 已主动 torch.set_num_threads(录制值)，"
+            "说明本机 torch 后端未接受该设置）。"
+            "最小复现： cd /root/code/github_repos/Falcon-fork && CUDA_VISIBLE_DEVICES= "
+            f"PYTHONPATH=. {PY} -m pytest "
+            "tools/repro/tests/test_phase2_pipeline.py -q -k official_weight_fingerprints"
+        )
+
+
 # ─────────────────────────────────────────────── 1) 官方权重数值不变量
 @pytest.fixture(scope="session")
 def baseline() -> dict:
@@ -62,49 +111,65 @@ def baseline() -> dict:
 
 @pytest.fixture(scope="session")
 def fingerprints(baseline) -> dict:
-    import yaml
+    """按 Phase1 基线的精确算子顺序重算 4 条指纹；线程数钉成录制值（见 BASELINE_THREADS）。
 
-    sys.path.insert(0, str(REPO))
-    import look2hear.models as models
-    from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
+    线程约束与最小复现命令同 `test_phase1_regression.py::fingerprints`：
+        cd /root/code/github_repos/Falcon-fork
+        OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES= PYTHONPATH=. python -m pytest \
+          tools/repro/tests/test_phase2_pipeline.py -q -k official_weight_fingerprints
+    """
 
-    cfg = yaml.safe_load((REPO / "configs/Falcon.yml").read_text())
-    acfg = copy.deepcopy(cfg["audionet"]["audionet_config"])
-    ckpt = torch.load(WEIGHTS, map_location="cpu", weights_only=False)
-    sd = ckpt["state_dict"]
-    a_sd = {k[len("audio_model."):]: v for k, v in sd.items() if k.startswith("audio_model.")}
-    v_sd = {k[len("video_model."):]: v for k, v in sd.items() if k.startswith("video_model.")}
+    def _compute() -> dict:
+        import yaml
 
-    torch.manual_seed(0)
-    audio = torch.randn(1, 32000)
-    mouth = torch.randn(1, 512, 50)
-    m = models.FalconSpeakerContrastive(sample_rate=16000, **copy.deepcopy(acfg))
-    m.load_state_dict(a_sd, strict=True)
-    m.eval()
-    with torch.no_grad():
-        y = m(audio, mouth)
-    m.train()
-    with torch.no_grad():
-        est, sep = m(audio, mouth)
+        sys.path.insert(0, str(REPO))
+        import look2hear.models as models
+        from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
 
-    torch.manual_seed(1)
-    vin = torch.randn(1, 1, 50, 88, 88)
-    v = FRCNNVideoModel(pretrain=None)
-    v.load_state_dict(v_sd, strict=True)
-    with torch.no_grad():  # 基线约定：不调用 .eval()，BN3d 用默认 training 批内统计
-        vy = v(vin)
-    return {
-        "audio_params": sum(p.numel() for p in m.parameters()),
-        "video_params": sum(p.numel() for p in v.parameters()),
-        "eval_sha": _tensor_sha(y),
-        "train_est_sha": _tensor_sha(est),
-        "sep_sha": _tensor_sha(sep),
-        "video_sha": _tensor_sha(vy),
-    }
+        cfg = yaml.safe_load((REPO / "configs/Falcon.yml").read_text())
+        acfg = copy.deepcopy(cfg["audionet"]["audionet_config"])
+        ckpt = torch.load(WEIGHTS, map_location="cpu", weights_only=False)
+        sd = ckpt["state_dict"]
+        a_sd = {k[len("audio_model."):]: v for k, v in sd.items() if k.startswith("audio_model.")}
+        v_sd = {k[len("video_model."):]: v for k, v in sd.items() if k.startswith("video_model.")}
+
+        torch.manual_seed(0)
+        audio = torch.randn(1, 32000)
+        mouth = torch.randn(1, 512, 50)
+        m = models.FalconSpeakerContrastive(sample_rate=16000, **copy.deepcopy(acfg))
+        m.load_state_dict(a_sd, strict=True)
+        m.eval()
+        with torch.no_grad():
+            y = m(audio, mouth)
+        m.train()
+        with torch.no_grad():
+            est, sep = m(audio, mouth)
+
+        torch.manual_seed(1)
+        vin = torch.randn(1, 1, 50, 88, 88)
+        v = FRCNNVideoModel(pretrain=None)
+        v.load_state_dict(v_sd, strict=True)
+        with torch.no_grad():  # 基线约定：不调用 .eval()，BN3d 用默认 training 批内统计
+            vy = v(vin)
+        return {
+            "audio_params": sum(p.numel() for p in m.parameters()),
+            "video_params": sum(p.numel() for p in v.parameters()),
+            "eval_sha": _tensor_sha(y),
+            "train_est_sha": _tensor_sha(est),
+            "sep_sha": _tensor_sha(sep),
+            "video_sha": _tensor_sha(vy),
+        }
+
+    with _pinned_cpu_threads(BASELINE_THREADS) as threads:
+        fp = _compute()
+    fp["cpu_threads"] = threads
+    return fp
 
 
+@_CI_SKIP
 def test_phase2_official_weight_fingerprints_unchanged(fingerprints, baseline):
     """Phase2 分支上官方权重 4 条指纹必须与 Phase1 基线逐位一致（确保 Phase2 未改模型/数值）。"""
+    _require_recorded_threads(fingerprints)
     assert fingerprints["audio_params"] == baseline["params"]["audio"] == 537_697
     assert fingerprints["video_params"] == baseline["params"]["video"] == 11_186_688
     assert fingerprints["eval_sha"] == baseline["eval_forward"]["sha256"]

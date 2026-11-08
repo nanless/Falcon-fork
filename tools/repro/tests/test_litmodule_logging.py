@@ -121,7 +121,7 @@ def _collate(batch):
     return torch.stack(mix), torch.stack(tgt), torch.stack(mouth), list(fn), list(near)
 
 
-def _build(cls, audio, logger, **extra):
+def _build(cls, audio, logger, default_root_dir, **extra):
     opt = torch.optim.AdamW(audio.parameters(), lr=1e-3)
     loss_func = {
         "train": PITLossWrapper(pairwise_neg_snr, pit_from="pw_mtx", threshold_byloss=True),
@@ -149,6 +149,13 @@ def _build(cls, audio, logger, **extra):
         enable_model_summary=False,
         accelerator="cpu",
         devices=1,
+        # Without these two, Trainer's default ModelCheckpoint writes
+        # `<cwd>/checkpoints/epoch=*-step=*-vNN.ckpt` into the repo root on
+        # every run.  `.gitignore` hides `*.ckpt`, so the litter never shows
+        # up in `git status` (87 such stubs had accumulated there).  Keep
+        # all run artifacts under the test's tmp_path instead.
+        enable_checkpointing=False,
+        default_root_dir=str(default_root_dir),
     )
     return system, trainer
 
@@ -180,7 +187,7 @@ def _assert_epoch_metrics_logged(trainer):
 )
 def test_fit_with_csvlogger(tmp_path, cls, audio, extra):
     logger = CSVLogger(save_dir=str(tmp_path), name="t2")
-    system, trainer = _build(cls, audio, logger, **extra)
+    system, trainer = _build(cls, audio, logger, tmp_path, **extra)
     trainer.fit(system)  # must not raise AttributeError
 
     _assert_epoch_metrics_logged(trainer)
@@ -194,8 +201,8 @@ def test_fit_with_csvlogger(tmp_path, cls, audio, extra):
 
 def test_fit_without_logger_does_not_crash(tmp_path):
     # PL2: logger=False disables logging (logger=None would create a default logger)
-    system, trainer = _build(AudioVisualLightningModuleNASSv2, _DummyContrastive(), False,
-                             contrastive_weight=1.0, margin=0.5)
+    system, trainer = _build(AudioVisualLightningModuleNASSv2, _DummyContrastive(),
+                             False, tmp_path, contrastive_weight=1.0, margin=0.5)
     assert trainer.logger is None
     trainer.fit(system)
     _assert_epoch_metrics_logged(trainer)

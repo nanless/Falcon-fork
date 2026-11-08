@@ -239,3 +239,84 @@ def test_tracker_multi_source_does_not_crash_and_pesq_is_nan(monkeypatch, tmp_pa
     tracker.final()
     assert math.isnan(row["pesq"]) and math.isnan(row["stoi"])
     assert np.isfinite(row["sdr"]) and np.isfinite(row["si-snr"])
+
+
+# ---------------------------------------------------------------------------
+# Loss-side regressions (W1-05)
+# ---------------------------------------------------------------------------
+# ``SISNRi`` used to die on construction: its ``__init__`` called
+# ``super(Loss, self).__init__()`` with an undefined name ``Loss``, so the class was
+# exported from ``look2hear.losses`` but unusable. It is also the only loss in the
+# package that returns SI-SNR *improvement* rather than SI-SNR, hence worth pinning.
+def test_sisnri_instantiable_and_forward():
+    from torch import nn
+
+    from look2hear.losses import SISNRi  # noqa: WPS433
+
+    loss = SISNRi()  # used to raise NameError: name 'Loss' is not defined
+    assert isinstance(loss, nn.Module)
+
+    # Non-degenerate setup: two distinct references, mixture = their sum.
+    t = torch.arange(1000, dtype=torch.float64) / 8000.0
+    s1 = torch.sin(2 * math.pi * 440 * t)
+    s2 = torch.sin(2 * math.pi * 900 * t) + 0.3 * torch.sin(2 * math.pi * 1234 * t)
+    n_src, batch = 2, 2
+    refs = torch.stack([torch.stack([s1, s2])] * batch)  # [n_src, batch, T]
+    mix = (s1 + s2).unsqueeze(0).repeat(batch, 1)        # [batch, T]
+
+    value = loss.compute_loss(mix, refs.clone(), refs)
+    assert value.ndim == 0
+    assert torch.isfinite(value)
+    # ``__call__`` must dispatch to the same numbers (nn.Module -> forward alias).
+    assert torch.allclose(loss(mix, refs.clone(), refs), value)
+
+    # Improvement semantics: perfect estimates score far better (loss far more negative)
+    # than feeding the mixture itself back, whose improvement is 0 dB by definition.
+    as_mix = loss.compute_loss(mix, mix.unsqueeze(0).expand(n_src, -1, -1), refs)
+    assert abs(float(as_mix)) < 1e-6
+    assert float(value) < -50.0
+
+    # ``sisnr`` is the per-utterance improvement, shape [batch, 1].
+    per_utt = loss.sisnr(mix, refs[0], refs[0])
+    assert tuple(per_utt.shape) == (batch, 1)
+    assert float(per_utt.min()) > 50.0
+
+
+# ``pit_from="pw_pt"`` used to hand a 2-D ``(batch, time)`` pair slice straight to the
+# pairwise loss, which requires 3-D ``(batch, n_src, time)`` -> TypeError for every
+# single-source call. It now promotes the rank, so 2-D and 3-D agree bit-for-bit and
+# losses that legitimately take 2-D (``SingleSrcNegSDR``) keep working.
+def test_pit_pw_pt_2d_does_not_raise():
+    from look2hear.losses import PITLossWrapper, SingleSrcNegSDR, pairwise_neg_sisdr
+
+    t = torch.arange(2000, dtype=torch.float64) / 8000.0
+    s = torch.sin(2 * math.pi * 440 * t) + 0.3 * torch.sin(2 * math.pi * 1234 * t)
+    gen = torch.Generator().manual_seed(11)
+    batch = 3
+    ref = s.unsqueeze(0).repeat(batch, 1) + 0.01 * torch.randn(
+        batch, t.numel(), generator=gen, dtype=torch.float64
+    )
+    est = ref + 0.2 * torch.randn(batch, t.numel(), generator=gen, dtype=torch.float64)
+
+    w_pt = PITLossWrapper(pairwise_neg_sisdr, pit_from="pw_pt", threshold_byloss=False)
+    w_mtx = PITLossWrapper(pairwise_neg_sisdr, pit_from="pw_mtx", threshold_byloss=False)
+
+    value_2d = w_pt(est, ref)                      # used to raise TypeError
+    value_3d = w_pt(est.unsqueeze(1), ref.unsqueeze(1))
+    value_mtx = w_mtx(est.unsqueeze(1), ref.unsqueeze(1))
+
+    for value in (value_2d, value_3d, value_mtx):
+        assert value.ndim == 0 and torch.isfinite(value)
+
+    # Single source => the only permutation is the identity, so all three must agree,
+    # and they must equal the plain mean of the pairwise negative SI-SDR matrix.
+    expected = pairwise_neg_sisdr(est.unsqueeze(1), ref.unsqueeze(1)).mean()
+    assert float(value_2d) == pytest.approx(float(expected), abs=1e-9)
+    assert float(value_3d) == pytest.approx(float(value_2d), abs=1e-9)
+    assert float(value_mtx) == pytest.approx(float(value_2d), abs=1e-9)
+
+    # A loss whose documented contract is 2-D must not be broken by the promotion.
+    w_single = PITLossWrapper(SingleSrcNegSDR("sisdr"), pit_from="pw_pt", threshold_byloss=False)
+    value_single = w_single(est, ref)
+    assert torch.isfinite(value_single)
+    assert float(value_single) == pytest.approx(float(value_2d), abs=1e-9)
