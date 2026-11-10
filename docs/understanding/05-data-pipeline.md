@@ -1,6 +1,6 @@
 # 05 · 数据管线（datas / DataPreProcess / transform / JSON 索引）
 
-> **历史专题更正（2026-11-10）**：本文以旧版代码和当时实验为锚点，现状阅读[数据与训练专题](20261110-data-and-training.md)及[当前状态](../STATUS.md)。§3.6 的“90°随机增广”为笔误：该训练管线使用随机裁剪和水平翻转，不含 90° 旋转。无近场负样本（K=0）时，NASS 损失的负项为零，但正样本项仍存在；本文个别“对比损失不生效”的笼统表述应按此理解。
+> **历史专题更正（2026-11-10）**：本文以旧版代码和当时实验为锚点，现状阅读[数据集说明](20261110-datasets.md)、[数据与训练专题](20261110-data-and-training.md)及[当前状态](../STATUS.md)。§3.6 的“90°随机增广”为笔误：该训练管线使用随机裁剪和水平翻转，不含 90° 旋转。无近场负样本（K=0）时，NASS 损失的负项为零，但正样本项仍存在；本文个别“对比损失不生效”的笼统表述应按此理解。
 
 > 负责人：`data-pipe`（R1 初版，R3 修订）。范围：`look2hear/datas/{avspeech_dataset.py, avspeech_dataset_near.py, check_avspeech_dataset.py, transform.py, __init__.py}`、`DataPreProcess/{process_lrs23.py, generate_near_json.py}`、README 数据准备章节。
 > 约定：`[代码]`=源码直接确认；`[推断]`=由源码/文档合理推断；`[验证]`=实际运行确认（命令与日志见 §8）。行号以 `main@7576854` 为准。

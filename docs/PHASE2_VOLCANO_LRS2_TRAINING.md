@@ -1,6 +1,6 @@
 # LRS2-2Mix 论文配方训练（8 卡 / 火山引擎）Runbook
 
-> **2026-11-10 说明**：本手册介绍候选训练方案。先读[数据与训练详解](understanding/20261110-data-and-training.md)和[数据访问指南](DATA_ACCESS_GUIDE.md)；真实机器、可见 GPU、目标路径与训练授权须在启动前核对。
+> **2026-11-10 说明**：本手册介绍候选训练方案。先读[数据集说明](understanding/20261110-datasets.md)、[数据与训练详解](understanding/20261110-data-and-training.md)和[数据访问指南](DATA_ACCESS_GUIDE.md)；真实机器、可见 GPU、目标路径与训练授权须在启动前核对。
 
 > 目标：复现论文 LRS2-2Mix 列 **SI-SNRi 14.1 / SDRi 14.7**。
 > 背景：历史配置名含 `LRS3_complex_nonmoving`、epoch 714，但已发布权重的完整训练谱系尚待作者或原始训练记录确认；在 LRS2-2Mix 上的 7.03/7.71 是历史评测结果；

@@ -1,6 +1,6 @@
 # Falcon 复现报告（2026-11-09）
 
-> **2026-11-10 结果更新：**发布权重的训练语料及其与论文权重的身份仍待确认；RealSSA-Sim 的四通道均值与论文所述第一通道使用不同口径。默认视觉 LSTM 存在跨样本影响，历史近场增益与采样覆盖表述已有修正。完整结果与证据见[复现状态](STATUS.md)和[数据训练说明](understanding/20261110-data-and-training.md)。
+> **2026-11-10 结果更新：**发布权重的训练语料及其与论文权重的身份仍待确认；RealSSA-Sim 的四通道均值与论文所述第一通道使用不同口径。默认视觉 LSTM 存在跨样本影响，历史近场增益与采样覆盖表述已有修正。完整结果与证据见[复现状态](STATUS.md)、[数据集说明](understanding/20261110-datasets.md)和[数据训练说明](understanding/20261110-data-and-training.md)。
 
 > 对象：论文 *Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World Acoustic Scenes*（Falcon，arXiv:2610.32749v1，[cs.SD] 2026-10-23）与 `nanless/Falcon-fork`。
 > 代码基线：`dev_a800_2gpus:/root/code/github_repos/Falcon-fork`，HEAD `5371df7`（2026-11-08 16:35 UTC）；冻结 tag `repro-freeze-20261031` 指向 `6c1d5b7`，证据基线不等于 HEAD。环境 conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800-SXM4-80GB）。

@@ -22,7 +22,7 @@ Falcon 是音视频目标说话人提取模型：输入混合语音和目标人�
 - **RealSSA-Real：**full4 对 54 段得到 DNSMOS OVRL 2.7941、P808 3.3365；full3 因窗口起点错误作废。各次结果的窗口、通道与权重记录见[当前复现状态](../../STATUS.md)。
 - **数据与训练：**LRS2 的单方向与双方向索引使用不同的样本数；RealSSA-Sim near 负样本的构造和 8 卡训练需要对应数据、配置与运行记录。
 
-模型、数据、训练和应用的现行解释见 [模型与流式处理](../20261110-model-and-streaming.md)、[数据与训练](../20261110-data-and-training.md)及[评测与应用](../20261110-evaluation-and-apps.md)。
+模型、数据、训练和应用的现行解释见 [模型与流式处理](../20261110-model-and-streaming.md)、[数据集说明](../20261110-datasets.md)、[数据与训练](../20261110-data-and-training.md)及[评测与应用](../20261110-evaluation-and-apps.md)。
 
 ---
 

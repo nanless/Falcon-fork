@@ -1,0 +1,71 @@
+{
+  "cpu": "Intel Xeon Platinum 8336C @ 2.30 GHz",
+  "machine": "dev_a800_2gpus",
+  "threads_are_OMP_NUM_THREADS_and_MKL_NUM_THREADS": true,
+  "method": "Sequential runs; 10 warmup and 100 measured chunks each; synthetic pre-captured input, no tracking, network, capture or playback. Steady-state timing, not a paced test.",
+  "runs": {
+    "1": {
+      "scope": "session.push including CPU crop/normalization, transfer, model, and output copy; synthetic already-captured inputs; no tracking/network/capture/playback",
+      "checkpoint": "/root/tmp/falcon-streaming-check-20261110/random-v2.pt",
+      "training_status": "random_initialization",
+      "device": "cpu",
+      "gpu_name": null,
+      "torch": "2.8.0+cu128",
+      "python": "3.11.17",
+      "warmup_chunks": 10,
+      "chunks": 100,
+      "simulated_audio_seconds": 16.0,
+      "latency_ms": {
+        "p50": 68.181451,
+        "p90": 75.97842030000001,
+        "p95": 76.5306559,
+        "p99": 77.14862205,
+        "max": 77.170902
+      },
+      "memory_allocated_bytes": null,
+      "output_samples": 256000
+    },
+    "4": {
+      "scope": "session.push including CPU crop/normalization, transfer, model, and output copy; synthetic already-captured inputs; no tracking/network/capture/playback",
+      "checkpoint": "/root/tmp/falcon-streaming-check-20261110/random-v2.pt",
+      "training_status": "random_initialization",
+      "device": "cpu",
+      "gpu_name": null,
+      "torch": "2.8.0+cu128",
+      "python": "3.11.17",
+      "warmup_chunks": 10,
+      "chunks": 100,
+      "simulated_audio_seconds": 16.0,
+      "latency_ms": {
+        "p50": 19.3830065,
+        "p90": 20.5106374,
+        "p95": 20.8701794,
+        "p99": 21.67758971,
+        "max": 22.003964
+      },
+      "memory_allocated_bytes": null,
+      "output_samples": 256000
+    },
+    "8": {
+      "scope": "session.push including CPU crop/normalization, transfer, model, and output copy; synthetic already-captured inputs; no tracking/network/capture/playback",
+      "checkpoint": "/root/tmp/falcon-streaming-check-20261110/random-v2.pt",
+      "training_status": "random_initialization",
+      "device": "cpu",
+      "gpu_name": null,
+      "torch": "2.8.0+cu128",
+      "python": "3.11.17",
+      "warmup_chunks": 10,
+      "chunks": 100,
+      "simulated_audio_seconds": 16.0,
+      "latency_ms": {
+        "p50": 14.286258,
+        "p90": 15.1256834,
+        "p95": 15.29559305,
+        "p99": 15.65522925,
+        "max": 15.755739
+      },
+      "memory_allocated_bytes": null,
+      "output_samples": 256000
+    }
+  }
+}

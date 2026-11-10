@@ -1,0 +1,155 @@
+{
+  "date": "2026-11-11",
+  "scope": "CPU real aligned LRS2 utterance, two chunks, random checkpoint; only complete 8ms hops before audio perturbation are asserted",
+  "seed": 20261111,
+  "threads": 4,
+  "checkpoint": "/root/tmp/falcon-streaming-check-20261110/random-v2.pt",
+  "checkpoint_sha256": "b9b606d7f90d0cd40c7ac258748111bd0c41653364a0c0be636dd2af041481c8",
+  "model_sha256": "5ea864bd2e98a5e6690174a9c1642459ce6d1b203f677c0d6f98cf9252ab3758",
+  "audio": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+  "audio_sha256": "2f3d3e7ebf1f6089e625ce14c6d487aee5aff3e79843b2a3a4f2b35d3cebcce6",
+  "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+  "mouth_sha256": "416cef8430415e7f93dd6f16f3d425ed12b66185abb104f6d09d327983477386",
+  "rows": [
+    {
+      "kind": "audio",
+      "cut_samples": 1,
+      "prior_full_hop_samples": 0,
+      "prior_max_abs_delta": null,
+      "after_max_abs_delta": 0.9878320097923279
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 127,
+      "prior_full_hop_samples": 0,
+      "prior_max_abs_delta": null,
+      "after_max_abs_delta": 0.8299809694290161
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 128,
+      "prior_full_hop_samples": 128,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.9985706210136414
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 129,
+      "prior_full_hop_samples": 128,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8678933382034302
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 639,
+      "prior_full_hop_samples": 512,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8053162097930908
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 640,
+      "prior_full_hop_samples": 640,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.9621524214744568
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 641,
+      "prior_full_hop_samples": 640,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8328248262405396
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 1280,
+      "prior_full_hop_samples": 1280,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8471359014511108
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 2432,
+      "prior_full_hop_samples": 2432,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8722225427627563
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 2559,
+      "prior_full_hop_samples": 2432,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8003596663475037
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 2560,
+      "prior_full_hop_samples": 2560,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.9256324172019958
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 2561,
+      "prior_full_hop_samples": 2560,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.8391229510307312
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 3840,
+      "prior_full_hop_samples": 3840,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.825965940952301
+    },
+    {
+      "kind": "audio",
+      "cut_samples": 4992,
+      "prior_full_hop_samples": 4992,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.5823671221733093
+    },
+    {
+      "kind": "video",
+      "cut_frame": 1,
+      "cut_samples": 640,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.08320517092943192
+    },
+    {
+      "kind": "video",
+      "cut_frame": 2,
+      "cut_samples": 1280,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.07475684583187103
+    },
+    {
+      "kind": "video",
+      "cut_frame": 3,
+      "cut_samples": 1920,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.0950654000043869
+    },
+    {
+      "kind": "video",
+      "cut_frame": 4,
+      "cut_samples": 2560,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.09028278291225433
+    },
+    {
+      "kind": "video",
+      "cut_frame": 5,
+      "cut_samples": 3200,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.06958089768886566
+    },
+    {
+      "kind": "video",
+      "cut_frame": 7,
+      "cut_samples": 4480,
+      "prior_max_abs_delta": 0.0,
+      "after_max_abs_delta": 0.04382528364658356
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Interface reference only: none of the CLI scripts reads this file.
+# Set runtime options explicitly via the relevant command-line arguments.
+# The model validates fixed audio/video block sizes in code.
+sample_rate: 16000
+video_fps: 25
+chunk_samples: 2560
+video_frames_per_chunk: 4
+mouth_input_pixels: [88, 88]
+training:
+  loss: negative_si_snr
+  segment_chunks: 10
+  optimizer: Adam
+  learning_rate: 0.0003
+  crop_alignment_samples: 640
+  # Example indexed dataset: /root/data/falcon_lrs2_2mix/tr
+inference:
+  checkpoint: null
+  device: cpu
+  output_format: wav_float32

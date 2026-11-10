@@ -1,6 +1,6 @@
 # AGENTS.md — Falcon 项目工作约定
 
-> **2026-11-10 补充：**本文件保留环境和仓库操作约定。模型、数据、实验与测试的现状和证据边界以 [docs/STATUS.md](docs/STATUS.md) 及 [2026-11-10 审查记录](docs/verification/deepdive-20261110/审查记录.md) 为入口；下文带日期的测试数字是历史记录。本轮 CPU 复现套件为 166 passed / 2 skipped，两项因历史临时资产缺失跳过。
+> **2026-11-10 补充：**本文件保留环境和仓库操作约定。模型、数据、实验与测试的现状和证据边界以 [docs/STATUS.md](docs/STATUS.md)、[数据集说明](docs/understanding/20261110-datasets.md) 及 [2026-11-10 审查记录](docs/verification/deepdive-20261110/审查记录.md) 为入口；下文带日期的测试数字是历史记录。本轮 CPU 复现套件为 166 passed / 2 skipped，两项因历史临时资产缺失跳过。
 >
 > 默认 VideoBlock 在 batch>1 时有跨样本影响；`paper_causal=True` 会额外裁短 stride-2 的中间特征，`lookahead_ab.py` 的默认行比较同一次输出；跨版本比较另见状态页。发布的 LRS2 s1/s2 已包含混合比例，名义 gain 差不是逐条波形 RMS 比；10,000 次有放回抽样约覆盖 22.12% 方向条目、39.35% 不同混合（均为期望）。这些结论、条件和仍未完成的验证均见状态页。
 

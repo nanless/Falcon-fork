@@ -1,6 +1,6 @@
 # P2C 补充：`near.json` 的 s2 负样本来源与 `--near-mode other-speaker` 复现说明
 
-> **2026-11-10 更新：s1/s2 是已经混合缩放的源分量；ep86 与 ep124 的差异同时包含训练时长和配置变化。数据条件见[数据训练说明](../../understanding/20261110-data-and-training.md)。**
+> **2026-11-10 更新：s1/s2 是已经混合缩放的源分量；ep86 与 ep124 的差异同时包含训练时长和配置变化。单方向 `conversion_stats.json` 仍写着 `near_mode: fallback`，当天读到的 `near.json` 指向源包 `s2`。数据条件见[数据集说明](../../understanding/20261110-datasets.md)和[数据训练说明](../../understanding/20261110-data-and-training.md)。**
 
 > 任务：P0-3（`task-12`）· owner `data-pipeline` · 2026-10-24
 > 分支 `repro/phase2`（HEAD `2beec38`）；读取数据目录 `/root/data/falcon_lrs2_2mix`。

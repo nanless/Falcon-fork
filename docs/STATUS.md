@@ -4,7 +4,7 @@
 
 本页以仓库代码 `6e5c1b5` 和 2026-11-10 的检查为基线。更早的实验条件和结果见 [2026-11-08 深挖](understanding/deepdive-20261108/00-SYNTHESIS.md)与 [Phase 1/2 记录](verification/README.md)。
 
-想先理解项目，可看[中文 README](../README_zh.md)；模型、数据训练、评测与应用分别有[模型说明](understanding/20261110-model-and-streaming.md)、[数据训练说明](understanding/20261110-data-and-training.md)和[评测应用说明](understanding/20261110-evaluation-and-apps.md)。本轮逐项发现与可复跑材料见[审查记录](verification/deepdive-20261110/审查记录.md)。
+想先理解项目，可看[中文 README](../README_zh.md)；模型、数据集、训练、评测与应用分别有[模型说明](understanding/20261110-model-and-streaming.md)、[数据集说明](understanding/20261110-datasets.md)、[数据训练说明](understanding/20261110-data-and-training.md)和[评测应用说明](understanding/20261110-evaluation-and-apps.md)。本轮逐项发现与可复跑材料见[审查记录](verification/deepdive-20261110/审查记录.md)。
 
 ## 复现的四个层次
 
@@ -46,6 +46,8 @@ Falcon 是单目标说话人提取：混合语音和目标嘴部视频输入，�
 `evaluated_mac_params.py` 使用 ptflops 0.7.5 默认 PyTorch 后端，记录 2 秒音频模型约 **10.611 GMAC**，含该工具支持的 LSTM 计数，不含视觉前端。同口径的已有视觉记录为 **15.897 GMAC**（50 帧、88×88），相加约 **26.51 GMAC**。这些数字对应工具支持的算子：本轮探针中显式 `torch.matmul` 被计入，而 `torch.stft`、`torch.istft` 与部分运算符形式的逐元素计算未被计入。`flop_counter` 的另一组数字采用不同的算子计数口径。探针和输出见[计算量算子检查](verification/deepdive-20261110/falcon_ptflops_ops_probe_20261110.txt)。
 
 ### 数据、采样和损失
+
+五套开源数据的文件内容、本机目录，以及训练和测试实际使用的划分，见[数据集说明](understanding/20261110-datasets.md)。
 
 paper 版 LRS2 训练索引有 40,000 条目标方向记录，对应 20,000 个混合；验证和测试分别是 10,000 / 6,000 条方向记录。默认有放回抽 10,000 次时，按独立均匀抽样计算，期望覆盖约 **22.12% 的方向记录**，约 **39.35% 的不同混合**；实际采样结果和多卡丢批会改变数值。
 

@@ -4,7 +4,7 @@
 
 **离线评测整句一次前向，Studio 逐窗处理，Space 先录制，再把多个窗口组成批次处理。**三种模式的输入窗口、归一化统计和批处理方式各有差异，结果应按对应模式解读。
 
-项目结构、模型和训练流程分别见[项目入口](../../README_zh.md)、[模型与流式处理](20261110-model-and-streaming.md)和[数据与训练](20261110-data-and-training.md)。`docs/verification/` 按日期保存实验记录。
+项目结构、模型、数据集和训练流程分别见[项目入口](../../README_zh.md)、[模型与流式处理](20261110-model-and-streaming.md)、[数据集说明](20261110-datasets.md)和[数据与训练](20261110-data-and-training.md)。`docs/verification/` 按日期保存实验记录。
 
 ## 1. 从输入到结果
 

@@ -2,7 +2,7 @@
 
 Falcon 接收一段混合音频和目标说话人的嘴部画面，输出一条目标语音。两人同时说话时，视频告诉模型应该保留哪一个人的声音；输出是一条目标说话人的语音。仓库中常见的 `LRS2-2Mix` 指两人混合，当前六份根配置的 `n_src` 均为 1。直接改成 2 并不能得到可用的双输出：已有前向实验在掩码与解码器的通道重排处报错。
 
-本文解释默认 small 模型的数据流，以及离线评测、Studio 和 Space 如何使用它。代码基线为 `6e5c1b5`；数字标明计算工具、输入和实验范围。路径和调用以 [Falcon.py](../../look2hear/models/Falcon.py)、[Falcon_Contrastive.py](../../look2hear/models/Falcon_Contrastive.py)、[FRCNN 视频模型](../../look2hear/videomodels/frcnn_videomodel.py) 与 [默认配置](../../configs/Falcon.yml) 为准。下文引用的 2026-11-10 定向实验使用官方 small 权重，输入和设备条件列在对应结果旁。
+训练和测试用的音视频来自哪套数据、本机放在哪个目录，见[数据集说明](20261110-datasets.md)。本文解释默认 small 模型的数据流，以及离线评测、Studio 和 Space 如何使用它。代码基线为 `6e5c1b5`；数字标明计算工具、输入和实验范围。路径和调用以 [Falcon.py](../../look2hear/models/Falcon.py)、[Falcon_Contrastive.py](../../look2hear/models/Falcon_Contrastive.py)、[FRCNN 视频模型](../../look2hear/videomodels/frcnn_videomodel.py) 与 [默认配置](../../configs/Falcon.yml) 为准。下文引用的 2026-11-10 定向实验使用官方 small 权重，输入和设备条件列在对应结果旁。
 
 ## 1. 先看整体：模型如何利用嘴部画面
 

@@ -1,6 +1,6 @@
 # Data Pipeline 补充验证（R2-prep）：mono-eval P0 复现 + 评测入口数据路径契约
 
-> **当前实现：**本文记录 2026-10-21 的历史复现；mono 数据退化为标量的问题已在 Phase 1 修复。实验使用随机权重和替身依赖，当前实现见[数据与训练说明](../understanding/20261110-data-and-training.md)、[评测说明](../understanding/20261110-evaluation-and-apps.md)。
+> **当前实现：**本文记录 2026-10-21 的历史复现；mono 数据退化为标量的问题已在 Phase 1 修复。实验使用随机权重和替身依赖，当前数据见[数据集说明](../understanding/20261110-datasets.md)、[数据与训练说明](../understanding/20261110-data-and-training.md)、[评测说明](../understanding/20261110-evaluation-and-apps.md)。
 
 > 作者：`data-pipe`（应 Lead 要求，2026-10-21）。
 > 关联文档：`docs/understanding/05-data-pipeline.md`（§4.7 P0、§5.3/§5.4/§3.5）。

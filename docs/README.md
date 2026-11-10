@@ -9,9 +9,10 @@
 | 这个项目做什么，怎样开始 | [中文 README](../README_zh.md) / [English README](../README.md) | 输入输出、目录、环境、快速评测和主要限制 |
 | 现在复现到了哪里 | [复现状态](STATUS.md) | 权重与指标条件、已有结果、测试状态和未完成项 |
 | 模型怎样处理音频与嘴部 | [模型、融合与时间依赖](understanding/20261110-model-and-streaming.md) | 张量形状、两次音频块、视觉融合、因果性和计算量 |
+| 五套开源数据分别是什么、本机有哪一层 | [数据集说明](understanding/20261110-datasets.md) | LRS2、RealSSA-Sim、RealSSA-Real 的样本、目录、索引和空仓库 |
 | 数据、采样和训练怎样工作 | [数据准备与训练](understanding/20261110-data-and-training.md) | 索引、目标方向、near、损失、配置和检查点 |
 | 怎样评测和使用演示 | [评测、Studio 与 Space](understanding/20261110-evaluation-and-apps.md) | 整段/分窗/批处理、指标、输入格式、输出和风险 |
-| 数据与权重在哪里 | [数据访问说明](DATA_ACCESS_GUIDE.md) | 服务器路径、数据布局、访问条件和适用范围 |
+| 怎样下载、转换和核对访问条件 | [数据访问说明](DATA_ACCESS_GUIDE.md) | 历史获取记录、转换示例和许可；当前目录以数据集说明为准 |
 | 怎样准备论文版 8 卡训练 | [训练准备说明](PHASE2_VOLCANO_LRS2_TRAINING.md) | 配方、路径、提交前检查与未验证项；运行会占用资源 |
 | 数字和新发现从哪里来 | [2026-11-10 审查证据](verification/deepdive-20261110/README.md) | 本轮脚本、输入/权重哈希、结果和测试日志 |
 | 某个旧文档在哪里 | [全部文档清单](DOCUMENTS_INDEX.md) | 117 份原有 Markdown 和本轮入口，按用途与时点分组 |

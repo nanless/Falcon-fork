@@ -1,6 +1,6 @@
 # Falcon 项目完整理解（FINAL · Lead 汇总版）
 
-> **2026-11-10 更新：**本篇汇总 2026-10-22 前后的源码、实验与后续记录。现行模型、数据和评测口径见[状态页](../STATUS.md)、[模型专题](20261110-model-and-streaming.md)、[数据专题](20261110-data-and-training.md)、[评测专题](20261110-evaluation-and-apps.md)和[论文对照](deepdive-20261108/11-paper-alignment.md)。原始训练语料与论文评测协议仍待确认。
+> **2026-11-10 更新：**本篇汇总 2026-10-22 前后的源码、实验与后续记录。现行模型、数据和评测口径见[状态页](../STATUS.md)、[模型专题](20261110-model-and-streaming.md)、[数据集说明](20261110-datasets.md)、[数据专题](20261110-data-and-training.md)、[评测专题](20261110-evaluation-and-apps.md)和[论文对照](deepdive-20261108/11-paper-alignment.md)。原始训练语料与论文评测协议仍待确认。
 
 > 本文件是 8 个 subagent 多轮“理解 R1 → 交叉评审 R2 → 修订 R3 → 复核 R4”的汇总产物，由 Lead 写成。
 > 证据规范：`[代码]` 读源码、`[验证]` 本机实际运行（脚本/日志在 `docs/verification/`）、`[推断]` 推断。

@@ -11,6 +11,8 @@ This fork contains Falcon training and evaluation code, a local Studio applicati
 The [Chinese README](README_zh.md) is the detailed starting point. The following project guides explain the current implementation and the evidence behind it:
 
 - [Model, visual fusion, and time dependence](docs/understanding/20261110-model-and-streaming.md)
+- [160 ms incremental streaming model: training and inference](docs/FALCON_STREAMING_160MS.md) (Chinese)
+- [Datasets: what each open corpus contains and what is on this machine](docs/understanding/20261110-datasets.md) (Chinese)
 - [Data and training](docs/understanding/20261110-data-and-training.md)
 - [Evaluation, Studio, and Space](docs/understanding/20261110-evaluation-and-apps.md)
 - [Reproduction status](docs/STATUS.md) and [documentation index](docs/README.md)
@@ -66,7 +68,7 @@ PY=/root/miniforge3/envs/falcon/bin/python
 
 The November 10 check used Python 3.11.17, PyTorch 2.8.0+cu128, and two A800 GPUs. The [environment notes](AGENTS.md) explain the `typeguard<3` requirement and the local PESQ compatibility shim.
 
-Weights are typically cached under `/root/.cache/falcon_weights/`. Data and weights are not included in full in this Git repository; consult the [data guide](docs/DATA_ACCESS_GUIDE.md) and the providers' current access and licence terms.
+Weights are typically cached under `/root/.cache/falcon_weights/`. Data and weights are not included in full in this Git repository. The [dataset guide](docs/understanding/20261110-datasets.md) lists each corpus, the local directories, and which split training or evaluation actually used; the [data access guide](docs/DATA_ACCESS_GUIDE.md) keeps the download history and licence notes.
 
 ### A small CPU evaluation
 

@@ -1,6 +1,8 @@
 # Falcon 数据获取与访问指南（Phase 1 · T6）
 
-> **2026-11-10 阅读入口**：本文保留历史获取记录，访问权限、网络和容量须在实际运行时重新核对。[数据与训练详解](understanding/20261110-data-and-training.md)说明当前代码、混音能量审计及采样/损失边界；[评测应用](understanding/20261110-evaluation-and-apps.md)说明完整评测口径。以下提供下载、转换和训练的操作示例。
+> **2026-11-10 阅读入口**：本文保留历史获取记录，访问权限、网络和容量须在实际运行时重新核对。每套数据的样本、本机目录和训练/测试实际使用的划分见[数据集说明](understanding/20261110-datasets.md)。[数据与训练详解](understanding/20261110-data-and-training.md)说明当前代码、混音能量审计及采样/损失边界；[评测应用](understanding/20261110-evaluation-and-apps.md)说明完整评测口径。以下提供下载、转换和训练的操作示例。
+>
+> **本机目录名**：2026-11-10 存在的是 `/root/data/RealSSA-Sim` 与 `/root/data/RealSSA-Real`。小写的 `/root/data/realssa_sim`、`/root/data/realssa_real` 不存在。LRS2 单方向索引在 `/root/data/falcon_lrs2_2mix`，双向索引在 `/root/data/falcon_lrs2_2mix_paper`。单方向 `conversion_stats.json` 写着 `near_mode: fallback`，当天读到的 `near.json` 指向源包 `s2`。RealSSA-Sim 的训练和验证 tar 在冷端，本机转换目录只有测试集。
 
 > 适用分支：`repro/phase1`（commit 基线见 `docs/REPRODUCTION_PLAN.md`）。
 > 目标：把“复现需要哪些数据、从哪拿、能不能拿、拿到后怎么变成仓库可用格式、评测协议是什么”一次讲清，避免

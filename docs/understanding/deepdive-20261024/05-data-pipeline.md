@@ -1,6 +1,6 @@
 # 05 深挖 · 数据管线与数据资产（LRS2-2Mix / RealSSA-Sim / RealSSA-Real）
 
-> **2026-11-10 校正：** 下文是历史数据分析和当时运行计划。full3 已作废，应使用 full4；文件名增益与源信号能量共同决定实际声能；ep86 与 ep124 的比较同时涉及训练时长和损失设置。§6 旧命令可能覆盖现有 near 索引、重建数据或启动训练，且 `--proxy` 已非现行参数；阅读[数据和训练说明](../20261110-data-and-training.md)、[复现状态](../../STATUS.md)与[现行数据指南](../../DATA_ACCESS_GUIDE.md)，不要直接照搬。
+> **2026-11-10 校正：** 下文是历史数据分析和当时运行计划。full3 已作废，应使用 full4；文件名增益与源信号能量共同决定实际声能；ep86 与 ep124 的比较同时涉及训练时长和损失设置。§6 旧命令可能覆盖现有 near 索引、重建数据或启动训练，且 `--proxy` 已非现行参数；阅读[数据集说明](../20261110-datasets.md)、[数据和训练说明](../20261110-data-and-training.md)、[复现状态](../../STATUS.md)与[现行数据指南](../../DATA_ACCESS_GUIDE.md)，不要直接照搬。
 
 > 小组：Falcon 项目"理解 + 模型复现规划"深挖 · 成员 `data-pipeline` · 任务 `task-5`
 > 仓库：`/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`（2026-10-24）

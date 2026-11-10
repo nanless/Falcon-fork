@@ -1,0 +1,25 @@
+{
+  "scope": "session.push including CPU crop/normalization, transfer, model, and output copy; synthetic already-captured inputs; no tracking/network/capture/playback",
+  "checkpoint": "/root/tmp/falcon-streaming-check-20261110/random-v2.pt",
+  "training_status": "random_initialization",
+  "device": "cuda:1",
+  "gpu_name": "NVIDIA A800-SXM4-80GB",
+  "torch": "2.8.0+cu128",
+  "python": "3.11.17",
+  "warmup_chunks": 10,
+  "chunks": 500,
+  "simulated_audio_seconds": 80.0,
+  "latency_ms": {
+    "p50": 4.9444680000000005,
+    "p90": 5.4451355,
+    "p95": 5.693334599999998,
+    "p99": 5.98110963,
+    "max": 6.929196
+  },
+  "memory_allocated_bytes": {
+    "first": 48343040,
+    "last": 48343040,
+    "max": 48343040
+  },
+  "output_samples": 1280000
+}

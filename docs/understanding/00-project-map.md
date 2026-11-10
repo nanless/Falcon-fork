@@ -1,6 +1,6 @@
 # 00 · 项目全景图（Lead 初版，v0，待各子系统文档校正）
 
-> 本文件记录 R1 前对 `7576854` 的初步项目地图。后续代码核查与实测见[当前状态](../STATUS.md)、[模型与窗口专题](20261110-model-and-streaming.md)、[数据与训练专题](20261110-data-and-training.md)及[评测与应用专题](20261110-evaluation-and-apps.md)。
+> 本文件记录 R1 前对 `7576854` 的初步项目地图。后续代码核查与实测见[当前状态](../STATUS.md)、[模型与窗口专题](20261110-model-and-streaming.md)、[数据集说明](20261110-datasets.md)、[数据与训练专题](20261110-data-and-training.md)及[评测与应用专题](20261110-evaluation-and-apps.md)。
 
 ## 1. 一句话
 
