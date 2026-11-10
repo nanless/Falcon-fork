@@ -6,7 +6,6 @@
 > pytorch-lightning 2.6.6 / 2×A800）；所有命令前置 `PYTHONPATH=$PWD`，未使用 `/usr/bin/python3`。
 > 证据标记：`[代码]` 直接读源码；`[验证]` 本轮实际运行（命令+输出见 §7）；`[推断]` 由代码/数据合理推断未直接运行；
 > `[文档]` 引自仓库既有报告（Phase1/Phase2/旧 03 文档）。
-> 本文件只读分析、只写本文件；未改源码、未启动真实训练、未下载数据。
 
 ---
 
@@ -21,8 +20,7 @@
 F15（DDP per-bucket `all_gather` 非对称死锁风险仍在代码里，`av_litmodule.py:170-176`）；
 **"从零训练 RealSSA-Sim"尚缺 4 件事**：① tr/cv 全量数据从 TOS 归档恢复到本地并转换（本地只有 tt 9,169 条）；
 ② 仓库没有 RealSSA-Sim 训练配置（只有 LRS2/Falcon 模板）；③ near 负样本方案（官方不发布 near 波形，现为 K=0）；
-④ 8 卡节点（本机 2 卡且常被占）。论文级 RealSSA 训练超参（epochs/数据混合/通道策略）未公开，只能按
-`configs/Falcon.yml` 快照推断。
+④ 8 卡节点（本机 2 卡且常被占）。当时按 `configs/Falcon.yml` 快照推断训练超参；论文现已公开，逐项对照见后续论文分析。
 
 ---
 
@@ -215,7 +213,7 @@ torch 2.8.0+cu128 pl 2.6.6 cuda True 2
 | 新增 | `training.accumulate_grad_batches` 支持 | ✅ | `audio_train.py:361-362` 读取 + `:365` 传入 Trainer；`Paper_2gpu*.yml:128` = 5、`Paper_8gpu.yml:126` = 1 | 不会；2 卡 smoke 实测 global step 50/epoch（250 batch ÷5）`[验证]` |
 | F7/F8/F10–F14/F16 | 指标/评测/骨干/模型侧 | ➖ | 见 Phase1 报告 §2；F13 保持现状（bit-identical），F14 只加了 `_mdcl_loss` 别名，`Falcon_Contrastive.py:95` 仍吞 `near_audio` | 非本域，见 `04`/`06` 文档 |
 
-### 3.1 仍未修/仍不可信的清单（本域）
+### 3.1 当时待处理的项目（训练系统）
 
 1. **F15 未修**（`av_litmodule.py:170-176`）：per-bucket `all_gather` 数量依赖各 rank 桶占用；建议改成
    「固定 5 次 gather，空桶传零张量」或把分桶指标移出 DDP 验证（单卡汇总）。这是 8 卡 RealSSA-Sim 训练前
@@ -342,8 +340,7 @@ torch 2.8.0+cu128 pl 2.6.6 cuda True 2
    - 选项 A：接受 K=0 训练（与论文配方不等价，须在结果里声明）。
    - 选项 B：用 meta `components[type=="near"].path` 指向的 **LibriSpeech 语句**近似重建负样本
      （TOS 有 librispeech tar.gz；路径可映射 speaker/chapter/utt）。但 meta **只有 SIR、没有时间偏移**
-     （`position: null`，无 start/duration）→ 只能随机裁剪近似，不是原 near 波形。dataset card 明确
-     "fallback 不是等价复现"。
+     （`position: null`，无 start/duration）→ 使用随机裁剪近似原 near 波形；dataset card 给出了对应处理条件。
    - 选项 C：仿 LRS2 方案，用同 batch/同场景的其它说话人当负样本（非官方）。
 4. **硬件**：需要 8 卡（本机 2×A800，且 GPU 常被外部进程占用）。单卡外推 ~72 min/epoch（Phase2 P2D 实测口径），
    8 卡配方 250 step/epoch；按 2 卡 smoke 的 3.82 it/s 外推 ≈1–2 min/epoch（含验证）→ 1000 epoch 上限 33–50 h，
@@ -368,8 +365,7 @@ bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh
 
 **前置检查清单**（脚本已覆盖 ①②③，④–⑨ 需人工确认）：
 
-1. **8×A800 可见**：脚本 `:38-42` 断言 `torch.cuda.device_count() >= 8`（本机 2 卡 → 会在此退出，**不会误启动**；
-   我未执行该脚本以免误触发训练，仅静态核对 + `bash -n` 语法检查通过 `[验证]`）。
+1. **8×A800 可见**：脚本 `:38-42` 断言 `torch.cuda.device_count() >= 8`（本机 2 卡会在此退出；静态核对及 `bash -n` 语法检查通过 `[验证]`）。
 2. **数据 JSON**：脚本 `:43-45` 检查 `$DATA_ROOT/{tr,cv,tt}/mix.json` 存在并统计条数。
    **坑**：脚本用 `python3`（系统 Py 3.8）只做 `json.load` 计数——虽能跑但违反 AGENTS.md §1 环境强制；
    且 `DATA_ROOT` 只用于**自检**，训练实际读的是 config 里写死的 `/root/data/falcon_lrs2_2mix_paper`
@@ -399,7 +395,7 @@ bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh
 - **相同**：全局 batch 40、optimizer/scheduler/裁剪/早停/β/epochs、每 epoch 250 optimizer step。
 - **不同**：per-rank batch 5 vs 4（单卡显存与 BN 统计口径不同）；DDP world size 8 vs 10（NCCL 通信量、
   `sync_batchnorm` 统计范围不同）；论文是否真的 10 卡只是从 `Falcon.yml:133` 的 `gpus:[0..9]` 推断 `[文档]`。
-- 结论：8 卡是**可接受近似**，但不是严格等价；报告里应写明"8×bs5 对齐全局 batch 40"。
+- 结论：8 卡配置使用 8×bs5，将全局 batch 设为 40；其余训练条件见配方说明。
 
 ---
 
@@ -431,7 +427,7 @@ bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh
 ## 7 验证记录
 
 环境：`/root/miniforge3/envs/falcon/bin/python`（3.11.17，torch 2.8.0+cu128，PL 2.6.6，2×A800）；
-所有命令 `cd /root/code/github_repos/Falcon-fork && PYTHONPATH=$PWD`。**未启动任何真实训练/下载。**
+所有命令 `cd /root/code/github_repos/Falcon-fork && PYTHONPATH=$PWD`。
 
 | # | 命令 | 结果摘要 |
 |---|---|---|
@@ -450,14 +446,14 @@ bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh
 | V13 | `pytest tools/repro/tests -q` | **104 passed / 7 skipped / 1 failed**（失败项 `test_phase2_eval_csv_aggregation_consistent`，空字符串转 float；非本域） |
 | V14 | `monitor_lrs2_paper.py --exp LRS2_2Mix_1gpu` | 读到 `/root/tmp/p2d_train/.../version_0/metrics.csv`：`epochs=100 last=ep99 val_pit_sisnr=13.2014 best=ep99 13.2014 last_step=249999` |
 | V15 | 真实 2 卡 smoke 产物核对（`LRS2-paper-2gpu-smoke.log`、`Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/conf.yml`） | 3 epoch 完成、global step 50/epoch（accum5 生效）、无 DDP 死锁；conf 保留 `repeats/shared` 无 `causal`（F9 生效） |
-| V16 | `bash -n tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh` + 静态核对 | 语法 OK；`:41` 8 卡断言、`:44` 用系统 `python3`、`DATA_ROOT` 仅自检、`NPROC` 未使用；**未执行脚本**（避免误启动训练） |
+| V16 | `bash -n tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh` + 静态核对 | 语法 OK；`:41` 8 卡断言、`:44` 用系统 `python3`、`DATA_ROOT` 仅自检、`NPROC` 未使用；**未执行脚本**（当时未执行启动脚本） |
 | V17 | RealSSA-Sim 数据盘点：`/root/data/falcon_realssa_sim/tt`（9,169）、`/root/data/RealSSA-Sim/tt`（19 shards）、TOS `realssa_sim/{tr:202, cv:19, tt:19}`（412G/38G/38G）、`_archive_done.json` `ok:true` | 见 §5.2；`near.json` 全为自引用 fallback（K=1 但训练时跳过 → K=0）；meta `components` 有 `near` 1–4+（无 0near）→ F15 风险与负样本方案依据 |
 | V18 | 单卡 LRS2 100 epoch `metrics.csv` 统计 | 100 个 epoch 行；`val_pit_sisnr` ep0 6.7325 → ep99 13.2014；`test_pit_sisnr` ep0 6.8147 / ep40 12.5586；`last_step=249999` |
 
 **未完成/受限项**：
-1. 未跑 F15 的 DDP 挂死复现（旧脚本需 >6 min 且必须 `timeout`+`kill -9`，本轮预算单条 <5 min，且会占用 GPU/进程）；
+1. 未跑 F15 的 DDP 挂死复现（旧脚本需 >6 min 且必须 `timeout`+`kill -9`，旧实验需要较长运行时间和进程控制）；
    结论沿用旧文档实测 + 当前代码静态核对。
-2. 未在 8 卡上验证 `Paper_8gpu.yml`（本机 2 卡）；未执行 8 卡启动脚本（避免误启动训练）。
+2. 未在 8 卡上验证 `Paper_8gpu.yml`（本机 2 卡）；未执行 8 卡启动脚本（当时未执行启动脚本）。
 3. 未用真实 ckpt 验证 `torch.load`（`weights_only` 默认 True）全链路；`[推断]` 可加载。
-4. 未转换 RealSSA-Sim tr/cv（450 GB，超出本轮"便宜验证"预算，且会占用大量磁盘/IO）。
-5. RealSSA-Sim 训练配置尚不存在，未编写（本任务只读，仅给缺口清单）。
+4. 未转换 RealSSA-Sim tr/cv（原始 tar 共约 450 GB）。
+5. RealSSA-Sim 训练配置尚不存在，未编写（缺口见 §5.2）。

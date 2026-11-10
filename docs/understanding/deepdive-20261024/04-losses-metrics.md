@@ -1,28 +1,25 @@
 # 04 深挖：损失函数与评测指标（PIT / NASS / SI-SNR / SDR / PESQ / STOI / DNSMOS）
 
-> 任务：共享任务 `task-4`（深挖小组 `losses-metrics`）· 只读分析 + 只写本文件
+> **2026-11-10 校正：** 历史分析更新：full3 DNSMOS 已因窗口起点错误作废，应使用 full4；发布权重训练谱系尚待确认；数值差距涉及训练语料、训练过程和评测协议。RealSSA-Sim 的 SDRi/PESQ 有效数为 9,166，SI-SNRi 为 9,169；旧版 `SISNRi` 构造错误已修，静音参考另有非有限值边界。现行结论见[复现状态](../../STATUS.md)与[评测说明](../20261110-evaluation-and-apps.md)。
+
+> 任务：共享任务 `task-4`（深挖小组 `losses-metrics`）
 > 仓库/基线：`/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Py3.11.17 / torch 2.8.0+cu128 / fast-bss-eval 0.1.4 /
 > pesq 0.0.4 + `pypesq.py` shim / pystoi 0.4.1 / speechmos 0.0.1.1 / onnxruntime 1.31.0），命令前 `PYTHONPATH=$PWD`
 > 证据标记：`[代码]` 直接读源码并给出 file:line；`[文档]` 仓库内文档/README 记载；`[验证]` 本次实际运行；
-> `[推断]` 由代码+文档合理推断。**本任务不修改源码、不重跑全量评测、不联网、不 pip 安装。**
+> `[推断]` 由代码和文档推导。
 > 对照对象：`docs/understanding/04-losses-metrics-video.md`（旧文档，1191 行，基于 main `7576854` 的**修复前**代码）、
 > `docs/REPRODUCTION_PHASE1_REPORT.md`、`docs/verification/phase2/{P2A-report.md,P2F-report.md,P2F-results.json}`。
 
 ---
 
-## 0 一句话结论
+## 0 损失函数与评测指标
 
-**当前 `look2hear/metrics/core.py` 这一套定义（SI-SDR 去均值 + 源维 PIT；SDR=`-fast_bss_eval.sdr_pit_loss(
-filter_length=512)`；PESQ 宽带 16 kHz 且 `ref=clean, deg=estimate`；STOI `extended=False`）是唯一可信的评测口径**：
-用它复算官方权重在 RealSSA-Sim test 全量 9,169 条得到 **SI-SNRi 7.774 / SDRi 8.479**，与论文 7.7 / 8.2 分别相差
-**+0.07 / +0.28 dB**（同分布锚点闭合）；而 LRS2-2Mix 的 14.1 / 14.7 **不是指标口径问题**——指标/协议变体合计
-≤0.4 dB（P2-A 14 变体、P2-F 独立对拍 4.8e-8 dB），差的是 **LRS2-2Mix 训练出的 checkpoint**（发布 `falcon.pt`
-是 LRS3 训练，跨语料只有 7.03 / 7.71）。另有三条必须写进复现报告的“同名不同义”：
-① 训练 PIT 损失是 **负 SNR**（`pairwise_neg_snr`，`configs/Falcon.yml:117`），验证/评测是 **SI-SDR**，二者不可比；
-② 训练/验证用的 `val_pit_sisnr = −val_loss` 是 **SI-SDR(est)**，不是 **SI-SNRi**（没有减 mixture 基线）；
-③ NASS 对比损失在 RealSSA（无 near 波形）上 **K=0 → 只剩正项**；LRS2 用 s2 当 near 时 **K=1 → 代码跳过 softmax，
-β 退火完全失效**；MDCL 是死代码，**不在论文最终模型**里。
+评测实现位于 `look2hear/metrics/core.py`：SI-SDR 使用去均值和源维 PIT，SDR 使用 `fast_bss_eval.sdr_pit_loss`、滤波器长度 512，PESQ 使用 16 kHz 宽带设置，STOI 使用 `extended=False`。
+
+官方权重在 RealSSA-Sim 历史结果中得到 **SI-SNRi 7.774 dB、SDRi 8.479 dB**，有效分母分别为 9,169 和 9,166。论文报告 7.7 / 8.2 dB；两者的通道、权重和训练来源见[复现状态](../../STATUS.md)。LRS2-2Mix 的历史结果为 7.03 / 7.71 dB；P2-A 测试的指标或协议变体合计变化不超过约 0.4 dB。论文对应结果为 14.1 / 14.7 dB，差异涉及训练过程、权重、数据及评测协议。
+
+训练配置中的 PIT 使用负 SNR，验证和评测使用 SI-SDR。`val_pit_sisnr` 对应估计语音的 SI-SDR；SI-SNRi 还要减去混合音频的基线分数。NASS 在 K=0 时保留正样本项；K=1 时负项的 softmax 权重为 1，β 对该权重不起作用。
 
 ---
 
@@ -35,10 +32,10 @@ filter_length=512)`；PESQ 宽带 16 kHz 且 `ref=clean, deg=estimate`；STOI `e
 | `look2hear/losses/matrix.py` | 383 | `PairwiseNegSDR`（负 SI-SDR/SD-SDR/SNR 矩阵）、`SingleSrc/MultiSrcNegSDR`、多阶段/频域死损失 | ✅ `PairwiseNegSDR` 被 PIT wrapper 使用 |
 | `look2hear/losses/pit_wrapper.py` | 325 | `PITLossWrapper`（6 种 `pit_from`、阈值、全排列/匈牙利）、未完成的 `new_PITLossWrapper` | ✅ train/val 都用 `pw_mtx` |
 | `look2hear/losses/nass_contrastive_loss.py` | 81 | NASS 同空间说话人对比损失（正项 + hard-negative 负项） | ✅ `av_litmodule_nass_v2.py:53` |
-| `look2hear/losses/sisnri.py` | 42 | `SISNRi` 对象（SI-SNR 改善量） | ❌ 不可实例化（`NameError`），死代码 |
+| `look2hear/losses/sisnri.py` | 42 | `SISNRi` 对象（SI-SNR 改善量） | 历史版本构造报 `NameError`；现已修复，见页首校正 |
 | `look2hear/losses/mixit.py` | 309 | MixIT 包装器（4 估计/2 混合） | ❌ 全仓库无调用 |
 | `look2hear/losses/__init__.py` | 44 | 导出 9 个负 SDR 单例、PIT/MixIT、NASS、SISNRi | ✅ 训练入口 `getattr` 取单例 |
-| `look2hear/metrics/core.py` | 229 | **指标唯一入口**：SI-SDR/SI-SDRi/SDR/SDRi/PESQ/STOI | ✅ `allwrapper`/`wrapper` 全部走它 |
+| `look2hear/metrics/core.py` | 229 | 评测指标实现：SI-SDR/SI-SDRi/SDR/SDRi/PESQ/STOI | ✅ `allwrapper`/`wrapper` 全部走它 |
 | `look2hear/metrics/allwrapper.py` | 148 | `ALLMetricsTracker`：逐句 7 列 CSV + avg/std | ✅ `audio_visual_test.py:66,397` |
 | `look2hear/metrics/wrapper.py` | 103 | 旧 `MetricsTracker`（5 列、无 PESQ） | ❌ 无入口调用（保留 API） |
 | `look2hear/metrics/splitwrapper.py` | 115 | `SPlitMetricsTracker`（3 源 `one/two` 拆分） | ❌ 无入口调用（legacy） |
@@ -50,7 +47,7 @@ filter_length=512)`；PESQ 宽带 16 kHz 且 `ref=clean, deg=estimate`；STOI `e
 
 > 边界声明：视觉编码器（`look2hear/videomodels/**`）、训练系统（`look2hear/system/**` 的 optimizer/DDP）、
 > 数据管线（`look2hear/datas/**`）只在“接口契约”深度出现（本文件只讲它们如何喂损失/指标）。
-> 论文 RealSSA-vs-LRS2 的训练配方差距归 P2-D/训练域，本文件只给出“指标口径不是原因”的量化证据。
+> RealSSA 与 LRS2 的训练配方见 P2-D；本文量化所测指标定义变化对结果的影响。
 
 ### 1.2 四条关键路径（按调用方向）
 
@@ -258,7 +255,7 @@ SI-SDR”；不是“SI-SDR(est) 本身的绝对值”。论文表中的 SI-SNRi
   不再让一条坏样本炸掉整轮评测；`ALLMetricsTracker` 对 `nan` 用 `np.nanmean/np.nanstd`
   （`allwrapper.py:107-119`），与 `_merge_results` 的 pandas `mean/std(skipna)` 一致。
 - `[验证]` `est=2×ref` 这种退化输入上 `core.sdr` 返回 **nan**（fast_bss_eval 奇异），而 SI-SDR 仍给 116 dB；
-  这是“SDR 可能对退化样本 nan”的真实边界，不是 bug（有 warning + nan 处理）。
+  退化样本的 SDR 可能为 NaN，代码会发出 warning 并按 NaN 处理。
 - `[代码]` `wrapper.py` 的 `MetricsTracker` 也已重写为走 `core`（`wrapper.py:42-67`，`zero_mean=True` 的 SI-SDR、
   真 SDR），但**仍然没有入口调用它**（只保留 API）；`splitwrapper.py:41-42` 仍是
   `PITLossWrapper(pairwise_neg_snr)` 的 legacy 语义：列名 `one_snr/two_snr` 是**真 SNR（正号）不是 SDR**，
@@ -304,10 +301,10 @@ LRS2 2 s 冒烟值（OVRL 1.52/1.55）与 RealSSA-Real 长段（OVRL 2.79）不�
 guard**（`:381-437`，避免长录音 OOM），DNSMOS 对**拼接后的整段估计**计算（`:646`），并可选 `--baseline`
 对 mixture 同段计算（`:649`）。
 
-`[文档]` RealSSA-Real 54/54 段（channel=mean, align_tail=True, 窗口化推理）结果：
+`[文档]` 历史 full3：RealSSA-Real 54/54 段（channel=mean, align_tail=True, 窗口化推理）结果（因窗口起点错误已作废，保留以便追溯）：
 SIG **3.2209** / BAK **3.6921** / OVRL **2.7901** / P808 **3.3285**（mixture 基线 OVRL 1.7599 / P808 2.6765；
 `docs/REPRODUCTION_PHASE2_REPORT.md:98-107`）。论文 “Real-world DNSMOS 3.276”（`README.md:211` 表）
-**只有 P808 口径接近（3.3285，+0.05）**；若论文是 OVRL 口径则差 0.49 → DNSMOS 列口径仍未确定（见 §6）。
+论文采用 P.835；历史 full3 的 P808 3.3285 接近论文数值属于不同指标，现行 full4 结果见页首链接。
 
 ### 2.7 P2-F “独立实现 vs core.py 最大差 4.8e-8 dB” 抽验
 
@@ -328,20 +325,18 @@ sdr_i    : max 3.05e-12
 再用 P2F 的 `si_sdr − si_sdr_i` 反推基线 → 与重算的 `core.si_sdr(mix,s1)` **差 0.00e+00**（3/3 条）。
 ⇒ “4.8e-8 dB 量级”可信（它对应 `si_sdr_i` 这一列浮点累积)，且 P2-F 的 CSV/基线算术自洽。
 
-### 2.8 论文数字与我们的数字（同一口径下）
+### 2.8 论文数字与历史实测（口径差异见下）
 
 | 数据集 / 权重 | SI-SNRi | SDRi | 论文 | 差（SI-SNRi / SDRi） | 来源 |
 |---|---|---|---|---|---|
 | **RealSSA-Sim test 全量 9,169** / 官方 `falcon.pt` | **7.774** | **8.479** | 7.7 / 8.2 | **+0.07 / +0.28** | `docs/REPRODUCTION_PHASE2_REPORT.md:120-128` |
 | RealSSA-Sim test 前 1000（快速估计） | 7.935 | 8.754 | 7.7 / 8.2 | +0.24 / +0.55 | 同上 `:110-116` |
-| **LRS2-2Mix test 全量 3,000** / 官方 `falcon.pt`（跨语料） | 7.029 | 7.713 | 14.1 / 14.7 | −7.07 / −6.99 | `docs/REPRODUCTION_PHASE1_REPORT.md:101-105` |
+| **LRS2-2Mix test 全量 3,000** / 官方 `falcon.pt`（训练语料待确认） | 7.029 | 7.713 | 14.1 / 14.7 | −7.07 / −6.99 | `docs/REPRODUCTION_PHASE1_REPORT.md:101-105` |
 | LRS2-2Mix test 20 条锚点 | 7.911 | 8.547 | — | — | `P2A-anchor-first20.json:anchors_first20`（与 Phase-1 7.911/8.547 一致） |
 | LRS2-2Mix 训练复现（130 epoch，s2-near 微调） | 8.858 | 9.270 | 14.1 / 14.7 | −5.24 / −5.43 | `docs/REPRODUCTION_PHASE2_REPORT.md:58-67` |
 
-`[验证]` 论文 7.7/8.2 的“可复算性”只在 RealSSA-Sim 成立（同分布 ckpt）；它给出两个独立结论：
-(a) 我们的 SI-SDR/SDR 定义与论文一致到 +0.07 dB（SI-SNRi）；(b) 指标口径变体最多 ±0.4 dB（§2.9），
-SDRi 的 +0.28 落在实现差异内（filter length、BSS-Eval 版本）。
-因此 **14.1/14.7 的 7 dB 缺口不能用“指标定义”解释**（与 P2-A/P2-F 结论一致），只能归因于训练数据/ckpt。
+RealSSA-Sim 历史实测与论文数值接近；通道、权重和训练来源仍需核对。P2-A/P2-F 所测指标变体的幅度见 §2.9，SDRi 差值也可能受通道和实现影响。
+所测指标口径变体合计变化小于约 0.4 dB；14.1/14.7 与当前结果的差距还需结合训练数据、checkpoint 和评测协议分析。
 
 ### 2.9 指标/协议变体的量化（P2-A 与 P2-F 的原始数字）
 
@@ -362,7 +357,7 @@ SDRi 的 +0.28 落在实现差异内（filter length、BSS-Eval 版本）。
 `SI-SDR zero_mean=False −0.000484`；`SDR 512→2048 +0.257`；`change_sign=True` 恰为相反数；
 8 kHz 口径 `SI-SDR +0.111 / SDR +0.211`；`SI-SDR 尺度不变 1.3e-8`；估计/目标互相关最优 lag 恒 0。
 
-⇒ **所有“合理”口径变体合计 ≤0.4 dB**；能改变 7 dB 的只有数据/权重/训练，不是指标。
+⇒ 所测口径变体的总变化 **≤0.4 dB**；数据、权重和训练条件仍需分别对照。
 
 ---
 
@@ -383,10 +378,10 @@ SDRi 的 +0.28 落在实现差异内（filter length、BSS-Eval 版本）。
 | 11 | 评测无 CPU 回退（B6） | 旧 `:179-180` 强制 `cuda.set_device` | `:446-460` `_run_workers` 无 CUDA 时 `cpu` 单进程 | 代码 | ✅ **已修** |
 | 12 | `${VAR}` 占位符不展开（B3） | 旧无展开 | `audio_visual_test.py:107-134` `_expand_env_vars` + 未解析提示 | 代码 | ✅ **已修** |
 | 13 | 发布权重/裸 `state_dict` 加载（B5/Q1） | 旧 `:119-120` 硬要求 `ckpt["state_dict"]` | `:254-277` `_extract_state_dict` 兼容裸 dict；`weights_only=True` 优先 | Phase-1 真实权重验证 | ✅ **已修** |
-| 14 | `SISNRi()` 不可实例化 | `sisnri.py:6` `super(Loss, self)` NameError | 未修（仍是死代码） | `SISNRi()` → NameError | ❌ **未修（死代码）** |
+| 14 | `SISNRi()` 不可实例化 | `sisnri.py:6` `super(Loss, self)` NameError | 历史检查时未修；现已修复 | 历史 `SISNRi()` → NameError | ✅ **已修复，见页首校正** |
 | 15 | `new_PITLossWrapper` 不做 PIT 归约 | `pit_wrapper.py:75` 直接返回矩阵 | 未修（实验性，无调用者） | 返回 `[B,S,S]` | ❌ **未修（死代码）** |
 | 16 | `NASSContrastiveLoss` 不在 `__all__` | `losses/__init__.py:21` import、`:23-44` 缺它 | 未修（训练侧直接 from 模块 import，不影响运行） | 代码 | ❌ 未修（低危） |
-| 17 | `verify_metrics_04.py` 已过期 | — | 脚本按“修复前 + stub 环境”写；真实环境 `torch.allclose(float64,float)` 崩、且叙述的行/avg 符号结论已不适用 | exit=1 `RuntimeError` | ⚠️ **脚本需重写**（本任务不改他人脚本） |
+| 17 | `verify_metrics_04.py` 已过期 | — | 脚本按“修复前 + stub 环境”写；真实环境 `torch.allclose(float64,float)` 崩、且叙述的行/avg 符号结论已不适用 | exit=1 `RuntimeError` | ⚠️ **脚本需重写** |
 | 18 | `SingleSrc/MultiSrcNegSDR` 忽略 `EPS` 入参 | `matrix.py:246,292` 写死 1e-8 | 未变 | 代码 | ❌ 未修（影响 <1e-6 dB） |
 | 19 | MDCL 分支不可达 / 对比子类吞 `near_audio` | `Falcon.py:1482-1486`、`Falcon_Contrastive.py:94-95` | 仅加了 `_mdcl_loss` 别名（`Falcon.py:1467`）；仍不可达 | §2.3 | ⚠️ **半修**（不影响 NASS 主线） |
 | 20 | `splitwrapper` 仍是 legacy SNR（列名叫 snr，不是 SDR） | `splitwrapper.py:41-42` | 未变（无入口调用） | 实测正值同号 | ⚠️ 保留（legacy） |
@@ -447,16 +442,13 @@ SDRi 的 +0.28 落在实现差异内（filter length、BSS-Eval 版本）。
 **答：用当前 `look2hear/metrics/core.py` 这一套（SI-SDR 去均值 + PIT；SDR=fast_bss_eval 512-tap；
 PESQ wb；STOI ext=False；整句推理（LRS2 为 2 s clip，RealSSA-Sim 为对齐后的原生长度）；channel=mean）。** 理由：
 
-1. **同分布锚点闭合**：RealSSA-Sim test 9,169 条（发布权重）SI-SNRi **7.774** vs 论文 **7.7**（+0.07 dB），
-   这是唯一“数据+权重+指标”三者都在手且能对上的锚点；SDRi +0.28 dB 落在口径变体范围内
+1. **RealSSA-Sim 数值对照**：RealSSA-Sim test 9,169 条（发布权重）SI-SNRi **7.774** vs 论文 **7.7**（+0.07 dB），
+   这是一组历史数值对照，通道与训练权重身份仍需核实；SDRi +0.28 dB 落在口径变体范围内
    （P2-A：512→64 tap 差 −0.35；P2-F：512→2048 差 +0.26）。
-2. **独立实现对拍**：P2-F 独立实现 vs core 4.8e-8 dB；本次再抽验通过（§2.7）。定义错误不可能产生这种一致性。
+2. **独立实现对拍**：P2-F 独立实现 vs core 4.8e-8 dB；本次再抽验通过（§2.7）。这一对拍验证了两套实现对所测样本的数值一致性。
 3. **协议变体上界 ≤0.4 dB**：即使把口径全换成最有利的变体，LRS2 的 7.03 也只能到 ~7.4，离 14.1 差 ~6.7 dB；
    RealSSA-Sim 的 7.774 也不会变成 14（数据集不同，不能这样比，但说明口径不是数量级因素）。
-4. **14.1/14.7 的不可复现原因是 ckpt**：发布 `falcon.pt` 训练集为 LRS3（`Experiments/checkpoint/Falcon/
-   conf.yml:99-102`），LRS2 列是论文按 benchmark 训练（`README.md:228` “under our training protocol”）；
-   我们 LRS2 自训 130 epoch 只到 8.858/9.270（单卡 bs4，对比论文 10×A800/bs40/1000 epoch）。
-   ⇒ 比较 14.1/14.7 必须用 **LRS2-trained ckpt + 同一 core.py 口径**；否则应标“跨语料结果”。
+4. **14.1/14.7 的差异需要联合核对训练和评测协议**：`conf.yml:99-102` 提供 LRS3 配置线索，但发布权重的实际训练语料尚待确认。LRS2 自训 130 epoch 结果为 8.858/9.270；论文训练配置见 §8。比较时需记录权重来源、数据和指标实现。
 
 ### 5.2 训练损失与评测指标“同名不同义”的处置
 
@@ -485,7 +477,7 @@ PESQ wb；STOI ext=False；整句推理（LRS2 为 2 s clip，RealSSA-Sim 为对
 - **RealSSA 上无法忠实复现论文的对比损失负样本设置**：README 明确说 “The original negative-speaker
   contrastive training setup requires those source signals”，而 RealSSA 元数据里的源路径不可下载
   （`README.md:87`）。若在 RealSSA-Sim 上训练，NASS 实际退化为“正样本对齐”，**这必须写进复现差异声明**。
-  好消息是：官方发布权重本身就是 RealSSA 训练分布，推理侧 7.774/8.479 已复现，训练侧差异暂不影响该结果。
+  官方发布权重的训练来源待确认；7.774/8.479 是历史推理评测结果，通道协议见页首。
 - **K=1 时 β 退火是 no-op**（`nass_contrastive_loss.py:68-69`）：LRS2 s2-near 实验里 β 0→1/200 只是配置装饰，
   不能把增益归因于“hard negative 加权”；增益来自正项 + 单个硬负样本的 margin 项。若想做 β 消融，必须构造
   K≥2 的负样本（如多条 near 或 batch 内负样本），否则消融无意义。
@@ -503,9 +495,9 @@ PESQ wb；STOI ext=False；整句推理（LRS2 为 2 s clip，RealSSA-Sim 为对
 - **短音频口径不可比**：2 s clip 会被 speechmos 循环拼接到 16 s、取 7 个 9.01 s 窗均值（本次实测
   窗数=7；1 s/2 s 拼接后同为 16 s/7 窗，9.01 s 单窗 OVRL 与 2 s 差 −0.118）。因此 `P2E-dnsmos-lrs2-smoke.csv` 的 2 s OVRL（1.52/1.55）
   不能与 RealSSA-Real 长段（2.79）或论文 3.276 直接比；**能比的是同长度/同拼接规则的数值**。
-- **论文 3.276 的列名未定**：我们 RealSSA-Real（54 段、channel=mean、align_tail、窗口化推理）
+- **历史 full3 指标记录（已作废）**：我们 RealSSA-Real（54 段、channel=mean、align_tail、窗口化推理）
   P808 **3.3285**（+0.05）、OVRL **2.7901**（−0.49）、SIG 3.2209、BAK 3.6921。
-  `[推断]` 论文 “DNSMOS 3.276” 更像 **P808**（或另一种 OVRL 模型），必须在论文/作者确认前**同时报 OVRL 与 P808**。
+  论文已确认采用 P.835；P808 为另一指标。
 - **channel / align_tail / windowed-vs-whole 三个口径必须一起报**：RealSSA-Real native stereo，
   `channel=mean` 是默认但论文未声明；`align_tail=True` 会丢最多 ~70 ms 尾部；分离是 2 s 窗/0.5 s hop/80 ms
   guard 的窗口化推理（整段前向 OOM），而 LRS2/RealSSA-Sim 评测是整句 2 s clip（无窗口拼接）。
@@ -534,11 +526,11 @@ PESQ wb；STOI ext=False；整句推理（LRS2 为 2 s clip，RealSSA-Sim 为对
 | Q3 | 论文训练损失？ | **论文 = −SI-SNR**（App D Table 16）；仓库 `pairwise_neg_snr` 与 β/200 属偏离配方（见 §8） | 已解决（仓库待切 v2 配置） |
 | Q4 | 论文 PESQ 是 wideband 还是 narrowband、是否用 `extended` STOI | 我们用 wb + `extended=False`（`core.py:196-217`）；PESQ 传反会差 0.06~1.69 MOS | 作者/论文 |
 | Q5 | 论文 RealSSA-Sim 通道选择？ | **论文 = channel-1（ch0）**；我们 mean（7.774/8.479）与 ch0（7.977/8.452）均已评测，差 <0.3 dB | 已解决 |
-| Q6 | 论文 LRS2-2Mix 的训练配方与对应 ckpt | 发布 ckpt=LRS3（`conf.yml:99-102`）；GitHub issue #1 已问；P2-D 训练中 | 作者/P2-D |
+| Q6 | 论文 LRS2-2Mix 的训练配方与对应 ckpt | 配置有 LRS3 线索，发布权重训练语料待确认；GitHub issue #1 已问；P2-D 历史结果见 §2.8 | 作者/P2-D |
 | Q7 | 原始训练 near.json 的 K 分布（决定 NASS 负项与 β 是否真的起作用）| 发布权重是推理产物，无法反推；LRS3 数据不可得 | 作者/数据 |
 | Q8 | speechmos 内置 ONNX 与“论文用 DNSMOS 官方实现”的数值一致性 | 只有 sha256 记录（§2.6）；不同实现/版本可差 0.1~0.3 MOS | 作者/复算 |
 | Q9 | MDCL 是否是论文消融的一部分 | 代码/配置/发布快照都不走 MDCL（§2.3）；论文未公开 | 作者/论文 |
-| Q10 | `docs/verification/scripts/verify_metrics_04.py` 的维护归属（已过期，本任务无权改） | 真实环境 exit=1；其断言基于修复前代码 | Lead/Phase-2 QA |
+| Q10 | `docs/verification/scripts/verify_metrics_04.py` 的维护归属（已过期） | 真实环境 exit=1；其断言基于修复前代码 | 维护评测脚本 |
 
 ---
 
@@ -555,7 +547,7 @@ PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.metrics, look2hear.l
 # -> imports OK（timm 只有 FutureWarning）
 ```
 
-### 7.2 本次实际运行（全部 CPU，未用 GPU，未联网）
+### 7.2 本次实际运行（CPU）
 
 | # | 命令 | 结果 | 耗时 |
 |---|---|---|---|
@@ -567,10 +559,9 @@ PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.metrics, look2hear.l
 | ⑥ | `sha256sum .../speechmos/dnsmos_models/*.onnx` | 与 `P2E-dnsmos-synthetic.json` 四条 sha256 完全一致 | <1 s |
 | ⑦ | `$ENV -m pytest tools/repro/tests/test_metrics.py -q` | **8 passed in 4.35 s**（解析值 ±0.05 dB、SDR 对拍、PESQ/STOI 实参顺序、CSV 行/聚合一致） | 4.35 s |
 
-> 未做（受任务约束/成本）：不重跑 `audio_visual_test.py` 全量评测、不重跑 P2-A/P2-F 的 200/3000 条 GPU 推理、
-> 不下载任何模型/数据；P2-A/P2-F 的数字直接引用其 JSON/日志并做算术/小步抽验。
+> P2-A/P2-F 的数字引用原 JSON/日志，并做算术和小样本抽验。
 
-### 7.3 临时脚本（未写入仓库，“只写一份文档”约束）
+### 7.3 临时脚本
 
 `/tmp/lm/deepdive_verify.py` 的核心可复现片段（可直接在 repo 根运行）：
 
@@ -598,23 +589,21 @@ print(tr, core.si_sdr(2*ref, ref))               # 0.000 dB（SNR） vs 116.191 
 
 ### 7.4 与旧文档/P2 报告的证据对照说明
 
-- 本文件所有 `[验证]` 数字都给出了命令与输出摘要；临时脚本未入库（遵守“只写一份文档”）。
+- 本文件所有 `[验证]` 数字都给出了命令与输出摘要；临时脚本路径见 §7.3。
 - 旧文档 `docs/understanding/04-losses-metrics-video.md` 的 §2.1（损失数学）、§2.1.3（PIT）、§4.1（训练/验证
   口径不同）仍然成立，可直接沿用；§2.2（tracker）、§3.4 B8/B9、§4.6 P0-2、§6 A23–A25 已被 Phase-1 修复**推翻**，
   引用旧文档时必须以本文件 §2.4/§3 为准。
-- P2-A/P2-F 报告与本文件结论同向：**指标/协议最多解释 0.4 dB；RealSSA-Sim 7.7/8.2 是可信锚点；LRS2 14.1/14.7
-  缺的是 LRS2-trained ckpt**。本文件新增的三个训练侧结论（训练 SNR ≠ 评测 SI-SDRi、NASS K=0/K=1 与 β 失效、
+- P2-A/P2-F 报告与本文件结论同向：所测指标变体约 0.4 dB 以内；RealSSA-Sim 与论文数值接近，权重来源与评测协议仍需核对。本文件新增的三个训练侧结论（训练 SNR ≠ 评测 SI-SDRi、NASS K=0/K=1 与 β 失效、
   MDCL 死代码）应并入最终复现报告。
-```
 
 ## 8. 2026-10-30 论文公开后的校正（arXiv:2610.32749）
 
 - **DNSMOS 口径确定**：论文 “Real-world DNSMOS” 引用 **P.835**（非 P.808），单值 3.276 属 RealSSA-trained ckpt；
-  同一官方 `falcon.pt` 上我们的 P.835 OVRL 2.7901 不可与之比（P808 3.3285 是巧合）。
+  历史 full3 P.835 OVRL 2.7901 因窗口起点错误作废；full4 结果见页首链接。
 - **训练损失**：论文 App D Table 16 明示 **L_recon = −SI-SNR**、λ_spk=1.0、margin 0.5、**τ 0→1 线性退火跨前 1000 epoch**、
   8×RTX3090、bs 4/GPU（global 32）、seed 42；仓库 `configs/Falcon.yml` 的 `pairwise_neg_snr` 与 β/200 epoch 属偏离配方，
   复现报告必须声明该差异。
 - **RealSSA-Sim 评测通道**：论文用 **channel-1**（对应代码 `--channel 0`），我们此前用 4ch mean；
-  通道差异量级待 ch0 复评给出（预计 ±0.1~0.3 dB，可能解释我们 +0.07/+0.28 的一部分）。
+  ch0 后续评测为 7.977/8.452，mean 为 7.774/8.479（有效数口径见页首）。
 - **near 负样本**：论文 App A.2 说明 near 干扰由 LibriSpeech 源按 RIR 仿真生成，metadata/脚本承诺发布 →
   “发布包无 near 波形”不等于不可复现，而是需要按论文参数重建（成本高，列为 P3 的备选方案）。

@@ -1,7 +1,9 @@
 # R7 终局验证 — Falcon-fork @ 6c1d5b7
 
+> **2026-11-10 复核提示：**本文记录 2026-11-08 的测试与工作区快照。本轮服务器 CPU 结果为 166 passed / 2 skipped，跳过项依赖缺失的历史临时文件；证据及完整条件见现行状态。见[复现状态](../../../STATUS.md)。
+
 只读验证。主机 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork`，解释器 `/root/miniforge3/envs/falcon/bin/python`，Node v22.23.3。
-**只读证明**：验证前后 `git status --short` 均为 **46 条**、`git diff --stat` 均为 **42 files changed, 2413 insertions(+), 478 deletions(-)**、`checkpoints/*.ckpt` 均为 **0**；未新增/删除任何跟踪或未跟踪条目（脚本只写入 `/tmp`）。
+验证前后 `git status --short` 均为 **46 条**、`git diff --stat` 均为 **42 files changed, 2413 insertions(+), 478 deletions(-)**、`checkpoints/*.ckpt` 均为 **0**；未新增/删除任何跟踪或未跟踪条目（脚本只写入 `/tmp`）。
 
 ## 0 可交付判定
 
@@ -15,7 +17,7 @@
 | 数字残留 | ❌ 当时 **9 个文件 17 处**把「无 GPU 166 passed / 2 failed」当作当前事实 → **已修**（现统一为有/无 GPU 均 168 passed） |
 | 判为**本轮引入** | 是。理由见 §3：使 CPU 转绿的两处修改（`test_studio_pytest_regression` 放宽 `skipped==2` 硬断言、指纹线程钉死）都在本轮未提交 diff 内，而"无 GPU 会 2 failed"的叙述也是本轮新写的 —— 属**轮内自相矛盾**，非历史遗留 |
 
-结论（当时）：**先改这一处口径即可交付**——**已改并复核**：`CUDA_VISIBLE_DEVICES= python -m pytest tools/repro/tests -q` → **168 passed / 0 failed**（170.39 s），有 GPU 同样 168 passed。原话保留：不改则交付物自带一条可被任何人 3 分钟证伪的错误陈述。
+结论（当时）：**先改这一处口径即可交付**——**已改并复核**：`CUDA_VISIBLE_DEVICES= python -m pytest tools/repro/tests -q` → **168 passed / 0 failed**（170.39 s），有 GPU 同样 168 passed。
 
 ## 1 八项实测
 

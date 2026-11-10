@@ -1,5 +1,7 @@
 # Falcon-fork 深挖轮 · Lead 基线事实（2026-11-08）
 
+> **后续复核：**本文是当时的工作基线。发布权重训练来源与论文 MAC 计数口径尚未确认；`paper_causal` 在 stride=2 和核长 1 下存在裁剪问题，不能据此推断修改几行即可获得 120 ms 延迟。具体实验条件见 [模型与流式处理说明](../20261110-model-and-streaming.md)。
+
 > 本轮子代理先读本文件。这里只写已核实的事实、口径和本轮的统一写法；领域细节由各子代理自己挖。
 > 2026-11-08 Lead 复核后补入三条统一事实：MACs 两把尺子、lookahead 三档、论文对齐；00–06 各篇以这三条为准。
 
@@ -73,7 +75,7 @@ tools/{repro/{phase2,tests},...}  docs/{understanding,reviews,verification,*.md}
 
 ## 4. 既有文档地图（可读，需校验）
 
-- `docs/STATUS.md` — 单一事实源（复现矩阵/口径/待办），最后更新 2026-10-31。
+- `docs/STATUS.md` — 复现状态汇总（复现矩阵/口径/待办），最后更新 2026-10-31。
 - `docs/understanding/deepdive-20261024/00-SYNTHESIS.md` + 01–09（上轮 9 子代理深挖）。
 - `docs/understanding/FINAL_PROJECT_UNDERSTANDING.md`、`PAPER_ALIGNMENT_20261030.md`、`THREE_ROUND_REVIEW_20261030.md`。
 - `docs/reviews/round{1,2}/*.md`（交叉评审）、`docs/verification/**`（脚本+日志+CSV 证据）。

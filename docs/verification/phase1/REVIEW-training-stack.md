@@ -1,14 +1,16 @@
 # 评审：Phase-1 训练栈改动（T1 `audio_train.py` + T2 `look2hear/system/`）
 
-> 评审人：`studio-backend`（task-16，**独立评审**，未参与实现、未修改源码）
-> 分支：`repro/phase1` @ 基线 `689555c`（未 commit）。评审对象（评审时 sha256）：
+> **2026-11-10 更新：下文记录当时训练栈与 toy DDP 的检查，真实多卡条件聚合仍需实测；当前代码行为见[数据训练说明](../../understanding/20261110-data-and-training.md)。**
+
+> 评审人：`studio-backend`（task-16，**独立评审**）
+> 分支：`repro/phase1` @ 基线 `689555c`。评审对象（评审时 sha256）：
 > `audio_train.py` = `4857c2d6…ab89f39`；`look2hear/system/av_litmodule.py` = `35d76d3f…18558e3`
 > （`look2hear/system/` 下其余文件无改动；`git diff main` 的其它文件属于 T3/T4/T5，不在本评审范围）。
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / PL 2.6.6 / 2×A800）。
 > 独立验证脚本：`docs/verification/phase1/review_training_stack_checks.py`
 > 日志：`docs/verification/phase1/REVIEW-training-stack-checks.log`（**74 项检查全部 PASS**，含 2 个 smoke fit、2-GPU toy DDP、真实权重指纹）
 > 参考实现者报告：`T1-report.md`、`T2-report.md`（评审时已同步到最终代码，未发现与实现不符的结论）。
-> 声明：评审人只写 `docs/verification/phase1/`（本文件 + 检查脚本/日志 + `_ddp_smoke_toy.py`），未改源码、未 commit。
+> 检查脚本、日志和 `_ddp_smoke_toy.py` 位于 `docs/verification/phase1/`。
 > **增量复评（2026-10-21 17:06 UTC）：见文末 §7** —— `audio_train.py` 已由实现者按 P2 反馈更新为 409 行
 > （sha256 `71cb2bfb…5b155f`），§7 含 P2 闭环证据与重跑结果（T2 文件 hash 未变）。
 
@@ -147,7 +149,7 @@ checkpoint/best_model.pth 仍正常导出 → F2 的"无 logger 不崩"在真实
 | 不改训练数值/逻辑 | ✅ | §2.1（源码逐字节等价）+ §2.5（指纹全等） |
 | 冒烟训练可保存 checkpoint 且 loss 有数值 | ✅ | §2.4（2 steps、checkpoint/best_model/CSV） |
 
-## 4. 局限与未覆盖（诚实声明）
+## 4. 后续验证
 
 1. **真实 Falcon 2-GPU DDP 训练未运行**：只做了 toy DDP fit + 真实单卡 smoke。F15（per-bucket
    `all_gather` 在 DDP 下可能死锁）属另一个已知风险、与本改动无关；如集成阶段要跑 2 卡，建议先小步跑

@@ -1,5 +1,7 @@
 # 02 · 层与 DSP 实现（look2hear/layers、utils 数值工具、STFT 重复实现核对）
 
+> **2026-11-10 复核提示：**本文记录基于旧版本与 stub 环境的分析。默认 `VideoBlock` 的 LSTM 沿批次轴递归，视频时间轴的行为见现行模型专题；`cLNhw` 全窗统计亦使整模型不满足严格因果。当前模型及 `Separator` 已深拷贝配置，旧的调用方参数遭 `pop` 结论不再适用；`make_pad_mask` 已在仓库内实现。训练与 Studio 的 CPU 对照使用单个输入；Big、其他输入与后续版本可分别比较。运行条件和结论以 [当前状态](../STATUS.md) 为准。
+
 > 作者：`layers-dsp`；**R3 修订版**——R1 版 757 行/sha256 `ae01042f…`（被两份评审锚定），**R3 版共 895 行**，
 > R3 版 sha256 记录于 `docs/verification/r3-layers-dsp-anchor.md`（文件自哈希无法内嵌于自身）。R3 基于两份评审修订（见 §9.1）。
 > 证据基准 commit `7576854`。
@@ -257,7 +259,7 @@ dual-path RNN（chunk 内 + chunk 间），与 Falcon 的 `DualPathRNN`（频率
 | `DPRNN`(`:640-771`) | `unfold` 切块（`chunk_size`、`hop_size=chunk//2`，`:720-727`）→ `n_repeats` 个 block → 掩码 → `fold` OLA → 每源 mask；输入 `[B,F,T]`，输出 `[B,n_src,out_chan,T]` |
 | `DPRNNLinear`(`:774-908`) | `DPRNN` 的 Linear 变体；`:882` `self.net_out(output.transpose(1, 1))` 其中 **`transpose(1,1)` 是 no-op**，且 `nn.Linear` 用在 `[B,C,T]` 上只改最后一维 → 与 `net_gate` 的输出形状不匹配，**该 forward 无法正常工作**（纯死代码） `[代码]` |
 
-### 2.12 必答：两份 `stft.py` 是否同源复制？—— **是，逐字节同源（仅 2 处纯空白差异）**
+### 2.12 两份 `stft.py` 的差异：同源代码，2 处空白不同
 
 **diff 证据**（命令与完整输出见 `docs/verification/runs/layers-dsp-verify.log` 旁的终端记录，可直接复现）：
 
@@ -507,7 +509,7 @@ Falcon 的 "causal" 是**结构层面**的——时间轴的卷积 padding 方�
 但 **`cLNhw` 的 `GroupNorm(1,C)` 在全窗口上统计、`AudioBlock` 的下采样/融合卷积是 `causal=False`**，所以整个
 `Separator` **不是逐采样严格因果**。`[验证]`：把后半段音频放大 10×，`Separator` 输出前 120 帧仍变化 `1.7`
 （相对幅度与后段同量级），最终波形 `[0:8000]` 段 `max|Δ|=9.7e-04`、`[8000:16000]` 段 `1.65e-01`——存在真实未来信息泄漏。
-这就是为什么必须用 **2 s 窗口 + 右上下文** 的窗口化推理：算法在窗口内是"窗口级因果"，跨窗口靠 hop 与 80 ms guard 掩盖。
+Studio 采用 **2 s 窗口和 80 ms guard** 进行重叠推理；其输出切片和完整时间依赖见[模型与流式处理](20261110-model-and-streaming.md)。
 
 ### 4.3 TFRB 归属与实现细节（必答）
 
@@ -774,7 +776,7 @@ TFRB 用到的"底层"只有 `layers/normalizations.py` 的 `LayerNormalization4
 
 **环境**：`/root/.venvs/falcon/bin/python` = Python 3.10.18 + torch 2.8.0+cu128（CPU 运行）；
 stub `PYTHONPATH=$PWD/docs/verification/stubs:$PWD`（timm.DropPath、typeguard.check_argument_types）。
-**本轮未修改任何源码**（`git status` 仅新增 `docs/`）。
+**本轮源码保持原状**（`git status` 仅新增 `docs/`）。
 
 ### 8.1 R1 轮（初版证据）
 
@@ -801,7 +803,7 @@ PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
 | §[6b] | 解码器帧账本 | `251 → pad 253 → convT 253 → crop 252 → istft(length=32000)` |
 | §[7] | 全链因果性 | encoder 帧 `<120` 为 `0.000e+00`（R3 已指出：该证据只覆盖 conv 子层，**不能**推出 encoder 整体严格因果）；bottleneck 早期 `4.7e-05`（非 0）；separator 早期 `1.7`；最终波形 `[0:8000]` 段 `9.7e-04`、`[16000:]` 段 `6.6e+00` |
 | §[7b] | 解码器因果性 | `<15360` 采样严格 0；`[15360:16000)` 起 `6.3e-01`（iSTFT OLA 扩散；R3 已由 §[V2] 统一为串联口径） |
-| §[8] | 子模块因果性 | `DualPathRNN(dim4/dim3)`、`MHSA2D(causal=True)` 早期帧 `0.000e+00`；`MHSA2D(causal=False)` 早期 `5.1`；`cLNhw` 早期 `1.2e-03`（**仅 T=8 尖峰探针，不代表 2 s 窗口**，见 R3 §[V3]） |
+| §[8] | 子模块因果性 | `DualPathRNN(dim4/dim3)`、`MHSA2D(causal=True)` 早期帧 `0.000e+00`；`MHSA2D(causal=False)` 早期 `5.1`；`cLNhw` 早期 `1.2e-03`（**T=8 尖峰探针**，2 s 窗口的条件见 R3 §[V3]） |
 | §[9] | `DualPathRNN` 参数 | `out_proj`：dim4 `Linear(48,64)`、dim3 `Linear(72,64)`；默认 `rnn_type="Comba"` → `AttributeError` |
 | §[10] | 配置破坏性 | 构造后 `audio_params` 丢 `repeats`/`shared`，`video_params` 同理 ⇒ 必须 deepcopy |
 | §[11] | 编解码器归属 | `model.encoder.__module__ == "look2hear.models.Falcon"`，非 `layers.enc_dec` |
@@ -870,7 +872,7 @@ PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
 | P2-6 §8 日志/脚本行数不符 | **采纳** | §8 重写为 R1（脚本 403 行/日志 181 行）+ R3（190/80、87/40 行）两小节，行数与 `wc -l` 一致 |
 | P2-7 遗漏 VideoBlock(train) BN 非因果与 FRCNN ±80 ms | **采纳** | §4.2 表新增两行（视频分支 train/eval、FRCNN `±2帧=±80ms`），交叉引用 `04-losses-metrics-video.md`；§8-[V4b] 实测 eval=0 / train=4.8e-02、FRCNN 首变帧 28 |
 | R2-N1 PL 归因双向修正（R3 不可照抄 R2 否定） | **采纳** | 见 P2-3：保留"会拉入"、修正归因，并在 §4.7 注明 R2 否定不成立 |
-| R4 E15 全模型因果基线（首变采样 9612） | **部分采纳** | 该现象属 cLNhw 全局统计的下游表现，本版 §4.2 结论与之一致；未复跑 Lead 的 `verify_causality.py`（脚本不在本域，避免重复） |
+| R4 E15 全模型因果基线（首变采样 9612） | **部分采纳** | 该现象属 cLNhw 全局统计的下游表现，本版 §4.2 结论与之一致；本组未复跑另一组的 `verify_causality.py`，本组记录的结论方向一致 |
 | R2 评审 C1–C8 跨文档建议 | **采纳** | C1/C2/C4 见上；C3 用协议表（§4.2/A19）；C6 TFRB/GCI 映射保留（§1）；C7 80 ms 与 FRCNN 关系在 §4.2 交叉引用；C8 normalizations 26 行注释 diff 保留（A54） |
 | 01-R3 的"窗口级因果（window-causal）"统一表述 + §4.6-⑨ 五协议表 | **采纳** | §4.2 开头采用与 `01-model-core.md`（R3, 975 行, sha `afe00188…db0058`）一致的表述与三段论（STFT 8 ms / 对称卷积 456 ms / cLNhw 无界）；cLNhw 数字**全部保留并标注扰动协议**，与 01-R3 §4.6-⑨ 的五协议表口径对齐（单帧尖峰 T=8 / 波形×10 / 同分布替换，另加单通道 vs 全通道、T 长度两个维度），不在 FINAL 中只留单一数字 |
 

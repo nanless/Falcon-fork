@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史实验更新：随机裁剪和中心裁剪并不等价；采样率改为 8000 时，固定除以 16000 会使帧起点按样本数计算为正确值的一半。small/big 的视觉结构和形状相同，BN buffers 有差异；50 帧是所抽查数据的结果，全量数据的帧数分布需另行统计。计算量与论文是否同口径、guard 的设计意图仍需独立证据。详见[模型与流式专题](../20261110-model-and-streaming.md)及[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 # 03 视频前端与唇部 ROI 管线
 
 > 范围：`look2hear/videomodels/*`、`look2hear/datas/transform.py`、`DataPreProcess/`、`tools/repro/lrs2_2mix_to_falcon.py`、`studio/`、`space/` 中的一切 video/mouth 预处理，外加 FRCNN 权重实物。
@@ -54,7 +56,7 @@
 三处硬证据表明它不是模型输入：
 
 1. `configs/LRS2_2Mix.yml:6` 只把 `frcnn_128_512.backbone.pth.tar` 当文件名，`backbone_type: resnet`、无 `crop`/`resize` 参数；FRCNN 类也没有任何 crop/断言（`frcnn_videomodel.py:30-74`）。
-2. `tools/repro/extract_video_backbone.py:17-20` 明确写：`configs/Falcon.yml` 期望该文件在 `pretrain_zoo/`，**上游 README 只有 TODO**，是本仓库从 `falcon.pt` 里抽出来的，因此文件名沿用上游/作者口径，不代表输入尺寸。
+2. `tools/repro/extract_video_backbone.py:17-20` 明确写：`configs/Falcon.yml` 期望该文件在 `pretrain_zoo/`，**上游 README 只有 TODO**，是本仓库从 `falcon.pt` 里抽出来的，因此文件名沿用上游/作者口径，实际输入尺寸见配置。
 3. 实测把 `CenterCrop((128,512))` 塞进 transform 不报错，但输出 `(50,16,96)`——纯垃圾（§4-B）。若真是 128×512 输入，管线不可能静默产出这种形状。
 
 权重里也只有 `(64,1,5,7,7)` 的 3D 卷积核（§4-C），空间尺寸完全由输入决定。**结论：`128` 的来源未定，进 GAP**（§7-G1）。
@@ -84,7 +86,7 @@ view(B,Tnew,512).transpose(1,2) → (B, 512, T)   （frcnn_videomodel.py:84-85�
 
 - 时间维只有 `Conv3d` 的 kernel-5 参与，且 `stride=1, padding=2` ⇒ **T 不变**；`MaxPool3d` 时间 kernel=1、stride=1 ⇒ 也不降。故 `T' = T`。
 - 时间感受野：kernel 5 / stride 1 / pad 2 ⇒ 每个输出帧看输入 `[t-2, t+2]`，即 **±2 帧 = ±80 ms @25fps**。实测与推导一致（§4-J）。
-- 空间下采样共 4 次 ×2（Conv 1 次 + MaxPool 1 次 + layer2/3/4 各 1 次）= `/16`，从 88 → 5.5 → layer4 输入 6 → 输出 3（`ceil(6/2)`），所以 **88 与 96 都能算，但特征图不一样大**（3×3 都是 3×3 只在 88/96 这两个特定尺寸巧合成立：96/16=6→3，88/16=5.5→6→3）。
+- 空间下采样共 5 次 ×2（Conv 1 次、MaxPool 1 次、layer2/3/4 各 1 次），总步长为 32。按各层取整，88 和 96 的空间尺寸分别经过 `88→44→22→11→6→3` 和 `96→48→24→12→6→3`，最终特征图均为 3×3。
 - `relu_type` 影响参数量：`prelu` 比 `relu` 多 11,186,688−11,182,784 = **3,904** 个 PReLU 通道参数（64×1 + 16×2×… 由 BasicBlock `nn.PReLU(num_parameters=planes)` 累计，`resnet.py:45-46`）。
 
 ### 2.2 权重结构与加载（strict 是真的 strict）
@@ -104,7 +106,7 @@ meta = {"source_checkpoint": "falcon.pt", "source_architecture": "FalconSpeakerC
 - **默认 `strict=True`**（`:157`），缺键/多键/形状不符一律 `RuntimeError`（`:184-193`），随后 `model.load_state_dict(filtered, strict=True)` 并 `requires_grad=False`（`:195-197`）。实测 5 种失败路径全中（§4-N）。
 - 对照：`update_resnet_parameter`（`resnet_videomodel.py:112-125`）只剔除 `tcn` 后 `model_dict.update(update_dict)` 再整体 load —— **缺键不会报错**（缺的键保留随机初始化）；`update_light_parameter`（`:106-118`）连断言都没有；`update_wujian_parameter`（`:167-182`）缺键静默。**只有 FRCNN 这条是被加固过的（A2-2）**。
 - 推理侧不复用 `pretrain`：`audio_visual_test.py:310-326` 优先从 ckpt 里取 `video_model.*` 严格加载，取不到才回退到 pretrain，两者都无则报错。Studio 同理（`studio/falcon_runtime.py:188-207`，`video_config["pretrain"]=None`）。
-- `falcon.pt` 侧核对：662 键 = `audio_model.*` 525 + `video_model.*` **137**，`architecture=FalconSpeakerContrastive`、`epoch=714`；`falcon-big.pt` 也是 137 个视觉键、`trunk.layer4.1.bn2.weight` 同样是 `(512,)` ⇒ **big 的差异全在音频侧，视觉前端一模一样**（§4-C2）。这也是 `pretrained_vout_chan: 512` 在两个配置里都不变的原因。
+- `falcon.pt` 侧核对：662 键 = `audio_model.*` 525 + `video_model.*` **137**，`architecture=FalconSpeakerContrastive`、`epoch=714`；`falcon-big.pt` 也是 137 个视觉键、`trunk.layer4.1.bn2.weight` 同样是 `(512,)` ⇒ 两者视觉结构与张量形状一致，60 个 BN buffer 不同（§4-C2）。这也是 `pretrained_vout_chan: 512` 在两个配置里都不变的原因。
 
 ### 2.3 离线 mouth ROI 管线（数据侧，非本仓库代码）
 
@@ -213,7 +215,7 @@ source_mouth = pipeline(load_pt(...))[mouth_start : 50 + mouth_start]   (near:16
 - 帧数不足：**没有 pad**。切片短于 50 就返回短张量（Python 切片静默截断），随后 `collate_with_near` 的 `torch.stack` 会崩（`avspeech_dataset_near.py:40-41`）。当前不炸的唯一原因是**所有样本都被预处理成恰好 32000 样本**（`conversion_stats.json` 里三 split 的 `sample_lengths` 都只有 `{"32000": N}`，实测 mix.json 全长 32000，§4-H）。
 - 帧数超出：靠切片上界 `fps_len+mouth_start` 裁掉。
 - 评测集完全不切：`AVSpeechEvalDataset` 直接用整段 mouth（`avspeech_dataset.py:194-196`），因为评测样本也是 2 s。
-- 两个写死：`/16000`（`:168`）与 `*25`（`:78`）不随 `sample_rate`/帧率变化；`sample_rate=8000` 时 `mouth_start` 会算成 2 倍位置，`seg_len` 也只有 16000，静默错位。
+- 两个写死：`/16000`（`:168`）与 `*25`（`:78`）不随 `sample_rate`/帧率变化；`sample_rate=8000` 时 `mouth_start` 会算成正确位置的一半，`seg_len` 也只有 16000，静默错位。
 
 **模型层（fusion）**
 
@@ -280,7 +282,7 @@ nonzero pixel fraction: 0.8772
 frame-count over 25 files/split: {('cv', 50): 25, ('tr', 50): 25, ('tt', 50): 25}
 ```
 
-⇒ 三通道完全相同（`np.repeat` 复制的灰度），磁盘 3× 浪费；帧数恒 50。
+⇒ 样本三通道相同（`np.repeat` 复制灰度）；每个 split 抽查的 25 个文件均为 50 帧。
 
 ### B. transform 输出（`probe1.py` 续）
 
@@ -301,7 +303,7 @@ crop: 96x96 -> (88,88) center, delta=+/-4
 ```
 
 - 输出 dtype 是 **float64**（`Normalize` 里 `frames/255.0` 触发 numpy 提升），不是 float32。
-- `train` 管线的 `RandomCrop(88)` 与 `val` 的 `CenterCrop(88)` 在 96×96 上等价，因为 `96−88=8`，`random.randint(0,8)`；`HorizontalFlip(0.5)` 会**原地写** `frames[index]`（`transform.py:142-143`），对 uint8 输入无副作用，但会污染复用同一 array 的调用方。
+- `train` 管线的 `RandomCrop(88)` 从 0 到 8 随机选起点，`val` 的 `CenterCrop(88)` 固定起点 4，两者不等价；`HorizontalFlip(0.5)` 会**原地写** `frames[index]`（`transform.py:142-143`），对 uint8 输入无副作用，但会污染复用同一 array 的调用方。
 
 ### C. 权重结构（`probe2.py`）
 
@@ -477,10 +479,10 @@ nearest map first 12: [0,0,0,0,0,1,1,1,1,1,2,2]  last: [49,49,49,49,49]
 2. **`.pt` 是 3 通道复制**（`lrs2_2mix_to_falcon.py:224`），Dataset 再 `Grayscale(1)` 把它压回 1 通道（`avspeech_dataset_near.py:81`）。存储浪费 3×（1.35 MB vs 0.45 MB），14,773 个 tr 文件多占约 **13 GB**。这是为了让所有下游（含 `.npz`/Studio 单通道）共用一套形状约定。
 3. **Dataset 输出 float64**（§4-B）。`Normalize.__call__` 做的是 numpy 除法（`transform.py:73`），`uint8/255.0` → float64；`collate` 后 `mouth` 是 double，**显存/带宽翻倍**，直到 `litmodule` 里 `mouth_in.type_as(mixtures)` 才降为 float32（`av_litmodule_nass_v2.py:87`）。单测/自定义训练脚本若绕过 litmodule 会直接 `RuntimeError: expected scalar type Double but found Float`。
 4. **帧数不足没有保护**（`avspeech_dataset_near.py:169-174` 只切片）。数据集恰好全是 2 s 才不炸；换数据集（LRS3 原片 1–3 s 不等）会立刻在 `collate_with_near` 的 `torch.stack` 处崩。要复用得自己 pad/裁。
-5. **写死的 16000 与 25**（`near:78,168`）。`sample_rate=8000` 时 mouth 起点算成 2 倍偏移，静默错位——这类 bug 不报错只掉点。
+5. **写死的 16000 与 25**（`near:78,168`）。`sample_rate=8000` 时 mouth 起点算成正确偏移的一半，静默错位——这类 bug 不报错只掉点。
 6. **`F.interpolate(..., mode="nearest")` 无 `align_corners` 问题，但有"半帧"语义**：视频第 k 帧覆盖音频 `[k*5.02, (k+1)*5.02)`，第 0 帧对应音频帧 0–4，**不是中心对齐**。仓里所有 `interpolate` 都是 `mode="nearest"`（`Falcon.py:260,322-327,895`），全库 **`align_corners` 零出现**，所以不存在 `align_corners=True/False` 的经典坑。
 7. **`VideoBlock.stride=2` 是死参数**（`Falcon.py:900-976` 从未用 `self.stride`）。以为视频被降到 25 帧再融合的推断是错的：全窗口视频一直是 50 帧，50→251 全靠 fusion 插值。
-8. **非因果的 80 ms**：FRCNN 帧级看 `t±2`。所有"causal"表述只能落在窗口级；Studio 的 `GUARD=1280`（80 ms，`space/clip.py:23`）正好是这个感受野，二者是同一设计意图的两面。
+8. **非因果的 80 ms**：FRCNN 帧级看 `t±2`。所有"causal"表述只能落在窗口级；Studio 的 `GUARD=1280`（80 ms，`space/clip.py:23`）正好是这个感受野，两者数值相同，设计意图未确认。
 9. **RGB/BGR 有三套口径**：离线 `cv2.cvtColor(frame, COLOR_BGR2GRAY)` 作用在 **BGR** 帧上（`transform.py:65-66` + `crop_mouth_from_video.py:64` 注释 `## -- BGR`）；detectface 里又 `cv2.cvtColor(frame, COLOR_BGR2RGB)` 转给 PIL/MTCNN（`detectface.py:63`）；在线 JS 直接对 **sRGB** 做 BT.601 加权（`video-worker.js:92`）。因为最终都塌成单通道灰度，通道顺序只在"BGR2GRAY vs RGB2GRAY"这一步影响数值（差异约 R/B 权重互换），**但 `crop_mouth_from_video.py:180` 的 `sequence[...,::-1]` 分支（不转灰度时）会输出反序 RGB**。默认 `convert_gray=True` 掩盖了这个坑。
 10. **0-255 vs 0-1 三次转换**：npz/`.pt` 是 0–255 uint8 → transform `Normalize(0,255)` 变 0–1 → `Normalize(.421,.165)` 变 z-score。Studio 的 `preprocess_mouth`（`falcon_runtime.py:138-139`）与 `space/clip.py:79-80` 手工重写了这两步，**三处要同步**，任一处改动就会静默偏移。实测三者算法等价（都是 `[:,4:92,4:92]/255` 再减均值除方差）。
 11. **`infer_file.py` 的下限是 1 s 不是 2 s**：`extract()` 允许 `frames>=25`（`studio/infer_file.py:70-73`），此时音频只有 1 s、视频 25 帧，FRCNN 输出 `(1,512,25)`，fusion 插到 126 帧——**模型能吃，但分布外**（训练永远 50 帧）。文件模式与实时窗口模式的口径不同，对比结果时要标明。

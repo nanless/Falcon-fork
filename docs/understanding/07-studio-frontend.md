@@ -1,12 +1,13 @@
 # 07 Studio 浏览器前端（Falcon Studio Web）
 
+> **历史专题提示（2026-11-10）**：本文按旧代码版本记录；现行内容见[评测与应用专题](20261110-evaluation-and-apps.md)和[当前状态](../STATUS.md)。断言 A20 的“追踪丢失暂停”应限于追踪状态不允许推理时；已有 ROI 的丢脸场景可沿用旧 ROI 继续处理，见 A22。图示保留原稿快照入口。
+
 > 范围：`studio/web/` 全部非 vendor 文件（`app.js` 1165 行逐段读完、`audio-inspector.js`、`capture-worklet.js`、
 > `playback-resampler.js`、`mouth-tracker.js`、`video-worker.js`、`spectrum-dsp.js`、`spectrum-worker.js`、
 > `i18n*.js`、`index.html`、`style.css`、`audio-inspector.css`）+ `studio/web/*.test.cjs` + `studio/tests/browser/*`
 > + `studio/tests/check_*.mjs/cjs` 对前端的约束。
 > 基线：commit `7576854`（`Add the project page ...`），行号以此为准。
 > 证据等级：`[代码]` 直接读源码确认；`[推断]` 由源码合理推断；`[验证]` 实际运行命令确认（命令与输出见 §8）。
-> 本文**只写文档、不改源码**；仅新增本文件（`git status` 仍只有 `docs/` 未跟踪）。
 
 **一句话结论**：Studio 前端是一个无框架（原生 ES Module）的浏览器应用，负责「设备采集 → 16 kHz 定钟音频重采样 →
 25 fps 嘴部追踪/ROI 裁剪 → 2 s 窗口 / 0.5 s hop 组包 → WebSocket 推理 → 服务端 0.5 s 结果回放/录音/会议输出」，
@@ -335,28 +336,59 @@ UI 波形（`inputWave/outputWave/playAt/monitorSources`）。`cropCanvas` 固�
 
 #### 3.1.1 顶层生命周期图
 
+> 以下两图记录历史状态和当时的源码行号。箭头编号、事件与原记录行号在下表展开；当前行为见[评测与应用专题](20261110-evaluation-and-apps.md)。[原始文档逐字快照（纯文本）](07-studio-frontend-pre-render-20261110.md.txt)。
+
+**设备、会话和播放：**
+
 ```mermaid
 stateDiagram-v2
-    [*] --> Boot: 模块加载（app.js:1162-1165）
-    Boot --> Off: 首帧（fetchStatus app.js:111-123）
-    Off --> Opening: 主按钮 click（app.js:1056-1059）
-    Opening --> Preview: getUserMedia + worklet + 视频采集成功（app.js:185-246）
-    Opening --> Off: 失败 → stopCapture（app.js:239-242）
-    Preview --> Starting: 主按钮 click（app.js:1058 → 601）
-    Starting --> Running: WS open + running=true（app.js:621-637）
-    Starting --> Preview: 模型/WS 失败（app.js:653-654）
-    Running --> Running: onPCM → maybeInfer（app.js:247,564）
-    Running --> Running: handleResult → 播放/录音（app.js:659-725）
-    Running --> Running: 追踪丢失/恢复（app.js:357-377 → resetTrackingWindow 308-320）
-    Running --> Draining: 停止 click（requestStop app.js:842-859）
-    Running --> Off: 立即停止/错误（app.js:843-845 / 721-724）
-    Draining --> Draining: handleResult/continueDrain（app.js:860-863）
-    Draining --> Off: finishDrain → stopCapture（app.js:864-883 → 884-943）
-    Off --> Playback: finalizeRecording（app.js:1008-1023）
-    Playback --> Off: 再次开启/停止（app.js:1057 / 1081-1086）
-    Running --> MeetingOn: 勾选会议输出（app.js:1073-1076 → 778）
-    MeetingOn --> Running: 关闭/虚卡断开（app.js:819-837 / 176-179）
+    [*] --> Boot: 1
+    Boot --> Off: 2
+    Off --> Opening: 3
+    Opening --> Preview: 4
+    Opening --> Off: 5
+    Preview --> Starting: 6
+    Starting --> Running: 7
+    Starting --> Preview: 8
+    Running --> Draining: 12
+    Running --> Off: 13
+    Draining --> Off: 15
+    Off --> Playback: 16
+    Playback --> Off: 17
 ```
+
+**运行中的处理、会议输出和排空：**
+
+```mermaid
+stateDiagram-v2
+    Running --> Running: 9–11
+    Running --> MeetingOn: 18
+    MeetingOn --> Running: 19
+    Draining --> Draining: 14
+```
+
+| 编号 | 状态转换 | 原记录中的事件和源码位置 |
+| --- | --- | --- |
+| 1 | 初始 → Boot | 模块加载（`app.js:1162-1165`） |
+| 2 | Boot → Off | 首帧（`fetchStatus app.js:111-123`） |
+| 3 | Off → Opening | 主按钮 click（`app.js:1056-1059`） |
+| 4 | Opening → Preview | getUserMedia + worklet + 视频采集成功（`app.js:185-246`） |
+| 5 | Opening → Off | 失败 → stopCapture（`app.js:239-242`） |
+| 6 | Preview → Starting | 主按钮 click（`app.js:1058 → 601`） |
+| 7 | Starting → Running | WS open + running=true（`app.js:621-637`） |
+| 8 | Starting → Preview | 模型/WS 失败（`app.js:653-654`） |
+| 9 | Running → Running | onPCM → maybeInfer（`app.js:247,564`） |
+| 10 | Running → Running | handleResult → 播放/录音（`app.js:659-725`） |
+| 11 | Running → Running | 追踪丢失/恢复（`app.js:357-377 → resetTrackingWindow 308-320`） |
+| 12 | Running → Draining | 停止 click（`requestStop app.js:842-859`） |
+| 13 | Running → Off | 立即停止/错误（`app.js:843-845 / 721-724`） |
+| 14 | Draining → Draining | handleResult/continueDrain（`app.js:860-863`） |
+| 15 | Draining → Off | finishDrain → stopCapture（`app.js:864-883 → 884-943`） |
+| 16 | Off → Playback | finalizeRecording（`app.js:1008-1023`） |
+| 17 | Playback → Off | 再次开启/停止（`app.js:1057 / 1081-1086`） |
+| 18 | Running → MeetingOn | 勾选会议输出（`app.js:1073-1076 → 778`） |
+| 19 | MeetingOn → Running | 关闭/虚卡断开（`app.js:819-837 / 176-179`） |
+
 
 ```text
                  ┌────────────────────────────── 页面卸载：pagehide → stopCapture（app.js:1157-1160）
@@ -720,7 +752,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 
 - 点击停止时，最新 0.6–1.1 s 尚未分离（在途窗口 + 未满 hop 的样本 + 80 ms guard）。`requestStop` 用**补零 +
   重复最后一帧**把窗口补齐到 hop 边界（`app.js:847-853`），然后按顺序把剩余窗口全部送完
-  （`app.js:571-573`：排空时 `end=min(end,lastSentEnd+HOP)`，不回退到“最新”），保证最后一段话不丢。
+  （`app.js:571-573`：排空时 `end=min(end,lastSentEnd+HOP)`，不回退到“最新”），继续处理停止前已缓存的末尾音频；实际保留结果取决于推理和排空是否完成。
 - 排空完成后 `finishDrain` 把补出来的静音/模型输出裁掉（`recordedEnd-drain.end` 的 excess 从尾部裁，
   `recording` 与 `mixture` 同步，`app.js:869-878`），等已调度音频播完（最多 2 s）再 `stopCapture`（`:879-882`）。
 - 二次点击停止：`requestStop` 第一行 `if (state.draining || ...) { stopCapture(); return; }`（`:843-845`）→ 立即停。
@@ -777,7 +809,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 | `frame-done` 消息 | `app.js:438-443` 处理，但 worker 只发 `ack`（`video-worker.js:152`） | 兼容分支；无功能影响 | P2 |
 | 录音时间轴省略跳窗 | `app.js:963-971`、`audio-inspector.js:114` 文案 | 跳窗时 WAV 按块顺序拼接，`recordedEnd` 与实际采集时间的 gap 不补齐；文档已提示“时间轴可能省略跳过的窗口” | P2/产品语义 |
 | ring 仅 8 s | `app.js:15` | 单次推理 >8 s 时（inFlight 超时 60 s 才判死），下一次窗口读 ring 可能已被覆盖；正常路径不会（总是取最新 2 s），但极端慢推理下 mixture 对齐仍用快照、录音不丢，只是音频内容可能重复/错位风险 [推断] | P2 |
-| 帧消息长度无前端上限 | `app.js:450-453`；服务端单帧 ≤40000 字符（`server.py:55`）、整条 ≤2 MB（`:30`） | 实测 96×96 灰度 JPEG 质量 0.88 约 0.4–7 KB（base64 0.6–9.5 KB），整包 ~0.2–0.64 MB，远低于上限；无实际风险 [验证]（§8.6） | P3 |
+| 帧消息长度无前端上限 | `app.js:450-453`；服务端单帧 ≤40000 字符（`server.py:55`）、整条 ≤2 MB（`:30`） | 实测 96×96 灰度 JPEG 质量 0.88 约 0.4–7 KB（base64 0.6–9.5 KB），整包 ~0.2–0.64 MB，远低于上限；所测样例低于上限 [验证]（§8.6） | P3 |
 | 服务端英语错误依赖 i18n 反向映射 | `i18n-errors.js:44-57`（英文值即 runtime 英文消息） | `falcon_runtime.py` 抛英文异常（如 `Falcon checkpoint not found: ...`），前端 `notice(errorMessage(error))` 会经 `translateMessage` 模板反查成中文；覆盖良好，但新增英文错误若未入字典会原样显示 | P2 |
 | `modelSelect` 每 4 s 重建选项 | `app.js:82-94` + `setInterval(fetchStatus,4000)`（`:1164`） | 状态轮询会 `replaceChildren` 重建下拉，可能打断用户正在展开的菜单；`requestedVariant` 机制保证加载中选择不丢 | P2 |
 
@@ -873,7 +905,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 | C11 | 播放调度 | 提前 30 ms `app.js:766`；积压丢弃阈值 1.5 s `:729`；淡入 5 ms `:757` | 抖动缓冲 | 服务端 `output_delay_ms=80`（`:111,267`） | ✅ 互补 |
 | C12 | 频谱显示 | FFT 1024（64 ms）、hop 640（40 ms）、128 行、−90 dBFS、1600 列、实时 200 列（8 s） | 显示 | 无后端对应（纯前端） | ✅ 内部一致 |
 | C13 | 图像契约 | 96×96 灰度 JPEG q=.88（`video-worker.js:12,91-96`） | 嘴部裁剪 | `decode_request` 要求 96×96 JPEG/PNG（`server.py:59`）；runtime center-crop 88×88 + 归一化（`falcon_runtime.py:102-104`） | ✅ 一致 |
-| C14 | WS 消息上限 | 前端无硬限制 | 单条 ≤2 MB | `server.MAX_MESSAGE_BYTES=2_000_000`（`server.py:30`）+ uvicorn（`:333`） | ✅ 实测 0.2–0.64 MB，安全 [验证] |
+| C14 | WS 消息上限 | 前端无硬限制 | 单条 ≤2 MB | `server.MAX_MESSAGE_BYTES=2_000_000`（`server.py:30`）+ uvicorn（`:333`） | ✅ 所测样例约 0.2–0.64 MB [验证] |
 | C15 | 采样时间戳 | worklet `startTime=(nextPosition-31)/sr`（`capture-worklet.js:56`） | A/V 对齐 | 无（服务端不感知时间戳） | ✅ 前端内部契约 |
 
 ### 5.5 降级矩阵（无设备/无模型/无脸/overload/网络断）
@@ -888,7 +920,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 | WS 连不上/中途断 | open 10 s 超时、onerror/onclose | 停止采集、保留录音、notice | 无法连接分离服务…/分离服务连接已关闭… | `app.js:623-632` |
 | 自动追踪不可用（无 Worker） | `'Worker' in window && 'OffscreenCanvas' in window` 为假 | 自动→error；手动裁剪仍可用；提示用 Chrome | 当前浏览器无法运行自动嘴部检测… | `app.js:401-402,473-476` |
 | 无 MediaStreamTrackProcessor | 探测失败 | 主线程 40 ms 抓帧 + Worker 检测；页面隐藏即停 | 当前浏览器使用前台视频采集… | `app.js:402,462-465,1151-1156` |
-| 无脸/丢脸 | MediaPipe 返回空 | 不暂停：沿用最后 ROI 输出；status 仍 tracking + searching；绿轮廓隐藏 | 未检测到人脸 · 沿用上次取景 | `mouth-tracker.js:22-27,101-106`；`app.js:328-339` |
+| 已有 ROI 时丢脸 | MediaPipe 返回空 | 沿用最后 ROI 输出；status 仍 tracking + searching；绿轮廓隐藏 | 未检测到人脸 · 沿用上次取景 | `mouth-tracker.js:22-27,101-106`；`app.js:328-339` |
 | 多次找不到/多脸/跳跃 | 几何判定 | 保持旧 ROI，需稳定 2.5 s 或点"重新捕捉" | 目标位置变化较大…/检测到多个人脸… | `mouth-tracker.js:111-149` |
 | MediaPipe 加载/推理失败 | worker `error` | `trackingStatus='error'`；分离不允许；提示切手动 | 自动跟踪无法加载…/自动跟踪失败… | `video-worker.js:48,71-75` |
 | 视频初始化超时/无响应 | 5 s 握手超时、10 s 位图超时 | `stopCapture` + notice（保持 A/V 同步） | 视频采集初始化超时/视频处理未响应… | `app.js:415-424,498-503` |
@@ -948,7 +980,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 | A17 | 裁剪后 96×96 灰度（.299/.587/.114），JPEG q=.88 | `video-worker.js:12,88-96` | `video-worker.test.cjs:37-38`（灰度 124/124/124） | [验证] |
 | A18 | `frameWindow` 严格 25 fps 网格取最近帧，单帧 >160 ms 或覆盖不足则放弃整窗 | `app.js:533-539,528-530` | 读码 + `check_tracking_ui` 首窗用例 | [代码] |
 | A19 | 首窗/重捕窗口的合成历史只用本目标 epoch 后第一帧，不用旧目标/预览帧 | `app.js:524-527,535` | `check_tracking_ui.cjs:325-369`（断言不含 old-target） | [验证] |
-| A20 | 追踪丢失时 `trackingAllowsInference()`=false，暂停推理但保持会话 | `app.js:305-307,566` | `check_tracking_ui.cjs:97-117` | [验证] |
+| A20 | 追踪状态不允许推理时 `trackingAllowsInference()`=false，暂停推理但保持会话；已有 ROI 的丢脸场景见 A22 | `app.js:305-307,566` | `check_tracking_ui.cjs:97-117` | [验证] |
 | A21 | 追踪恢复/模式变化重置 `inferenceEpoch`/`sessionEpoch`/`lastSentEnd`，旧结果按 epoch 丢弃 | `app.js:308-320,667-670` | `check_tracking_ui.cjs:154-166` | [验证] |
 | A22 | 丢脸 ≤500 ms 沿最后 ROI 输出（coasted），>500 ms 仍沿最后 ROI 但 `searching=true`，不暂停 | `mouth-tracker.js:6,22-27,101-106` | `check_mouth_tracking.mjs:30-41` 通过 | [验证] |
 | A23 | 同目标重锁需 4 个连续一致帧；跳跃目标需稳定 2500 ms；多张不一致脸要求“重新捕捉” | `mouth-tracker.js:7-10,111-149` | `check_mouth_tracking.mjs:42-82` 通过 | [验证] |
@@ -1011,7 +1043,7 @@ WAV：44 B 头，PCM16 单声道 16 kHz，RIFF size=36+2n，byteRate=32000，
 
 > 环境：Linux，`node v22.23.3`；`/root/.venvs/falcon/bin/python` = 3.10.18（fastapi/torch/numpy/pytest；
 > **无 PIL**）；`/usr/bin/python3` = 3.8.10（有 PIL 10.4.0、numpy 1.24.4，无 fastapi）。仓库 commit `7576854`。
-> 全部命令在 `/root/code/github_repos/Falcon-fork` 执行；未修改任何源码（`git status` 仅 `docs/` 未跟踪）。
+> 全部命令在 `/root/code/github_repos/Falcon-fork` 执行。
 
 ### 8.1 Node 测试（实际运行，全部 rc=0）
 
@@ -1084,7 +1116,7 @@ frontend constants match server; LEFT_CONTEXT=22720 samples=1.42 s; slicer start
 PROTOCOL-VERIFY PASS（frame image bytes were PIL-stubbed; JPEG decode/format check NOT exercised）
 ```
 
-局限（须如实标注）：**JPEG 真实解码、96×96 尺寸/格式校验未被本次执行覆盖**（`server.py:54-63` 仅静态核对；
+本组协议验证的范围：**JPEG 真实解码、96×96 尺寸/格式校验未被本次执行覆盖**（`server.py:54-63` 仅静态核对；
 `test_server.py` 在具备 PIL 的环境可覆盖）。其余字段/长度/时间戳/切片/交叉淡化逻辑均为真实执行 [验证]。
 
 ### 8.5 JPEG/消息体量估算（实际运行，`/usr/bin/python3` 3.8 + PIL 10.4.0）
@@ -1095,12 +1127,11 @@ PROTOCOL-VERIFY PASS（frame image bytes were PIL-stubbed; JPEG decode/format ch
 |---|---|---|---|---|
 | 纯灰 107 | 439 | 588 | 200,268 B | ✅ |
 | 梯度+噪声 | 4,315 | 5,756 | 458,668 B | ✅ |
-| 纯噪声（最坏） | 7,097 | 9,464 | 644,068 B | ✅ |
+| 纯噪声样例 | 7,097 | 9,464 | 644,068 B | ✅ |
 
-结论：真实 96×96 灰度裁剪的单条 WS 消息约为上限的 10–32%，`MAX_MESSAGE_BYTES=2,000,000` 有充足余量 [验证]。
-（理论上 50 帧都接近服务端单帧上限 40000 字符时会超 2 MB，但真实灰度 JPEG 不会接近该值。）
+结论：这三组 96×96 灰度样例的单条 WS 消息约为上限的 10–32% [验证]。消息大小随图像内容和编码而变化；50 帧接近单帧上限时整条消息会超过 2 MB。
 
-### 8.6 未能运行/未覆盖的验证（如实记录）
+### 8.6 后续验证项目
 
 | 项 | 原因 | 替代/建议 |
 |---|---|---|
@@ -1111,10 +1142,9 @@ PROTOCOL-VERIFY PASS（frame image bytes were PIL-stubbed; JPEG decode/format ch
 | `audio-inspector` 的 UI 交互（缩放/拖拽/键盘） | 无 DOM/浏览器；`check_tracking_ui` 只覆盖控制流 | 读码 + 用真实浏览器 R4 手测 |
 | i18n 全量 `renderLanguage` 在真实 DOM 的渲染 | 单测用迷你 DOM | `check_i18n.mjs` 已覆盖绑定/属性/状态保持 |
 
-### 8.7 未做的事项（遵守约束）
+### 8.7 本轮权重使用
 
-- 未 `pip install`、未下载模型/媒体资源、未 `git commit/checkout/clean`、未修改任何源码；
-- 未调用需要真实权重的推理（`FalconRuntime.from_pretrained` 会联网下载，按要求不执行）。
+本轮协议和前端测试使用替身；真实权重下的运行时验证另见[评测与应用专题](20261110-evaluation-and-apps.md)。
 
 ---
 

@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史实验更新：`SISNRi` 构造问题已修复，但静音等退化输入仍可能产生 NaN；历史 3,000 条表与 6,000 方向索引采用不同方向数，需结合 ID 对照。音频模型 537,697 参数包含对比头，但评测前向不执行该头；ptflops 与论文数值接近，具体算子统计口径需进一步核对。RealSSA 两表的 SI-SNRi 有效数为 9,169，SDRi/PESQ 为 9,166；DNSMOS 的论文与本地实现细节及 checkpoint 身份仍需核对。详见[评测专题](../20261110-evaluation-and-apps.md)和[数据审计](../../verification/deepdive-20261110/data-audit-20261110/README.md)。
+
 # 05 损失与指标（Falcon-fork 深挖轮 W1-05）
 
 > 范围：`look2hear/losses/{matrix,mixit,nass_contrastive_loss,pit_wrapper,sisnri,__init__}.py`、
@@ -24,10 +26,10 @@
    并带来两个人工边界：**地板 −80 dB**（完全不相关/全零估计）与**天花板 10·log10(E/eps)**（完美重建，2 s/16 k 约 116 dB）。
 5. **`pairwise_neg_sdr` 的分母/分子不对称**：`matrix.py:227-229` 分子无 eps、分母 `+EPS`，再在 log 内 `+EPS` →
    地板固定 −80 dB 而非 `-inf`；同一份实现里 `SingleSrcNegSDR` 又把构造参数 `EPS` 丢掉硬写 `1e-8`（`matrix.py:246`）。
-6. **`pit_from="pw_pt"` 是坏的**：它把 2-D 张量喂给要求 3-D 的 `PairwiseNegSDR` → `TypeError`（实测）。
+6. **历史 `pit_from="pw_pt"` 兼容问题已修复**：它把 2-D 张量喂给要求 3-D 的 `PairwiseNegSDR` → `TypeError`（实测）。
    仓库里 `pw_pt` 无任何 config 引用，属死路径。
-7. **`SISNRi` 类无法实例化**：`super(Loss, self).__init__()` 引用未定义名 `Loss` → `NameError`（实测）。该类被 `__init__.py:20` 导出。
-8. **`metrics/core.py` 是本 fork 新增的唯一事实源**（原上游没有此文件）；上游 `allwrapper` 的 `sdr` 列实为 `-SNR`、
+7. **历史 `SISNRi` 构造问题已修复**：`super(Loss, self).__init__()` 引用未定义名 `Loss` → `NameError`（实测）。该类被 `__init__.py:20` 导出。
+8. **`metrics/core.py` 集中定义本 fork 的指标**（原上游没有此文件）；上游 `allwrapper` 的 `sdr` 列实为 `-SNR`、
    PESQ 参数顺序反了、逐句行与 avg 行符号相反（`git show a7af472:look2hear/metrics/allwrapper.py:27,50,63,73`）。
 9. **三个 tracker 只有 `ALLMetricsTracker` 在用**（`audio_visual_test.py:397`）；`MetricsTracker`/`SPlitMetricsTracker`
    仅被 `__init__.py` 导出，无调用点 → 死代码。三者语义都是**逐句算再平均**，没有"整段拼接后再算"的实现。
@@ -38,7 +40,7 @@
 12. **MACs 实测复算 = 10.610934 G / 0.537697 M**（CPU ptflops，与 docs/STATUS 的 10.611 G 逐位一致）；
     口径 = **仅 audio model、eval 模式、2 s 窗（32000 samples + 50 帧 mouth embedding）**，
     **不含 FRCNN**（`evaluated_mac_params.py:82` 在 ptflops 调用之前就算完了）、**不含对比头**（forward 里根本没走 `spk_pool_proj`）。
-    这个数是 **MACs**（ptflops 的 conv hook 每个乘加记 1），与论文 10.6 G 同尺。同模型换
+    这个数是 **MACs**（ptflops 的 conv hook 每个乘加记 1），论文数值为 10.6 G，其计数方法尚未确认。同模型换
     `torch.utils.flop_counter` 得 **5.382 GMAC**，因为它不记 `aten::lstm`——两把尺子不可并列。
     视觉 88×88×50 帧同一把尺子是 15.897 G，整窗 **26.51 GMAC、视觉占 60.0%**。
 
@@ -54,7 +56,7 @@
 | `look2hear/losses/pit_wrapper.py` | 324 | `PITLossWrapper`（152-312）+ `new_PITLossWrapper`（6-150，语义不同） |
 | `look2hear/losses/mixit.py` | 309 | 1-95 行整段注释；`MixITLossWrapper` 在 102-309 |
 | `look2hear/losses/nass_contrastive_loss.py` | 81 | NASS 三元组对比损失 |
-| `look2hear/losses/sisnri.py` | 41 | `SISNRi`（损坏） |
+| `look2hear/losses/sisnri.py` | 41 | `SISNRi`（历史构造问题已修） |
 | `look2hear/losses/__init__.py` | 44 | 导出 21 个符号 |
 | `look2hear/metrics/core.py` | 229 | **本 fork 新增**的唯一指标定义源 |
 | `look2hear/metrics/allwrapper.py` | 198 | 线上 tracker（`audio_visual_test.py` 用） |
@@ -201,7 +203,7 @@ L     = (Σ_b L_pos^(b) + L_neg^(b)) / n_valid,   n_valid += 1 无条件        
 再对 `B` 求 mean（`:230`）→ **先句内(源轴)平均、再 batch 平均**，两种平均等价（都是线性），
 但**不是**"先算 dB 再平均功率"——是 dB 域直接平均。
 
-**(b) `SISNRi.sisnr`（`sisnr.py:8-24`，未使用且类已坏）**：显式写 `est_p = ⟨est,ref⟩·ref/‖ref‖²`，
+**(b) `SISNRi.sisnr`（`sisnr.py:8-24`，历史构造问题已修）**：显式写 `est_p = ⟨est,ref⟩·ref/‖ref‖²`，
 `est_sisnr - mix_sisnr` 直接返回 **improvement**（`:24`）——这是唯一内置 "i" 的实现，但拿不到。
 
 **(c) `metrics/core.py:152-155`**：`-PIT_SI_SDR(est, ref)`，其中 `PIT_SI_SDR` 用
@@ -367,7 +369,7 @@ print("MACs: ", total_macs / 10.0 ** 9)     # :122
   实测：`spk_pool_proj` = **0.000810 G / 14,584 参数**（占 0.008%）。
 * **脚本可运行性**：`configs/Falcon.yml:8` 的 `pretrain: pretrain_zoo/frcnn_128_512.backbone.pth.tar`
   **在树内不存在**（`ls pretrain_zoo` → No such file），而 `frcnn_videomodel.py:95-99` 对缺失文件**硬报错**
-  → 原样执行会 `FileNotFoundError`；再加 `:48` 的 `.cuda()`，脚本是 **GPU-only + 依赖外部权重路径**。
+  → 原样执行会 `FileNotFoundError`；再加 `:48` 的 `.cuda()`，脚本是 历史版本依赖 GPU 与外部权重路径，当前脚本已支持选择设备。
   这解释了为什么此前的 MACs 证据都来自复刻脚本（`docs/verification/scripts/verify_macs_04.py`）。
 * 与 10.6 G 的对应：实测 **10.610934 G**，README 写 10.6（0.1% 舍入），`docs/STATUS.md:33` 写 10.611 G。
 
@@ -791,7 +793,7 @@ CUDA_VISIBLE_DEVICES= $IM -c 'import json;m=json.load(open("/root/data/falcon_lr
 
 | 数字 | 含义 | 置信度 |
 |---|---|---|
-| **10.610934 G / 0.537697 M** | audio model MACs/参数（eval、2 s 窗、不含 FRCNN 与对比头） | 实测，与 docs 逐位一致 |
+| **10.610934 G / 0.537697 M** | audio model MACs（eval、2 s 窗、不含 FRCNN 和对比头前向）；参数计数含对比头 | 实测，与 docs 逐位一致 |
 | 537,697 = 523,113 + **14,584** | audio 参数 = 扣对比头 + `spk_pool_proj` | 实测 |
 | 11,186,688 / 11,724,385 | FRCNN / 合计 | 实测 |
 | 7.769293 G | FRCNN 单独 @64×64（**未计入** 10.611；非本管线输入） | 实测 |

@@ -6,4 +6,4 @@
 - All assets are served from localhost; detection requires no CDN or cloud upload.
 - Uses BlazeFace short-range face detection and FaceMesh-V2 (478 landmarks), VIDEO mode, a single face, CPU WebAssembly.
 - Source: https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker
-- The crop in this app tracks the mouth, with stable face-based scale. It is not a reconstruction of the unavailable original LRS3 landmark-alignment pipeline.
+- The app tracks the mouth and uses the detected face to stabilize crop scale. The original LRS3 landmark-alignment pipeline is unavailable.

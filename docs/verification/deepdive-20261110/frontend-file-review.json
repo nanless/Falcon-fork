@@ -1,0 +1,383 @@
+{
+  "scope": "studio and space frontend code, tests, and vendor assets",
+  "files": [
+    {
+      "path": "space/tests/check_i18n.mjs",
+      "bytes": 2080,
+      "lines": 42,
+      "sha256": "c7f7fccf12857035c1f884d212c7e576eb57cd189f05bb081b74d51ddca9cf0b",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "检查组装后Space中文字符串、占位符及HTML初始英文；正则扫描，非浏览器测试",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-space-i18n.log"
+    },
+    {
+      "path": "space/web/app.js",
+      "bytes": 52372,
+      "lines": 903,
+      "sha256": "7349f7322c2fdc29ef3a9ace4ae30298421ec07e3eca450b9453e56ffaac969a",
+      "category": "first-party runtime",
+      "read_status": "full text read in preceding UI review",
+      "purpose": "Space设备采集、录制、嘴部同步、上传、等待与结果生命周期"
+    },
+    {
+      "path": "space/web/i18n-space.js",
+      "bytes": 9727,
+      "lines": 81,
+      "sha256": "f852cd3ba12e7fb996f11b753b43a08b2701682c91e74335f0f05dffa927af5c",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "Space UI与服务错误的中英文字典"
+    },
+    {
+      "path": "space/web/index.html",
+      "bytes": 19855,
+      "lines": 59,
+      "sha256": "2351245a8327bb02e436be8033e2ae513226fc2e79ee9ab435d59b7e5fb57d53",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "Space页面、控件和隐私提示，加载组装共享样式与模块"
+    },
+    {
+      "path": "studio/tests/browser/index.html",
+      "bytes": 391,
+      "lines": 1,
+      "sha256": "aa37408290b9a87fae135e6447a60845e3289d7130a1597603a5d6ff62b185aa",
+      "category": "first-party test",
+      "read_status": "full text read; assertions reviewed; not executed in this pass",
+      "purpose": "真实MediaPipe人像测试页面，不使用真实摄像头"
+    },
+    {
+      "path": "studio/tests/browser/test.js",
+      "bytes": 4626,
+      "lines": 63,
+      "sha256": "64cf1437781ce598e69d49330f3259c341253bf4e2b8d16a88d8c17cec7fb4ab",
+      "category": "first-party test",
+      "read_status": "full text read; assertions reviewed; not executed in this pass",
+      "purpose": "真人像worker检测/丢失和重锁，依浏览器与静态fixture；未执行"
+    },
+    {
+      "path": "studio/tests/check_capture_dsp.cjs",
+      "bytes": 3199,
+      "lines": 64,
+      "sha256": "e48b7c6a4fd93e3cf08c3b59e47cef212a7b72fd499018b6a851636b899976bf",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "VM运行worklet，44.1/48k正弦、时间戳、静音输出和时钟间断",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/tests/check_i18n.mjs",
+      "bytes": 13598,
+      "lines": 264,
+      "sha256": "015d8ce69fedf0a7a6abf5e5c9152ec67a978f38b3323f973311bcc2bc59bf40",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "真实i18n模块加模拟DOM，检查字典、HTML绑定和Python异常翻译",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/tests/check_mouth_tracking.mjs",
+      "bytes": 10159,
+      "lines": 173,
+      "sha256": "fbe38e6fe5419b2908fe364412322b341f957f5c1979118ba91ffde30191f6d6",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "合成landmarks及mock worker，追踪、重锁、竞态和资源释放",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/tests/check_playback_resampler.mjs",
+      "bytes": 9836,
+      "lines": 180,
+      "sha256": "7886eb1f6bf9b29ff1da8b6f1d7b337e1c770f0bf214669ac1d3ffac750e6e5b",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "合成正弦和多音回放DSP；分块差断言小于1e-6，打印bit-identical强于断言",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/tests/check_spectrum.mjs",
+      "bytes": 9455,
+      "lines": 136,
+      "sha256": "7d4ee93fda45bf18b0cf99a7e0c03eb04e875e346c04b2c1d1ef74f0f1a3a24b",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "合成音及脉冲验证FFT、分块、5分钟概览和worker epoch",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/tests/check_tracking_ui.cjs",
+      "bytes": 28327,
+      "lines": 518,
+      "sha256": "64a745f86eb06a122c7de1a2c52f8e9e0d7b4f7ca791a6aac409fa1984a223cf",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "真实app主体加模拟DOM/计时器、请求与设备，覆盖窗口排空和启动权限竞态；非真实浏览器",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/web/app.js",
+      "bytes": 70157,
+      "lines": 1223,
+      "sha256": "ed224cf9714190b049ca37a8cfc76aedab673eb405c31c1b0c95b90f97107f3e",
+      "category": "first-party runtime",
+      "read_status": "full text read in preceding UI review",
+      "purpose": "Studio设备权限、实时采集、追踪、WS滑窗、排空、会议、录音与诊断状态机"
+    },
+    {
+      "path": "studio/web/audio-inspector.css",
+      "bytes": 6861,
+      "lines": 2,
+      "sha256": "a97aa2110235c26d47a625d67c8f8ebb893a35629f38e3501f86a5cb13ff1e7d",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "频谱、录音细览、聚焦和小屏样式；静态阅读未做渲染"
+    },
+    {
+      "path": "studio/web/audio-inspector.js",
+      "bytes": 21649,
+      "lines": 346,
+      "sha256": "def463375dacefeeae1f7c07ccba38533246af85417aeffa97608992e41b0e55",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "音频频谱、录音可视化、缩放定位及异步worker状态"
+    },
+    {
+      "path": "studio/web/capture-worklet.js",
+      "bytes": 3280,
+      "lines": 71,
+      "sha256": "c8e334556ffadbb9e6060ba352ab4dfe563a07f3e49f4e6f4534a863eb54dce7",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "63 tap多相采集重采样，20ms传输，时钟跳变重置"
+    },
+    {
+      "path": "studio/web/capture-worklet.test.cjs",
+      "bytes": 2712,
+      "lines": 51,
+      "sha256": "f5e8917d2fcb11cc2fc769987f99cb774e9e35b4ad1ec90564da7ba2afb97ddd",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "VM测试16/44.1/48k时钟、滤波和间断",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    },
+    {
+      "path": "studio/web/i18n-audio.js",
+      "bytes": 1889,
+      "lines": 25,
+      "sha256": "177ef5f747d416d6137bc3cc2c41d275e25a96bdf73b8f2fa9df75d9bb585145",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "可视化组件中英文字典"
+    },
+    {
+      "path": "studio/web/i18n-dynamic.js",
+      "bytes": 17246,
+      "lines": 171,
+      "sha256": "b95e31312226d98a888e3cd39d1ca857a3e71f878e8b3cde61b3d2dd3bd4ae41",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "会话、追踪、设备、排空与诊断提示"
+    },
+    {
+      "path": "studio/web/i18n-errors.js",
+      "bytes": 6404,
+      "lines": 63,
+      "sha256": "f4a8ee7ab397201e6e54816140d891d02901b6932d4ab53584a2bbd8764ccd9b",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "服务与模型异常双向映射"
+    },
+    {
+      "path": "studio/web/i18n-static.js",
+      "bytes": 9429,
+      "lines": 123,
+      "sha256": "aaf2885e8b1afa115815ba7923cca543732ec6dff936e23060978b8dfe334af5",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "静态界面翻译及使用提示"
+    },
+    {
+      "path": "studio/web/i18n.js",
+      "bytes": 5490,
+      "lines": 124,
+      "sha256": "59e430deffd08983bf544e42898575c11d6e0631de4be3d6686402b5b9f37bc5",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "多语言词典合并、模板匹配、DOM绑定与本地偏好"
+    },
+    {
+      "path": "studio/web/index.html",
+      "bytes": 22183,
+      "lines": 64,
+      "sha256": "6b954daef9ce77654939d9a7ff357105a1c773ff3a544229bc23915d7264d4a1",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "Studio界面DOM、控件、提示与可访问性；初始丢脸暂停提示与持续旧ROI的运行行为矛盾"
+    },
+    {
+      "path": "studio/web/mouth-tracker.js",
+      "bytes": 8983,
+      "lines": 149,
+      "sha256": "696f5e454ab4be22a965b9512092875f2e3290a113a0cbf0606a52e9492ece50",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "几何连续性跟踪，丢脸保持ROI、不同目标延迟重锁"
+    },
+    {
+      "path": "studio/web/playback-resampler.js",
+      "bytes": 6256,
+      "lines": 129,
+      "sha256": "6e0d68a2ea5df0faf36cbfd0a477772784871ec5114033c9d94e2430ce79c505",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "有状态63 tap多相播放升采样与重置"
+    },
+    {
+      "path": "studio/web/spectrum-dsp.js",
+      "bytes": 9680,
+      "lines": 208,
+      "sha256": "d085a79b926367401a6af47a6ecb668b2f2497dc70436226095c7f75b235e53b",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "FFT实时频谱、录音总览、worker代际协议"
+    },
+    {
+      "path": "studio/web/spectrum-worker.js",
+      "bytes": 385,
+      "lines": 9,
+      "sha256": "4b723bab04903abfc4db1d1231bcda6e629e8cfa1f80e02beb0b2d46920c16ee",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "频谱处理消息转发及异常转换"
+    },
+    {
+      "path": "studio/web/style.css",
+      "bytes": 41630,
+      "lines": 54,
+      "sha256": "af9f132e3262fc91e7e42977e39c9a5a38937665a90c7a870ddf15a3bce3c5cf",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "Studio主布局、媒体查询、焦点态、追踪、会议及双语适配；静态阅读未做浏览器渲染"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/LICENSE",
+      "bytes": 12331,
+      "lines": null,
+      "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/NOTICE.md",
+      "bytes": 750,
+      "lines": 9,
+      "sha256": "cb209ce7e409bfa71c26a2cfd976bb2e666f859ba551ff9d3cfcc1f7ec099f28",
+      "category": "third-party vendor",
+      "read_status": "notice fully read; says single face while worker requests numFaces=2",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/face_landmarker.task",
+      "bytes": 3758596,
+      "lines": null,
+      "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/manifest.json",
+      "bytes": 1441,
+      "lines": 19,
+      "sha256": "361d4a2c92c8cb1fb65ff592ba40f6746ade048eaf2aa436c985a5ad9ccbe355",
+      "category": "third-party vendor",
+      "read_status": "manifest fully read; ten listed asset hashes independently matched",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/vision_bundle.mjs",
+      "bytes": 155439,
+      "lines": null,
+      "sha256": "d885630c297c0b20b1fe86096cb06291c4c8080876f27852e724f24ac603713f",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_internal.js",
+      "bytes": 323377,
+      "lines": null,
+      "sha256": "e170ee67dd4e16c1a6fcd8840a206687e5a59b22c20e4a902bc445b095454d73",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
+      "bytes": 11756954,
+      "lines": null,
+      "sha256": "8da277a733926eacd0474b8704b36742d6ec3231c57a860c5b889dff8f1df886",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_module_internal.js",
+      "bytes": 323415,
+      "lines": null,
+      "sha256": "da8934057f147b622e82cfb4c0dbd85461c598e268588b5a8ba9ca963a8ff82d",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_module_internal.wasm",
+      "bytes": 11756972,
+      "lines": null,
+      "sha256": "2dabd8e23c60984628beb7bb338764c81a08e6837145273f59578684b5d53c1b",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js",
+      "bytes": 323180,
+      "lines": null,
+      "sha256": "e81d715a3d42cc3373602eb2f7aff795d164934db680e32496b65dab537f9658",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
+      "bytes": 10960242,
+      "lines": null,
+      "sha256": "a28483cd42e74e855bf5ebdb6b40d9b66a5b49e35e95020bc97669e6822a3192",
+      "category": "third-party vendor",
+      "read_status": "manifest and fingerprint checked; third-party implementation not read",
+      "purpose": "MediaPipe tasks-vision 1.0.1 / Face Landmarker asset, loaded locally by video-worker"
+    },
+    {
+      "path": "studio/web/video-worker.js",
+      "bytes": 8706,
+      "lines": 166,
+      "sha256": "82997b828095d6d5e71a5714c3d5bb292ca411bf86bbe7db5beb7bcd7b826c0a",
+      "category": "first-party runtime",
+      "read_status": "full text read",
+      "purpose": "MediaPipe检测、25fps节流、裁剪JPEG及epoch清理；文件头grace期注释与实际长期保持ROI矛盾"
+    },
+    {
+      "path": "studio/web/video-worker.test.cjs",
+      "bytes": 3308,
+      "lines": 46,
+      "sha256": "fd87a069b7532dc2cd9bb4e6d8032364bbce893d68c3f93f018c2e06bfae8983",
+      "category": "first-party test",
+      "read_status": "full text read; executed successfully in current pass",
+      "purpose": "模拟视频帧和画布验证节流、裁剪、灰度和资源清理",
+      "execution_log": "/tmp/falcon_full_review_20261110/frontend-node-tests.log"
+    }
+  ]
+}

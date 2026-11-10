@@ -1,10 +1,11 @@
 # 05 深挖 · 数据管线与数据资产（LRS2-2Mix / RealSSA-Sim / RealSSA-Real）
 
+> **2026-11-10 校正：** 下文是历史数据分析和当时运行计划。full3 已作废，应使用 full4；文件名增益与源信号能量共同决定实际声能；ep86 与 ep124 的比较同时涉及训练时长和损失设置。§6 旧命令可能覆盖现有 near 索引、重建数据或启动训练，且 `--proxy` 已非现行参数；阅读[数据和训练说明](../20261110-data-and-training.md)、[复现状态](../../STATUS.md)与[现行数据指南](../../DATA_ACCESS_GUIDE.md)，不要直接照搬。
+
 > 小组：Falcon 项目"理解 + 模型复现规划"深挖 · 成员 `data-pipeline` · 任务 `task-5`
 > 仓库：`/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`（2026-10-24）
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128）
 > 证据标记：`[代码]` 源码直读；`[验证]` 本轮实际命令/抽样结果；`[推断]` 由代码+数据合理推断；`[文档]` 只来自已有报告/数据卡
-> 约束遵守：只读分析；只写本文件；未改源码、未改他人文档、未 git 写操作、未 pip 安装、未联网。
 
 ---
 
@@ -83,7 +84,7 @@ RealSSA-Sim: {tr,cv,tt}/*.tar  WebDataset：<id>.mix.wav(4ch) / .target.wav(4ch)
 | RealSSA-Real 原始 | `/root/data/RealSSA-Real` | **12G** | 423 文件；inference 54 段 / references 10 / faces·mouth·landmarks 各 54 | 真实场景 stereo 16k（`audio/inference/*.wav`）；官方 loader `scripts/load_inference.py`；54 段共 83.99 min | **无通用数据集 license**；参与者个人数据，仅研究用途、禁再识别/转发 `[文档]` card:80,317 |
 | TOS 归档 · Sim 全量 | `/aispeech-cfs/voiceprint/data/multimodal/realssa_sim` | 归档 manifest **521,532,645,652 B**（≈521.5 GB） | 243 文件 = README + .gitattributes + `_MANIFEST.json` + **240 shard**（tr 202 / cv 19 / tt 19）；实测 `tt/` 40.14 GB | **唯一保存全部 tr/cv/tt 的副本** | CC BY-NC-ND 4.0 + 各噪声源条款 |
 | TOS 归档 · Real 全量 | `/aispeech-cfs/voiceprint/data/multimodal/realssa_real` | 12.84 GB（423 文件） | 与本地 `/root/data/RealSSA-Real` 同构 | 全量 | 同上 |
-| 评测产物 | `/root/data/falcon_eval` | 未计（小） | `realssa_real_mean_full{,2,3}`、`_smoke_*` 等 | RealSSA-Real DNSMOS 逐段 CSV/summary/metadata；`full`/`full2` 为失败运行（0/54 ok），`full3` 成功（54/54） | 派生分离结果属参与者数据，按 card 用完删除 |
+| 评测产物 | `/root/data/falcon_eval` | 未计（小） | `realssa_real_mean_full{,2,3}`、`_smoke_*` 等 | RealSSA-Real DNSMOS 逐段 CSV/summary/metadata；`full`/`full2` 为失败运行（0/54 ok），`full3` 运行完成（54/54），但因窗口起点错误作废；现行结果见页首 | 派生分离结果属参与者数据，按 card 用完删除 |
 | 权重缓存 | `/root/.cache/falcon_weights` | 44.8 MB + `falcon.pt` 47 MB | `frcnn_128_512.backbone.pth.tar` 等 | 非数据资产，T5 导出 | Apache-2.0（权重） |
 
 ### 2.2 归档/删除状态（重点问题④的一半）
@@ -240,7 +241,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest \
 ### 3.10 其他实测数字
 
 - RealSSA-Sim tt 长度：min 16000（1.0 s）、max 120320（7.52 s）；**1047/9169（11.4%）短于 32000**；`n % 640 == 0` 全成立。若用于训练，`AVSpeechTrainDatasetWithNear` 会把 <2 s 的样本静默丢弃（`avspeech_dataset_near.py:111-122`），且 RealSSA tr 的长度分布未知。`[验证]`+`[代码]`
-- RealSSA-Real 成功评测（`realssa_real_mean_full3/summary.json`）：54/54 段 ok，SIG 3.2209 / BAK 3.6921 / OVRL **2.7901** / P808 **3.3285**（channel=mean、align_tail、窗口化推理）；`full`/`full2` 为 0/54 的失败运行残留。`[验证]`+`[文档]` P2E/REPORT:98-109
+- RealSSA-Real 历史 full3 评测（窗口起点错误，结果已作废；`realssa_real_mean_full3/summary.json`）：54/54 段 ok，SIG 3.2209 / BAK 3.6921 / OVRL **2.7901** / P808 **3.3285**（channel=mean、align_tail、窗口化推理）；`full`/`full2` 为 0/54 的失败运行残留。`[验证]`+`[文档]` P2E/REPORT:98-109
 - near 负样本确实被训练消费：`P2D-near-train.log:15-18` "Loaded near.json with 20000 entries / 20000/20000 samples have near-speaker entries / Near file access OK: …/tr/s2/…wav"，且该次微调带来 test SI-SNRi 8.618→**8.858**、SDRi 9.042→**9.270**（`REPRODUCTION_PHASE2_REPORT.md:62-70`，[文档]）。`[验证]`（日志存在）+`[文档]`
 
 ---
@@ -250,7 +251,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest \
 ### D1（P0，可复现性）单目标 `falcon_lrs2_2mix` 的 near.json 被未入库脚本改写，文档/磁盘/统计三方不一致
 
 - 事实：`conversion_stats.json` / `P2C-convert.log:112` / P2-C/QA 报告 = fallback(K=0)；磁盘 `{tr,cv,tt}/near.json`（mtime 2026-10-22T16:37:54）= s2 负样本(K=1)；仓库内**没有**能生成该形态的 committed 脚本（`lrs2_2mix_to_falcon.py` 只支持 fallback/raw_audio；`build_lrs2_paper_data.py` 只写 `_paper`）。`[验证]`+`[推断]`
-- 后果：任何人按仓库重跑 P2-C 只会得到 K=0；而 P2-D 的 contrastive 微调结果（+0.24 dB）依赖这份"来源不明"的 near.json —— **该实验不可由仓库一键复现**。
+- 后果：任何人按仓库重跑 P2-C 只会得到 K=0；而 P2-D 的 contrastive 微调结果（+0.24 dB）依赖这份"来源不明"的 near.json —— **重现该实验需要找回对应 near.json**。
 - 建议：新增 `tools/repro/phase2/make_near_from_s2.py`（或给 `lrs2_2mix_to_falcon.py` 加 `--near-mode other-speaker`），并在 P2-C/QA 报告加勘误。
 
 ### D2（P0，数据缺口）RealSSA 无 near 波形 → NASS/MDCL 对比损失在 RealSSA 上不可复现
@@ -262,15 +263,15 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest \
 ### D3（P0，训练未就绪）"从零训练 RealSSA-Sim"不成立
 
 - 本地只有 `tt` 转换产物；`tr`（100,826）/`cv`（9,133）**没有任何本地副本或转换产物**，只在 TOS 归档（521.5 GB，240 shard）。`[验证]`
-- 还需先决定：① 是否用 `--channel mean`（论文未声明，卡片只给 inference 示例 ch0 并声明"不是协议断言" `[文档]` card:185,211）；② near 负样本从哪来（D2）；③ RealSSA tr 里 <2 s 样本的丢弃率未知；④ 转换产物体积（见 D7）。
-- 因此当前 RealSSA 只能做 **test 评测**（官方权重已复现 7.774/8.479，`REPRODUCTION_PHASE2_REPORT.md:120-131` [文档]），不能做"从零训练"。
+- 还需先决定：① 是否用 `--channel mean`（论文公开后已确认 channel-1 对应 ch0；本文历史 mean 结果与其分别记录 `[文档]` card:185,211）；② near 负样本从哪来（D2）；③ RealSSA tr 里 <2 s 样本的丢弃率未知；④ 转换产物体积（见 D7）。
+- 因此当前 RealSSA 只能做 **test 评测**（官方权重历史 mean 通道结果 7.774/8.479，`REPRODUCTION_PHASE2_REPORT.md:120-131` [文档]），不能做"从零训练"。
 
 ### D4（P1，协议）论文 14.1/14.7 与现有 LRS2 数据/训练口径的差异
 
 1. **near 负样本不是 near-field 泄漏源**：论文的 speaker-contrastive 负样本是近场干扰人（高 SIR 泄漏）；LRS2 无 near 源，本复现用 s2/s1（远场、干净、且本来就在 mix 里）替代 → 只能算 "non-official negatives"，指标不可与论文严格对齐。`[代码]` `lrs2_2mix_to_falcon.py:29-41`、`build_lrs2_paper_data.py:6-8`；`[文档]` `docs/PHASE2_VOLCANO_LRS2_TRAINING.md:28-29`
 2. **target 约定**：论文未写 target=s1/s2；本仓库评测用 `falcon_lrs2_2mix/tt`（3000，target=s1，与 benchmark 视频说话人一致），而论文配方训练集/验证集用 `_paper`（tr 40000/cv 10000/**tt 6000**）。若把 `_paper/tt` 当 benchmark，会把每条 mixture 计两次（双向），与论文"3000 test mixtures"口径不同。`[验证]`+`[文档]` `docs/PHASE2_VOLCANO_LRS2_TRAINING.md:107-108`
-3. **训练规模**：论文 10×A800、全局 bs40、1000 epoch；本机只有 2×A800（且 GPU0 被外部占用），已跑的是单卡 bs4、130 epoch → 8.858/9.270，差 ~5 dB。`[文档]` `REPRODUCTION_PHASE2_REPORT.md:55-70`
-4. **s1 恒更响的捷径**：LRS2-2Mix 名字里 `snr1>0`（T6 实测 snr2=-snr1），只训 target=s1 会鼓励"选更响"，双向 target 正是为消除该捷径（`PHASE2_VOLCANO_LRS2_TRAINING.md:24-26`）。`[文档]`+`[验证]`（stem 全部可解析、snr 符号）
+3. **训练规模**：论文为 8×RTX3090、每卡 batch 4、上限 1000 epoch（后续论文核对）；旧配置曾推断为 10 卡、全局 batch 40；本机只有 2×A800（且 GPU0 被外部占用），已跑的是单卡 bs4、130 epoch → 8.858/9.270，差 ~5 dB。`[文档]` `REPRODUCTION_PHASE2_REPORT.md:55-70`
+4. **目标选择与能量**：文件名含 `snr1>0`，T6 实测 snr2=-snr1；实际源声能还取决于源信号能量，不能由文件名断言 s1 恒更响。双向 target 使两位说话人都作为目标（`PHASE2_VOLCANO_LRS2_TRAINING.md:24-26`）。`[文档]`+`[验证]`（stem 全部可解析、snr 符号）
 
 ### D5（P1，行为）LRS2 上"随机 2 s 切片"退化为整段
 
@@ -279,7 +280,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest \
 ### D6（P1，文档漂移）`docs/DATA_ACCESS_GUIDE.md` 权限状态已过期
 
 - GUIDE 仍写 RealSSA "申请已提交待批 / 数据文件仍 403"（:18、:34、:35、:218、:273），但实际 2026-10-22 已获批、已下载、已归档 TOS（`_archive_done.json`、`REPRODUCTION_PHASE2_REPORT.md:95-131,162-169`）。`[验证]`+`[文档]`
-- P2E 报告自己也指出 GUIDE 第 18/39 行状态行不一致（`P2E-report.md:215`），但仍未修。属他人写 scope，本文件只记录。
+- P2E 报告自己也指出 GUIDE 第 18/39 行状态行不一致（`P2E-report.md:215`），当时尚未修订；现行权限状态见 [数据指南](../../DATA_ACCESS_GUIDE.md)。
 
 ### D7（P1，磁盘/体积）全量 RealSSA-Sim 转换的磁盘压力
 
@@ -288,9 +289,9 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest \
 
 ### D8（P2）RealSSA-Real 评测的失败残留
 
-`/root/data/falcon_eval/realssa_real_mean_full{,2}/summary.json` 是 54 段全 error 的失败运行（loader 报错），只有 `full3` 是 54/54 成功。若复现者/报告直接 glob 目录，容易取到错误结果。`[验证]`
+`/root/data/falcon_eval/realssa_real_mean_full{,2}/summary.json` 是 54 段全 error 的失败运行（loader 报错），`full3` 为 54/54 完成但因窗口起点错误作废；后续 full4 结果见现行状态。若复现者/报告直接 glob 目录，容易取到错误结果。`[验证]`
 
-### D9（P2）旧调试副本仍不可运行
+### D9（P2）旧调试副本的路径占位符
 
 `look2hear/datas/check_avspeech_dataset.py` 已同步 F5 守卫（:122-123、:203-204），但 `__main__` 仍写死 `${DATA_ROOT}/av-tiger-lrs3/...`（:319），直接运行必 FileNotFoundError；无 CI 引用。`[代码]`
 
@@ -409,7 +410,7 @@ $ENV tools/repro/realssa_to_falcon.py --src /root/data/RealSSA-Sim --out /root/d
 ```bash
 $ENV tools/repro/phase2/eval_realssa_real.py --data /root/data/RealSSA-Real \
   --channel mean --device cuda --baseline --out-dir /root/data/falcon_eval/realssa_real_mean_full4
-# 已有成功结果 full3：54/54，OVRL 2.7901 / P808 3.3285；论文 DNSMOS 目标 3.276±0.05
+# 历史 full3 虽完成 54/54，但因窗口起点错误作废；full4 结果见现行状态
 # 注意 full/ full2 是失败残留（D8），不要混用
 ```
 
@@ -432,7 +433,7 @@ $ENV tools/repro/phase2/eval_realssa_real.py --data /root/data/RealSSA-Real \
 | Q1 | `falcon_lrs2_2mix/{tr,cv,tt}/near.json`（s2 负样本）由哪条命令、在 2026-10-22 16:37 生成？为何不入库？ | P2-D contrastive 结果（+0.24 dB）的一键复现 | 原作者/Lead；本文件已给出建议补脚本 |
 | Q2 | 论文 LRS2-2Mix 训练的 near 负样本具体怎么构造？是否就是"另一说话人"？ | 14.1/14.7 是否可达；负样本语义 | 作者 issue `JusperLee/Falcon#1`（未回复） |
 | Q3 | 论文 LRS2-2Mix 训练是否真的双向 target？s1/s2 如何挑选 video？ | 评估口径与数据量 | 作者/论文补充材料 |
-| Q4 | RealSSA-Sim 论文用的通道（mean 还是 ch0）？ | SI-SNRi 比较（mean 已复现 7.774/8.479，但论文未声明） | 作者；当前结果需声明 mean |
+| Q4 | RealSSA-Sim 论文用的通道 | 论文 channel-1 对应 ch0；mean 历史结果为 7.774/8.479，ch0 为 7.977/8.452 | 已由论文与后续评测核对 |
 | Q5 | RealSSA-Sim tr/cv 全量转换是否值得做（0.3–0.4 TB + 训练算力）？数据在 TOS 是否长期可用？ | "从零训练 RealSSA" 的可行性 | Lead/用户 |
 | Q6 | 是否有外部 near 波形可接（`--near-dir`）用于 RealSSA 对比学习？ | 论文贡献之一能否在 RealSSA 上复现 | 用户/组内数据 |
 | Q7 | `_meta.json` 里 near 组件存在但无波形时，是否应从转换产物中删除 near 组件（避免 val `n_near` 误导）？ | 验证分桶语义 | 数据侧/训练侧 |
@@ -447,7 +448,7 @@ $ENV tools/repro/phase2/eval_realssa_real.py --data /root/data/RealSSA-Real \
 ### 8.1 环境与约束
 
 - 解释器：`/root/miniforge3/envs/falcon/bin/python`（3.11.17，torch 2.8.0+cu128 可导入；未用 `/usr/bin/python3`）。
-- 所有命令均 `cd /root/code/github_repos/Falcon-fork && PYTHONPATH=$PWD`；只读数据；未安装包、未联网、未 git 写。
+- 命令从 `/root/code/github_repos/Falcon-fork` 执行，并设置 `PYTHONPATH=$PWD`。
 - 单条命令最长 <5 min；大数据目录只用 `ls/find -maxdepth/计数/抽样`，未对 TOS 做 `du`。
 
 ### 8.2 本轮实际执行的命令（摘要）
@@ -476,9 +477,8 @@ $ENV tools/repro/phase2/eval_realssa_real.py --data /root/data/RealSSA-Real \
 - 未对 RealSSA-Sim 全量 tar 逐样本校验（只解 1 个 shard 的 1 个样本 + 19 shard 计数）；未统计 tr 的真实样本数（卡片 100,826 未用本地数据复核）。
 - 未 `du` TOS 521 GB 目录（只 stat/ls/count），未核对 TOS 与本地 tar 的 per-file sha256。
 - 未复核 Studio 嘴部预处理等价性（旧文档 A60），未复核 `test_loader` 双验证 loader 的训练实测（沿用旧结论）。
-- 未验证 `lrs2_2mix_to_falcon.py --near-mode raw_audio` 的实际产物（本轮全量数据用的是 fallback / 未入库的 s2 改写）。
+- `lrs2_2mix_to_falcon.py --near-mode raw_audio` 的实际产物待验证（本轮全量数据用的是 fallback / 未入库的 s2 改写）。
 
 ### 8.4 本轮产出
 
-- 本文件：`docs/understanding/deepdive-20261024/05-data-pipeline.md`（唯一写入）。
-- 未修改任何源码、他人文档、数据或仓库历史。
+- 数据观察与验证结果见 §2–§8.2；现行数据操作见页首链接。

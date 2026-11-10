@@ -1,6 +1,8 @@
 # 07 深挖：Studio 前端 + Space + project_page
 
-> 小组：项目理解 + 模型复现规划深挖（studio-frontend）。只读分析，只写本文件。
+> **2026-11-10 校正：** 本页是历史前端和 Space 快照。两者窗口几何相近；输出还受执行方式影响：Space 批量执行可能触发视频 LSTM 的跨样本影响；丢失人脸后会沿用旧框，目标身份需要重新确认。旧依赖版本、测试数和部署说明以当时为准；参阅[评测与应用说明](../20261110-evaluation-and-apps.md)、[Studio 指南](../../../studio/README_zh.md)及[Space 指南](../../../space/README_zh.md)。
+
+> 小组：项目理解与模型复现规划（studio-frontend）。
 > 仓库 `/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`。
 > 基线：旧文档 `docs/understanding/07-studio-frontend.md`（1158 行，基线 commit `7576854`，当时 `studio/web/app.js` 1165 行）。
 > 本文当前代码行号全部以 HEAD 为准（`app.js` 已 1223 行，见 §5）。
@@ -14,7 +16,7 @@
 Studio 前端是**无框架原生 ES Module 的完整实时采集/分离/回放客户端**（16000/32000/8000/1280/25 这组常数与 `studio/server.py` 逐项一致，WebSocket 私有协议两端互校），
 成熟度高、可演示；本次新增的「采集卡顿诊断 + 设备启动超时上限」也已有 5 条 Node 控制流测试覆盖（Node 8/8 RC=0、`check_tracking_ui.cjs` 23 条）。
 `space/` 不是独立实现而是**用 `build.py` 从 `studio/` 组装出来的 ZeroGPU 变体**：复用 runtime/模型/配置/全部 web 模块，只替换 `app.py`（Gradio 6 Server + `@spaces.GPU`）、`clip.py`（整段离线窗口调度）与两个前端文件；
-本次实测组装 54 文件/39 MB、i18n 226 条中文全有英文译文（与 `REPRODUCTION_PLAN` §11.1 一致），`space/tests/test_clip.py` 在 `falcon` 环境 **20 passed/2 deselected**（其窗口/裁剪/拼接结果与 Studio 实时路径逐样本对齐）。
+本次实测组装 54 文件/39 MB、i18n 226 条中文全有英文译文（与 `REPRODUCTION_PLAN` §11.1 一致），`space/tests/test_clip.py` 在 `falcon` 环境 **20 passed/2 deselected**（测试中的窗口/裁剪/拼接几何与 Studio 转写一致；真实模型批处理的跨样本影响见页首）。
 主要缺口是**运行期依赖与工程耦合**：Space 本体需要 py3.12/torch2.13/gradio 6.29.1（本机不可跑，只能静态+纯算法验证）；Studio 服务端**没有本地权重覆盖参数**且沿用已失效的 `models/` 报错文案；`i18n-errors.js` 与 `falcon_runtime.py` 现行英文异常出现 **5 处漂移**（中文界面会漏出英文）。
 
 ---
@@ -186,7 +188,7 @@ for t in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs
 其中 `check_tracking_ui.cjs` 的 23 条包含本次新增的三类（与 `607352c` 的 diff 对应）：
 `a frozen microphone is reported separately from an inference stall`、`device enumeration never blocks ready capture`、
 `preview deadline releases devices and permits retry`、`suspended audio cannot hide permission request or hang startup`、`late permissions after timeout do not leak devices`。
-即**卡顿诊断与设备启动超时这次是有测试的**，不是裸写。
+卡顿诊断与设备启动超时均有对应测试。
 
 ### 3.2 必跑项②：Space 组装 + i18n
 
@@ -251,7 +253,7 @@ server timestamps {'start_sample': 30720, 'end_sample': 38720} -> client real ax
 PROTOCOL-VERIFY-V2 PASS
 ```
 
-### 3.4 补充实测④：`space/clip.py` 与 Studio 实时路径等价性
+### 3.4 补充实测④：`space/clip.py` 与 Studio 窗口几何对照
 
 `space/tests/test_clip.py` 只依赖 numpy/PIL/torch/fastapi（都在 `falcon` 环境），可直接跑非 slow 部分：
 
@@ -263,9 +265,9 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest space/tests/te
 覆盖：5 组时长/随机种子的窗口与 crop 选择与 Studio 转写逐样本一致、`clip.separate` 与「逐窗 preprocess_mouth + 模型 + `OutputSlicer`」在 1e-6 内一致、tie 取更早 crop、`plan/stitch` 长度与截断、`decode_request` 的 12 类拒绝样例（含非 float32、NaN、时间戳倒序、超长帧、非图像）。
 **这两个 deselected 是 `@pytest.mark.slow` 的真实权重用例**（`test_clip.py:135-150`：加载 small/big 并断言 `array_equal`），本次未跑（避免长耗时/占 GPU）。
 
-### 3.5 必跑项③：Space 运行时依赖（未执行原因，如实记录）
+### 3.5 Space 运行时依赖
 
-`space/app.py` 与 `space/tests/test_space.py` **本次未执行**，原因是硬依赖缺失，而非跳过：
+`space/app.py` 与 `space/tests/test_space.py` **本次未执行**，当时环境缺少运行依赖：
 
 ```
 gradio  MISSING
@@ -276,7 +278,7 @@ Python  3.11.17            # falcon 环境
 
 `space/requirements.txt` 要求 `torch==2.13.0`、`numpy==2.4.6`、`pillow==12.3.0`、`spaces==0.51.3`，
 `space/README.md:6-8` 声明 `sdk: gradio`、`sdk_version: 6.29.1`、`python_version: "3.12.12"`；
-而项目唯一允许的环境是 py3.11 + torch2.8（`AGENTS.md` §1/§4）。按任务约束**不安装**，因此：
+当时项目环境为 py3.11 + torch2.8，因此：
 `space/app.py`（`gr.Server`/`@server.api`/`@spaces.GPU` 的真实行为）、`test_space.py`（启动子进程 + `/gradio_api/call` 往返 + 响应头）只能做静态阅读，其结论在本文中一律标 `[代码]`。
 可执行的部分已尽量执行：`build.py`（无依赖）、`check_i18n.mjs`（Node）、`test_clip.py`（算法层）。
 
@@ -295,7 +297,7 @@ Python  3.11.17            # falcon 环境
 | D7 | P2 | 追踪失效路径仍不可达：worker/`mouth-tracker.js` 从不产生 `requiresReacquire`，但 `app.js:381,392,395` 三处 UI 分支依赖它 | [代码]+[验证 grep] | “目标变化，请重新捕捉”文案是死分支（与旧文档一致，未变） |
 | D8 | P2 | Space `app.py` 启动时**同时**把 small+big 载入并搬上 CUDA（`app.py:31-43`），ZeroGPU 每次调用只临时分配一张切片 GPU（`space/README.md:26`） | [代码]+[文档] | 显存翻倍；小 GPU 档位（如 zero-a10g 的切片）可能吃紧，且未做失败降级 |
 | D9 | P3 | Space 的 CSP 放宽到 `frame-ancestors 'self' https://huggingface.co`，且没有 Studio 的 same-origin/TrustedHost 中间件（`app.py:99-128`） | [代码] | 公网服务按需设计，但本地以 `app.py` 起服务时缺少来源校验 |
-| D10 | P3 | `project_page/index.html` 依赖 Google Fonts、Font Awesome CDN、`oss.cslikai.cn` 媒体与一个 seetacloud 临时隧道 URL（`:284`）；论文链接不存在（README:40 “Paper link will be added when available”），但页内已写 `@inproceedings{sang2026falcon, NeurIPS 2026}`（`:670-678`） | [代码]+[文档] | 离线/断网时排版与 demo 全废；引用信息早于论文公开，复现引用口径需谨慎 |
+| D10 | P3 | `project_page/index.html` 依赖 Google Fonts、Font Awesome CDN、`oss.cslikai.cn` 媒体与一个 seetacloud 临时隧道 URL（`:284`）；历史快照中 README 尚未链接论文；论文已于 2026-10-23 公开，但页内已写 `@inproceedings{sang2026falcon, NeurIPS 2026}`（`:670-678`） | [代码]+[文档] | 离线/断网时排版与 demo 全废；引用信息早于论文公开，复现引用口径需谨慎 |
 | D11 | P3 | 前端单测盲区：`audio-inspector.js` 的缩放/拖拽/键盘/进度条无测试；真实 MediaPipe/摄像头/虚拟声卡路径只有 `studio/tests/browser/test.js`（本环境无 Chrome）；`space/web/app.js` 无 Node 测试；`project_page`/`pages.yml` 无任何测试 | [代码] | 见 §6.4 |
 
 ---
@@ -360,7 +362,7 @@ Python  3.11.17            # falcon 环境
 
 - 优点：无构建步骤、无框架、模块边界清楚（i18n/采集/播放/频谱/追踪各自独立文件），Node 直测门槛低（`node xxx.mjs` 即可）；新加的诊断是**单一职责 + 可注入式**（`window.falconDiagnostics()` 只输出聚合量，便于用户在控制台自查）。
 - 风险：`app.js` 1223 行仍是单文件巨型状态机（50+ 字段 `state`，`app.js:13-31`），事件绑定与状态迁移耦合；`space/web/app.js` 是 fork 而非共享模块（D4）；字典以中文原文为键，新增文案忘记入字典不会报错（`t()` 未命中原样返回，`i18n.js:44-59`），只能靠 `check_i18n` 的 HTML 校验兜底。
-- 质量信号：测试密度不错（8 个 Node 测试 + 518 行控制流测试 + 2 个 Python）；本次实测 8/8 通过、无 flaky。
+- 质量信号：测试包括 8 个 Node 测试和 Python 测试；当次 Node 测试 8/8 通过。
 
 ### 6.3 可移植性 / Space 与 Studio 的差异（重点）
 
@@ -376,7 +378,7 @@ Python  3.11.17            # falcon 环境
 | 结果一致性 | 基准 | `clip.py` 复刻窗口/裁剪/淡化；`test_clip.py` 在 mock 上 1e-6 内一致、真实权重 `array_equal`（slow 用例，本次未跑） |
 | 部署 | 手动/脚本 | `build.py --push` → `HfApi.upload_folder(delete_patterns="*")` + 请求 `zero-a10g`（`build.py:48-58`） |
 
-结论：Space 是**同源派生的受限部署档**，不是第二套实现——除 `app.py`/`clip.py`/2 个前端文件外全部由 `build.py:30-38` 拷贝；代价是两处常数/算法需人工同步（§5.3）。
+Space 从 Studio 派生：除 `app.py`、`clip.py` 和两个前端文件外，文件均由 `build.py:30-38` 拷贝；两处常数及算法需要按 §5.3 同步。
 
 ### 6.4 浏览器兼容 / 麦克风权限 / 延迟边界
 
@@ -419,7 +421,7 @@ cd studio && PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python server.py -
 ```
 反例记录：`server.py` **没有** `--checkpoint`；离线场景只能用 `infer_file.py --checkpoint <本地文件>` 做离线单条推理（`infer_file.py:91,98`），或先把文件放进 `~/.cache/huggingface/hub/models--JusperLee--Falcon/...`。
 
-**P1 Space（本机不可跑，只能离线验证部分）**
+**P1 Space（本机已完成离线验证的部分）**
 ```bash
 PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python space/build.py --out /root/tmp/falcon-space-deepdive   # ✅ 实测通过
 node space/tests/check_i18n.mjs /root/tmp/falcon-space-deepdive                                               # ✅ 226 条
@@ -442,7 +444,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest space/tests/te
 | Q5 | D3 的 5 条英文异常是否补进 `i18n-errors.js`？是否应把 `falcon_runtime.py` 的异常消息也纳入 `check_i18n` 的自动审计（目前只审 HTML 与固定样例）？ | frontend + backend | 补字典是低风险改动，但需同步英文模板 |
 | Q6 | 60 s 录音 ~8–19 MB 的 POST 是否会被 Space 网关/浏览器限制拦？是否需要分片或降低帧率？ | Space 维护者 | 仅按实测 JPEG 尺寸推断，无真实上传证据 |
 | Q7 | Space 前端与 Studio 前端的 fork 是否应抽公共模块（D4）？抽的话 `build.py` 的“拷贝 studio/web”组装模型要改。 | Lead / 架构 | 现状靠 `check_i18n` 与 build 断言兜底 |
-| Q8 | `project_page` 的 NeurIPS 2026 bibtex 与“论文未公开”不一致（D10），复现报告的引用口径怎么写？ | Lead / 文档负责人 | `REPRODUCTION_PLAN` §2 已记录“无公开论文”，最终文档需统一 |
+| Q8 | `project_page` 的论文引用 | 依据公开论文核对 | 论文已于 2026-10-23 公开，历史报告中的未公开状态已过期 |
 | Q9 | Space 同时加载 small+big（D8）在 zero-a10g 上是否 OOM？是否应懒加载 big？ | Space 维护者 | 未验证 |
 | Q10 | 旧文档 Q5（`type:error` 一律停会话）、Q8（跳窗导致 WAV 时间轴省略 gap）仍未改；产品层是否接受？ | Lead / 产品口径 | 本次复核：代码未变，仍按“可接受但需声明”处理 |
 
@@ -451,7 +453,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest space/tests/te
 ## 8. 验证记录
 
 > 环境：`/root/miniforge3/envs/falcon/bin/python` = 3.11.17、torch 2.8.0+cu128、Pillow/fastapi 已装；`gradio`/`spaces` **未装**；`node v22.23.3`。
-> 所有命令在 `/root/code/github_repos/Falcon-fork` 执行；未改源码、未装包、未联网、未做 git 写操作。新增文件仅本文件与 `/tmp` 下一次性脚本/产物。
+> 命令从 `/root/code/github_repos/Falcon-fork` 执行；一次性脚本与产物位于 `/tmp`。
 
 ### 8.1 必跑项①：8 个 Node 测试（8/8 rc=0）
 
@@ -483,11 +485,11 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest space/tests/te
 | `/tmp/count_frontend.mjs` | 字典条数/重复键/index.html 绑定/DOM id/中文变量 | 363/351/12；125 绑定(120 唯一)/69 id；`app.js` 66 refs 全命中；`app.js` 中文 178(163 唯一) |
 | `/tmp/space_i18n_breakdown.mjs` | 226 条来源分解 | app.js 136 + clip.py 12 + app.py 1 + html 110 → 226；space 字典 74、studio 字典 152、缺失 0 |
 | `/tmp/i18n_gap_check2.mjs` | 反查 `falcon_runtime.py` 英文异常的 zh 映射 | 10 条 ZH、**5 条 RAW**（D3） |
-| `python -m pytest space/tests/test_clip.py -q -m "not slow"` | clip.py ↔ Studio 等价性 | `20 passed, 2 deselected in 2.33s` |
+| `python -m pytest space/tests/test_clip.py -q -m "not slow"` | clip.py ↔ Studio 窗口几何对照 | `20 passed, 2 deselected in 2.33s` |
 | JPEG/载荷估算（PIL 实测） | 96×96 灰度 JPEG q=.88 尺寸与 60 s 载荷 | 439/1077/789/7110 B；60 s 约 8–19 MB |
 | `node --check` ×24 | 语法 | `checked=24 fail=0` |
 
-### 8.4 未执行 / 未能验证（如实记录）
+### 8.4 待验证项目
 
 | 项 | 原因 | 替代 |
 |---|---|---|
@@ -498,7 +500,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest space/tests/te
 | `pytest studio/tests`（Python 侧 Studio 测试） | 属 studio-backend 范围，本次未跑 | 旧文档/AGENTS 记录 35 passed/2 skipped |
 | HF 权重下载 | 本机不可联网 | 只检查 `weights_source` 的判定逻辑（D1） |
 
-### 8.5 遵守的约束
+### 8.5 临时产物
 
-未 `pip install`、未联网、未改仓库源码/他人文档、未执行任何 git 写操作（`git status` 仅新增 `docs/understanding/deepdive-20261024/07-studio-frontend-space.md`）。
+
 所有临时脚本与组装产物在 `/tmp`、`/root/tmp/falcon-space-deepdive`。

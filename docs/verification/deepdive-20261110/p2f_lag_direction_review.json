@@ -1,0 +1,23 @@
+[
+  {
+    "constructed_est_delay_samples": 23,
+    "returned_lag": 23,
+    "zero_db": -34.21848581154767,
+    "current_alignment_db": -31.408433277411806,
+    "corrected_alignment_db": 155.96864302779798
+  },
+  {
+    "constructed_est_delay_samples": -23,
+    "returned_lag": -23,
+    "zero_db": -34.21848581154767,
+    "current_alignment_db": -31.408433277411806,
+    "corrected_alignment_db": 155.96864302779798
+  },
+  {
+    "constructed_est_delay_samples": 0,
+    "returned_lag": 0,
+    "zero_db": 155.96864302779798,
+    "current_alignment_db": 155.96864302779798,
+    "corrected_alignment_db": 155.96864302779798
+  }
+]

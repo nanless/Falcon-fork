@@ -1,7 +1,9 @@
 # Phase 2-C 报告：LRS2-2Mix → Falcon 训练格式（全量转换完成）
 
+> **后续更新：**本报告主体记录 2026-10-21 的 fallback 转换；磁盘 near 索引后改为 s2，见 §12。s1、s2 波形已分别按混音增益缩放，混音约等于二者之和。
+
 - 负责人：`data-pipe`
-- 分支：`repro/phase2`（未 commit；只写 scope 内文件）
+- 分支：`repro/phase2`
 - 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / soundfile 0.14.0）
 - 任务：`task-20`（Phase2-C：LRS2-2Mix 全量转 Falcon 格式 + 索引/near 生成）
 - 完成时间：2026-10-21 19:24 UTC（全量转换耗时 **237.9 s ≈ 4.0 min**，16 并行）
@@ -26,7 +28,6 @@
 
 - **条数**：tr 20000 / cv 5000 / tt 3000 = **28000 条**（与源 `audio/wav16k/min/*` 一一对应；`missing_mouth_npz=0`）。
 - **磁盘**：**23.36 GiB**（`du -sh` = 24 GB）：tr 21.44 GiB / cv 1.21 GiB / tt 0.70 GiB。
-- `/root` 当前余量 15 T，未受影响。
 
 ## 2. 转换统计
 
@@ -50,7 +51,7 @@
 | mouth 文件 | `torch.uint8 [50,96,96,3]`，3 通道为灰度帧复制（Dataset 先 Grayscale 再 crop 88） | `test_lrs2_convert.py` 逐元素断言 |
 | target | **s1**（paper/约定默认；`--target s2` 可切换，且 mouth 同步用 s2 id） | 转换器 `--target` |
 | stem | 保留源 recipe：`<s1_id>_<gain1>_<s2_id>_<gain2>`（如 `5535..._00004_2.4022_6160..._00015_-2.4022`） | `STEM_RE`；与源文件名一致 |
-| mix/target 对齐 | `mix == gain1*s1 + gain2*s2`（PCM16 舍入内） | 抽样校验 max err **3.05e-05** |
+| mix/target 对齐 | `mix ≈ s1+s2`（s1、s2 已含增益）（PCM16 舍入内） | 抽样校验 max err **3.05e-05** |
 | JSON 绝对路径 | 全部为绝对路径；`target.json` 第 3 字段 = 采样数（DataLoader 目前不读，但保持契约） | `mix.json`/`target.json` 头 |
 | near | 默认 **fallback**：`[[abs_mix, 32000]]`（Dataset 跳过 → K=0） | 见 §5 |
 
@@ -143,7 +144,7 @@ val batch  : mix (1, 32000) | mouth (1, 50, 88, 88) | n_near (1,)
 5. **未对 s1/s2 做语音级校验**（如 SI-SDR 上界、静音/削波统计）；mix==s1+s2 已抽样验证；如需更强质量报告可在 P2-E 补充。
 6. 本次转换脚本未处理 `--limit` 与断点混合的边界（resume 时若改 limit，JSON 会按已存在文件重建，符合预期）。
 
-## 10. 变更文件清单（未 commit；scope 内）
+## 10. 当时的变更文件清单
 
 | 文件 | 状态 | sha256 |
 |---|---|---|
@@ -152,7 +153,7 @@ val batch  : mix (1, 32000) | mouth (1, 50, 88, 88) | n_near (1,)
 | `docs/verification/phase2/P2C-convert.log` | 新增（117 行） | — |
 | `docs/verification/phase2/P2C-report.md` | 新增（本报告） | — |
 
-> 数据产物在 `/root/data/falcon_lrs2_2mix`（仓库外，不入 git）；未修改 Phase 1 源码，未 git commit。
+> 数据产物位于 `/root/data/falcon_lrs2_2mix`。
 
 ## 11. 结论
 

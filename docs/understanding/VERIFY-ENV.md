@@ -1,5 +1,7 @@
 # 验证环境说明（VERIFY-ENV）—— 项目专属 conda 环境
 
+> **2026-11-10 复核：本页是历史环境记录。** 版本和测试结果会变化；现行环境使用 [AGENTS.md](../../AGENTS.md) 与 [复现状态](../STATUS.md) 核对。当前 `studio/requirements.txt` 的 torch 约束为 `>=2.8,<3`；环境变更可另存带日期的快照，保留历史 `conda-env-lock.txt`。历史 stub 对应替身环境；2026-11-10 的测试结果见复现状态。
+
 > **2026-10-21 起：本项目的唯一允许运行环境是专属 conda 环境 `falcon`。**
 > 强制约定见仓库根 [`AGENTS.md`](../../AGENTS.md)；本文件只补充“怎么用这个环境做验证”。
 > 早期文档/日志中出现的 `/root/.venvs/falcon` 是搭建 conda 环境之前的临时环境，**已删除**，
@@ -51,7 +53,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python <script>.py
 | `numpy==2.2.6` | 固定 | 与已验证结论一致；避免 2.5.x 与旧库的潜在 ABI/行为差异 |
 | `espnet` | **未安装** | 仅 `look2hear/utils/nets_utils.py:493` 函数内可选 import（死代码路径）；装它可能与 typeguard<3 冲突。确需时单独评估 |
 | `pypesq` | **用 `pesq` + 兼容层替代** | `pypesq 1.2.4` 在 numpy 2.x 下构建失败（依赖已移除的 numpy.distutils）；已装 PyPI `pesq 0.0.4`（同为 ITU-T P.862），site-packages 放 `pypesq.py` shim 映射 `pypesq.pesq(ref,deg,fs) → pesq.pesq(fs,ref,deg)`，使 `look2hear.metrics`/`audio_visual_test` 可导入、PESQ 可计算（自检：ref 对自身 4.644、加噪 1.019） |
-| Studio 的 `torch>=2.14.1` 声明 | 不采用 | 与本机驱动不兼容；功能上 2.8.0 已验证可跑 Studio 全部测试与真实权重推理 |
+| Studio 当时的 `torch>=2.14.1` 声明 | 历史记录 | 当时选择 2.8.0；当前依赖范围为 `>=2.8,<3`，具体以 `studio/requirements.txt` 为准 |
 
 ## 3. stub 说明（保留但通常不再需要）
 
@@ -59,7 +61,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python <script>.py
 是 conda 环境建立之前“无依赖”阶段用的。`falcon` 环境已装**真包**，正常情况不需要 stub。
 
 注意：`docs/verification/scripts/verify_*.py` 脚本内部仍会 `sys.path.insert(0, docs/verification/stubs)`，
-因此这些脚本会**优先加载 stub**（行为与真包等价：DropPath(drop_prob=0) 恒等、typeguard 断言为 no-op）。
+因此这些脚本会**优先加载 stub**（例如 DropPath(drop_prob=0) 恒等；typeguard stub 为 no-op，具体覆盖范围见对应历史脚本）。
 这是可复现历史结论的刻意选择，不是环境问题；如需测真包行为，把该行去掉或换目录即可。
 
 ## 4. 已验证可用的命令

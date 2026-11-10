@@ -1,15 +1,18 @@
 # 验证记录：层与 DSP（layers-dsp，R1）
 
 > 对应文档：`docs/understanding/02-layers-dsp.md`
-> 脚本：`docs/verification/scripts/verify_layers_dsp.py`（777 行，只读仓库、不改源码）
+> 脚本：`docs/verification/scripts/verify_layers_dsp.py`（当时 777 行）
 > 日志：`docs/verification/runs/layers-dsp-verify.log`
 > 环境：`/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0+cu128，CPU）
 > stub：`PYTHONPATH=$PWD/docs/verification/stubs:$PWD`（timm.DropPath / typeguard.check_argument_types）
 
-## 1. 复现命令
+## 1. 验证命令
+
+原实验使用 Python 3.10 环境；当前服务器可使用项目的 conda 解释器。下面将新日志写入独立目录。
 
 ```bash
 cd /root/code/github_repos/Falcon-fork
+FALCON_RUN_DIR=$(mktemp -d /root/tmp/falcon-layers-probe.XXXXXX)
 
 # (1) 两份 stft.py 的同源证明
 diff -u look2hear/layers/stft.py look2hear/utils/stft.py            # 15 行 / 2 hunk
@@ -21,8 +24,8 @@ for f in look2hear/layers/stft.py look2hear/utils/stft.py; do tr -d '[:space:]' 
 
 # (2) 动态验证（STFT 对拍 / 归一化语义 / 形状 / 因果性 / 参数）
 PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
-  /root/.venvs/falcon/bin/python docs/verification/scripts/verify_layers_dsp.py \
-  | tee docs/verification/runs/layers-dsp-verify.log
+  /root/miniforge3/envs/falcon/bin/python docs/verification/scripts/verify_layers_dsp.py \
+  | tee "$FALCON_RUN_DIR/layers-dsp-verify.log"
 ```
 
 ## 2. 关键结果摘要
@@ -78,7 +81,7 @@ PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
 
 | 探针 | 结果 |
 |---|---|
-| 扰动后半段音频，`STFTEncoder` 前 120 帧 | `0.000e+00`（严格因果） |
+| 扰动后半段音频，`STFTEncoder` 前 120 帧 | `0.000e+00`（该输入与切分下未检出变化；center=True 分析窗有未来依赖） |
 | `audio_bottleneck`（pre_norm=cLNhw）前 120 帧 | `4.7e-05`（非 0，全窗口统计泄漏） |
 | `Separator` 前 120 帧 | `1.706`（量级与后段相同，强泄漏） |
 | 最终波形 `[0:8000]` / `[8000:16000]` / `[16000:]` | `9.7e-04` / `1.65e-01` / `6.6e+00` |
@@ -101,7 +104,7 @@ PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
   config 显式 `LSTM` 才能构造。
 - `out_proj`：dim=4 `Linear(48→64, bias=False)`；dim=3 `Linear(72→64, bias=False)`。
 - `Separator.__init__` 会 `pop` 传入字典的 `repeats`/`shared`（`Falcon.py:991-997`）⇒ `studio/falcon_runtime.py:149-150`
-  用 `copy.deepcopy` 自我保护。
+  用 `copy.deepcopy` 避免模型构造修改调用方的配置。
 - `model.encoder.__module__ == "look2hear.models.Falcon"` ⇒ Falcon 不用 `layers/enc_dec.py`。
 - Studio 侧 `falcon_model/layers/` 只有 `__init__.py`（docstring）、`normalizations.py`、`activations.py`；
   `normalizations.py` 与训练侧 diff 26 行（全为中文注释）、`activations.py` 0 行 ⇒ 无 librosa 依赖。
@@ -115,8 +118,8 @@ PYTHONPATH=$PWD/docs/verification/stubs:$PWD \
 | 3 | cLNhw 泄漏只显示 `7e-07` | 替换同分布随机数时 GroupNorm 尺度不变性的巧合 | 改"放大 10×"与"单帧尖峰"两种强探针 |
 | 4 | Separator 配置 pop 探针无效 | 复用了已被前面模型构造污染的配置字典 | 重新 `yaml.safe_load` |
 
-## 4. 未执行（诚实声明）
+## 4. 当时的验证范围
 
-- 未加载真实权重（仓库无 `falcon.pt`，`pretrain_zoo/` 不存在）⇒ 只验证结构与数值语义，不验证"训练好的模型行为"。
-- 未在 Apple MPS 上实测 `CPU FFT bridge`（沙箱无 Apple GPU）⇒ 仅静态 diff 证据。
-- 未运行训练/评测入口（缺 pypesq 等依赖）⇒ `layers` 死代码只做静态分析。
+- 使用随机初始化模型验证结构与数值语义；当时仓库未放置 `falcon.pt` 或 `pretrain_zoo/`。
+- Apple MPS 的 `CPU FFT bridge` 使用静态 diff 核查，当时没有 Apple GPU。
+- 当时环境缺少 pypesq 等依赖，训练和评测入口未运行；`layers` 中的备用代码采用静态分析。

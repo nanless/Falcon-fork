@@ -1,0 +1,256 @@
+{
+  "repository": "/root/code/github_repos/Falcon-fork",
+  "scope": "指定文档、依赖、页面及全部 .sh/.command；不含第三方资源",
+  "count": 31,
+  "files": [
+    {
+      "path": "README.md",
+      "lines": 302,
+      "sha256": "6dd5ba4ea252f298eac3677ac73643f7dc9c99c90bcc3d0e70f5ccadaaaa45cc",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "英文入口及复现结果",
+      "executed": false
+    },
+    {
+      "path": "README_zh.md",
+      "lines": 302,
+      "sha256": "aa31a1a4f4484379e67c6281ba23b6384a88fe6dfd9655fc09f574baf431e80f",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "中文入口及复现结果",
+      "executed": false
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "lines": 46,
+      "sha256": "f648806e26d4c387a77648af4e88006ea01e5050f8de2514110ee9df733cb67d",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "贡献与测试说明",
+      "executed": false
+    },
+    {
+      "path": "LICENSE",
+      "lines": 202,
+      "sha256": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Apache 2.0 许可正文",
+      "executed": false
+    },
+    {
+      "path": ".gitignore",
+      "lines": 47,
+      "sha256": "edd24c255a86a8098929a25993dcb5a0ad81160c5369dc8ccc77170c57e0888b",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "根目录忽略规则",
+      "executed": false
+    },
+    {
+      "path": "requirements.txt",
+      "lines": 29,
+      "sha256": "9af9e017847f187eacde626e156d822db240115f23a1889b097aebbd497a3491",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "训练评测依赖",
+      "executed": false
+    },
+    {
+      "path": "studio/.gitignore",
+      "lines": 14,
+      "sha256": "5eb8461339160478aa6c3c6065e036db8e40b6b8e94ce1619df694448372a8e2",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 忽略规则",
+      "executed": false
+    },
+    {
+      "path": "studio/requirements.txt",
+      "lines": 15,
+      "sha256": "19d35685d5d71cf97e02231e78205b56af937e53db146f318702574b1a32ceb1",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 运行依赖",
+      "executed": false
+    },
+    {
+      "path": "studio/requirements-dev.txt",
+      "lines": 3,
+      "sha256": "d8051f37f45da475d5b993671bf8c0e87d980a5bcd5ca9aa3e7e3ce99079e1d3",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 开发依赖",
+      "executed": false
+    },
+    {
+      "path": "studio/requirements-lock.txt",
+      "lines": 115,
+      "sha256": "185371a8d8b7cb018e8d29dbe8692767d0f6d3ce8cdd30a8e9d707193adc169c",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 依赖锁定",
+      "executed": false
+    },
+    {
+      "path": "space/requirements.txt",
+      "lines": 8,
+      "sha256": "03d441774932eefe27d706cf5819b066a9abced6d74545b536978a44b6301b93",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Space 运行依赖",
+      "executed": false
+    },
+    {
+      "path": "studio/README.md",
+      "lines": 262,
+      "sha256": "ee394cc7417957a0ed7dcfe1e31e07cedaddc44e1052cf6eaeecfd04abeeeda3",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 英文指南及窗口测量",
+      "executed": false
+    },
+    {
+      "path": "studio/README_zh.md",
+      "lines": 199,
+      "sha256": "e4e6edd94760c82b2c4ae4e0f1dca0e789e56198d04ccde0f044bac53f7addf9",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Studio 中文指南",
+      "executed": false
+    },
+    {
+      "path": "space/README.md",
+      "lines": 86,
+      "sha256": "b84a30a05c5b410f93304b7162d8eb5fce50f399990dcb1e678818f43ab81d9a",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Space 数据流、隐私和构建",
+      "executed": false
+    },
+    {
+      "path": "space/README_zh.md",
+      "lines": 43,
+      "sha256": "9a9797c3fec4739c1ab5c22a1fffa2ffc1efb1a9083ac1d50877d5e318eb25bb",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Space 中文使用及构建",
+      "executed": false
+    },
+    {
+      "path": "project_page/index.html",
+      "lines": 823,
+      "sha256": "ccc741e1caa08dfd169e98c5d309d5e827165196366082686b98d13bd057122e",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "论文展示页、结果与演示同步；NISQA 总结与表内数据矛盾",
+      "executed": false
+    },
+    {
+      "path": "studio/Start Falcon.command",
+      "lines": 9,
+      "sha256": "64f3c13fdcf53e6a21dd898b755fc46f044f1cadeb30d65633ab53eabd65f466",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Finder 调用启动脚本",
+      "executed": false
+    },
+    {
+      "path": "studio/Setup Meeting Audio.command",
+      "lines": 7,
+      "sha256": "260fa03e4b0906db8658cff1fa90ed2ff57f0303f37905ef107af8e48baf427c",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "Finder 调用驱动安装脚本",
+      "executed": false
+    },
+    {
+      "path": "studio/scripts/bootstrap.sh",
+      "lines": 245,
+      "sha256": "caa42bfce28a4f78a3fb4e34b9a58eeb4fb961f3237c92e1ee6e45de1f4aee21",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "环境创建和依赖安装，无 yes 亦可能创建 venv",
+      "executed": false
+    },
+    {
+      "path": "studio/scripts/doctor.sh",
+      "lines": 79,
+      "sha256": "da38af2551ed3bfdae0bffe6eb483c75463bef27a44468107891942d1900f9b8",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "环境诊断，check-only 不调用 bootstrap",
+      "executed": false
+    },
+    {
+      "path": "studio/scripts/install-blackhole.sh",
+      "lines": 72,
+      "sha256": "2a4c645aa168c23a3175e785ea1233d59d8796c04773b379762dba69b77b0efc",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "macOS BlackHole 检查及安装",
+      "executed": false
+    },
+    {
+      "path": "studio/scripts/launch.sh",
+      "lines": 20,
+      "sha256": "604752322910f65efeade7cc7af596a926328cc31dd41d3248db16ce5267a6eb",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "启动环境、服务和浏览器",
+      "executed": false
+    },
+    {
+      "path": "docs/verification/phase1/run_lrs2_download.sh",
+      "lines": 50,
+      "sha256": "1683c7088c4fe86d217742070d24e435a6fab34727f9b791b58362051893e59b",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "历史下载按大小判完成，记录 hash 但不比较",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/eval_p2d.sh",
+      "lines": 45,
+      "sha256": "0ff17b37a49efd964a60aa5f02c368555885b1530a5d7b057bf993db76fd3917",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "P2D 评估启动",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/realssa_sim_tt_pipeline.sh",
+      "lines": 104,
+      "sha256": "4ae1926e117e281b9a31c883cd0ebd0d4136aaafc5da5bf54e00e9368c503834",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "数据准备与评估；dry-run 亦写日志，FULL 模式转换存在覆盖问题",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/resume_when_network_ok.sh",
+      "lines": 27,
+      "sha256": "c9a069b51fbe99538119208ca091c16835708febd49a4c42e0f925d729a91f8f",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "等待网络恢复后续运行",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/run_contrastive_after_training.sh",
+      "lines": 16,
+      "sha256": "959026a7a9e089eaac31864181718eedd0a61be3162108010f30d8c7cb0b0f48",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "等待训练后启动对比训练",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/run_lrs2_paper_2gpu_smoke.sh",
+      "lines": 24,
+      "sha256": "ef04a037defee58876069e170cec7ba4c91475c78052aa0da02f4a5f65dbb673",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "双卡训练冒烟启动",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh",
+      "lines": 184,
+      "sha256": "10d757db71753bc8e438f831e557c4916428388de259be79dd81589eee96bd03",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "八卡训练启动；帮助示例提取参数有误",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/run_p2d_train.sh",
+      "lines": 63,
+      "sha256": "26ef0bb2797666d8574887731cafda42980202d554b7c244de3cccd23cdf602f",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "P2D 训练启动",
+      "executed": false
+    },
+    {
+      "path": "tools/repro/phase2/start_p2d_single_gpu.sh",
+      "lines": 38,
+      "sha256": "b16729a1cfa0d48025e5c48ed9bcb3a995d11e1ff6fc3a1f67a6ba2025309e2c",
+      "coverage": "全文阅读",
+      "purpose_and_boundary": "后台单卡训练启动及日志",
+      "executed": false
+    }
+  ],
+  "limitations": "只读静态审查；未安装依赖、执行脚本或检查远端链接"
+}

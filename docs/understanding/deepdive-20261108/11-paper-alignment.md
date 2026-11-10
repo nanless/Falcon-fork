@@ -1,5 +1,7 @@
 # 11 论文 ↔ 代码逐条对齐
 
+> **2026-11-10 逐篇复核提示：**此文保存 11 月 8 日分析。发布 `falcon.pt` 的训练语料、训练配方及其与论文表格权重的身份仍待确认；mean/ch0 数值接近论文，各自的通道与评测协议见状态页。默认 VideoBlock 的 LSTM 沿批次轴递归，论文中的时间 LSTM 沿视频时间轴递归；正文 54/57 和 110/113 帧来自特定替换、扰动和阈值实验。`audio_train.py` 在 Trainer 中设置梯度裁剪。§2.6 记录了场景元数据，§5.5/§6.2/B5/G8 的“发布包没有场景标签”应视为旧冲突；原始嘴部尺寸、训练目标约定及完整评测协议见 [当前状态](../../STATUS.md)。不同 MAC 计数器对各模型的漏计量需要分别核算。
+
 > 子代理 W2-11 · 2026-11-08 · 远端 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork`（只读）
 > 论文：*Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World Acoustic Scenes*（arXiv:2610.32749v1, cs.SD, 23 Oct 2026, Sang/Kai Li/Yifan Li/Jianqiang Huang/Xiaolin Hu）
 > 本文件只写「论文原文 ↔ 代码事实」的对齐证据。凡涉及"实测"均标注命令与输出；凡论文未写、代码无法自证者进 §7 GAP LIST。
@@ -10,14 +12,14 @@
 
 1. **9/9 宽度命中**：Table 15 的 Ce=112 / C=112 / Ch=64 / Cv=32 / dim(q)=64 / h_F=24 / h_T=72 / n_head=4 / L=4 全部对上；GCI 与 Eq.(6)、复数掩码与 Eq.(1)、TFRB 三件套（频向双向 LSTM + 时向单向 LSTM + 2D attention）逐符号同构。
 2. **16/16 命中、平均 13.23 人**：RealSSA-Sim test 的 9,169 条元数据逐格核 Table 11 的 near / far / RT60 / sudden 四场景 × 四列，16 格全中（§2.6）；Table 13 的平均说话人数 13.23 与实测 1 + 2.48 + 9.75 = **13.23** 两位小数一致。RealSSA-Real **54 段 / 5,039.4 s / 84.0 min**（论文 54 段 / 5,035 s / 83:55，差 0.09%）。这是本轮最强的数据侧证据。
-3. **0.5 M / 10.6 G 口径闭合**：音频侧 **537,697 参数 / 10.611 GMAC**（ptflops、**含 LSTM**、**不含 FRCNN**），与论文 0.5 M / 10.6 G 同源同口径。视觉 88×88 输入是 **15.897 GMAC**，整窗 10.611 + 15.897 = **26.51 GMAC、视觉 60.0%**。
+3. **0.5 M / 10.6 G 口径闭合**：音频侧 **537,697 参数 / 10.611 GMAC**（ptflops、**含 LSTM**、**不含 FRCNN**），数值接近论文 0.5 M / 10.6 G，论文计数方法尚未确认。视觉 88×88 输入是 **15.897 GMAC**，整窗 10.611 + 15.897 = **26.51 GMAC、视觉 60.0%**。
 4. **5.382 GMAC 是另一把尺子（2026-11-08 更正）**：`torch.utils.flop_counter` 不给 `aten::lstm` 记账，音频侧只剩卷积 **5.381 GMAC**；5.381 + 15.897 = 21.28，于是出现「21.19 GMAC / 视觉 74.6%」这个数。它与论文的 10.6 G 不同口径，不能并列；整窗正确口径是 **26.51 GMAC / 60.0%**。
 5. **2×MACs 被 "single pass" 掩盖**：`Separator` 是 SwiftNet 式的 `repeats` 循环（`Falcon.py:1032`），配置 `repeats: 2 / shared: true` 让它把**同一个 AudioBlock 跑两遍**（融合前 + 融合后），总 MACs = 2× 单块。论文 §4.1 确实写了 B_a 的两次调用，所以设计对得上；但摘要/§4.2 的 "single encoder–decoder pass" 只对每次 B_a 内部成立，读成「整模型一次前向」会漏掉一半 MACs（§3.4）。
 6. **因果性对不上，差距 4–7 倍**：论文 §4.2 说 left-aligned padding、无时域 lookahead，代码 `AudioBlock` 的 downsample / fusion / concat 硬编码 `causal=False`（`Falcon.py:772,808,821`）。三档实测：**单遍几何 57 帧/456 ms**（本文 tail-perturb 得 54 帧/432 ms，另一路 57/456，差约 3%）、**整链几何 113 帧/904 ms**（本文 110 帧/880 ms，同 3%）、as-shipped 因 30 处 `cLNhw` 依赖到窗尾（2 s 窗时 **≤2000 ms**）。
 7. **15 帧 / 120 ms 是论文声明，不是代码事实**：论文 §6.4 说音频支路「at most 15 frames」，App E 说视觉「three future frames = 120 ms」。代码里唯一等于 15 帧的量是编码器最深层的对称 padding 累计（`2^4−1`），它不含 GCI/decoder（+44 帧）也不含第二遍（+56 帧）；视觉前端实测 ±2 帧 = 80 ms。
 8. **两个归一化实验不是同一件事**：本文 §2.3.1 把 30 个 `GlobalLayerNorm` 换成 `Identity` 后单遍仍是 432 ms ⇒ lookahead 由卷积 padding 造成；W2-12 §4.5 把 `cLNhw` 换成逐 (t,f) 的 `LN_c`（保留 affine）后，帧 0…120 变 −240 dB ⇒ 依赖下界回到 113 帧几何。前者问「纯几何有多长」，后者问「整窗统计还漏多少」，结论不冲突。
 9. **16 行配方对上 15 行**：−SI-SNR / λ 1.0 / m 0.5 / τ 0→1@1000ep / AdamW 1e-3+wd 0.01 / ReduceLROnPlateau(15,0.5) / 早停 30 / 1000 ep / bs 4 / 8 卡 / 2 s / 25 fps·50 帧 / Hann 256-128 / 3 通道 / FRCNN 冻结 / seed 42。唯一实质缺口是 near 负样本语义（§4.4）。
-10. **1 格数字到论文量级，但不是同 ckpt 对照**：RealSSA-Sim 官方 `falcon.pt` 得 **7.774 / 8.479**（取 `P2E-realssa-sim-metrics_combined.csv` 的 `avg` 行；论文 7.7 / 8.2，SI-SNRi 高 0.07、SDRi 高 0.28）。通道是 4ch 均值（论文 channel-1），ckpt 是 LRS3 训练（论文用 RealSSA-Sim 训练），两个轴都不同，属**数值吻合**，不构成严格复现；分母 9,169（SI-SNRi）/ 9,166（SDRi）。LRS2 14.1/14.7 本地拿不到（`falcon.pt` 训在 `LRS3_complex_nonmoving`）；LRS3 / VoxCeleb2 无数据；DNSMOS 3.276 属未发布的 RealSSA-trained ckpt。7.03 与 14.1 只能并列成「不可比」。
+10. **RealSSA-Sim 数值与论文接近**：发布 `falcon.pt` 在四通道均值、整段前向下得 **7.774 / 8.479**，论文报告 **7.7 / 8.2**。本地 SI-SNRi 和 SDRi 的有效数分别为 9,169 和 9,166；论文使用 channel-1。本地 checkpoint 与论文权重的身份及训练语料仍待确认。LRS2 论文报告 14.1 / 14.7，本地与论文的权重和训练协议应分别列明；LRS3 / VoxCeleb2 数据和 RealSSA-Real DNSMOS 的论文权重身份仍待核对。
 11. **0/6 消融复现**：论文 Table 7 / 8 / 9 / 18 / 19 / 21 六组，本地只有 P2B 的 big/small 与 mouth 消融，TFRB / GCI / NASS / stages 一个都没做过。
 
 ## 1. 证据与方法
@@ -104,7 +106,7 @@
 | 输出 | `E = O(Y_0) + R`（残差分支 global skip） | `out = self.residual_conv(expanded) + residual`，`residual = self.gateway(x)`（depthwise 1×1 + PReLU） | ✅ | `Falcon.py:719-731`、`Falcon.py:896` |
 | 复数掩码（Eq.1） | `Â=[M_r⊙A_r − M_i⊙A_i ; M_r⊙A_i + M_i⊙A_r]`，通道对半分 | `masks.view(B,n_src,2,C//2,T,F)`；`est_real=emb_r*m_r − emb_i*m_i`；`est_imag=emb_r*m_i + emb_i*m_r`；再 `cat` | ✅ 逐符号一致 | `Falcon.py:1251-1268` |
 | 视觉前端 | "FRCNN visual backbone used in CTCNet, **frozen** during training"（§4.1） | `FRCNNVideoModel(backbone_type=resnet, pretrain=...backbone.pth.tar)`；训练时 `with torch.no_grad(): mouth_emb = self.video_model(...)` | ✅ | `Falcon.yml:videonet`；`av_litmodule_nass_v2.py:86-87` |
-| VideoBlock | "the VideoBlock of SwiftNet, which aggregates temporal context with a **causal LSTM** and upsamples to the audio frame rate"（§4.1） | `nn.LSTM(input=32, hidden=32, bidirectional=False)`；上采样不在 VideoBlock 内，而在 `NeuroSCNetFusion` 里 `F.interpolate(size=T_a, mode="nearest")` | ⚠️ 功能等价，但"VideoBlock 内上采样"与代码位置不同（代码在 fusion 里） | `Falcon.py:952-957`、`Falcon.py:258-261` |
+| VideoBlock | "the VideoBlock of SwiftNet, which aggregates temporal context with a **causal LSTM** and upsamples to the audio frame rate"（§4.1） | `nn.LSTM(input=32, hidden=32, bidirectional=False)`；上采样不在 VideoBlock 内，而在 `NeuroSCNetFusion` 里 `F.interpolate(size=T_a, mode="nearest")` | ❌ LSTM 默认沿批次轴递归，上采样位于 fusion；与论文时间建模不同 | `Falcon.py:952-957`、`Falcon.py:258-261` |
 | 融合方式 | "Ṽ is expanded along the frequency axis and **added** to Ã"（§4.1） | `v_feat.unsqueeze(-1); Z = audio + v_feat`（broadcast 到 F） | ✅ | `Falcon.py:263-267` |
 | Separator 单次性 | "in a **single decoder traversal**…replacing the multi-iteration recurrence of SwiftNet"（§4.2） | 类 `Separator` 本质是 `repeats` 循环（SwiftNet 血统）；但 `repeats: 2 / shared: true` ⇒ 只跑 2 次且是**融合前/融合后**两个不同位置，非迭代精化 | ⚠️ 结论等价、实现血缘不同（详见 §3.4） | `Falcon.py:1000-1005`、`Falcon.py:1032-1058` |
 
@@ -275,7 +277,7 @@ MACs 分布（M2，占 10.611 G 的比例）：
 | 窗调度 | — | `WINDOW=32000, HOP=8000, GUARD=1280, LEFT=22720`；取 `pred[22720:30720]`，映射到绝对 `[endpoint−9280, endpoint−1280)`；首窗 `endpoint=HOP+GUARD=9280`；有 100% 覆盖断言 | — | `eval_realssa_real.py:399-455` |
 | guard 是否覆盖 lookahead | 论文认为 120 ms（论文声明）就够 | 实测整链 lookahead **880–904 ms**，guard **80 ms** 只覆盖约 9%；被取用的 `pred[22720:30720]`（窗内 1.42–1.92 s）实际依赖到窗尾 2.0 s，即**隐含 80–580 ms 未申报延迟** | ❌ | §2.3.1 + `eval_realssa_real.py:399` 算术 |
 | DNSMOS 版本 | "DNSMOS [35]"（未写 P.835/P.808，只给引用号） | `DEFAULT_MODEL_TYPE="dnsmos"` = speechmos 的**标准 P.835**（`sig_bak_ovr.onnx`），同时并行输出 **P.808**（`model_v8.onnx`）；9.01 s / 1 s hop 分段取均值 | ⚠️ 论文没写版本，本地按 P.835 报 OVRL + 另附 P808 | `eval_dnsmos.py:36,68-89`；`eval_realssa_real.py:4`（"reference-free: DNSMOS P.835"） |
-| 参考 ckpt | Table 3 的 3.276 属**RealSSA-Sim 训练的 ckpt** | 官方 `falcon.pt` 是 **LRS3_complex_nonmoving** 训练的（P2F 由 `Experiments/checkpoint/Falcon/conf.yml:99-102` + epoch 714 锁定）⇒ 用官方权重测 RealSSA-Real **必然**低于 3.276 | ✅（可解释） | `docs/verification/phase2/P2F-report.md` §1.4（既有证据，我未复核 conf.yml，标注为引用） |
+| 参考 ckpt | Table 3 的 3.276 属**RealSSA-Sim 训练的 ckpt** | 官方 `falcon.pt` 训练来源尚未确认；配置快照与权重身份的对应关系待核实 | ✅（可解释） | `docs/verification/phase2/P2F-report.md` §1.4（既有证据，我未复核 conf.yml，标注为引用） |
 | WER | Mega-ASR [37] | 未实现（本地无 Mega-ASR 环境） | ❓ | STATUS §6 待办 |
 | speaker similarity | WeSpeaker ResNet34-LM（HF `wespeaker-voxceleb-resnet34-LM`），独立 enrollment | 未实现 | ❓ | STATUS §6 待办 |
 | NISQA | [36]（Table 6） | 未实现 | ❓ | — |
@@ -392,7 +394,7 @@ x [B,112,T,F]
 | 15 | Contrastive margin m | 0.5 | `margin: 0.5` | ✅ | `nass_contrastive_loss.py:69-72` 用 `relu(sim − m)` |
 | 16 | τ schedule | 线性 0→1 前 1000 ep，之后固定 1 | `beta_init 0.0 / beta_final 1.0 / beta_anneal_epochs 1000`；`_get_beta()` 用 `min(epoch/1000,1)` 线性插值 | ✅ | `av_litmodule_nass_v2.py:66-70` |
 | 17 | Random seed | 42 | `seed: 42` | ✅ | |
-| — | （论文未列）梯度裁剪 | — | v2 注释写 "grad clip 5"，但 `av_litmodule.py` 里 **grep 不到 `clip_grad`/`gradient_clip`** | ⚠️ | `grep clip look2hear/system/av_litmodule.py` 无输出 ⇒ 实际未裁剪 |
+| — | （论文未列）梯度裁剪 | — | `audio_train.py` 的 Trainer 设置 `gradient_clip_val=5.0` | ⚠️ | 裁剪由 Trainer 执行 |
 
 **统计：17 行中 16 行 ✅、1 行 ⚠️（第 9 行 mouth：存盘 ROI 96×96、网络实际见 88×88）。第 13 行（重建损失）取决于配置版本，按 v2 记为 ✅，旧 `8gpu` 配置下为 ❌。表下梯度裁剪一行不属于这 17 行，判 ⚠️（v2 注释写 clip 5，但代码里 grep 不到 `clip_grad`）。**
 
@@ -401,7 +403,7 @@ x [B,112,T,F]
 - 论文 §4.3：负样本 = 每个**近场**干扰 `b_k`，且"both captured at the microphone and therefore carrying the same room response as the mixture"，远场被排除；`K=1..K`（Eq.8）。
 - 代码：`near_audios[b]` 是数据集给的变长列表 → `encode_stft` → `pool_spk_embed`（detach）→ 传进 `NASSContrastiveLoss`。形状上完全支持 K 任意。
 - 实际数据：
-  - **LRS2-2Mix（v2 配置训练用）**：`near.json` K=1，路径指向另一路说话人的**源 wav**（`.../s2/<id1>_<utt1>_<snr1>_<id2>_<utt2>_<snr2>.wav`）。语义上"另一路说话人"是 2 源混合里唯一合理的近场干扰 ✅，但它是**未加权的源波形**，不是"麦克风处、带房间响应"的版本 ⚠️（LRS2-2Mix 本身无 RIR，故无从谈起）。
+  - **LRS2-2Mix（v2 配置训练用）**：`near.json` K=1，路径指向另一路说话人的**源 wav**（`.../s2/<id1>_<utt1>_<snr1>_<id2>_<utt2>_<snr2>.wav`）。语义上"另一路说话人"是 2 源混合里唯一合理的近场干扰 ✅，但它是**已按混音增益缩放的源波形**，不是"麦克风处、带房间响应"的版本 ⚠️（LRS2-2Mix 本身无 RIR，故无从谈起）。
   - **RealSSA-Sim（本地下载包）**：`near.json` 的 9,169 条**全部是自引用 fallback**（路径 == mix 路径），而数据集 `avspeech_dataset_near.py:186-193` 明确 `if near_path == mix_path: continue` ⇒ **K=0，负样本项恒为空**，`L_spk` 退化为只剩 `(1−cos(q,p))`。
 - 影响：对**评测**无影响（对比损失只在 `training_step` 里算）；对"在 RealSSA 上从零训练/微调"是**静默失效**——日志里只有 `train_cl_*_near = 0` 这类分桶计数，不会报错。既有文档 STATUS §4.5 已把这条列为口径，本轮我独立复核并**升级判定为"会静默改变训练语义"**。
 
@@ -430,9 +432,9 @@ x [B,112,T,F]
 
 | 单元格 | 论文 | 本地实测 | 差 | 状态 | 证据 |
 |---|---|---|---|---|---|
-| RealSSA-Sim SI-SNRi | 7.7 | **7.774**（mean 通道）/ **7.977**（ch0 = 论文 channel-1） | +0.07 / +0.28 | **⚠️ 数值吻合，不构成严格复现**（ckpt 与通道两个轴都不同；W1-07 §3.3 写作「巧合级吻合」，判断相同） | 取 `P2E-realssa-sim-metrics_combined.csv` 的 `avg` 行：SI-SNRi 均值 7.774307（分母 9,169）；ch0 版取 `P2E-realssa-sim-ch0-metrics_combined-20261030.csv` 的 `avg` 行，均值 7.976709。2026-11-08 更正：原文写 9,168，逐列计数复核后 SI-SNRi 是 9,169、SDRi/PESQ 是 9,166 |
-| RealSSA-Sim SDRi | 8.2 | **8.479**（mean）/ **8.452**（ch0） | +0.28 / +0.25 | **⚠️ 数值吻合，不构成严格复现**（同上） | 同上（`sdr_i` 列） |
-| LRS2-2Mix SI-SNRi/SDRi | 14.1 / 14.7 | **7.029 / 7.713**（官方 `falcon.pt`，tt 3,000）；自训最佳 **8.858 / 9.270**（ep124，旧配方，单卡 100 ep） | −7.07 / −6.99 | **❌ 未复现** | `P2D-eval-falcon-full.csv`、`P2D-eval-epoch124-contrastive.csv`；根因见 P2F：官方 ckpt 训在 LRS3 |
+| RealSSA-Sim SI-SNRi | 7.7 | **7.774**（mean 通道）/ **7.977**（ch0 = 论文 channel-1） | +0.07 / +0.28 | **数值接近**（通道处理不同；checkpoint 身份待核对） | 取 `P2E-realssa-sim-metrics_combined.csv` 的 `avg` 行：SI-SNRi 均值 7.774307（分母 9,169）；ch0 版取 `P2E-realssa-sim-ch0-metrics_combined-20261030.csv` 的 `avg` 行，均值 7.976709。2026-11-08 更正：原文写 9,168，逐列计数复核后 SI-SNRi 是 9,169、SDRi/PESQ 是 9,166 |
+| RealSSA-Sim SDRi | 8.2 | **8.479**（mean）/ **8.452**（ch0） | +0.28 / +0.25 | **数值接近**（通道处理不同；checkpoint 身份待核对） | 同上（`sdr_i` 列） |
+| LRS2-2Mix SI-SNRi/SDRi | 14.1 / 14.7 | **7.029 / 7.713**（官方 `falcon.pt`，tt 3,000）；自训最佳 **8.858 / 9.270**（ep124，旧配方，单卡 100 ep） | −7.07 / −6.99 | **❌ 未复现** | `P2D-eval-falcon-full.csv`、`P2D-eval-epoch124-contrastive.csv`；权重来源和差距原因待确认 |
 | LRS3-2Mix SI-SNRi/SDRi | 16.4 / 16.7 | 无数据（HF 仓库仅 README） | — | **无数据** | STATUS §3 |
 | VoxCeleb2 SI-SNRi/SDRi | 10.5 / 11.8 | 无数据 | — | **无数据** | 同上 |
 | RealSSA-Real DNSMOS | 3.276 | 官方 ckpt **OVRL 2.7941**（P.835）/ **P808 3.3365**（54 段，full4 重跑） | −0.48 | **不可比**（论文该格属 RealSSA-trained ckpt，未发布） | `DNSMOS-realssa-real-mean-full4-20261031/`；注意 P808 反而比论文高 |
@@ -468,7 +470,7 @@ x [B,112,T,F]
 | 相对 Swift-Net-12：MACs −76.6%、GPU −70.2% | 76.6% / 70.2% | `1 − 10.6/45.3 = 76.6%`；`1 − 51.3/172.1 = 70.2%` | ✅ 自洽 |
 | 相对 Dolphin：−91.1% / −41.4% / −41.6% | 91.1 / 41.4 / 41.6 | `1−0.5/5.6=91.07%`；`1−10.6/18.1=41.4%`；`1−51.3/87.9=41.6%` | ✅ 自洽 |
 
-> **结论**：这三个"卖点比值"在论文内部完全自洽，可放心引用；但它们全部依赖 MACs 口径（音频、ptflops、含 LSTM）与"AV-TF-GridNet 213.8 G 同口径"这一前提。**若换成 flop_counter 口径，Falcon 会变成 5.38 G、AV-TF-GridNet 也会变，比值不变 —— 但绝对值会与 10.6 G 对不上。**
+> **结论**：这三个"卖点比值"在论文内部完全自洽，可放心引用；但它们全部依赖 MACs 口径（音频、ptflops、含 LSTM）与"AV-TF-GridNet 213.8 G 同口径"这一前提。**若换成 flop_counter 口径，Falcon 会变成 5.38 G；各模型漏计量需分别核算，比值未必不变 —— 但绝对值会与 10.6 G 对不上。**
 
 ### 5.5 其余表（本地无证据）
 
@@ -479,13 +481,13 @@ x [B,112,T,F]
 | Table 7 | 阶段数 1/2/3 → 7.1/7.4/7.7 | 无（本轮只用随机权重测了同三档的 lookahead：80/208/432 ms） |
 | Table 8 | 对比损失消融（Falcon 7.3→7.7；SwiftNet 7.3→7.5；Dolphin 6.7→7.0） | 部分（P2D +0.13/+0.15 dB，非论文协议） |
 | Table 9 | τ 调度（0 → 7.5 / 1 → 7.4 / →2 → 7.5 / →1 → 7.7） | 无 |
-| Table 17 | 分场景×分近场数的 16 格 SI-SNRi | 无（缺 per-sample 场景标签） |
+| Table 17 | 分场景×分近场数的 16 格 SI-SNRi | 场景元数据存在，分组指标尚未完成 |
 | Table 18 | RNN/SRU/GRU/LSTM（6.2/7.4/7.3/7.7；0.08/0.15/0.20/0.25 M；1.90/2.71/4.42/5.69 G） | 无 |
 | Table 19 | 复数/实数/直接 RI（7.7/7.3/7.1） | 无 |
 | Table 20 | 重叠率 5 组（7.95/7.71/7.80/7.73/7.73） | 无 |
 | Table 21 | 视觉缺失（p=0/0.25/0.5/0.75/1.0，Random vs Block） | 部分（P2B 的 zero/shuffle 两种，非 5 档 p） |
 
-> 附：Table 20 有个内部不一致值得记一笔 —— 5 组样本数 1,834×4 + 1,833 = **9,169** ✅ 与 test 集一致；但最低重叠组 `0.11–0.72` 的均值被写成 0.635，而该区间中点约 0.42，"均值 0.635"说明分布严重右偏，可信；不构成错误，仅是分组不等宽。
+> Table 20 的分组统计： 5 组样本数 1,834×4 + 1,833 = **9,169** ✅ 与 test 集一致；但最低重叠组 `0.11–0.72` 的均值被写成 0.635，而该区间中点约 0.42，"均值 0.635"说明分布严重右偏，可信；这些区间采用不等宽分组。
 
 ---
 
@@ -512,9 +514,9 @@ x [B,112,T,F]
 | B2 | "LN_c is frame-local and cache-free"（Eq.2） | 主卷积栈用 `cLNhw`，含 `GlobalLayerNorm = GroupNorm(1,C,T,F)`（`normalizations.py:208,216`）→ 整窗统计，换窗长即换结果（2 s vs 4 s 差 16 dB） | **高** |
 | B3 | 论文声明视觉 3 帧 = 120 ms 前瞻（App E） | FRCNN `Conv3d` 时间核 5/pad 2 → 2 帧 = 80 ms | 中 |
 | B4 | 远场干扰 `f`（10–15 个）与"排除远场做负样本" | 数据里没有 far 分量可用；损失里也没有 far 项 | 中（数据侧缺失，非代码 bug） |
-| B5 | Table 17 的分场景×分近场数分析 | 发布包无 per-sample 场景/近场数元数据（`mix.json` 只有路径+长度） | 中 |
+| B5 | Table 17 的分场景×分近场数分析 | `mix.json` 只有路径与长度；对应 `_meta.json` 包含场景及近场数，分组指标待计算 | 中 |
 | B6 | RealSSA-Sim 的 **train/val**（100,826 / 9,133） | 本地只有 `tt`；`tr/cv` 需从 TOS 恢复（STATUS 记 450 GB） | 中（工程/存储问题） |
-| B7 | near 负样本（K=1..5，带房间响应） | RealSSA 本地 `near.json` 全 fallback ⇒ K=0；LRS2 只有 K=1 且是未加权源波形 | **高（训练语义）** |
+| B7 | near 负样本（K=1..5，带房间响应） | RealSSA 本地 `near.json` 全 fallback ⇒ K=0；LRS2 只有 K=1 且是已缩放源波形 | **高（训练语义）** |
 | B8 | Mega-ASR / WeSpeaker / NISQA 三条评测 | 未实现 | 中（Table 4/6 无法核） |
 | B9 | Table 18/19/20/21 的消融 | 未做 | 低（可后续补） |
 

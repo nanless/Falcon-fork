@@ -1,0 +1,16 @@
+command: CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/root/code/github_repos/Falcon-fork OMP_NUM_THREADS=4 /root/miniforge3/envs/falcon/bin/python -m pytest /root/code/github_repos/Falcon-fork/tools/repro/tests/test_phase1_regression.py::test_lrs2_eval_aggregate_matches_lead_evidence /root/code/github_repos/Falcon-fork/tools/repro/tests/test_phase2_pipeline.py::test_phase2_p2d_training_curve_sane -q -rs -p no:cacheprovider --basetemp=/tmp/falcon_skip_review_repeat_20261110
+ss                                                                       [100%]
+=========================== short test summary info ============================
+SKIPPED [1] ../../root/code/github_repos/Falcon-fork/tools/repro/tests/test_phase1_regression.py:842: Lead LRS2 评测日志不在 /root/tmp，跳过
+SKIPPED [1] ../../root/code/github_repos/Falcon-fork/tools/repro/tests/test_phase2_pipeline.py:781: P2-D 正式训练 metrics.csv 不在本机（/root/tmp/p2d_train）
+2 skipped in 1.68s
+
+read-only path checks:
+/root/tmp/lrs2_eval_s1.log: exists=False is_file=False is_dir=False
+/root/tmp/lrs2_eval_s2.log: exists=False is_file=False is_dir=False
+/root/tmp/p2d_train/Experiments/checkpoint: exists=False is_file=False is_dir=False
+metrics.csv matches: []
+
+collection mapping: 168 statuses, 168 nodes
+114: test_phase1_regression.py::test_lrs2_eval_aggregate_matches_lead_evidence
+151: test_phase2_pipeline.py::test_phase2_p2d_training_curve_sane

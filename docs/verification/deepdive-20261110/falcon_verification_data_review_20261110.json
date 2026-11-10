@@ -1,0 +1,3725 @@
+{
+  "repository": "/root/code/github_repos/Falcon-fork",
+  "counts": {
+    "json": 29,
+    "csv": 25
+  },
+  "method": "继承此前 25 表自动统计；本轮逐份解析 JSON 并抽读字段、CSV 抽查首行；未执行模型或改仓库",
+  "files": [
+    {
+      "path": "docs/verification/deepdive-20261108/canonical-4s.json",
+      "kind": "json",
+      "sha256": "9bb82879a81b03622fd0560887e85cc678eb6215d0c7ab8d30a1b3c8a227e0bd",
+      "bytes": 4684,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "stream_seconds",
+          "samples",
+          "source",
+          "clips",
+          "crossfade_ms_at_join",
+          "joins",
+          "zero_tail",
+          "studio",
+          "ref_tiling",
+          "guard_stitch",
+          "guard_lookahead",
+          "align",
+          "align_pairwise",
+          "elapsed_s"
+        ],
+        "top_length": 14
+      },
+      "purpose": "滑窗拼接与整段对照",
+      "producer_or_candidate": "tools/repro/experiments/streaming_canonical.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read inputs and metrics; same-phase filtering bug also yields recorded max 105.66; corrected 4s max not rerun. Reference guard scan pads zeros past 4s end.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅对指定拼接输入与 checkpoint；相位配对极值有已知错误，音视频拼接边界需注意"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/canonical-6s.json",
+      "kind": "json",
+      "sha256": "b9211053cb325ba88661ea857dc719e9d2beff0c55d7a91b49623760c860ce4c",
+      "bytes": 4809,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "stream_seconds",
+          "samples",
+          "source",
+          "clips",
+          "crossfade_ms_at_join",
+          "joins",
+          "zero_tail",
+          "studio",
+          "ref_tiling",
+          "guard_stitch",
+          "guard_lookahead",
+          "align",
+          "align_pairwise",
+          "elapsed_s"
+        ],
+        "top_length": 14
+      },
+      "purpose": "滑窗拼接与整段对照",
+      "producer_or_candidate": "tools/repro/experiments/streaming_canonical.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read inputs, timing and metrics; same-phase filtering bug makes recorded pairwise max 105.66 invalid; corrected CPU rerun min 17.02 max 20.82; source clips crossfaded 10ms, output crossfade 20ms.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅对指定拼接输入与 checkpoint；相位配对极值有已知错误，音视频拼接边界需注意"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/canonical.json",
+      "kind": "json",
+      "sha256": "589d313744cc06c4a3b51d0f98c4e94d3df25891be1f3508c82f394c41b5fcdf",
+      "bytes": 4005,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "what",
+          "script",
+          "script_provenance",
+          "generated",
+          "host",
+          "device",
+          "threads",
+          "env",
+          "checkpoint",
+          "raw_files",
+          "streams",
+          "read"
+        ],
+        "top_length": 12
+      },
+      "purpose": "滑窗拼接与整段对照",
+      "producer_or_candidate": "tools/repro/experiments/streaming_canonical.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Summary checked against original 4s and 6s fields; text attributes hard-splice effect to input 10ms fade although code toggles output 20ms fade; original pairwise max filter issue applies.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅对指定拼接输入与 checkpoint；相位配对极值有已知错误，音视频拼接边界需注意"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/ln-variant.json",
+      "kind": "json",
+      "sha256": "de57458da1fbe32f2a767b9af2ff02e326f66a26158c72bb78fcca80e7f78c2f",
+      "bytes": 1991,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "meta",
+          "rows"
+        ],
+        "top_length": 2
+      },
+      "purpose": "替换归一化的因果扰动试验",
+      "producer_or_candidate": "tools/repro/experiments/ln_variant.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read metadata and rows; real two 2s clips concatenated, checkpoint ep714, dirty tracked model files; four-second file option reads only first two seconds and pads if single source.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "特定输入与修改过模型，不能证明所有权重/样本"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/lookahead-ab.json",
+      "kind": "json",
+      "sha256": "ba412a3715d82072d495e7aeca49382f312f55583d39f27bfd13aad34a070c4f",
+      "bytes": 1068,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "default",
+          "paper_causal",
+          "video_lstm_batch_first",
+          "both",
+          "n_audio_keys",
+          "out_sha_default"
+        ],
+        "top_length": 6
+      },
+      "purpose": "因果变体与批次设置比较",
+      "producer_or_candidate": "tools/repro/experiments/lookahead_ab.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/README.md",
+        "docs/verification/README.md",
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read records and match text; strict load and self-comparison do not independently establish equivalence; 125 hops is about 1s, not 2s; switch changes stride geometry.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "同一输出自身比较不能证明变体逐位一致"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/streaming-consistency.json",
+      "kind": "json",
+      "sha256": "12f4f819b620444aa0e0d42bb3ff1c5a945a1664e4fc7fbccb9bfc76c73b558f",
+      "bytes": 4310,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "stream_seconds",
+          "source",
+          "items",
+          "device",
+          "parameters",
+          "checkpoint_sha256",
+          "anchor",
+          "whole_pass_seconds",
+          "guard_sweep",
+          "alignment_sweep",
+          "alignment_pairwise"
+        ],
+        "top_length": 11
+      },
+      "purpose": "窗口/guard 与全长输出比较",
+      "producer_or_candidate": "tools/repro/experiments/streaming_consistency.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read source and guard records; current and initial committed frames_block uses round-to-even and repeats/skips frames, so this 18.20 dB consistency result has possible frame-alignment confounding.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "np.rint 帧索引与其他管线不同；只针对具体输入"
+    },
+    {
+      "path": "docs/verification/deepdive-20261108/video-ablation.json",
+      "kind": "json",
+      "sha256": "a6520ec3ee0f3e2a5503f9db628b174303c4a189afe7219bb45c958f3e09abe4",
+      "bytes": 6519,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "stage",
+          "code",
+          "repo",
+          "git_head",
+          "repo_dirty_tracked_files",
+          "ckpt",
+          "ckpt_sha256_16",
+          "config",
+          "split",
+          "data_root",
+          "n_clips",
+          "select",
+          "start",
+          "n_distinct_mouths",
+          "n_distinct_target_speakers",
+          "wrong_mode",
+          "wrong_same_speaker_count",
+          "device",
+          "threads",
+          "torch",
+          "metric",
+          "conditions",
+          "stats",
+          "mixture_baseline",
+          "cluster_stats",
+          "elapsed_s",
+          "forward_verify_max_abs_err",
+          "skipped",
+          "paired_deltas_vs_real",
+          "caveats"
+        ],
+        "top_length": 30
+      },
+      "purpose": "视觉消融",
+      "producer_or_candidate": "tools/repro/experiments/video_ablation_check.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/deepdive-20261108/README.md",
+        "docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Read metadata and mean/cluster fields; N40 spread distinct40 speaker IDs, wrong_mode=other not necessarily actual interferer; default model separator B1. Normal CI is not automatically a population confidence guarantee.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅归档中指定输入和变体"
+    },
+    {
+      "path": "docs/verification/phase1/REGRESSION-docs-evidence.json",
+      "kind": "json",
+      "sha256": "eadea71af06dfb5c55cce33dce42fb94a67d1e37c0e1a2635dbf6270fcf16e0f",
+      "bytes": 14026,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "task",
+          "snapshot_utc",
+          "branch",
+          "head",
+          "env",
+          "regression",
+          "dataset_facts_hf_api",
+          "dry_run_fetch_data",
+          "lrs2_partial_tar_listing",
+          "independent_checks",
+          "doc_hashes",
+          "pending",
+          "lrs2_download",
+          "lrs2_full_tar",
+          "status",
+          "final_regression",
+          "final_residuals"
+        ],
+        "top_length": 17
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/README.md",
+        "docs/verification/phase1/REGRESSION-docs.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase1/T3-eval-smoke-metrics.csv",
+      "kind": "csv",
+      "sha256": "3c4007f1c0057228a10e0b95fca1bd0d30db720c7f41e411a67ed7b4d6377c66",
+      "bytes": 315,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 3,
+        "first_row": [
+          "u0000.wav",
+          "-5.905245273662104",
+          "-4.019492837318712",
+          "-11.477926021543592",
+          "-9.427217748956592",
+          "1.0460782051086426",
+          "0.0557856149198785"
+        ]
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase1/T3-report.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 1,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": -5.905245273662104,
+            "std_population": 0.0,
+            "saved_avg": -5.905245273662104,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": -4.019492837318712,
+            "std_population": 0.0,
+            "saved_avg": -4.019492837318712,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": -11.477926021543592,
+            "std_population": 0.0,
+            "saved_avg": -11.477926021543592,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": -9.427217748956592,
+            "std_population": 0.0,
+            "saved_avg": -9.427217748956592,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.0460782051086426,
+            "std_population": 0.0,
+            "saved_avg": 1.0460782051086426,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 1,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.0557856149198785,
+            "std_population": 0.0,
+            "saved_avg": 0.0557856149198785,
+            "saved_std": 0.0,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase1/T3-smoke-fixture-mix.json",
+      "kind": "json",
+      "sha256": "cf96040761307a30ccfd0ecba7cef4ce9165d1529e377d84c916605bfaa31005",
+      "bytes": 64,
+      "structure": {
+        "type": "list",
+        "top_keys": [],
+        "top_length": 1
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase1/T3-report.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase1/T5-post-fix-fingerprint.json",
+      "kind": "json",
+      "sha256": "a4c3b4543b48d41e2e9b70eb4a22949e7f7983df3c5aea82b4f4a0431fd975d2",
+      "bytes": 1905,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "env",
+          "weights",
+          "inputs",
+          "modes",
+          "mode_notes",
+          "params",
+          "eval_forward",
+          "train_forward",
+          "video_forward"
+        ],
+        "top_length": 9
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase1/T5-report.md",
+        "docs/verification/phase1/QA-report.md",
+        "docs/verification/phase1/REVIEW-training-stack.md",
+        "docs/verification/phase1/T1-report.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase1/T5-pre-fix-fingerprint.json",
+      "kind": "json",
+      "sha256": "a4c3b4543b48d41e2e9b70eb4a22949e7f7983df3c5aea82b4f4a0431fd975d2",
+      "bytes": 1905,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "env",
+          "weights",
+          "inputs",
+          "modes",
+          "mode_notes",
+          "params",
+          "eval_forward",
+          "train_forward",
+          "video_forward"
+        ],
+        "top_length": 9
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase1/T5-report.md",
+        "docs/verification/phase1/QA-report.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase1/baseline-fingerprint.json",
+      "kind": "json",
+      "sha256": "df78be2995e5e38b4a1382e5100df44e99117adcd284d70760aac2d5062e7595",
+      "bytes": 1011,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "env",
+          "weights",
+          "params",
+          "eval_forward",
+          "train_forward",
+          "video_forward"
+        ],
+        "top_length": 6
+      },
+      "purpose": "回归结果/种子、预后模型指纹或单条 smoke 测试",
+      "producer_or_candidate": "具体命令见对应 phase1 报告；未逐项核实",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_PHASE1_REPORT.md",
+        "docs/verification/README.md",
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase1/T5-report.md",
+        "docs/verification/phase1/QA-report.md",
+        "docs/verification/phase1/REGRESSION-docs.md",
+        "docs/verification/phase1/REVIEW-training-stack.md",
+        "docs/verification/phase1/README.md",
+        "docs/verification/phase1/T1-report.md",
+        "docs/understanding/deepdive-20261108/review-round1/R2-tests.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/09-benchmark-alignment.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "特定版本与测试模式；smoke 不构成质量评估"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "kind": "csv",
+      "sha256": "51e78f5bf74625e725ee0c96aa5a90b9fe7fdbc95a4623c302b1a4d8b3adffd9",
+      "bytes": 9352,
+      "structure": {
+        "header": [
+          "inference_id",
+          "recording_id",
+          "scene",
+          "channel",
+          "align_tail",
+          "audio_s",
+          "mouth_frames",
+          "used_frames",
+          "used_s",
+          "discarded_samples",
+          "inference_ms",
+          "rtf",
+          "sig_mos",
+          "bak_mos",
+          "ovrl_mos",
+          "p808_mos",
+          "mix_sig_mos",
+          "mix_bak_mos",
+          "mix_ovrl_mos",
+          "mix_p808_mos",
+          "error"
+        ],
+        "rows_from_prior_inventory": 54,
+        "first_row": [
+          "big_indoor/large_mall/1",
+          "big_indoor/large_mall/1",
+          "big_indoor",
+          "mean",
+          "True",
+          "111.44",
+          "2786",
+          "2786",
+          "111.44",
+          "0",
+          "20441.7",
+          "0.183",
+          "2.7442",
+          "3.0267",
+          "2.1379",
+          "2.7492",
+          "1.2187",
+          "1.1554",
+          "1.1149",
+          "2.48",
+          ""
+        ]
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2E-report.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/06-data-pipeline.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "finite_mos_means_recomputed",
+        "rows": 54,
+        "metrics": {
+          "sig_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.2209407407407413
+          },
+          "bak_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.692105555555555
+          },
+          "ovrl_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.7900611111111107
+          },
+          "p808_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.328540740740741
+          },
+          "mix_sig_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.4175740740740737
+          },
+          "mix_bak_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 1.7908240740740733
+          },
+          "mix_ovrl_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 1.7599481481481485
+          },
+          "mix_p808_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.6764870370370377
+          }
+        }
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full3/run_metadata.json",
+      "kind": "json",
+      "sha256": "de9c14f49f44d355e0cdd5b06d0b49423685948692cff7a14dffebd3a383b49f",
+      "bytes": 2088,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "tool",
+          "timestamp_utc",
+          "data_root",
+          "loader_kind",
+          "is_smoke",
+          "smoke_source",
+          "channel",
+          "align_tail",
+          "model",
+          "checkpoint",
+          "device",
+          "skip_model",
+          "limit",
+          "baseline",
+          "speechmos_version",
+          "onnxruntime_version",
+          "note",
+          "segments_total",
+          "summary"
+        ],
+        "top_length": 19
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Metadata read; historical full3 run protocol invalid due known window-start bug.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full3/summary.json",
+      "kind": "json",
+      "sha256": "d16f38ef527dc0caa1f7f26f7c04702ad3896597bc379c4f55e0a72845bd3e72",
+      "bytes": 1347,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "segments_total",
+          "segments_ok",
+          "segments_error",
+          "metrics",
+          "by_scene"
+        ],
+        "top_length": 5
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "54 per-segment rows and rounded mean match, but full3 invalid because known window-start bug; numeric consistency does not validate protocol.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "kind": "csv",
+      "sha256": "3197e1272046af7c6a999788cb0598d4b648172813c2536a581ea83c97ef0caa",
+      "bytes": 9326,
+      "structure": {
+        "header": [
+          "inference_id",
+          "recording_id",
+          "scene",
+          "channel",
+          "align_tail",
+          "audio_s",
+          "mouth_frames",
+          "used_frames",
+          "used_s",
+          "discarded_samples",
+          "inference_ms",
+          "rtf",
+          "sig_mos",
+          "bak_mos",
+          "ovrl_mos",
+          "p808_mos",
+          "mix_sig_mos",
+          "mix_bak_mos",
+          "mix_ovrl_mos",
+          "mix_p808_mos",
+          "error"
+        ],
+        "rows_from_prior_inventory": 54,
+        "first_row": [
+          "big_indoor/large_mall/1",
+          "big_indoor/large_mall/1",
+          "big_indoor",
+          "mean",
+          "True",
+          "111.44",
+          "2786",
+          "2786",
+          "111.44",
+          "0",
+          "10277.9",
+          "0.092",
+          "2.6971",
+          "3.0219",
+          "2.1008",
+          "2.7945",
+          "1.2187",
+          "1.1554",
+          "1.1149",
+          "2.48",
+          ""
+        ]
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2E-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/06-data-pipeline.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "finite_mos_means_recomputed",
+        "rows": 54,
+        "metrics": {
+          "sig_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.2225962962962957
+          },
+          "bak_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.698105555555556
+          },
+          "ovrl_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.7940518518518522
+          },
+          "p808_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 3.336485185185185
+          },
+          "mix_sig_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.4175740740740737
+          },
+          "mix_bak_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 1.7908240740740733
+          },
+          "mix_ovrl_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 1.7599481481481485
+          },
+          "mix_p808_mos": {
+            "n_finite": 54,
+            "n_other": 0,
+            "mean": 2.6764870370370377
+          }
+        }
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full4-20261031/run_metadata.json",
+      "kind": "json",
+      "sha256": "3d7f9703572166d507f246fb99053ab8cfd2c3d0e2a66c53d9d68e3ae59a6df2",
+      "bytes": 2087,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "tool",
+          "timestamp_utc",
+          "data_root",
+          "loader_kind",
+          "is_smoke",
+          "smoke_source",
+          "channel",
+          "align_tail",
+          "model",
+          "checkpoint",
+          "device",
+          "skip_model",
+          "limit",
+          "baseline",
+          "speechmos_version",
+          "onnxruntime_version",
+          "note",
+          "segments_total",
+          "summary"
+        ],
+        "top_length": 19
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Metadata read; full4 windowed evaluation, not same protocol as paper checkpoint; non-crossfade and zero-left mouth differ from Studio.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "kind": "json",
+      "sha256": "2d0ef2fed7e7996e2d2a3f2393f6fca9a31b4d315c2251aab97e76f5a07b407a",
+      "bytes": 1346,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "segments_total",
+          "segments_ok",
+          "segments_error",
+          "metrics",
+          "by_scene"
+        ],
+        "top_length": 5
+      },
+      "purpose": "真实录音逐段 DNSMOS、运行元数据或均值摘要",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "54 per-segment rows and rounded mean match; full4 is separate windowed protocol with checkpoint differences from paper.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "54 个片段、mean 通道、尾部对齐；无干净参考，不能计算 SI-SDR"
+    },
+    {
+      "path": "docs/verification/phase2/P2A-anchor-first20.json",
+      "kind": "json",
+      "sha256": "e8e25a39cc65a472aa3097a870e82ec0e29d2688d71fd344e3a3de314c35b1d3",
+      "bytes": 5039,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "meta",
+          "data_checks",
+          "models",
+          "anchors_first20"
+        ],
+        "top_length": 4
+      },
+      "purpose": "LRS2 分布、对齐和视觉/音频变体对照",
+      "producer_or_candidate": "tools/repro/phase2/gap_analysis.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/P2A-report.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/04-losses-metrics.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Historical batched P2A; 20 samples, batch4, VideoBlock couples sample positions; no universal validity conclusion without rerun.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅 first20 或 seed0 随机200；不能当全部样本"
+    },
+    {
+      "path": "docs/verification/phase2/P2A-small-200.json",
+      "kind": "json",
+      "sha256": "7e7604217218be65358bdc9a68e4bf0136a2b7798341ea51d1fc70f3fac7beda",
+      "bytes": 40287,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "meta",
+          "data_checks",
+          "models",
+          "anchors_first20"
+        ],
+        "top_length": 4
+      },
+      "purpose": "LRS2 分布、对齐和视觉/音频变体对照",
+      "producer_or_candidate": "tools/repro/phase2/gap_analysis.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/P2A-report.md",
+        "docs/verification/phase2/REGRESSION-docs.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/04-losses-metrics.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": {
+        "status": "partial_targeted",
+        "finding": "Historical 200-sample P2A batch4 except pad3s batch2; VideoBlock causes cross-sample dependence; original ordering index unavailable, impact not fully quantified.",
+        "limitation": "not a complete audit of all fields or a new full evaluation"
+      },
+      "validity_limit": "仅 first20 或 seed0 随机200；不能当全部样本"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-big-whole-real.csv",
+      "kind": "csv",
+      "sha256": "eec3d4ecfa88fdbbcf408a4d96f3d57b1d35d6174af79c616c75e139b12f2e30",
+      "bytes": 55381,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "12.52328270835834",
+          "11.028325917882558",
+          "11.082454215681068",
+          "9.6980138627659",
+          "1.757218360900879",
+          "0.9258634451842842"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 13.44467211143792,
+            "std_population": 3.7841958566104035,
+            "saved_avg": 13.44467211143791,
+            "saved_std": 3.7841958566104035,
+            "abs_mean_error": 1.0658141036401503e-14,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.403339464045281,
+            "std_population": 3.016304085093313,
+            "saved_avg": 8.403339464045287,
+            "saved_std": 3.016304085093313,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.826770752184844,
+            "std_population": 3.8863814875491576,
+            "saved_avg": 12.826770752184844,
+            "saved_std": 3.886381487549158,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.887182896137571,
+            "std_population": 3.0358821988143494,
+            "saved_avg": 7.887182896137574,
+            "saved_std": 3.03588219881435,
+            "abs_mean_error": 2.6645352591003757e-15,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.503023101091385,
+            "std_population": 0.6174732334439236,
+            "saved_avg": 2.503023101091385,
+            "saved_std": 0.6174732334439236,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9212712613097847,
+            "std_population": 0.06991223202133151,
+            "saved_avg": 0.9212712613097847,
+            "saved_std": 0.06991223202133151,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-big-whole-zero.csv",
+      "kind": "csv",
+      "sha256": "bb117aa77c49b9126f5fc7c50c937fa25e1735977818dff586454070c6b936e9",
+      "bytes": 55553,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "11.501337003711784",
+          "10.006380213236003",
+          "10.46962849070801",
+          "9.08518813779284",
+          "1.7844488620758057",
+          "0.9286639335420455"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2B-report.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.308686909827475,
+            "std_population": 7.302967241987788,
+            "saved_avg": 9.308686909827465,
+            "saved_std": 7.302967241987788,
+            "abs_mean_error": 1.0658141036401503e-14,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 4.267354262434845,
+            "std_population": 5.409637424842979,
+            "saved_avg": 4.267354262434843,
+            "saved_std": 5.409637424842979,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.451950236344858,
+            "std_population": 7.720749816091475,
+            "saved_avg": 8.45195023634486,
+            "saved_std": 7.720749816091475,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 3.5123623802975894,
+            "std_population": 5.799602943456968,
+            "saved_avg": 3.51236238029759,
+            "saved_std": 5.799602943456967,
+            "abs_mean_error": 4.440892098500626e-16,
+            "abs_std_error": 8.881784197001252e-16
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.9998760052522024,
+            "std_population": 0.7487864374731718,
+            "saved_avg": 1.9998760052522024,
+            "saved_std": 0.7487864374731716,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 1.1102230246251565e-16
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8134485872351428,
+            "std_population": 0.20225314519265716,
+            "saved_avg": 0.8134485872351427,
+            "saved_std": 0.20225314519265716,
+            "abs_mean_error": 1.1102230246251565e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-big-windowed-real.csv",
+      "kind": "csv",
+      "sha256": "89ce95f5bd838cc351b048cf82715d834bff8fb31efd388d5264fb8d8b0ee48a",
+      "bytes": 55360,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "11.941821259361937",
+          "10.446864468886156",
+          "10.703815752356407",
+          "9.319375399441238",
+          "1.6560701131820679",
+          "0.9311666547725903"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 11.31147707850423,
+            "std_population": 4.451882787228032,
+            "saved_avg": 11.311477078504238,
+            "saved_std": 4.451882787228032,
+            "abs_mean_error": 7.105427357601002e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 6.270144431111615,
+            "std_population": 3.6998980874038003,
+            "saved_avg": 6.270144431111613,
+            "saved_std": 3.6998980874038,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 10.508270868167909,
+            "std_population": 4.7288812452993065,
+            "saved_avg": 10.508270868167914,
+            "saved_std": 4.728881245299306,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 8.881784197001252e-16
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 5.568683012120644,
+            "std_population": 3.9502327171467613,
+            "saved_avg": 5.568683012120643,
+            "saved_std": 3.9502327171467613,
+            "abs_mean_error": 8.881784197001252e-16,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.0928529210885367,
+            "std_population": 0.5817042223261422,
+            "saved_avg": 2.0928529210885367,
+            "saved_std": 0.5817042223261423,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 1.1102230246251565e-16
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8930616844976337,
+            "std_population": 0.08583849994741251,
+            "saved_avg": 0.8930616844976336,
+            "saved_std": 0.08583849994741251,
+            "abs_mean_error": 1.1102230246251565e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-small-whole-real.csv",
+      "kind": "csv",
+      "sha256": "14d5c96046eed3aaf4e3314ebffd605de9be62dd8b76c5eae979203e6623cf0b",
+      "bytes": 55318,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "10.867309621435897",
+          "9.372352830960116",
+          "9.88642753939943",
+          "8.50198718648426",
+          "1.6626694202423096",
+          "0.9247710387403094"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261024/09-benchmark-alignment.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.532947118198669,
+            "std_population": 3.643215625027758,
+            "saved_avg": 12.532947118198672,
+            "saved_std": 3.643215625027758,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.491614470806055,
+            "std_population": 2.8826681432606645,
+            "saved_avg": 7.491614470806047,
+            "saved_std": 2.8826681432606645,
+            "abs_mean_error": 7.993605777301127e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 11.855827875388005,
+            "std_population": 3.7566776131154334,
+            "saved_avg": 11.855827875388012,
+            "saved_std": 3.7566776131154334,
+            "abs_mean_error": 7.105427357601002e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 6.916240019340745,
+            "std_population": 2.9026603875464323,
+            "saved_avg": 6.9162400193407425,
+            "saved_std": 2.9026603875464323,
+            "abs_mean_error": 2.6645352591003757e-15,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.276269017457962,
+            "std_population": 0.5449040060759339,
+            "saved_avg": 2.276269017457962,
+            "saved_std": 0.5449040060759339,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9079353993475299,
+            "std_population": 0.06988940609747962,
+            "saved_avg": 0.9079353993475304,
+            "saved_std": 0.06988940609747962,
+            "abs_mean_error": 5.551115123125783e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-small-whole-shuffle.csv",
+      "kind": "csv",
+      "sha256": "7bbabc6451656ef8ada357cd25f247e60d1d8dd9f9d60a97a1e29c0b172159c0",
+      "bytes": 56157,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "6.014324115177639",
+          "4.519367324701858",
+          "4.022413514633704",
+          "2.637973161718535",
+          "1.1676301956176758",
+          "0.7310453975041966"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.6847303073405746,
+            "std_population": 9.069051641930347,
+            "saved_avg": 1.684730307340576,
+            "saved_std": 9.069051641930347,
+            "abs_mean_error": 1.3322676295501878e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -3.356602340052044,
+            "std_population": 8.137011522380774,
+            "saved_avg": -3.3566023400520475,
+            "saved_std": 8.137011522380774,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -1.037879428325817,
+            "std_population": 10.196515282802565,
+            "saved_avg": -1.0378794283258177,
+            "saved_std": 10.196515282802565,
+            "abs_mean_error": 6.661338147750939e-16,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -5.977467284373085,
+            "std_population": 9.29348417103476,
+            "saved_avg": -5.977467284373088,
+            "saved_std": 9.29348417103476,
+            "abs_mean_error": 2.6645352591003757e-15,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.362608026266098,
+            "std_population": 0.4632303000475394,
+            "saved_avg": 1.362608026266098,
+            "saved_std": 0.4632303000475394,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.5404091782857922,
+            "std_population": 0.2830732371502522,
+            "saved_avg": 0.5404091782857918,
+            "saved_std": 0.2830732371502522,
+            "abs_mean_error": 3.3306690738754696e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-small-whole-zero.csv",
+      "kind": "csv",
+      "sha256": "352d5774f225acc7952ea93117a07c19c417a26414d90799c5dd0cd515a1da08",
+      "bytes": 56274,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "5.979760803736028",
+          "4.484804013260247",
+          "3.436237911934339",
+          "2.05179755901917",
+          "1.1596944332122803",
+          "0.7477708802848166"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md",
+        "docs/understanding/deepdive-20261108/review-round1/R3-docs-facts.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -0.06200795865066599,
+            "std_population": 9.746422783508992,
+            "saved_avg": -0.06200795865066709,
+            "saved_std": 9.746422783508992,
+            "abs_mean_error": 1.1032841307212493e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -5.103340606043291,
+            "std_population": 8.773588540598032,
+            "saved_avg": -5.10334060604329,
+            "saved_std": 8.773588540598032,
+            "abs_mean_error": 8.881784197001252e-16,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -3.233079637438285,
+            "std_population": 11.440545782003397,
+            "saved_avg": -3.2330796374382866,
+            "saved_std": 11.440545782003399,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 1.7763568394002505e-15
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": -8.172667493485555,
+            "std_population": 10.460219293560504,
+            "saved_avg": -8.172667493485557,
+            "saved_std": 10.460219293560504,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.354686775604884,
+            "std_population": 0.47876476209762103,
+            "saved_avg": 1.354686775604884,
+            "saved_std": 0.4787647620976211,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 5.551115123125783e-17
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.4656312714254788,
+            "std_population": 0.3509555890112877,
+            "saved_avg": 0.4656312714254782,
+            "saved_std": 0.3509555890112877,
+            "abs_mean_error": 5.551115123125783e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-b300-small-windowed-real.csv",
+      "kind": "csv",
+      "sha256": "688c5491cba7a3c8443e749fe9be045bdf7ce4c0970959e88faf485e523f180c",
+      "bytes": 55284,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "10.635041837729188",
+          "9.140085047253407",
+          "9.522287749780995",
+          "8.137847396865826",
+          "1.643404245376587",
+          "0.9121795593723817"
+        ]
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 10.80373928101557,
+            "std_population": 4.0040860249466945,
+            "saved_avg": 10.803739281015568,
+            "saved_std": 4.0040860249466945,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 5.762406633622939,
+            "std_population": 3.179808248296842,
+            "saved_avg": 5.762406633622944,
+            "saved_std": 3.179808248296842,
+            "abs_mean_error": 4.440892098500626e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.943795376122694,
+            "std_population": 4.25611886247329,
+            "saved_avg": 9.943795376122695,
+            "saved_std": 4.25611886247329,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 5.0042075200754255,
+            "std_population": 3.347251307303489,
+            "saved_avg": 5.0042075200754255,
+            "saved_std": 3.347251307303489,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.9488195526599883,
+            "std_population": 0.50263993827499,
+            "saved_avg": 1.9488195526599883,
+            "saved_std": 0.50263993827499,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8844781646806806,
+            "std_population": 0.08104980479017657,
+            "saved_avg": 0.8844781646806806,
+            "saved_std": 0.08104980479017655,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 1.3877787807814457e-17
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-summary-b300-big.json",
+      "kind": "json",
+      "sha256": "e7577374927ebbb02eb51a485690351cbcd102f342ec329efba86e3ccb53f3fa",
+      "bytes": 424,
+      "structure": {
+        "type": "list",
+        "top_keys": [],
+        "top_length": 1
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-summary-b300-small.json",
+      "kind": "json",
+      "sha256": "cd7a2dc96ed12d8b43d85e04cc9f0d93ab17fa45593d892bfbf6dec094ffa001",
+      "bytes": 871,
+      "structure": {
+        "type": "list",
+        "top_keys": [],
+        "top_length": 2
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2B-summary-b300.json",
+      "kind": "json",
+      "sha256": "482e9ebb12162950c2238493972a0f2f1213b0d589730f5ae58177f67dfb10c5",
+      "bytes": 869,
+      "structure": {
+        "type": "list",
+        "top_keys": [],
+        "top_length": 2
+      },
+      "purpose": "大小模型、视觉条件及全长/分窗结果",
+      "producer_or_candidate": "tools/repro/phase2/compare_variants.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2B-report.md",
+        "docs/verification/phase2/REGRESSION-docs.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "300 个配对样本及表明的视觉条件；非全量"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch124-contrastive.csv",
+      "kind": "csv",
+      "sha256": "c9dbf7803f088501e8ccb1cd51876f0d888dbe87b734da5c033b47a7e1f7c701",
+      "bytes": 546290,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "12.830116751828813",
+          "11.335159961353032",
+          "12.06305302043993",
+          "10.678612667524762",
+          "2.225966691970825",
+          "0.953213791521656"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/05-losses-metrics.md",
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md",
+        "docs/understanding/deepdive-20261108/review-round1/R3-docs-facts.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 14.37003689575713,
+            "std_population": 3.0512515570931167,
+            "saved_avg": 14.370036895757147,
+            "saved_std": 3.0512515570931167,
+            "abs_mean_error": 1.7763568394002505e-14,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.269574165939577,
+            "std_population": 2.595298666187851,
+            "saved_avg": 9.269574165939565,
+            "saved_std": 2.595298666187851,
+            "abs_mean_error": 1.2434497875801753e-14,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 13.851911879796132,
+            "std_population": 3.116138957921194,
+            "saved_avg": 13.851911879796187,
+            "saved_std": 3.1161389579211947,
+            "abs_mean_error": 5.5067062021407764e-14,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.858191910560938,
+            "std_population": 2.604191568546379,
+            "saved_avg": 8.858191910560924,
+            "saved_std": 2.604191568546379,
+            "abs_mean_error": 1.4210854715202004e-14,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.576085976322492,
+            "std_population": 0.563451124025354,
+            "saved_avg": 2.576085976322492,
+            "saved_std": 0.563451124025354,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9427958074473983,
+            "std_population": 0.042028081360783134,
+            "saved_avg": 0.9427958074473992,
+            "saved_std": 0.042028081360783134,
+            "abs_mean_error": 8.881784197001252e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch86.csv",
+      "kind": "csv",
+      "sha256": "7121115195636a5aa301667bb60f42c68623596280a4f1de444ecd9fe72f70e4",
+      "bytes": 546060,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "12.77226211436481",
+          "11.277305323889037",
+          "11.86222267426526",
+          "10.477782321350093",
+          "2.2430214881896973",
+          "0.9434933763529804"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 14.141968515657945,
+            "std_population": 2.9503369277998104,
+            "saved_avg": 14.141968515657945,
+            "saved_std": 2.9503369277998104,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.041505785840345,
+            "std_population": 2.50081876204954,
+            "saved_avg": 9.041505785840362,
+            "saved_std": 2.50081876204954,
+            "abs_mean_error": 1.7763568394002505e-14,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 13.611638551292097,
+            "std_population": 3.028895585380549,
+            "saved_avg": 13.611638551292092,
+            "saved_std": 3.028895585380549,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.617918582056834,
+            "std_population": 2.5050823876034114,
+            "saved_avg": 8.617918582056829,
+            "saved_std": 2.5050823876034114,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.5466230816841127,
+            "std_population": 0.5484853974676617,
+            "saved_avg": 2.5466230816841127,
+            "saved_std": 0.5484853974676616,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 1.1102230246251565e-16
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.940859706799666,
+            "std_population": 0.042111218405980616,
+            "saved_avg": 0.9408597067996656,
+            "saved_std": 0.042111218405980616,
+            "abs_mean_error": 4.440892098500626e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch99-cols-20261031.counts.json",
+      "kind": "json",
+      "sha256": "eef2a3af16fdc43d590bcc10b5335d9c8d7a3eb1fbcbf92649c3d43afa7aaad2",
+      "bytes": 1203,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "schema_version",
+          "producer",
+          "workers",
+          "n_utterances",
+          "columns",
+          "counts",
+          "nan_counts",
+          "count_columns",
+          "aggregation",
+          "si_snr_identity_check",
+          "combined_csv"
+        ],
+        "top_length": 11
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch99-cols-20261031.csv",
+      "kind": "csv",
+      "sha256": "8ebab90864b73dd85e1422ff67f91b480cbeef52c4475712144d617f2bbe2348",
+      "bytes": 679678,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi",
+          "si-snr_mix",
+          "sdr_mix",
+          "n_sdr",
+          "n_sdr_i",
+          "n_si-snr",
+          "n_si-snr_i",
+          "n_pesq",
+          "n_stoi",
+          "n_si-snr_mix",
+          "n_sdr_mix"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "12.389795321692487",
+          "10.894838531216708",
+          "11.645097287533382",
+          "10.260656934618211",
+          "2.2180724143981934",
+          "0.9478912738706716",
+          "1.3844403529151688",
+          "1.4949567904757812",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 14.222311143504415,
+            "std_population": 2.8775971134009306,
+            "saved_avg": 14.222311143504411,
+            "saved_std": 2.8775971134009306,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.121848413686827,
+            "std_population": 2.466443817220878,
+            "saved_avg": 9.121848413686827,
+            "saved_std": 2.466443817220878,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 13.719868175895519,
+            "std_population": 2.9348242217293548,
+            "saved_avg": 13.71986817589554,
+            "saved_std": 2.9348242217293548,
+            "abs_mean_error": 2.1316282072803006e-14,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.72614820666028,
+            "std_population": 2.4515508506242036,
+            "saved_avg": 8.726148206660277,
+            "saved_std": 2.4515508506242036,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.5779708066383997,
+            "std_population": 0.5414335594849811,
+            "saved_avg": 2.5779708066383997,
+            "saved_std": 0.5414335594849811,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9439878162159577,
+            "std_population": 0.03779293279121839,
+            "saved_avg": 0.9439878162159608,
+            "saved_std": 0.03779293279121839,
+            "abs_mean_error": 3.1086244689504383e-15,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr_mix": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 4.993719969235273,
+            "std_population": 3.002613434986113,
+            "saved_avg": 4.993719969235263,
+            "saved_std": 3.002613434986113,
+            "abs_mean_error": 9.769962616701378e-15,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "sdr_mix": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 5.100462729817579,
+            "std_population": 2.984996677891104,
+            "saved_avg": 5.100462729817585,
+            "saved_std": 2.9849966778911043,
+            "abs_mean_error": 6.217248937900877e-15,
+            "abs_std_error": 4.440892098500626e-16,
+            "reported_n": 3000.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch99.csv",
+      "kind": "csv",
+      "sha256": "1d6db53ac8c5001f9df51a29a5d381a62c9a593cd086b35f9aef5ec6e90f3651",
+      "bytes": 546078,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "12.389795287868504",
+          "10.89483849739273",
+          "11.645097293614254",
+          "10.260656940699086",
+          "2.2180726528167725",
+          "0.9478912745007262"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/REPRODUCTION_PHASE2_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 14.222311141321246,
+            "std_population": 2.877597113456234,
+            "saved_avg": 14.222311141321246,
+            "saved_std": 2.877597113456234,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.121848411503665,
+            "std_population": 2.4664438154484585,
+            "saved_avg": 9.121848411503661,
+            "saved_std": 2.4664438154484585,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 13.719868173755172,
+            "std_population": 2.934824221754381,
+            "saved_avg": 13.71986817375518,
+            "saved_std": 2.934824221754381,
+            "abs_mean_error": 8.881784197001252e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 8.726148204519928,
+            "std_population": 2.4515508491052085,
+            "saved_avg": 8.726148204519918,
+            "saved_std": 2.451550849105209,
+            "abs_mean_error": 1.0658141036401503e-14,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.5779705159664155,
+            "std_population": 0.5414333198621375,
+            "saved_avg": 2.5779705159664155,
+            "saved_std": 0.5414333198621375,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9439878162269087,
+            "std_population": 0.037792932769934263,
+            "saved_avg": 0.9439878162269094,
+            "saved_std": 0.037792932769934263,
+            "abs_mean_error": 6.661338147750939e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch_0.csv",
+      "kind": "csv",
+      "sha256": "1b80b8d61c9fed18c68fcc1b61146129ee62cacd0dd110e2608f3a94599b6bfd",
+      "bytes": 55020,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "3.745274005322099",
+          "2.250317214846317",
+          "3.448423825431462",
+          "2.063983472516293",
+          "1.1520345211029053",
+          "0.8160723734101033"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_PLAN.md",
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/README.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 6.871117552827436,
+            "std_population": 3.2047654945518347,
+            "saved_avg": 6.871117552827434,
+            "saved_std": 3.2047654945518347,
+            "abs_mean_error": 1.7763568394002505e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.8297849054348103,
+            "std_population": 1.155638508306074,
+            "saved_avg": 1.8297849054348103,
+            "saved_std": 1.1556385083060738,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 2.220446049250313e-16
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 6.456445318743556,
+            "std_population": 3.169119971622132,
+            "saved_avg": 6.456445318743554,
+            "saved_std": 3.169119971622132,
+            "abs_mean_error": 2.6645352591003757e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.5168574626962827,
+            "std_population": 1.1486221627431117,
+            "saved_avg": 1.5168574626962839,
+            "saved_std": 1.1486221627431117,
+            "abs_mean_error": 1.1102230246251565e-15,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 1.4320878660678864,
+            "std_population": 0.2859212158729985,
+            "saved_avg": 1.4320878660678864,
+            "saved_std": 0.2859212158729985,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8037965269487536,
+            "std_population": 0.08778081906525445,
+            "saved_avg": 0.8037965269487533,
+            "saved_std": 0.08778081906525446,
+            "abs_mean_error": 3.3306690738754696e-16,
+            "abs_std_error": 1.3877787807814457e-17
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon-full-cols-20261031.counts.json",
+      "kind": "json",
+      "sha256": "76644a3a80673840b6b7b1a85adaa052e5de582a33ad913e220bd343082c66fc",
+      "bytes": 1207,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "schema_version",
+          "producer",
+          "workers",
+          "n_utterances",
+          "columns",
+          "counts",
+          "nan_counts",
+          "count_columns",
+          "aggregation",
+          "si_snr_identity_check",
+          "combined_csv"
+        ],
+        "top_length": 11
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon-full-cols-20261031.csv",
+      "kind": "csv",
+      "sha256": "abd8098ad4fbf5dd3396e4bf2583bea3f36d3e896a9f2c87c2488ee18acc06e1",
+      "bytes": 679115,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi",
+          "si-snr_mix",
+          "sdr_mix",
+          "n_sdr",
+          "n_sdr_i",
+          "n_si-snr",
+          "n_si-snr_i",
+          "n_pesq",
+          "n_stoi",
+          "n_si-snr_mix",
+          "n_sdr_mix"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "10.867309687184196",
+          "9.372352896708414",
+          "9.886427587220592",
+          "8.501987234305425",
+          "1.6626654863357544",
+          "0.9247710403914904",
+          "1.3844403529151688",
+          "1.4949567904757812",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.813387424376366,
+            "std_population": 3.3171780673667945,
+            "saved_avg": 12.813387424376323,
+            "saved_std": 3.317178067366795,
+            "abs_mean_error": 4.263256414560601e-14,
+            "abs_std_error": 4.440892098500626e-16,
+            "reported_n": 3000.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.712924694558758,
+            "std_population": 2.7281766686900006,
+            "saved_avg": 7.712924694558741,
+            "saved_std": 2.7281766686900006,
+            "abs_mean_error": 1.687538997430238e-14,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.022821408343606,
+            "std_population": 3.5221050183381872,
+            "saved_avg": 12.02282140834362,
+            "saved_std": 3.5221050183381872,
+            "abs_mean_error": 1.4210854715202004e-14,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.029101439108383,
+            "std_population": 2.932209902539369,
+            "saved_avg": 7.029101439108356,
+            "saved_std": 2.932209902539369,
+            "abs_mean_error": 2.7533531010703882e-14,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.1956342878341677,
+            "std_population": 0.5267555351794773,
+            "saved_avg": 2.1956342878341677,
+            "saved_std": 0.5267555351794773,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9163504580661692,
+            "std_population": 0.060007068433623065,
+            "saved_avg": 0.9163504580661698,
+            "saved_std": 0.060007068433623065,
+            "abs_mean_error": 5.551115123125783e-16,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "si-snr_mix": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 4.993719969235273,
+            "std_population": 3.002613434986113,
+            "saved_avg": 4.993719969235263,
+            "saved_std": 3.002613434986113,
+            "abs_mean_error": 9.769962616701378e-15,
+            "abs_std_error": 0.0,
+            "reported_n": 3000.0
+          },
+          "sdr_mix": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 5.100462729817579,
+            "std_population": 2.984996677891104,
+            "saved_avg": 5.100462729817585,
+            "saved_std": 2.9849966778911043,
+            "abs_mean_error": 6.217248937900877e-15,
+            "abs_std_error": 4.440892098500626e-16,
+            "reported_n": 3000.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon-full.csv",
+      "kind": "csv",
+      "sha256": "a9b9488e8b555abbd98573ecad224cdb65c15bf5863c4ef0ba230bcb3ec1ceb4",
+      "bytes": 545691,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 3002,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "10.867309680259789",
+          "9.372352889784011",
+          "9.88642757345612",
+          "8.50198722054095",
+          "1.6626653671264648",
+          "0.9247710389012742"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/REPRODUCTION_PHASE2_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md",
+        "docs/understanding/deepdive-20261108/review-round1/R3-docs-facts.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 3000,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.813387424010964,
+            "std_population": 3.3171780678121943,
+            "saved_avg": 12.813387424010967,
+            "saved_std": 3.3171780678121943,
+            "abs_mean_error": 3.552713678800501e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.712924694193396,
+            "std_population": 2.728176668073723,
+            "saved_avg": 7.7129246941933856,
+            "saved_std": 2.7281766680737234,
+            "abs_mean_error": 1.0658141036401503e-14,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "si-snr": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.022821408007607,
+            "std_population": 3.522105019087704,
+            "saved_avg": 12.022821408007598,
+            "saved_std": 3.522105019087704,
+            "abs_mean_error": 8.881784197001252e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.029101438772345,
+            "std_population": 2.932209902480942,
+            "saved_avg": 7.029101438772334,
+            "saved_std": 2.932209902480942,
+            "abs_mean_error": 1.1546319456101628e-14,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.1956340864102044,
+            "std_population": 0.5267555603055966,
+            "saved_avg": 2.1956340864102044,
+            "saved_std": 0.5267555603055966,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 3000,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9163504580344546,
+            "std_population": 0.06000706849157863,
+            "saved_avg": 0.9163504580344534,
+            "saved_std": 0.06000706849157863,
+            "abs_mean_error": 1.2212453270876722e-15,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon.pt.csv",
+      "kind": "csv",
+      "sha256": "085b49cb5496a9a3a4d291fe8f333bf877e7b459904dd1854da78db715e26bb9",
+      "bytes": 54841,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 302,
+        "first_row": [
+          "6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "10.867309598363144",
+          "9.372352807887363",
+          "9.8864275324318",
+          "8.501987179516632",
+          "1.6626627445220947",
+          "0.9247710388014238"
+        ]
+      },
+      "purpose": "LRS2 评估逐条指标、聚合或有限计数",
+      "producer_or_candidate": "audio_visual_test.py；命令依 P2D-report 与运行日志",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/09-benchmark-alignment.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 300,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 12.532947116769396,
+            "std_population": 3.6432156224513634,
+            "saved_avg": 12.532947116769401,
+            "saved_std": 3.6432156224513634,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.491614469376768,
+            "std_population": 2.8826681403283,
+            "saved_avg": 7.491614469376778,
+            "saved_std": 2.8826681403283,
+            "abs_mean_error": 9.769962616701378e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 11.855827874892917,
+            "std_population": 3.7566776134164015,
+            "saved_avg": 11.855827874892912,
+            "saved_std": 3.7566776134164015,
+            "abs_mean_error": 5.329070518200751e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 6.916240018845641,
+            "std_population": 2.9026603865217804,
+            "saved_avg": 6.916240018845643,
+            "saved_std": 2.902660386521781,
+            "abs_mean_error": 2.6645352591003757e-15,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "pesq": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 2.276269407272339,
+            "std_population": 0.5449053184232223,
+            "saved_avg": 2.276269407272339,
+            "saved_std": 0.5449053184232223,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 300,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.9079353993527824,
+            "std_population": 0.06988940619939589,
+            "saved_avg": 0.9079353993527817,
+            "saved_std": 0.06988940619939589,
+            "abs_mean_error": 7.771561172376096e-16,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "检查点和样本量以文件为准；聚合不能证明样本身份覆盖；counts 的 finite 实际可能包含 inf"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-near-train-metrics.csv",
+      "kind": "csv",
+      "sha256": "ae7dddb2ba6216dc9926bb21c93264d722e06dd80118c4b6f7c28b28194afd08",
+      "bytes": 213568,
+      "structure": {
+        "header": [
+          "epoch",
+          "learning_rate",
+          "lr",
+          "step",
+          "test_loss/dataloader_idx_1",
+          "test_pit_sisnr",
+          "train_beta_epoch",
+          "train_beta_step",
+          "train_cos_sim_neg_avg_epoch",
+          "train_cos_sim_neg_avg_step",
+          "train_cos_sim_neg_max_epoch",
+          "train_cos_sim_neg_max_step",
+          "train_cos_sim_pos_epoch",
+          "train_cos_sim_pos_step",
+          "train_loss_epoch",
+          "train_loss_step",
+          "train_n_samples_0near_epoch",
+          "train_n_samples_0near_step",
+          "train_n_samples_1near_epoch",
+          "train_n_samples_1near_step",
+          "train_n_samples_2near_epoch",
+          "train_n_samples_2near_step",
+          "train_n_samples_3near_epoch",
+          "train_n_samples_3near_step",
+          "train_n_samples_4plus_near_epoch",
+          "train_n_samples_4plus_near_step",
+          "train_neg_active_ratio_epoch",
+          "train_neg_active_ratio_step",
+          "train_pit_loss_epoch",
+          "train_pit_loss_step",
+          "train_spk_contrast_loss_epoch",
+          "train_spk_contrast_loss_step",
+          "val_loss/dataloader_idx_0",
+          "val_pit_sisnr",
+          "val_pit_sisnr_0near"
+        ],
+        "rows_from_prior_inventory": 1560,
+        "first_row": [
+          "100",
+          "",
+          "",
+          "250049",
+          "",
+          "",
+          "",
+          "0.5",
+          "",
+          "1.0000001192092896",
+          "",
+          "1.0000001192092896",
+          "",
+          "1.0",
+          "",
+          "-12.244157791137695",
+          "",
+          "0.0",
+          "",
+          "4.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "1.0",
+          "",
+          "-12.744157791137695",
+          "",
+          "0.5000001192092896",
+          "",
+          "",
+          ""
+        ]
+      },
+      "purpose": "训练过程中按步记录的指标表",
+      "producer_or_candidate": "训练 Lightning 日志，具体命令见 P2D-report",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_PHASE2_REPORT.md",
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/README.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/verification/phase2/P2D-report.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "training_step_columns_recomputed_only",
+        "rows": 1560,
+        "finite_steps": 1500,
+        "step_first": 250049.0,
+        "step_last": 324999.0,
+        "strictly_increasing": true
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "训练记录，不能用作独立测试质量"
+    },
+    {
+      "path": "docs/verification/phase2/P2D-train-metrics-1gpu.csv",
+      "kind": "csv",
+      "sha256": "c6d5704e4fab99b00194de4f63f70aba9fd20df43dcc3d34d325845508fef675",
+      "bytes": 757616,
+      "structure": {
+        "header": [
+          "epoch",
+          "learning_rate",
+          "lr",
+          "step",
+          "test_loss/dataloader_idx_1",
+          "test_pit_sisnr",
+          "train_beta_epoch",
+          "train_beta_step",
+          "train_cos_sim_neg_avg_epoch",
+          "train_cos_sim_neg_avg_step",
+          "train_cos_sim_neg_max_epoch",
+          "train_cos_sim_neg_max_step",
+          "train_cos_sim_pos_epoch",
+          "train_cos_sim_pos_step",
+          "train_loss_epoch",
+          "train_loss_step",
+          "train_n_samples_0near_epoch",
+          "train_n_samples_0near_step",
+          "train_n_samples_1near_epoch",
+          "train_n_samples_1near_step",
+          "train_n_samples_2near_epoch",
+          "train_n_samples_2near_step",
+          "train_n_samples_3near_epoch",
+          "train_n_samples_3near_step",
+          "train_n_samples_4plus_near_epoch",
+          "train_n_samples_4plus_near_step",
+          "train_neg_active_ratio_epoch",
+          "train_neg_active_ratio_step",
+          "train_pit_loss_epoch",
+          "train_pit_loss_step",
+          "train_spk_contrast_loss_epoch",
+          "train_spk_contrast_loss_step",
+          "val_loss/dataloader_idx_0",
+          "val_pit_sisnr",
+          "val_pit_sisnr_0near"
+        ],
+        "rows_from_prior_inventory": 5200,
+        "first_row": [
+          "0",
+          "",
+          "",
+          "49",
+          "",
+          "",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.9966127276420593",
+          "",
+          "-3.1640186309814453",
+          "",
+          "4.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "0.0",
+          "",
+          "-3.167405843734741",
+          "",
+          "0.00338725745677948",
+          "",
+          "",
+          ""
+        ]
+      },
+      "purpose": "训练过程中按步记录的指标表",
+      "producer_or_candidate": "训练 Lightning 日志，具体命令见 P2D-report",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_PHASE2_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/README.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/verification/phase2/P2D-report.md",
+        "docs/understanding/deepdive-20261108/10-ops-repro-git.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "training_step_columns_recomputed_only",
+        "rows": 5200,
+        "finite_steps": 5000,
+        "step_first": 49.0,
+        "step_last": 249999.0,
+        "strictly_increasing": true
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "训练记录，不能用作独立测试质量"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-dnsmos-lrs2-smoke.csv",
+      "kind": "csv",
+      "sha256": "84e24e2d19d0948b67972c5a266a85b829ac79d666aad4b78c107d4fa516cf94",
+      "bytes": 405,
+      "structure": {
+        "header": [
+          "file",
+          "duration_s",
+          "sig_mos",
+          "bak_mos",
+          "ovrl_mos",
+          "p808_mos",
+          "elapsed_s",
+          "error"
+        ],
+        "rows_from_prior_inventory": 2,
+        "first_row": [
+          "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "2.0",
+          "2.4018",
+          "1.5087",
+          "1.5232",
+          "2.7659",
+          "3.11",
+          ""
+        ]
+      },
+      "purpose": "LRS2 模拟 RealSSA 格式的两条 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2E-report.md",
+        "docs/understanding/deepdive-20261024/04-losses-metrics.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "finite_mos_means_recomputed",
+        "rows": 2,
+        "metrics": {
+          "sig_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.7171000000000003
+          },
+          "bak_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 1.5506
+          },
+          "ovrl_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 1.53525
+          },
+          "p808_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.65775
+          }
+        }
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "样本为 LRS2 仿造布局，不是真实 RealSSA"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-dnsmos-lrs2-smoke.json",
+      "kind": "json",
+      "sha256": "4fc5e637734b8c0a2a4904bca5d4c839fb8569a048f78fd87dc1dc85679c9cd7",
+      "bytes": 1109,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "backend",
+          "speechmos_version",
+          "onnxruntime_version",
+          "model_type",
+          "num_files",
+          "num_ok",
+          "num_errors",
+          "mean",
+          "std",
+          "models"
+        ],
+        "top_length": 10
+      },
+      "purpose": "LRS2 模拟 RealSSA 格式的两条 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "样本为 LRS2 仿造布局，不是真实 RealSSA"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-dnsmos-synthetic.json",
+      "kind": "json",
+      "sha256": "6c3f566053e06c5fc15bbb210b27a322679d2c1f5ecd70aeff6a3e9958dd1d3e",
+      "bytes": 1587,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "backend",
+          "speechmos_version",
+          "onnxruntime_version",
+          "model_type",
+          "models",
+          "cases",
+          "all_finite_in_range"
+        ],
+        "top_length": 7
+      },
+      "purpose": "合成输入 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2E-report.md",
+        "docs/verification/phase2/QA-report.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/04-losses-metrics.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "合成冒烟不能作为真实数据集质量"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-realssa-sim-ch0-metrics_combined-20261030.csv",
+      "kind": "csv",
+      "sha256": "0bf7ef75ce19e70f54a4ac7c668ad7a8f2b0bed0140971e698d2087abc9171bc",
+      "bytes": 1178293,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 9171,
+        "first_row": [
+          "00001_00_10182.wav",
+          "11.611783002052489",
+          "8.030415119359509",
+          "11.1918367296337",
+          "7.6337005385094",
+          "2.517683506011963",
+          "0.7681981550793634"
+        ]
+      },
+      "purpose": "RealSSA-Sim 指标逐条记录",
+      "producer_or_candidate": "audio_visual_test.py；具体命令见 P2E-report",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/phase2/P2E-realssa-sim-ch0-report.md",
+        "docs/understanding/deepdive-20261108/10-ops-repro-git.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 9169,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 10.111059682193671,
+            "std_population": 4.068025056577135,
+            "saved_avg": 10.111059682193691,
+            "saved_std": 4.068025056577135,
+            "abs_mean_error": 1.9539925233402755e-14,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 8.452396234052548,
+            "std_population": 2.913307553151279,
+            "saved_avg": 8.452396234052525,
+            "saved_std": 2.9133075531512795,
+            "abs_mean_error": 2.3092638912203256e-14,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "si-snr": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.319855617598972,
+            "std_population": 5.679620622794568,
+            "saved_avg": 9.319855617598996,
+            "saved_std": 5.679620622794568,
+            "abs_mean_error": 2.4868995751603507e-14,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.97670949800856,
+            "std_population": 3.2801053861022953,
+            "saved_avg": 7.97670949800856,
+            "saved_std": 3.280105386102295,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 4.440892098500626e-16
+          },
+          "pesq": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 2.00406441171175,
+            "std_population": 0.48790119480752975,
+            "saved_avg": 2.00406441171175,
+            "saved_std": 0.48790119480752975,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8150089693992819,
+            "std_population": 0.10589443949194087,
+            "saved_avg": 0.8150089693992802,
+            "saved_std": 0.10589443949194087,
+            "abs_mean_error": 1.6653345369377348e-15,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "9169 记录；通道和权重谱系不同于论文，SDR 有 3 个非有限/缺失"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-realssa-sim-metrics_combined.csv",
+      "kind": "csv",
+      "sha256": "fc621a169ad6d52f8d8abb8dd16bcf69091f56c3d6f200703fc980ae2cc6a978",
+      "bytes": 1178733,
+      "structure": {
+        "header": [
+          "snt_id",
+          "sdr",
+          "sdr_i",
+          "si-snr",
+          "si-snr_i",
+          "pesq",
+          "stoi"
+        ],
+        "rows_from_prior_inventory": 9171,
+        "first_row": [
+          "00001_00_10182.wav",
+          "12.486414377353825",
+          "8.668288493480913",
+          "12.1778177259699",
+          "8.381882750843078",
+          "2.621849775314331",
+          "0.7769995103712148"
+        ]
+      },
+      "purpose": "RealSSA-Sim 指标逐条记录",
+      "producer_or_candidate": "audio_visual_test.py；具体命令见 P2E-report",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/REPRODUCTION_REPORT.md",
+        "docs/REPRODUCTION_PHASE2_REPORT.md",
+        "docs/STATUS.md",
+        "docs/verification/README.md",
+        "docs/verification/phase2/P2E-report.md",
+        "docs/verification/phase2/README.md",
+        "docs/verification/phase2/P0-FIX-report.md",
+        "docs/verification/phase2/P2E-realssa-sim-ch0-report.md",
+        "docs/understanding/deepdive-20261108/10-ops-repro-git.md",
+        "docs/understanding/deepdive-20261108/07-eval-benchmark.md",
+        "docs/understanding/deepdive-20261108/11-paper-alignment.md",
+        "docs/understanding/deepdive-20261108/review-round1/R4-writing-style.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "utterance_rows": 9169,
+        "avg_rows": 1,
+        "std_rows": 1,
+        "metrics": {
+          "sdr": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 10.644734252788153,
+            "std_population": 3.9288630958262427,
+            "saved_avg": 10.644734252788137,
+            "saved_std": 3.9288630958262427,
+            "abs_mean_error": 1.5987211554602254e-14,
+            "abs_std_error": 0.0
+          },
+          "sdr_i": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 8.479394557369428,
+            "std_population": 3.2321524261052366,
+            "saved_avg": 8.479394557369417,
+            "saved_std": 3.2321524261052366,
+            "abs_mean_error": 1.0658141036401503e-14,
+            "abs_std_error": 0.0
+          },
+          "si-snr": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 9.980200293998166,
+            "std_population": 4.546247062223054,
+            "saved_avg": 9.980200293998173,
+            "saved_std": 4.546247062223054,
+            "abs_mean_error": 7.105427357601002e-15,
+            "abs_std_error": 0.0
+          },
+          "si-snr_i": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 7.774307312097166,
+            "std_population": 2.9732153738848086,
+            "saved_avg": 7.774307312097187,
+            "saved_std": 2.9732153738848086,
+            "abs_mean_error": 2.042810365310288e-14,
+            "abs_std_error": 0.0
+          },
+          "pesq": {
+            "n_finite": 9166,
+            "n_nonfinite_or_missing": 3,
+            "mean": 2.0937701121782233,
+            "std_population": 0.5072275432239912,
+            "saved_avg": 2.0937701121782233,
+            "saved_std": 0.5072275432239912,
+            "abs_mean_error": 0.0,
+            "abs_std_error": 0.0
+          },
+          "stoi": {
+            "n_finite": 9169,
+            "n_nonfinite_or_missing": 0,
+            "mean": 0.8172897394987925,
+            "std_population": 0.10304384650337833,
+            "saved_avg": 0.8172897394987969,
+            "saved_std": 0.10304384650337833,
+            "abs_mean_error": 4.440892098500626e-15,
+            "abs_std_error": 0.0
+          }
+        },
+        "status": "means_and_population_std_recomputed"
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "9169 记录；通道和权重谱系不同于论文，SDR 有 3 个非有限/缺失"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-smoke-realssa-real-metadata.json",
+      "kind": "json",
+      "sha256": "c91f4989ab9cd39af4b6fbe42b3fd5dd867437ab9cb4b27965014e2be6ae02d4",
+      "bytes": 1675,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "tool",
+          "timestamp_utc",
+          "data_root",
+          "loader_kind",
+          "is_smoke",
+          "smoke_source",
+          "channel",
+          "align_tail",
+          "model",
+          "checkpoint",
+          "device",
+          "skip_model",
+          "limit",
+          "baseline",
+          "speechmos_version",
+          "onnxruntime_version",
+          "note",
+          "segments_total",
+          "summary"
+        ],
+        "top_length": 19
+      },
+      "purpose": "LRS2 模拟 RealSSA 格式的两条 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "样本为 LRS2 仿造布局，不是真实 RealSSA"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-smoke-realssa-real-per-segment.csv",
+      "kind": "csv",
+      "sha256": "a9009461f8ffd3fef79cb23a4438d09f0c87552e214f4930e284b5476abf1efd",
+      "bytes": 452,
+      "structure": {
+        "header": [
+          "inference_id",
+          "recording_id",
+          "scene",
+          "channel",
+          "align_tail",
+          "audio_s",
+          "mouth_frames",
+          "used_frames",
+          "used_s",
+          "discarded_samples",
+          "inference_ms",
+          "rtf",
+          "sig_mos",
+          "bak_mos",
+          "ovrl_mos",
+          "p808_mos",
+          "mix_sig_mos",
+          "mix_bak_mos",
+          "mix_ovrl_mos",
+          "mix_p808_mos",
+          "error"
+        ],
+        "rows_from_prior_inventory": 2,
+        "first_row": [
+          "smoke-000",
+          "smoke",
+          "smoke",
+          "mean",
+          "True",
+          "2.0",
+          "50",
+          "50",
+          "2.0",
+          "0",
+          "194.4",
+          "0.097",
+          "3.2677",
+          "2.7496",
+          "2.3637",
+          "3.1704",
+          "2.4018",
+          "1.5087",
+          "1.5232",
+          "2.7659",
+          ""
+        ]
+      },
+      "purpose": "LRS2 模拟 RealSSA 格式的两条 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "finite_mos_means_recomputed",
+        "rows": 2,
+        "metrics": {
+          "sig_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 3.17475
+          },
+          "bak_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.6642
+          },
+          "ovrl_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.24595
+          },
+          "p808_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 3.1468
+          },
+          "mix_sig_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.7171000000000003
+          },
+          "mix_bak_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 1.5506
+          },
+          "mix_ovrl_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 1.53525
+          },
+          "mix_p808_mos": {
+            "n_finite": 2,
+            "n_other": 0,
+            "mean": 2.65775
+          }
+        }
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "样本为 LRS2 仿造布局，不是真实 RealSSA"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-smoke-realssa-real-summary.json",
+      "kind": "json",
+      "sha256": "79c64e99991c203aeed13b2c3f83367c80c0060be11fbe3434da6941ea154f40",
+      "bytes": 900,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "segments_total",
+          "segments_ok",
+          "segments_error",
+          "metrics",
+          "by_scene"
+        ],
+        "top_length": 5
+      },
+      "purpose": "LRS2 模拟 RealSSA 格式的两条 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "样本为 LRS2 仿造布局，不是真实 RealSSA"
+    },
+    {
+      "path": "docs/verification/phase2/P2E-smoke-synthetic-per-segment.csv",
+      "kind": "csv",
+      "sha256": "18e624c4f9541819bc7a050fe2595433c75cb16d95fc31f0fdc4fc797bc0cf9d",
+      "bytes": 300,
+      "structure": {
+        "header": [
+          "inference_id",
+          "recording_id",
+          "scene",
+          "channel",
+          "align_tail",
+          "audio_s",
+          "mouth_frames",
+          "used_frames",
+          "used_s",
+          "discarded_samples",
+          "inference_ms",
+          "rtf",
+          "sig_mos",
+          "bak_mos",
+          "ovrl_mos",
+          "p808_mos",
+          "mix_sig_mos",
+          "mix_bak_mos",
+          "mix_ovrl_mos",
+          "mix_p808_mos",
+          "error"
+        ],
+        "rows_from_prior_inventory": 1,
+        "first_row": [
+          "synth-000",
+          "synth",
+          "synth",
+          "mean",
+          "True",
+          "2.0",
+          "50",
+          "50",
+          "2.0",
+          "0",
+          "",
+          "",
+          "1.9708",
+          "2.829",
+          "1.6463",
+          "2.2125",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      },
+      "purpose": "合成输入 DNSMOS smoke",
+      "producer_or_candidate": "tools/repro/phase2/eval_realssa_real.py 或 eval_dnsmos.py；具体见报告",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/P2E-report.md"
+      ],
+      "numeric_review": "本轮查看表头及首行；复用此前逐行程序化统计，不是逐条人工验证",
+      "prior_numeric_audit": {
+        "method": "finite numeric columns only; no audio/model inference; no protocol validation",
+        "status": "finite_mos_means_recomputed",
+        "rows": 1,
+        "metrics": {
+          "sig_mos": {
+            "n_finite": 1,
+            "n_other": 0,
+            "mean": 1.9708
+          },
+          "bak_mos": {
+            "n_finite": 1,
+            "n_other": 0,
+            "mean": 2.829
+          },
+          "ovrl_mos": {
+            "n_finite": 1,
+            "n_other": 0,
+            "mean": 1.6463
+          },
+          "p808_mos": {
+            "n_finite": 1,
+            "n_other": 0,
+            "mean": 2.2125
+          },
+          "mix_sig_mos": {
+            "n_finite": 0,
+            "n_other": 1,
+            "mean": null
+          },
+          "mix_bak_mos": {
+            "n_finite": 0,
+            "n_other": 1,
+            "mean": null
+          },
+          "mix_ovrl_mos": {
+            "n_finite": 0,
+            "n_other": 1,
+            "mean": null
+          },
+          "mix_p808_mos": {
+            "n_finite": 0,
+            "n_other": 1,
+            "mean": null
+          }
+        }
+      },
+      "prior_targeted_review": null,
+      "validity_limit": "合成冒烟不能作为真实数据集质量"
+    },
+    {
+      "path": "docs/verification/phase2/P2F-results.json",
+      "kind": "json",
+      "sha256": "9eaec6c94a58b8854bf4bbf4b0ac02990944ebace5a92a0ed9fac53ae2aa77d3",
+      "bytes": 45323,
+      "structure": {
+        "type": "dict",
+        "top_keys": [
+          "variants",
+          "elapsed_s",
+          "data",
+          "metrics",
+          "big"
+        ],
+        "top_length": 5
+      },
+      "purpose": "指标协议和对齐试验结果",
+      "producer_or_candidate": "tools/repro/phase2/protocol_check.py",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/verification/phase2/QA-report.md",
+        "docs/verification/phase2/P2F-report.md",
+        "docs/verification/phase2/REGRESSION-docs.md",
+        "docs/understanding/deepdive-20261108/10-ops-repro-git.md",
+        "docs/understanding/deepdive-20261024/08-verification-ops-env.md",
+        "docs/understanding/deepdive-20261024/04-losses-metrics.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "仅列出的输入和协议；最佳 lag 的方向需结合合成反例"
+    },
+    {
+      "path": "docs/verification/phase2/three-round-review-20261030-captured.json",
+      "kind": "json",
+      "sha256": "75b9004eddfed4d7b5a35714eaa62bf07d9378c0013b880a0fa39be041983f6b",
+      "bytes": 64487,
+      "structure": {
+        "type": "list",
+        "top_keys": [],
+        "top_length": 43
+      },
+      "purpose": "历轮 review 问题及证据集合",
+      "producer_or_candidate": "review 人工整理，非实验结果",
+      "producer_certainty": "脚本名依据文件元信息、报告或已读源码；具体命令及当时版本未逐一证明",
+      "associated_reports_literal_mentions": [
+        "docs/understanding/THREE_ROUND_REVIEW_20261030.md"
+      ],
+      "numeric_review": "本轮解析完整文件，人工阅读顶部结构与部分字段；未逐项人工检查大数组",
+      "prior_numeric_audit": null,
+      "prior_targeted_review": null,
+      "validity_limit": "历史判断需按当前文件与独立实验重新核查"
+    }
+  ]
+}

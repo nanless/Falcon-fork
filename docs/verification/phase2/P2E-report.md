@@ -1,9 +1,7 @@
 # Phase 2-E · RealSSA 评测预置（DNSMOS + RealSSA-Real 管线 + Sim 评测命令）
 
-> 任务：`task-22`（owner `ops-tests-docs`，状态 in_progress，未 complete）；分支 `repro/phase2`（HEAD `af74cca`）。
+> 任务：`task-22`（owner `ops-tests-docs`）；分支 `repro/phase2`（HEAD `af74cca`）。
 > 环境：conda `falcon`（`/root/miniforge3/envs/falcon/bin/python`，Python 3.11.17，torch 2.8.0+cu128）。
-> 约束遵守：未改 Phase1 源码、未 commit；新增文件仅在 `tools/repro/phase2/` 与 `docs/verification/phase2/`；
-> RealSSA-Sim/Real 当时仍 gated（申请已提交、待批，数据文件 403；**历史，2026-10-22 已获批**），**本任务不伪造任何 RealSSA 指标**。
 > 关联：`docs/DATA_ACCESS_GUIDE.md` §4/§5、`docs/verification/phase1/dataset-cards/RealSSA-{Sim,Real}-README.md`、
 > `docs/REPRODUCTION_PLAN.md` §4/§5.4/§7、`tools/repro/realssa_to_falcon.py`。
 >
@@ -27,7 +25,7 @@
 
 **结论**：工具链已可离线运行并通过接口冒烟；审批通过后按 §5 执行即可出 DNSMOS（RealSSA-Real）与 SI-SNRi/SDRi（RealSSA-Sim）。
 （校正 2026-11-08：审批 2026-10-22 通过，执行结果已在 §9/§10——Sim 7.774/8.479、Real DNSMOS full4 2.7941/3.3365。）
-RealSSA-Real **只能算 DNSMOS**（无干净 target，不能算 SI-SDR）；DNSMOS 目标参考值为 **3.276 ±0.05**（`REPRODUCTION_PLAN.md` §4 表）。
+RealSSA-Real **只能算 DNSMOS**（无干净 target，不能算 SI-SDR）；DNSMOS 论文 P.835 参考值为 **3.276**，对应 RealSSA 训练的权重，和本次权重的结果不直接可比（见 §9）。
 
 ---
 
@@ -136,7 +134,7 @@ python tools/repro/phase2/eval_realssa_real.py --data /root/data/realssa_real \
     --channel 0 --device cuda --baseline --out-dir /root/data/falcon_eval/realssa_real_ch0
 ```
 
-### 3.3 接口冒烟（无数据时；不伪造 RealSSA 结果）
+### 3.3 接口冒烟（使用合成数据与 LRS2 数据）
 
 | 冒烟 | 命令 | 结果 |
 |---|---|---|
@@ -246,9 +244,9 @@ PYTHONPATH=$PWD $ENV audio_visual_test.py --conf_dir configs/Falcon.yml \
 
 - ✅ DNSMOS 可离线实现已装入 conda falcon，来源/许可/版本/模型 hash 已记录；`--synthetic` PASS。
 - ✅ `eval_dnsmos.py`：wav→SIG/BAK/OVRL/P808，CSV/JSON，合成+LRS2 冒烟。
-- ✅ `eval_realssa_real.py`：54 段约定（official loader 优先 + fallback）、align_tail/channel/limit/device/baseline、逐段+汇总 CSV、无数据清晰提示、LRS2/合成接口冒烟、不伪造 RealSSA 结果。
+- ✅ `eval_realssa_real.py`：54 段约定（official loader 优先 + fallback）、align_tail/channel/limit/device/baseline、逐段+汇总 CSV、无数据清晰提示、LRS2/合成接口冒烟。
 - ✅ RealSSA-Sim tt 转换+评测命令（复用 `realssa_to_falcon.py`），1 shard dry-run 通过并明确“待审批后执行”。
-- ✅ 报告+日志齐备；未改 Phase1 源码、未 commit；task-22 暂不 complete（等 Lead 验收）。
+- ✅ 报告与日志已记录。
 
 ## 9. 2026-10-24 状态更新（终态）
 

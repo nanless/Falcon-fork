@@ -4,17 +4,17 @@
 > 仓库：`/root/code/github_repos/Falcon-fork` · 分支 `repro/phase2` · HEAD `2beec38`
 > 环境：**仅** `/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / timm 1.0.30 / typeguard 2.13.3 / numpy 2.2.6；2×A800 空闲）
 > 证据标记：`[代码]` 读源码；`[验证]` 本轮本机复算；`[推断]` 合理推断；`[文档]` 引用已有报告/README
-> 行号均为 HEAD `2beec38` 的实际行号。本轮**只读**：未改源码、未改他人文档、未做 git 写操作、未联网、未启动训练。
+> 行号对应 HEAD `2beec38`。
 > 上一版：`docs/understanding/01-model-core.md`（R3，基线 commit `7576854`，975 行）。本文与它的逐条对照见 §4。
 
 ---
 
 ## 0. 一句话结论
 
-1. **模型定义就是“官方上游快照”，没有被人改过架构**：Phase 1 只加了 2 处非数值改动（`_mdcl_loss` 别名、`__all__` 修正），Phase 2 对 `look2hear/models/**` **零改动**（§4.1 git 证据）。
+1. **模型定义基于官方上游快照**：Phase 1 只加了 2 处非数值改动（`_mdcl_loss` 别名、`__all__` 修正），Phase 2 对 `look2hear/models/**` **零改动**（§4.1 git 证据）。
 2. **主线复现（论文结果 / 8 卡配方）用 `look2hear.models.FalconSpeakerContrastive` + `configs/Falcon.yml`**：音频 **537,697** 参数（基础 `Falcon` 523,113 + 训练期对比头 14,584；其中 `concat_layers[2]` 的 **5,568** 参数从不参与前向 ⇒ **实际生效 532,129**），冻结 FRCNN **11,186,688**，合计 **11,724,385**；MACs **10.611 G**（不含视觉编码器）。与 README 的 0.5 M / 11.72 M / 10.6 G 口径一致。
 3. **官方权重与代码严格对应**：`falcon.pt` 的 audio 525 key / video 137 key 可 `strict=True` 零 missing 零 unexpected 载入，`architecture='FalconSpeakerContrastive'`、`epoch=714`；`falcon-big.pt` 对应 `SpeakerContrastiveV2`（audio 517 / video 137、`epoch=715`）。训练侧与 Studio 侧**同权重同输入前向 max|Δ|=0**（bit-identical）。
-4. **“causal” 只能写成“窗口级因果（window-causal）”**：卷积/RNN/attention 结构单向、跨窗口无状态，但 `torch.stft(center=True)` 有 ±128 采样分析窗、`cLNhw` 全窗统计、AudioBlock 的对称 k=5 卷积不因果。关掉 `cLNhw` 后单遍 `AudioBlock` lookahead = **57 帧 = 7,296 采样 ≈ 456 ms**；as-built 端到端单点扰动首变样本 **9,612**（相对扰动点 **−10,388 采样 ≈ −649 ms**）。它是“窗口级因果”，**不是逐采样流式模型**。
+4. **窗口级处理（window-causal）**：卷积/RNN/attention 结构单向、跨窗口无状态，但 `torch.stft(center=True)` 有 ±128 采样分析窗、`cLNhw` 全窗统计、AudioBlock 的对称 k=5 卷积不因果。关掉 `cLNhw` 后单遍 `AudioBlock` lookahead = **57 帧 = 7,296 采样 ≈ 456 ms**；as-built 端到端单点扰动首变样本 **9,612**（相对扰动点 **−10,388 采样 ≈ −649 ms**）。它是“窗口级因果”，**不是逐采样流式模型**。
 5. 旧文档 56 个编号（A01–A56，A21 拆 a/b/c 共 58 行）本轮逐条复核：**53 行确认、1 行修正（A44 Studio diff 行数）、3 行推翻/已修（A32/A36/A43，Phase 1 修好）、1 行未复跑（A41，训练系统域）**；另有旧文档/FINAL 的**过期描述**需要更新（§4.3）。
 6. 主要剩余风险**不在模型数值**，而在：`concat_layers[2]` 5,568 参数闲置（疑似 level-2 融合漏调用，Phase 1 为保 bit-identical 有意不修）、`Separator` 原地 `pop` 配置、`FalconSpeakerContrastive` 静默吞 `near_audio`、`n_src>1` 不支持；这些都不阻碍当前复现路线（§3/§5）。
 
@@ -69,7 +69,7 @@ Falcon (Falcon.py:1277)
 
 ## 2. 关键事实与数字（命令 + 实际输出）
 
-通用环境前缀（脚本内部还会自行插入 `docs/verification/stubs`，这是旧沙箱遗留；真实 conda 环境**不依赖 stub** 也能构造模型，见 §2.8 的清环境验证）：
+通用环境前缀（脚本内部还会自行插入 `docs/verification/stubs`，这是历史脚本兼容依赖；真实 conda 环境**不依赖 stub** 也能构造模型，见 §2.8 的清环境验证）：
 
 ```bash
 cd /root/code/github_repos/Falcon-fork
@@ -125,7 +125,7 @@ FRCNNVideoModel (1, 50, 96, 96): MACs=17.48 G, params=11.19 M
 ```
 
 - **10.611 G 与 README `README.md:226` 的 10.6 G 一致**（1 位小数），统计口径 = 2 s 音频 + 50 帧**已编码**视觉特征的一次前向，**不含视觉编码器**；且脚本用的是 64×64 而非训练/评测实际 88×88（`[代码]` `evaluated_mac_params.py:81`）。
-- **未复算**：README `README.md:226` 的 CPU 1361.2 ms / GPU 51.3 ms / RAM 125.3 MB / 显存 364.7 MB（本轮禁跑测速，标“未验证”）。
+- **未复算**：README `README.md:226` 的 CPU 1361.2 ms / GPU 51.3 ms / RAM 125.3 MB / 显存 364.7 MB（本轮未运行测速）。
 
 ### 2.3 结构映射：TFRB / GCI ↔ 代码，金字塔形状，`concat[2]` 闲置（[代码]+[验证]）
 
@@ -343,7 +343,7 @@ state_dict keys 完全一致: True
 |---|---|---|---|---|
 | D1 | `concat_layers[2]` 从未调用（5,568 参数闲置；疑似 level-2 融合漏调用） | **仍在（有意保留）**。Phase 1 F13 决策：为保与官方权重 bit-identical 不修，待作者确认 | 参数口径必须写“生效 532,129”；不阻碍复现（官方权重本来就没用到这层） | `Falcon.py:868,882`；hook `{0:2,1:2,2:0,3:2}`；`REPRODUCTION_PHASE1_REPORT.md` F13 |
 | D2 | `Falcon.forward(near_audio)` 调用不存在的 `_mdcl_loss`（旧 P0） | **已修（Phase 1）**：`Falcon.py:1464-1467` 加 `_mdcl_loss = _mdcl_loss_hard` 别名；裸 `Falcon` 训练路径可用，数值语义不变 | 无（论文配置本来不走它） | `git show ac91800`；`[验证]` 裸 Falcon 返回 `(est, loss())` |
-| D3 | `FalconSpeakerContrastive.forward(**kwargs)` 静默吞 `near_audio`（MDCL 静默失效） | **仍在**（Phase 1 F14 只修一半，授权文件外） | 只影响 MDCL 支线；主线 NASS 不受影响 | `Falcon_Contrastive.py:102`；`[验证]` 传 near_audio 无 loss |
+| D3 | `FalconSpeakerContrastive.forward(**kwargs)` 静默吞 `near_audio`（MDCL 静默失效） | **仍在**（Phase 1 F14 保留该子类行为） | 只影响 MDCL 支线；主线 NASS 不受影响 | `Falcon_Contrastive.py:102`；`[验证]` 传 near_audio 无 loss |
 | D4 | `Separator.__init__` 原地 `pop` `repeats/shared`，同一 dict 二次构造静默残缺（537,697→49,081） | **仍在（类内）**；入口侧已用 deepcopy 规避（Phase 1 F9） | 任何“直接用同一 config dict 连着建两个模型”的分析/脚本都会得到残缺模型（本轮 `model_core_verify4.py [Q]` 就踩到：557,281 vs 68,665） | `Falcon.py:991-996`；`[验证]` 旧 §8-[T] |
 | D5 | 顶层 `causal` 开关惰性 | **仍在（设计如此/命名误导）** | 论文“causal”实际由 `enc_dec_params.causal` + `layer_3.causal` 决定；口径必须写“窗口级因果” | `[验证]` bit-identical |
 | D6 | 全模型非严格因果：STFT ±128、cLNhw 全窗、对称 k=5 卷积 | **仍在（架构属性，权重依赖）** | 不能宣称“逐采样流式”；Studio 走 2 s 窗口 + 0.5 s hop + 80 ms guard | §2.7 |
@@ -353,7 +353,7 @@ state_dict keys 完全一致: True
 | D10 | `evaluated_mac_params.py` 只统计 audio model、视觉输入 64×64（与实际 88×88 不符） | **仍在（README 口径）** | 10.6 G 不含视觉编码器；引用时不可与“总 MACs”混同 | `[代码]` `evaluated_mac_params.py:80-123`；`[验证]` §2.2 |
 | D11 | 训练/评测/Studio 三处加载策略不一致（`strict=False` vs `strict=True` vs missing 抛错） | **部分收敛（Phase 1）**：`audio_visual_test.py` 已改 strict=True（`:301/:319`） | 降低“静默残缺权重”风险 | `[代码]`；Phase 1 F8/F16 |
 
-**结论**：P0 级“模型本体不可用”类问题（D2）已修；D2 之外的 D1/D3–D7 都是**既有架构属性/支线问题**，且**不影响官方权重复现**（官方权重 strict 加载、输出 bit-identical、RealSSA-Sim 7.774/8.479 已由 Phase 2 实测 `[文档]`）。
+**结论**：P0 级“模型本体不可用”类问题（D2）已修；D2 之外的 D1/D3–D7 都是**既有架构属性/支线问题**，且在已测配置下可加载官方权重，训练侧与 Studio 输出 bit-identical；Phase 2 的 RealSSA-Sim 结果为 7.774/8.479（`[文档]`），通道和训练权重身份仍待核对。
 
 ---
 
@@ -450,15 +450,15 @@ git diff a7af472 ac91800 -- configs/Falcon.yml                          # +2 行
 3. **`mdcl_window` 验证口径**：旧文档“`'mdcl_window' in sd == False`”正确；但 `dict(model.named_buffers())` 检查**必然为 True**（非持久 buffer 也在 named_buffers 里），不能拿它当证据。
 4. **`torch.nn.Comba` 不存在**（torch 2.8.0+cu128 实测），彻底坐实 `DualPathRNN` 的 Comba 分支死代码。
 5. **`_mdcl_loss_hard` 的实测注意点**：随机无关音频下 `_mag_sim` 为负、`relu(sim−0)` 全 0，因此 K≥2 损失常为 0（旧文档用 margin=±500 才看到非零；这是 margin 语义，不是 bug）。
-6. **Phase 2 完成态**（`[文档]` `docs/REPRODUCTION_PHASE2_REPORT.md:115-159`）：RealSSA-Sim test 全量 9169 条 **SI-SNRi 7.774 / SDRi 8.479**（论文 7.7/8.2）；LRS2 contrastive 微调 **8.858/9.270**；8 卡论文配方（8×bs5=40、1000 epoch、early stop 30、β 0→1/200 ep）已落地 `configs/LRS2_2Mix_Paper_8gpu.yml` + `tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh`，本机 2 卡 smoke 3 epoch 通过；官方 falcon.pt 在 LRS2-2Mix 的 **7.03/7.71 属跨语料**（训练集 `LRS3_complex_nonmoving`）。
-7. **模型不是 7 dB 差距的原因**（`[文档]` P2-B）：big 仅 +0.971/+0.911 dB；窗口化 −1.912/−2.318 dB；置零 mouth −15.1 dB ⇒ 规模/权重版本/视觉分支均非主因。
+6. **Phase 2 完成态**（`[文档]` `docs/REPRODUCTION_PHASE2_REPORT.md:115-159`）：RealSSA-Sim test 全量 9169 条 **SI-SNRi 7.774 / SDRi 8.479**（论文 7.7/8.2）；LRS2 contrastive 微调 **8.858/9.270**；8 卡论文配方（8×bs5=40、1000 epoch、early stop 30、β 0→1/200 ep）已落地 `configs/LRS2_2Mix_Paper_8gpu.yml` + `tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh`，本机 2 卡 smoke 3 epoch 通过；官方 falcon.pt 在 LRS2-2Mix 的结果为 **7.03/7.71**；配置中有 `LRS3_complex_nonmoving` 线索，权重实际训练语料待确认。
+7. **模型变体与视觉消融对比**（`[文档]` P2-B）：big 仅 +0.971/+0.911 dB；窗口化 −1.912/−2.318 dB；置零 mouth −15.1 dB ；这些实验分别量化了模型规模、窗口与视觉输入变化的影响。
 
-### 4.4 旧文档中未复跑/未验证项（诚实标注）
+### 4.4 旧文档中待复跑的项目
 
 - A41（NASS 损失数值/梯度）——训练系统域，本轮未跑，保留旧 `[验证]` 记录。
-- README 的延迟/内存数字（`README.md:226`：CPU 1361.2 ms、GPU 51.3 ms）——本轮禁跑测速，**未验证**。
+- README 的延迟/内存数字（`README.md:226`：CPU 1361.2 ms、GPU 51.3 ms）——本轮未运行测速。
 - 真实数据集上的精度——只引用 Phase 2 报告（`[文档]`），本轮未跑评测。
-- 论文正文对“causal/streaming”的正式定义——无网络，**未验证**；本报告只按 README 图注 + 实现给出“窗口级因果”。
+- 论文正文对“causal/streaming”的正式定义——当时尚未读取论文原文；本报告按 README 图注和实现分析“窗口级因果”。
 
 ---
 
@@ -518,13 +518,13 @@ git diff a7af472 ac91800 -- configs/Falcon.yml                          # +2 行
 - 5 个配置的 `audionet` 段**逐个键完全相等**（本机脚本对 `LRS2_2Mix.yml / _Paper_2gpu.yml / _Paper_2gpu_smoke.yml / _Paper_8gpu.yml` 全比 `configs/Falcon.yml`，输出 `audionet section identical: True`）：`audionet_name=FalconSpeakerContrastive`，`n_src=1, causal=true, spk_embed_dim=64, out_chan=112, hid_chan=64, repeats=2, shared=true, win=256/hop=128, upsampling_depth=4`。
 - 差异只在**数据/训练/优化器**：`LRS2_2Mix.yml`（100 epoch，[0,1] GPU）、`Paper_2gpu`（1000 epoch，[0,1]）、`Paper_2gpu_smoke`（冒烟）、`Paper_8gpu`（`gpus:-1`、8×bs5=全局 40、1000 epoch、early stop 30、β 0→1/200 ep）。
 - **Phase 2 未改 `look2hear/models/**`**（§4.1）；Phase 1 的模型文件改动只是别名/`__all__`（不影响前向数值，Phase 1 报告 §3.4 fingerprint 一致）。因此 8 卡配方训练出来的 ckpt 与官方 `falcon.pt` **同 key 同 shape**，可直接被 `audio_visual_test.py` / Studio `strict=True` 加载。
-- 引用 Phase 2 结果时注意：官方 `falcon.pt` 的 LRS2-2Mix **7.03/7.71 是跨语料**（训练集 LRS3_complex_nonmoving），不是论文 LRS2 列（14.1/14.7）的复现；RealSSA-Sim 7.774/8.479 才是与论文同口径（`[文档]`）。
+- Phase 2 中，官方 `falcon.pt` 在 LRS2-2Mix 上的结果为 **7.03/7.71**，论文 LRS2 列为 14.1/14.7；RealSSA-Sim 为 7.774/8.479。发布权重的训练语料尚待确认，RealSSA-Sim 的通道协议也需分别列出。
 
 ### 5.6 建议（按优先级）
 
 1. **保住 bit-identical**：任何“补 `concat[2]` 调用 / 改 cLNhw / 改 causal padding”的改动都会让官方权重语义变化，不能用于“复现论文数字”这一目标；如需修，另开分支并重训/重评（§3 D1）。
 2. **复现文档统一口径**：参数一律写成“537,697（0.538 M；生效 532,129；扣对比头 523,113）”，因果一律写“窗口级因果 + 无跨窗状态 + 非逐采样流式”（§5.4）。
-3. **MDCL 支线**若要启用，需二选一：用裸 `Falcon` + `av_litmodule_mdcl`；或给 `FalconSpeakerContrastive.forward` 显式转发 `near_audio`（会改变返回契约，需同步 litmodule，本轮禁改源码，仅记录）。
+3. **MDCL 支线**若要启用，需二选一：用裸 `Falcon` + `av_litmodule_mdcl`；或给 `FalconSpeakerContrastive.forward` 显式转发 `near_audio`（会改变返回契约，需同步 litmodule，涉及模型代码与训练接口）。
 4. **评测入口别用 `look2hear/utils/separator.py`**：它会对输出做幅度重缩放（`out_wavs *= wav.abs().sum()/out_wavs.abs().sum()`），会污染 SI-SNRi/SDRi；用 `audio_visual_test.py`/Studio runtime 的路径。
 5. **Studio big** 只作展示/对比：12.35 M 参数、`SpeakerContrastiveV2`，与论文主表的 0.5 M small 不是同一模型；比较 big/small 差值（P2-B：+0.97 dB）时要说明参数规模与权重版本不同。
 
@@ -534,7 +534,7 @@ git diff a7af472 ac91800 -- configs/Falcon.yml                          # +2 行
 
 | # | 问题 | 需要谁 |
 |---|---|---|
-| Q1 | `concat_layers[2]` 到底是“有意跳过”还是 `AudioBlock.forward` 漏调用？官方权重里这 15 个 key 有训练值，说明作者训练时也没用到（若作者确认是 bug，会影响“0.5 M 有效容量”的论文口径） | 作者确认（Phase 1 已列 F13） |
+| Q1 | `concat_layers[2]` 到底是“有意跳过”还是 `AudioBlock.forward` 漏调用？官方权重里这 15 个 key 有训练值，当前代码前向没有调用该层；原训练代码及该层训练状态待确认（若确认为 bug，会影响“0.5 M 有效容量”的论文口径） | 作者确认（Phase 1 已列 F13） |
 | Q2 | 论文正文对 “causal / streaming” 的正式定义（帧级？窗口级？是否承认 cLNhw 全局统计） | Lead 对照论文 |
 | Q3 | `falcon.pt` epoch 714 / `falcon-big.pt` epoch 715 与论文各表（RealSSA/LRS2/LRS3/VoxCeleb2）的对应关系；ckpt 只有 `state_dict/architecture/epoch`，无训练超参 | Lead + 训练系统 |
 | Q4 | `SpeakerContrastiveV2`（big）在论文中的定位：是论文主模型还是 Studio 的更大变体？README 表只列 0.5 M/11.72 M，未解释 12.35 M | Lead 对照 README/论文 |
@@ -569,11 +569,10 @@ timm 1.0.30 | typeguard 2.13.3 | numpy 2.2.6
 | `sha256sum /root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}` | 与旧文档一致 | 权重指纹 |
 | `git log/diff`（只读） | 见 §4.1 | Phase 1/2 模型改动核实 |
 
-### 7.3 本轮未做（遵守预算/禁区）
+### 7.3 后续验证项目
 
-- 未启动训练、未下载数据/权重（权重已缓存）、未跑全量评测、未测延迟/显存。
+- 权重取自缓存；训练、全量评测、延迟和显存待后续验证。
 - 未复跑 A41（NASS 损失数值/梯度，训练系统域）。
-- 未修改任何源码/配置/他人文档；未做 git 写操作；未联网。
 - 旧文档 `docs/verification/scripts/model_core_verify4.py [Q]` 的 dict 污染问题**已在本文记录**（`[Q]` 原始输出不可引用，本文用独立 deepcopy 重做了等价实验）。
 
 ### 7.4 证据文件位置

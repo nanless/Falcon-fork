@@ -1,6 +1,6 @@
 # 理解文档规范（所有 subagent 必读）
 
-本文件约定本轮“多 subagent 多轮理解 Falcon 项目”的产出格式、证据标准与协作规则。
+本文件记录 2026-10-21 的项目审查约定。当前环境和项目状态见 [验证环境](VERIFY-ENV.md) 与[复现状态](../STATUS.md)。
 目标：对项目达到**可验证、可复现、可传授**的完整理解，而不是泛泛的 README 复述。
 
 ## 1. 分析对象
@@ -83,8 +83,7 @@
   等纯 JS 测试可直接运行（**已知可通过**，例如 `node studio/tests/check_i18n.mjs`）。
 - 网络可用（可访问 pypi / huggingface.co），但**不要下载大模型权重**、不要 pip 安装 torch；
   如确需安装小依赖，先向 Lead 报告。
-- 未下载 Falcon 权重（`~/.cache/huggingface` 中无 Falcon），`pretrain_zoo/` 不存在，
-  因此“加载真实权重 / 端到端跑通”默认不可做，改为静态核对 + 可运行的最小验证。
+- 当时尚未获取 Falcon 权重。后续真实权重和数据记录见 [验证环境](VERIFY-ENV.md) 与[复现状态](../STATUS.md)。
 - 不要修改 git 状态（不要 commit / checkout / 清理），只读代码。
 
 ## 8. 轮次说明

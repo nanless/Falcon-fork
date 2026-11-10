@@ -1,0 +1,103 @@
+
+TEST studio/tests/check_capture_dsp.cjs
+{
+  "test": "PASS",
+  "rates": [
+    {
+      "input_rate": 44100,
+      "output_rate": 16000,
+      "passband_rms": 0.7079471814109632,
+      "timestamp_reference_error_rms": 0.000989269301982402,
+      "alias_attenuation_db": -60.68447431829863
+    },
+    {
+      "input_rate": 48000,
+      "output_rate": 16000,
+      "passband_rms": 0.7067181545099914,
+      "timestamp_reference_error_rms": 0.0003886266771159002,
+      "alias_attenuation_db": -60.13390252871787
+    }
+  ],
+  "clock_gap_reset": true
+}
+
+TEST studio/tests/check_i18n.mjs
+PASS first launch is English even when browser language is Chinese
+PASS saved Chinese preference is respected
+PASS invalid preference falls back to English
+PASS blocked storage does not prevent startup or in-memory language changes
+PASS all Chinese dictionary keys translate and preserve every placeholder
+PASS all declared static HTML localization keys have English translations
+PASS raw known errors and dynamic notices translate without hiding technical details
+PASS switch updates bound text and attributes, preserves device selection and other state
+PASS every Chinese literal in the Studio app has an English translation
+PASS every English runtime error maps back to Chinese
+10 localization checks passed (368 dictionary entries audited).
+
+TEST studio/tests/check_mouth_tracking.mjs
+PASS: mouth geometry, stable scale/articulation, continuous output without a face, automatic re-lock, jump confirmation, multi-face choice, fallback ownership, epoch races, encoding failure and stop.
+
+TEST studio/tests/check_playback_resampler.mjs
+PASS: passband +-0.1 dB to 7 kHz at 44.1 kHz and 48 kHz
+PASS: images <= -60 dB above 8.5 kHz relative to the passband tone, for a 7.2 kHz input (capture cutoff edge)
+PASS: six chunked 0.5 s hops produce output bit-identical to one continuous push()
+PASS: exact steady-state output length per 0.5 s hop at 44.1 kHz and 48 kHz
+PASS: reset() clears FIR history and fractional phase, and post-reset output is correctly silent/filtered
+PASS: createPlaybackUpsampler identity bypass and construction
+ALL PASS: check_playback_resampler
+
+TEST studio/tests/check_spectrum.mjs
+{
+  "test": "PASS",
+  "checks": [
+    "frequency ordering and full-scale / -6 / -20 dBFS tone calibration",
+    "silence and non-finite samples remain silent",
+    "fixed 640-sample hop, exact chunk-boundary continuity and cleared history",
+    "recording spectrum, bounded view, waveform impulses and empty audio",
+    "five-minute overview preserves off-centre short tones and impulses with bounded overlapping FFT coverage",
+    "worker acknowledgements, channel isolation, epochs, recording release and size bounds"
+  ],
+  "fft": 1024,
+  "hop": 640,
+  "frequency_rows": 128,
+  "sample_rate": 16000,
+  "matrix_layout": "rows-major, highest frequency at row 0",
+  "maximum_overview": {
+    "samples": 4800000,
+    "columns": 1600,
+    "fft_windows": 9600,
+    "milliseconds": 704
+  }
+}
+
+TEST studio/tests/check_tracking_ui.cjs
+PASS all literal DOM ids in app.js exist in index.html
+PASS loss clears queued sound, holds single flight, and drops the old result
+PASS a missing face keeps the window, the queued audio and inference running
+PASS manual switch is explicit and late detector events cannot change it
+PASS returning to tracking still rejects results from a previous target epoch
+PASS automatic ROI rendering preserves source coordinates and does not write back
+PASS a reacquired target preserves its onset with fresh synchronized frames
+PASS the five-minute recording cap does not stop live meeting playback
+PASS the mixture is recorded aligned with the separated voice and can be played and exported
+PASS a delayed result records the sent input snapshot after the microphone ring was overwritten
+PASS stopping separates the last words, then trims the padding and closes
+PASS a second click stops at once
+PASS the first words start at sample zero, padding stays out, and following chunks join exactly
+PASS stopping before the first result saves a short clip without leading or trailing padding
+PASS stopping with the first window in flight retains both the opening and the tail
+PASS a delayed first response still records the opening from its immutable input
+PASS preview audio reaches the spectrum and unchanged recordings keep their seek position
+PASS a frozen microphone is reported separately from an inference stall
+PASS device enumeration never blocks ready capture
+PASS preview deadline releases devices and permits retry
+PASS suspended audio cannot hide permission request or hang startup
+PASS late permissions after timeout do not leak devices
+PASS a bitmap finishing after a mode change is closed without submission
+23 tracking UI control-flow checks passed. Real detector/camera/meeting validation is separate.
+
+TEST studio/web/capture-worklet.test.cjs
+PASS: 16/44.1/48 kHz clocks, 1 kHz passband, 12 kHz alias rejection, FIR timing, clock-gap recovery.
+
+TEST studio/web/video-worker.test.cjs
+PASS: 25 fps sampling, grayscale ROI, wall-clock messages, VideoFrame closure, error cleanup.

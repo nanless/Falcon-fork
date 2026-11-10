@@ -1,0 +1,152 @@
+[
+  {
+    "number": 1,
+    "document": "README.md",
+    "line": 21,
+    "source_sha256": "104f0819efab84dfd63db8ddb888033c797f021ee136cb6bde9639707fd3fc01",
+    "png": "01.png",
+    "png_sha256": "6bfd3a7aa8b5fb2dff80ff829759936ab93ed7d4e1d7e11078071d6dd51b22e0",
+    "width_css_px": 541.671875,
+    "height_css_px": 718
+  },
+  {
+    "number": 2,
+    "document": "README_zh.md",
+    "line": 26,
+    "source_sha256": "c6542fc8b837cb895e1ba5920afd3cedde8dba1d74278023bbb985f999a12684",
+    "png": "02.png",
+    "png_sha256": "4227526ff404b84046101325b025440b3d680065ad1a1caefd381c7da39ea219",
+    "width_css_px": 490,
+    "height_css_px": 742
+  },
+  {
+    "number": 3,
+    "document": "README_zh.md",
+    "line": 142,
+    "source_sha256": "3a1c47b3556cb2e632b1c0dca7146f8fe0a5c888a87fab135b266a2dd6bb73d1",
+    "png": "03.png",
+    "png_sha256": "1d334431a23c74d512acd170656cde656d527f9c8b41239ef226c59fda5224e5",
+    "width_css_px": 1186.703125,
+    "height_css_px": 174
+  },
+  {
+    "number": 4,
+    "document": "docs/REPRODUCTION_REPORT.md",
+    "line": 12,
+    "source_sha256": "e160b2a3788bd5d772af556a83516698e356ed28ad47b52e96e7d64aad073086",
+    "png": "04.png",
+    "png_sha256": "362c2e379ffe12b52fb3bdad175e21a2410e7c792ed77e23edb79f9badce725e",
+    "width_css_px": 537.59375,
+    "height_css_px": 614
+  },
+  {
+    "number": 5,
+    "document": "docs/understanding/07-studio-frontend.md",
+    "line": 341,
+    "source_sha256": "06723bb981770d091fbafbe0992d2031ec997be132c0634697f8d14e64e7620f",
+    "png": "05.png",
+    "png_sha256": "4a79a88572a47e10455121d0f756267164622530e827d34c695950b20aa9b791",
+    "width_css_px": 312.9375,
+    "height_css_px": 827.984375
+  },
+  {
+    "number": 6,
+    "document": "docs/understanding/07-studio-frontend.md",
+    "line": 360,
+    "source_sha256": "ccd9695fafb66b4e46dd8fe9923a836c927d33984d1f95a0226c73247ee8fa3d",
+    "png": "06.png",
+    "png_sha256": "c5704811ac7aa2757016cc90429713fac012c22c4d274a6cacb1713fe91900e2",
+    "width_css_px": 292.765625,
+    "height_css_px": 244.140625
+  },
+  {
+    "number": 7,
+    "document": "docs/understanding/20261110-data-and-training.md",
+    "line": 10,
+    "source_sha256": "65e9f29dace36d289f816905c525d630bdbb03e73988468e36cb6c585a46dc6e",
+    "png": "07.png",
+    "png_sha256": "8cf61f367697086cfce39ae4af76723edec6d29765f6c56bcdb8584f4596b9c2",
+    "width_css_px": 1336.109375,
+    "height_css_px": 438
+  },
+  {
+    "number": 8,
+    "document": "docs/understanding/20261110-data-and-training.md",
+    "line": 66,
+    "source_sha256": "defeab92e7803c4b3a54c44c54e5ff7da0d1f6ecc6814e486dc4e073df5544a4",
+    "png": "08.png",
+    "png_sha256": "36b3cfe9c816502611c61882387f4c44dcfcd1dee316deef4885f1a60fa4512e",
+    "width_css_px": 808,
+    "height_css_px": 774
+  },
+  {
+    "number": 9,
+    "document": "docs/understanding/20261110-data-and-training.md",
+    "line": 121,
+    "source_sha256": "c12be7ac5f0a385e14456fd2c3dfec029cc1af87dae2082d9bbce3a9128b2627",
+    "png": "09.png",
+    "png_sha256": "61e88dad01088cdf3bfcccab1d0f2c7c37524a0a3dcdd0a215b7260c61c9356d",
+    "width_css_px": 861.578125,
+    "height_css_px": 918
+  },
+  {
+    "number": 10,
+    "document": "docs/understanding/20261110-evaluation-and-apps.md",
+    "line": 10,
+    "source_sha256": "63f13cccc219ba8ba3163e841fa28ec5ad6cdb5bf637746deb00e6ee49a34189",
+    "png": "10.png",
+    "png_sha256": "8c6ea62a697d623d408dc09aa5c771141edd2dcfe1e5d42e6f3f91af8c037eae",
+    "width_css_px": 948.015625,
+    "height_css_px": 718
+  },
+  {
+    "number": 11,
+    "document": "docs/understanding/20261110-evaluation-and-apps.md",
+    "line": 125,
+    "source_sha256": "9a3ed07c0ef5fdc79f3b0a3bfb7779506a1e2e6c17123ab05a1d586e178d9bc4",
+    "png": "11.png",
+    "png_sha256": "ff5d07756d808b5faf8509aa40ea6eadc3a8439510df8b237f7f4c33c062d252",
+    "width_css_px": 974,
+    "height_css_px": 663
+  },
+  {
+    "number": 12,
+    "document": "docs/understanding/20261110-model-and-streaming.md",
+    "line": 10,
+    "source_sha256": "348345200843b711426e9923709253d6f20b8a7fd59723e05a0bb82c920e8599",
+    "png": "12.png",
+    "png_sha256": "6a273d754a38bd2772db0819ee8b4e32614b89b743742689602ac53a06fbd074",
+    "width_css_px": 499.625,
+    "height_css_px": 1102
+  },
+  {
+    "number": 13,
+    "document": "docs/understanding/20261110-model-and-streaming.md",
+    "line": 71,
+    "source_sha256": "4769629cb28daf7ea678c8d8425d79fecaea103cb417c2852144c927271fb313",
+    "png": "13.png",
+    "png_sha256": "a88571f5d246d867b5e79713acd12065286d455b2c65bad6054fba7d08dba4be",
+    "width_css_px": 629.015625,
+    "height_css_px": 1230
+  },
+  {
+    "number": 14,
+    "document": "docs/understanding/20261110-model-and-streaming.md",
+    "line": 120,
+    "source_sha256": "2091574e414e27a919bb7f7d61db70384ebe43d87851548f5d0e988a5c435e46",
+    "png": "14.png",
+    "png_sha256": "9e33e2638e6b6cd3545367538b3f1a5be7c0ff84d44c6e5a795c938d9edb3052",
+    "width_css_px": 1138.21875,
+    "height_css_px": 210
+  },
+  {
+    "number": 15,
+    "document": "docs/verification/deepdive-20261110/README.md",
+    "line": 21,
+    "source_sha256": "fa4093a3ef248c23633c31c428b4f7f87485e18e70c0b56967d4d7e48dece16a",
+    "png": "15.png",
+    "png_sha256": "dcb45c2d153443cf23a450820631b7cfdce2bcfe306d7e4cd8bb4eb01dca2b2e",
+    "width_css_px": 1111.046875,
+    "height_css_px": 384
+  }
+]

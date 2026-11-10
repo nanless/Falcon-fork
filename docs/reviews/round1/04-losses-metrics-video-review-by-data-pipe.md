@@ -2,7 +2,7 @@
 
 - **评审对象**：`docs/understanding/04-losses-metrics-video.md`（1056 行）
 - **sha256（评审开始）**：`d02806e2b790eef1cca9c4e78669af4f99fd4ce76a1cbc5217e985bfbafaa810`
-- **sha256（评审结束复核）**：`d02806e2b790eef1cca9c4e78669af4f99fd4ce76a1cbc5217e985bfbafaa810`（未变；本次评审未修改 04 文档与任何源码）
+- **sha256（评审结束复核）**：`d02806e2b790eef1cca9c4e78669af4f99fd4ce76a1cbc5217e985bfbafaa810`（评审前后版本一致）
 - **评审人**：`data-pipe`（数据管线域；R2 交叉评审）
 - **评审范围**：按 Lead 指定的数据/评测/视觉接口交叉点逐条核对到源码；损失数学与指标数值属其他域，只做抽样核对。重点：①评测是否使用 DataLoader、dataset 输出形状、整句/对齐、`make_sets`/`use_near=False`；②88×88 裁剪归属与训练/评测/Studio 三处一致性；③FRCNN `[B,1,T,88,88]→[B,512,T]` 与 50 帧关系、`video_params.stride:2` 死配置；④P0-3（`ckpt["state_dict"]` 与 `falcon.pt` 格式）；⑤Q4（mono wav）。
 - **独立证据来源**：

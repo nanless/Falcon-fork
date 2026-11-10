@@ -1,7 +1,7 @@
 # 版本锚点：`docs/understanding/02-layers-dsp.md`（R3 交付版）
 
 > 用途：被评审文档的 R3 版行数与 sha256 外置记录（文件自哈希无法内嵌于自身）。
-> 本文件只读锚点；若文档再修订（R4/R5），请更新本文件的"当前版本"。
+> 这里记录当时 R3 的行数与文件哈希；后续修订见对应文档。
 
 ## 1. 版本记录
 
@@ -16,7 +16,8 @@
 cd /root/code/github_repos/Falcon-fork
 wc -l docs/understanding/02-layers-dsp.md
 sha256sum docs/understanding/02-layers-dsp.md
-# 期望：895 行；1b6def62519bdf19ffa1573f04b1180944f7ba27ccf9f7d827dd0d078492afdd
+# 当前文件的行数和哈希可能随修订变化；R3 历史记录为 895 行、1b6def62519bdf19ffa1573f04b1180944f7ba27ccf9f7d827dd0d078492afdd
+# 将输出与上表比较，可判断当前文件是否仍为该历史版本。
 ```
 
 ## 3. R3 验证脚本与日志（本版新增）

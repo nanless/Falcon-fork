@@ -103,5 +103,4 @@ pytest 覆盖点（20 条，摘录）：
 2. **已闭环**：QA 已把 `configs/Falcon.yml` 加入 `ALLOWED_TRACKED` 并新增“仅注释”守卫测试；全量 `tools/repro/tests` 现 **82 passed**（见 `T1-pytest.log`）。
 3. tensorboard/comet **成功构建**未实测（环境未安装对应包，只验证清晰报错路径）；启用需装包并更新环境锁定。
 4. 多卡仅验证到 Trainer 入参 + reviewer 的 2-GPU toy DDP；真实多卡大样本训练属集成阶段。
-5. 本任务按约定**未运行超过 smoke 的训练、未 git commit**；本组源码改动仅 `audio_train.py`、`configs/Falcon.yml`
-   （注释）、`look2hear/system/av_litmodule.py`（T2）。
+5. 本组训练验证运行到 smoke 阶段；涉及 `audio_train.py`、`configs/Falcon.yml`（注释）和 `look2hear/system/av_litmodule.py`（T2）。

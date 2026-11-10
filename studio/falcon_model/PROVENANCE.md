@@ -30,13 +30,13 @@ Mouth crops follow the validation transform of the training code: uint8 grayscal
 divided by 255, center crop 96×96 → 88×88, normalized with mean 0.421 and std 0.165. Audio is mono
 16 kHz without peak or RMS normalization.
 
-On the CPU, this copy and the training code give bit-identical output for `falcon.pt`
+In one recorded CPU test with `falcon.pt`, this copy and the training code gave bit-identical output
 (11,724,385 parameters, maximum absolute difference 0).
 
 The released files `falcon.pt` (Hugging Face `JusperLee/Falcon`) and `falcon-big.pt`
-(`JusperLee/Falcon-Big`) were exported from the training checkpoints of epochs 714 and 715. They hold
-`state_dict`, the architecture name and the epoch; the tensors are unchanged. Optimizer and
-Lightning state and the training hyper-parameters are not included.
+(`JusperLee/Falcon-Big`) contain `state_dict`, the architecture name, and epoch metadata 714 and 715, respectively.
+Optimizer and Lightning state and training hyper-parameters are not included. The full training dataset, checkpoint lineage, and identity with the weights used for a particular
+paper result remain to be confirmed; see the [reproduction status](../../docs/STATUS.md).
 
 Inference uses rolling two-second windows. The model exposes no streaming state, so this is
 windowed inference, not sample-by-sample streaming.

@@ -1,6 +1,8 @@
 # Phase-1 QA 报告：独立回归与数值不变量验证（task-15）
 
-> owner：`layers-dsp` · 分支 `repro/phase1` @ 基线 `689555c`（**未 commit、未切分支、未改源码**）
+> **2026-11-10 更新：本报告记录 2026-10-21 的 QA；实际指纹比较在 CPU 上执行，论文 target 方向及其他设备的一致性还需相应证据。当前测试结果见[复现状态](../../STATUS.md)。**
+
+> owner：`layers-dsp` · 分支 `repro/phase1` @ 基线 `689555c`
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / PL 2.6.6 / 2×A800，CPU 验证）
 > 写作用域：`tools/repro/tests/test_phase1_regression.py`、`docs/verification/phase1/`（本报告 + `QA-regression.log`）
 > 回归脚本：`tools/repro/tests/test_phase1_regression.py`（16 条独立 pytest 用例）
@@ -16,7 +18,7 @@
 |---|---|---|
 | 1) `pytest tools/repro/tests -q` 全过 | ✅ **82 passed / 0 failed**（终检 v2；含 QA 21 条 + 各 T* 61 条） | QA-regression.log §3 |
 | 2) 冒烟训练可存 ckpt / loss 有值 | ✅（Lead `integration-smoke.log`：1 epoch、val_loss=12.188、`epoch=0.ckpt` + `best_model.pth`） | `integration-smoke.log`；T1/T2 报告 |
-| 3) 冒烟评测可出 CSV / 指标量级/符号 | ✅ 流程跑通 + 符号正确（我的独立指标测试：好估计为正；`est=mix ⇒ 提升恰 0.000`） | QA-regression.log §2；本报告 §5 |
+| 3) 冒烟评测可出 CSV / 指标量级/符号 | ✅ 流程跑通 + 符号正确（独立指标测试：好估计为正；`est=mix ⇒ 提升恰 0.000`） | QA-regression.log §2；本报告 §5 |
 | 4) `pytest studio/tests -q` = 35 passed / 2 skipped | ✅ **35 passed, 2 skipped** | QA-regression.log §4 |
 | 5) **官方权重数值指纹不变**（4 条 sha256 全部对齐 baseline） | ✅ **eval / train-est / sep_emb / video 全部 sha256 相同** | 本报告 §3；QA-regression.log §6b |
 | 6) 每个 T* 报告含 file:line/命令/结果/遗留 | ✅（T1–T6 报告 + REVIEW + REGRESSION 均已落盘） | `docs/verification/phase1/*.md` |
@@ -34,7 +36,7 @@
 | P2-3 | T5 报告称"baseline 的 video 指纹无法复现（试了 8 种约定）"——**QA 已定位原因**：baseline 视频指纹是在**未调用 `.eval()`**（FRCNN 默认 `training=True`，BN 用批内统计）下生成；评测时先用 `.eval()` 会得到不同 sum（5955.7 vs 7832.3）。T5 自己的 pre/post 指纹自洽但 ≠ baseline 的 video sha | `T5-report.md:105-106`；本报告 §3.2 | 在 T5 报告/README 补一句"baseline video 指纹约定 = 默认 training 模式（不 evall）"；QA 套件已固化该约定 |
 | P2-4 | T3：legacy `SPlitMetricsTracker`（`splitwrapper.py`）仍是旧式负号/SNR 语义，且仍在 `look2hear.metrics.__all__` 中导出；评测链路已改用 `ALLMetricsTracker`，故不影响结果，但 API 不一致 | `look2hear/metrics/splitwrapper.py`；`metrics/__init__.py` | Phase 2 统一或标注 deprecated |
 | P2-5 | T3：`requirements.txt` 仍列 `torch-mir-eval`，但 `wrapper.py` 已移除该 import（仅历史死路径） | `requirements.txt:24` vs `wrapper.py:13` | 保留环境兼容即可；或标明"legacy" |
-| P2-6 | **流程**：多 agent 并发跑 `pytest tools/repro/tests` 时耗时 ~65s→146s+（GPU/DDP 争用）；实现者写入文件期间会出现瞬时失败（我 16:38 观测到 4 个 T3 测试瞬时失败，文件稳定后 20 passed） | 本报告 §6 观察 | QA/CI 终检应独占运行；不要在他人在写文件时下结论 |
+| P2-6 | **流程**：多 agent 并发跑 `pytest tools/repro/tests` 时耗时 ~65s→146s+（GPU/DDP 争用）；实现者写入文件期间会出现瞬时失败（我 16:38 观测到 4 个 T3 测试瞬时失败，文件稳定后 20 passed） | 本报告 §6 观察 | QA/CI 终检应独占运行并等待代码文件稳定 |
 
 ## 2. 验证矩阵（命令 / 结果 / 证据）
 

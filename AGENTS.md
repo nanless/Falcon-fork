@@ -1,7 +1,11 @@
 # AGENTS.md — Falcon 项目工作约定
 
+> **2026-11-10 补充：**本文件保留环境和仓库操作约定。模型、数据、实验与测试的现状和证据边界以 [docs/STATUS.md](docs/STATUS.md) 及 [2026-11-10 审查记录](docs/verification/deepdive-20261110/审查记录.md) 为入口；下文带日期的测试数字是历史记录。本轮 CPU 复现套件为 166 passed / 2 skipped，两项因历史临时资产缺失跳过。
+>
+> 默认 VideoBlock 在 batch>1 时有跨样本影响；`paper_causal=True` 会额外裁短 stride-2 的中间特征，`lookahead_ab.py` 的默认行比较同一次输出；跨版本比较另见状态页。发布的 LRS2 s1/s2 已包含混合比例，名义 gain 差不是逐条波形 RMS 比；10,000 次有放回抽样约覆盖 22.12% 方向条目、39.35% 不同混合（均为期望）。这些结论、条件和仍未完成的验证均见状态页。
+
 > 本文件适用于在此仓库（`/root/code/github_repos/Falcon-fork`）工作的所有 AI agent 与人类开发者。
-> 最后更新：2026-11-08。这里记的是本机实测过的环境与代码事实；与本文件冲突的旧命令、旧文档按本文件执行，每条都写了照旧做法会碰到什么。
+> 环境与代码记录始于 2026-11-08，2026-11-10 已补充复核。环境与测试结果可能随时间变化；遇到冲突时，先核对当前代码、现行状态页及原始证据。
 > 入口说明：仓库根此前另有一个 `agents.md` 符号链接指向本文件，两个名字都被 git 跟踪；macOS/Windows 的大小写不敏感文件系统 checkout 时会互相覆盖。该软链已删除，**入口只保留 `AGENTS.md`**。
 
 ## 1. 运行环境
@@ -112,15 +116,16 @@ for t in studio/tests/check_*.mjs studio/tests/check_*.cjs studio/web/*.test.cjs
 >   或把那一行改成 `FalconSpeakerContrastive`，评测即可继续。
 > - 训练入口可跑：CPU 2 epoch 实测通过（`docs/understanding/deepdive-20261108/04-training-system.md` §4.2）。
 
-快速自检（应全部通过）：
+快速自检（结果及跳过项取决于当前环境）：
 
 ```bash
-$ENV/bin/python -V                                                   # 3.11.17
-$ENV/bin/python -c "import torch;print(torch.__version__, torch.cuda.is_available(), torch.cuda.device_count())"
+FALCON_ENV_DIR=/root/miniforge3/envs/falcon
+$FALCON_ENV_DIR/bin/python -V                                                   # 3.11.17
+$FALCON_ENV_DIR/bin/python -c "import torch;print(torch.__version__, torch.cuda.is_available(), torch.cuda.device_count())"
 #   -> 2.8.0+cu128 True 2
-$ENV/bin/python -c "import sys;sys.path.insert(0,'.');import look2hear.models, look2hear.system, look2hear.metrics, audio_train, audio_visual_test;print('imports OK')"
-$ENV/bin/python -m pytest studio/tests -q                            # 51 passed + 2 skipped (CUDA) / 53 passed (CPU)
-$ENV/bin/python -m pytest tools/repro/tests -q -rs                    # 有/无 GPU 均 168 passed（约 147 / 170 s）；基线见 docs/STATUS.md §5
+$FALCON_ENV_DIR/bin/python -c "import sys;sys.path.insert(0,'.');import look2hear.models, look2hear.system, look2hear.metrics, audio_train, audio_visual_test;print('imports OK')"
+$FALCON_ENV_DIR/bin/python -m pytest studio/tests -q                            # 51 passed + 2 skipped (CUDA) / 53 passed (CPU)
+$FALCON_ENV_DIR/bin/python -m pytest tools/repro/tests -q -rs                    # 历史 168 passed；2026-11-10 CPU 为 166 passed / 2 skipped，见 docs/STATUS.md
 ```
 
 `tools/repro/tests` 收集到 168 个用例：166 个 `def test_`，其中 `test_litmodule_logging.py::test_fit_with_csvlogger`
@@ -136,8 +141,8 @@ $ENV/bin/python -m pytest tools/repro/tests -q -rs                    # 有/无 
 
 | 开关 | 默认 | 打开 / 改动后改变什么 | 代价 |
 |---|---|---|---|
-| `paper_causal` | `False` | `AudioBlock` 的 `downsample` / `fusion` / `concat` 三处卷积原本硬编码 `causal=False`；True 时改为透传 `self.causal`，即论文 §4.2 的左对齐 causal padding，逐卷积前瞻从 2 帧降到 0 帧 | 输出与发布权重不同（`max\|Δ\|≈13`），要可比得重训；端到端"看未来"仍到窗尾，因为 30 处 `cLNhw` 是全窗 `GroupNorm`，padding 不是瓶颈 |
-| `video_lstm_batch_first` | `False` | False 时 `[B,T,C]` 被 `nn.LSTM(batch_first=False)` 读成 `[T,B,C]`，50 个视频帧之间没有递推；True 才沿 25 fps 帧轴递推 | 输出变化（`max\|Δ\|≈1.3e-2`），等于换了视频编码器，与发布权重的结果不能混用 |
+| `paper_causal` | `False` | `AudioBlock` 的 `downsample` / `fusion` / `concat` 三处卷积原本硬编码 `causal=False`；True 时改为透传 `self.causal`，即论文 §4.2 的左对齐 causal padding，逐卷积前瞻从 2 帧降到 0 帧 | 在该次 CPU 单输入对照中相对默认开关输出变化（`max\|Δ\|≈13`），要可比得重训；端到端"看未来"仍到窗尾，因为 30 处 `cLNhw` 是全窗 `GroupNorm`，padding 不是瓶颈 |
+| `video_lstm_batch_first` | `False` | False 时 `[B,T,C]` 被 `nn.LSTM(batch_first=False)` 读成 `[T,B,C]`，50 个视频帧之间没有递推；True 才沿 25 fps 帧轴递推 | 在该次 CPU 单输入对照中输出变化（`max\|Δ\|≈1.3e-2`），等于换了视频编码器，与发布权重的结果不能混用 |
 | `respect_index` | `False` | False 是历史行为：`__getitem__` 忽略 `idx`、每次从全量索引随机取，`DataLoader(shuffle=True)` 因此无效、采样有放回；True 严格按 `idx` 取，`__len__` 变成 `len(mix)`，一个 epoch 每条样本过一次 | 采样序列与历史 run 不同，loss 曲线不能直接对比；音频裁剪起点仍随机 |
 | `mouth_fps` | `25.0` | 嘴部裁剪帧率，决定 `mouth_start = int(rand_start / sample_rate * mouth_fps)` 与所需帧数 `int(segment * mouth_fps)` | 25.0 精确复现历史写死的 `(rand_start/16000)*25`；改成别的值要保证数据本身是该帧率，否则唇动与音频错位 |
 | `pad_mouth` | `False` | False 时帧数不足 `int(segment * mouth_fps)` 直接 `ValueError`；True 复制末帧补齐 | 补齐会在唇动里插静帧，短片段的结果与重采样的片段不等价 |
@@ -145,13 +150,12 @@ $ENV/bin/python -m pytest tools/repro/tests -q -rs                    # 有/无 
 前两个是 `look2hear/models/Falcon.py` 里 `AudioBlock` / `VideoBlock` 的构造参数，A/B 用
 `tools/repro/experiments/lookahead_ab.py`（纯 CPU、约 40 s、真实权重）；后三个是 `avspeech_dataset.py` /
 `avspeech_dataset_near.py` 的 dataset 构造参数，`configs/*.yml` 里没有对应键，要用得自己接线。
-默认值全部等价旧行为：`falcon.pt` / `falcon-big.pt` 在默认配置下输出逐位不变；`lookahead_ab.py` 在
-`falcon.pt` 上实测 `max|Δ|=0`。
+默认开关保留发布路径，但 `lookahead_ab.py` 的默认值比较是输出与自身比较，用于记录本次默认输出；跨版本逐位比较需另行执行。本轮另对 small 冻结 tag 与当前模型做过一个 CPU 输入的权重对照，范围见状态页；Big、其他输入和设备不能由此推定。
 
 ## 4. 依赖安装 / 升级规则
 
 - 依赖装进 `falcon` 环境。装完按下面三步收尾，否则环境重建或结论复核时会缺依据：
-  1. 更新 `docs/verification/conda-env-lock.txt`（`pip freeze > ...`）；
+  1. 将 `pip freeze` 保存到带日期的新快照，保留历史 `docs/verification/conda-env-lock.txt`；
   2. 在本文件 §2 记录新增/变更的包；
   3. 若影响已有验证结论，重跑 `docs/verification/scripts/` 对应脚本。
 - 装到系统 Python 或其他项目环境里，跑出来的结果与 `falcon` 不是同一套依赖，不能当本项目的证据；系统 Python 3.8 本身也装不上 torch 2.8。
@@ -163,25 +167,25 @@ $ENV/bin/python -m pytest tools/repro/tests -q -rs                    # 有/无 
 
 ```bash
 /root/miniforge3/bin/mamba create -n falcon python=3.11 -y
-ENV=/root/miniforge3/envs/falcon
-$ENV/bin/pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 torchvision==0.23.0+cu128 \
+FALCON_ENV_DIR=/root/miniforge3/envs/falcon
+$FALCON_ENV_DIR/bin/pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 torchvision==0.23.0+cu128 \
   --index-url https://download.pytorch.org/whl/cu128
-$ENV/bin/pip install pytorch-lightning "numpy==2.2.6" scipy pandas pyyaml soundfile tqdm rich packaging \
+$FALCON_ENV_DIR/bin/pip install pytorch-lightning "numpy==2.2.6" scipy pandas pyyaml soundfile tqdm rich packaging \
   timm librosa torch-complex torch-optimizer opencv-python matplotlib fast-bss-eval torch-mir-eval \
-  pypesq pystoi ptflops
-$ENV/bin/pip install "typeguard<3"
-$ENV/bin/pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" "huggingface_hub>=2" einops pytest httpx
+  pesq==0.0.4 pystoi ptflops
+$FALCON_ENV_DIR/bin/pip install "typeguard<3"
+$FALCON_ENV_DIR/bin/pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" "huggingface_hub>=2" einops pytest httpx
 ```
 
-- 也可以用锁定文件重建：`$ENV/bin/pip install -r docs/verification/conda-env-lock.txt`（需先装好 torch 的 cu128 轮子）。
+- 也可以用锁定文件重建：`$FALCON_ENV_DIR/bin/pip install -r docs/verification/conda-env-lock.txt`（需先装好 torch 的 cu128 轮子）。
 - 网络提示：本机 `pypi.org` 曾不可达，建环境时使用镜像
   `-i https://pypi.tuna.tsinghua.edu.cn/simple` 与 PyTorch cu128 轮子
   `--index-url https://download.pytorch.org/whl/cu128`；已下载的轮子缓存在 `/root/wheelhouse/`
   （与 pip 缓存硬链接，5.4 GB，可用于离线重装）；`TMPDIR=/root/tmp`（`/` 只有 20 GB，/tmp 易满）。
 - **pypesq 兼容层**（锁定文件不含它，需手动创建）：
   ```bash
-  $ENV/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pesq==0.0.4
-  cat > $ENV/lib/python3.11/site-packages/pypesq.py <<'EOF'
+  $FALCON_ENV_DIR/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pesq==0.0.4
+  cat > $FALCON_ENV_DIR/lib/python3.11/site-packages/pypesq.py <<'EOF'
   import numpy as np
   from pesq import pesq as _pesq
   def pesq(ref, deg, fs, mode="wb"):
@@ -189,7 +193,7 @@ $ENV/bin/pip install fastapi "uvicorn[standard]" "Pillow>=12,<14" "huggingface_h
   EOF
   ```
 - 注意：仓库根 `requirements.txt` 未 pin `typeguard`，直接装会拿到 3.x/4.x（两者都没有 `check_argument_types`），
-  `import look2hear.models` 会失败；`studio/requirements.txt` 的 torch 约束（`>=2.14.1`）与本机驱动不兼容；
+  `import look2hear.models` 会失败；`studio/requirements.txt` 的 torch 约束为 `>=2.8,<3`，具体 CUDA 构建仍需匹配服务器驱动；
   两份都按本文件的口径装。
 
 ## 6. 仓库 / 产物约定

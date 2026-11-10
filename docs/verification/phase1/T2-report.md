@@ -4,7 +4,7 @@
 > （Python 3.11.17 / torch 2.8.0+cu128 / pytorch-lightning 2.6.6 / CPU 实测，本机 2×A800 未参与）。
 > 范围：`look2hear/system/av_litmodule.py`（唯一含 Comet 调用的文件）、
 > `look2hear/system/av_litmodule_nass_v2.py`、`look2hear/system/av_litmodule_mdcl.py`（复核无 Comet 调用，继承修复）；
-> 新增 `tools/repro/tests/test_litmodule_logging.py`；日志与报告在 `docs/verification/phase1/`。未触碰他人 scope。
+> 新增 `tools/repro/tests/test_litmodule_logging.py`；日志与报告在 `docs/verification/phase1/`。
 
 ## 1. 结论
 
@@ -70,7 +70,6 @@ pytest 覆盖点（5 条）：
 4. `self.log_dict` 在 epoch-end hook 使用 `on_epoch=True` 且**未额外加 `sync_dist`**：因为 `val_pit_sisnr`
    与分桶值在此前已手动 `all_gather`，各 rank 值相同；如后续有人改为"每 rank 本地值"，需自己加 `sync_dist=True`。
 5. 集成阶段仍需 `train_smoke.py`（真实数据/backbone）验证 CSV/TensorBoard 实际落盘与训练曲线；
-   本任务按约定**未运行真实训练、未 git commit**。
-6. 备注：`pytest tools/repro/tests -q`（整个共享目录）当前有 5 个失败，均来自其它 agent 正在并行修改的
-   `test_eval_entry.py / test_metrics.py / test_synthetic_data.py`（见 `T2-combined-suite-note.log`），
-   与本任务改动的两个文件无关（我的测试单跑 13 + 5 全过）。
+   本任务使用 dummy 模型验证日志路径。
+6. 备注：`pytest tools/repro/tests -q`（整个共享目录）当时有 5 个失败，涉及 `test_eval_entry.py / test_metrics.py / test_synthetic_data.py`；
+   两组单独测试分别通过 13 项和 5 项，详见 `T2-combined-suite-note.log`。

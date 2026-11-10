@@ -1,0 +1,267 @@
+{
+  "root": "/root/code/github_repos/Falcon-fork/docs/verification/runs",
+  "reviewed_count": 23,
+  "reviewed": {
+    "data_pipe/verify_dataset.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/data_pipe/verify_dataset.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "合成fixture，8条含短语音、近场与回退；含训练/评测loader",
+      "result": "TOTAL FAILURES 0；旧版mono退化、帧数不足collate失败、8k错位等均为预期验证",
+      "evidence_boundary": "F2/F7/J1属旧版行为，后续mono修复；float32 fixture不代表uint8路径dtype；对齐只验证模拟样本",
+      "bytes": 12222,
+      "lines": 219,
+      "sha256": "bdb7770650ff70194c2d6a87365da1cdf3aa8fc918df2c17965eb6fc9d532273"
+    },
+    "data_pipe/verify_p0_eval.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/data_pipe/verify_p0_eval.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "合成mono/stereo fixture；真实模型结构但pretrain=None；旧Wav2TextGrid Python环境",
+      "result": "旧mono输入0维触发STFT padding异常，手工加维度判断后成功；奇数长度48513成功",
+      "evidence_boundary": "这些是历史修复前与随机权重结果；不能用作现行故障及真实质量证明",
+      "bytes": 5767,
+      "lines": 94,
+      "sha256": "4d69207cca31f8ec364468a0d8d8167a71785816c53650defc44114dcff96bd3"
+    },
+    "data_pipe/verify_preprocess.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/data_pipe/verify_preprocess.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "合成数据、CLI脚本重复运行与边界反例",
+      "result": "19条PASS；空split先写空JSON后异常；等量不同stem错误对齐静默通过",
+      "evidence_boundary": "idempotent仅此样本；历史脚本行为应对照当前代码；不证明真实数据发生错配",
+      "bytes": 2967,
+      "lines": 31,
+      "sha256": "f2e32af43085538869f4904ea9e235641063e491b30d85c23826923143ca9747"
+    },
+    "data_pipe/verify_realweight.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/data_pipe/verify_realweight.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "falcon.pt与配置strict load，两个合成音视频输入，CPU",
+      "result": "525+137 keys，T=32000和48513输出finite同长度",
+      "evidence_boundary": "结构和合成前向验证，不是实录分离质量或所有变长保证",
+      "bytes": 1761,
+      "lines": 37,
+      "sha256": "4680f2b5ec72ddbaed1142dd282d8fa75eca8756d73e411e60cc0f18662956c5"
+    },
+    "model-core-r3-verify.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/model-core-r3-verify.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "falcon.pt/big权重及hook，单窗口扰动",
+      "result": "strict load；concat[2]前向0次5568参数；AudioBlock关归一化分界56/57/58帧",
+      "evidence_boundary": "单窗hook不证明所有输入和作者设计意图；state_dict numel包括buffer",
+      "bytes": 4576,
+      "lines": 73,
+      "sha256": "675d14e68876358abcacd286dc153216bdd773f36e3489ac912c89eae11218ff"
+    },
+    "model-core-verify.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/model-core-verify.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "默认配置合成输入，参数形状与扰动；旧代码",
+      "result": "模型拆分、B1形状、MDCL测试和多个失败反例",
+      "evidence_boundary": "复用配置参数检测一行显示False，不能据此得出未变更；其后独立复核确认原地pop。MDCL示例均为0梯度，非非零梯度验证；另有纠正日志",
+      "bytes": 13941,
+      "lines": 223,
+      "sha256": "5452e064acc96ba1d37fc058ed9ce474049245ae3aba645b5e72143c44eeebbf"
+    },
+    "model-core-verify2.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/model-core-verify2.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "2秒窗口、半窗扰动",
+      "result": "前半秒前缀存在差异；视频分支测试在FRCNN.eval()返回None后中断",
+      "evidence_boundary": "H节采用最大受影响索引跨不同时间单位，不能用作前瞻定量；后续verify4改测最左索引",
+      "bytes": 2084,
+      "lines": 30,
+      "sha256": "8759b04b1c2490c75b23522c4f9e00663cf2d88ddf2d8760d8c2388129506024"
+    },
+    "model-core-verify3.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/model-core-verify3.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "合成相关波形和MDCL孤立函数",
+      "result": "train tuple/eval tensor；MDCL K1、K3数值与手算相符，非零梯度",
+      "evidence_boundary": "仅孤立loss函数，不证明配置训练实际调用MDCL；非NASS公式",
+      "bytes": 1770,
+      "lines": 28,
+      "sha256": "f187710b0bb947c05ea0a17b1f57925f6f5e866e8625fd30843f92a0558f0a4c"
+    },
+    "model-core-verify4.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/model-core-verify4.log",
+      "read_status": "全文审阅（verify4超长异常键清单按重复结构核读）",
+      "condition": "2秒输入扰动、FRCNN和VideoBlock单batch；复用构造配置",
+      "result": "正常组有57帧前瞻、FRCNN前看2帧；causal true/false模型载入RuntimeError中断",
+      "evidence_boundary": "错误比较被构造函数修改的配置不能得出causal改变参数；VideoBlock B1未排除B>1跨样本递推；超长异常key清单按重复结构审阅",
+      "bytes": 36475,
+      "lines": 45,
+      "sha256": "1c3aeec73e3e3423cef410f5f5c7a8806708d34fab352428e3e050dfdad75607"
+    },
+    "review-model-core-checks.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/review-model-core-checks.log",
+      "read_status": "全文审阅",
+      "condition": "交叉复核2秒合成窗口、组件hook与扰动",
+      "result": "确认concat[2]未调、57/58帧条件依赖、配置复用退化",
+      "evidence_boundary": "单个配置和样本，VideoBlock B1未检跨样本串扰",
+      "bytes": 6760,
+      "lines": 104,
+      "sha256": "bcd62c51eb89f3ce14c5107b4350d429a4ddf8a6f186493b5819de6a5ecaf242"
+    },
+    "lead-model-params.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/lead-model-params.log",
+      "read_status": "全文审阅",
+      "condition": "未加载pretrain的模型参数、单窗口与分段扰动",
+      "result": "audio 537697 video 11186688；三个长度shape",
+      "evidence_boundary": "FRCNN未加载pretrain时未冻结；mdcl_window persistent一行不能等同state_dict含该buffer；历史扰动无严格因果证明",
+      "bytes": 2491,
+      "lines": 46,
+      "sha256": "3c90e110d69e0b0b089e61840611cd10b5a68417b133134a74211db037b23c0a"
+    },
+    "r4-incremental-01-r3.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/r4-incremental-01-r3.log",
+      "read_status": "全文审阅",
+      "condition": "真实small/big权重、CPU，单输入前向与hook",
+      "result": "两个真实权重strict load；small Studio与训练侧同输入bit-identical",
+      "evidence_boundary": "一次同输入相等不能覆盖所有模式、shape与设备；big是Studio runtime与自身模型对照",
+      "bytes": 2937,
+      "lines": 55,
+      "sha256": "67b5eb98ff6244a20472663d3340fbe35fdfcebe72f5adfa416d6f8632c2e466"
+    },
+    "r4-review-01-exec.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/r4-review-01-exec.log",
+      "read_status": "全文审阅",
+      "condition": "模型组件hook、2秒扰动；同参数开关比较",
+      "result": "57帧AudioBlock特定分界；causal开关两个同权重输出相同",
+      "evidence_boundary": "限定所测默认配置与输入；不能当所有causal子开关都无效",
+      "bytes": 2934,
+      "lines": 58,
+      "sha256": "90991824f88314cff7d360c348d24a70283f9c61faf53965a71d08ab4134d010"
+    },
+    "train-sys-config-mutation.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-config-mutation.log",
+      "read_status": "全文审阅",
+      "condition": "真实模型构造、配置字典 before/after，无训练",
+      "result": "audio/video 的 repeats/shared 被移除并添加 causal；模型537697参数",
+      "evidence_boundary": "历史代码原地修改的直接观测；不能独立证明现行入口仍如此",
+      "bytes": 821,
+      "lines": 8,
+      "sha256": "62e2f6777b57e636967ab72c72fbb0d4bf4fc7ae5a7b96db8d58b05befddafbd"
+    },
+    "train-sys-ddp-bucket-hang.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-ddp-bucket-hang.log",
+      "read_status": "全文审阅",
+      "condition": "真实Lightning系统及两进程 CPU Gloo；DummyAudio/DummyVideo、合成数据、FakeCometLogger",
+      "result": "rank0桶0/4，rank1桶1；日志停在gather之前，无完成记录",
+      "evidence_boundary": "支持不对称桶下疑似卡住，不含独立超时/退出信息；不是实际GPU或数据训练的死锁观测",
+      "bytes": 3263,
+      "lines": 29,
+      "sha256": "e0f09d01d19ea542566f0462de46b72b46de8c5694849dd54e80becd2343e58d"
+    },
+    "train-sys-litmodules.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-litmodules.log",
+      "read_status": "全文审阅",
+      "condition": "真实Lightning模块；DummyAudio/DummyVideo、随机数据、FakeCometLogger；CPU旧venv",
+      "result": "NASS 11 epoch和MDCL 3 epoch替身fit成功；CSVLogger AttributeError；PIT tuple AttributeError",
+      "evidence_boundary": "替身fit非真实Falcon训练；CSV问题为修复前历史现象；dummy MDCL成功不证明真实Falcon路径有效",
+      "bytes": 8271,
+      "lines": 68,
+      "sha256": "e7e68522bc657584d2cb08bea87f66905a1671145f7e6ef83268206aa4ce33f3"
+    },
+    "train-sys-parser-roundtrip.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-parser-roundtrip.log",
+      "read_status": "全文审阅",
+      "condition": "Python3.10，对历史YAML执行parser roundtrip",
+      "result": "列出层级、10 GPUs、数据路径占位、batch4和NASS超参",
+      "evidence_boundary": "仅解析默认值；非训练与现行设备配置验证",
+      "bytes": 1254,
+      "lines": 12,
+      "sha256": "d3b046c7beac66569188a8e6dd63fa09a291fda293049b445d182607984b3cb8"
+    },
+    "train-sys-r2-crosscheck.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-r2-crosscheck.log",
+      "read_status": "全文审阅",
+      "condition": "FRCNN形状和numpy dtype合成探测；历史05文档sha",
+      "result": "视频输出2×512×50；uint8归一化float64，float32维持float32",
+      "evidence_boundary": "单版本dtype及固定输入；文档旧哈希不是当前哈希",
+      "bytes": 705,
+      "lines": 11,
+      "sha256": "d9b20c2f911abdb56bdb044331f655810d644e57389cc363ef4c2ee12fc94673"
+    },
+    "train-sys-r3-exec.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-r3-exec.log",
+      "read_status": "全文审阅",
+      "condition": "真实模型构造；Trainer与comet_logger猴补替身；旧训练代码",
+      "result": "原发布conf未污染；模拟输出conf缺repeats/shared，重建49081参数，strict=False 505 unexpected；末尾FileNotFound为预期",
+      "evidence_boundary": "假trainer无训练；日志把 dropped elems=0按missing计漏算unexpected，不能说未丢权重；现行入口已修需对照",
+      "bytes": 2450,
+      "lines": 35,
+      "sha256": "03218818d551a315660c6c19c3931f71ae9190bb5382697744940217f0721c06"
+    },
+    "train-sys-r4-causality-baseline.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-r4-causality-baseline.log",
+      "read_status": "全文审阅",
+      "condition": "合成波形单点加1，真实结构，参数列表",
+      "result": "s=20000 first output=9612，前移10388样本约649.25ms",
+      "evidence_boundary": "9612是绝对输出索引不是提前样本数；一次探测非固定延迟上界，日志与lead-causality内容相同",
+      "bytes": 14998,
+      "lines": 178,
+      "sha256": "5ac84391583c8ace0aa37326c894caca147827a2d6817dac70085982e295538d"
+    },
+    "train-sys-r4-crosscheck.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-r4-crosscheck.log",
+      "read_status": "全文审阅",
+      "condition": "encoder/decoder链合成单点探针，静态文件比较与参数统计",
+      "result": "s16000首次16001；s20000首次19969；两STFT文件去空白md5相同",
+      "evidence_boundary": "-31样本实际反例表明单次s16000不证明链严格逐采样因果",
+      "bytes": 812,
+      "lines": 25,
+      "sha256": "913dc22886a4b30ed312d4856528207720b1860214bc016f44f81510f1a44576"
+    },
+    "train-sys-r4-layers-causal.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-r4-layers-causal.log",
+      "read_status": "全文审阅",
+      "condition": "seed0随机张量，真实层单元探针",
+      "result": "T8 GN+累积LN变化1.431e-6，T251 4.768e-7；STFT 2.098e-5差",
+      "evidence_boundary": "T251将微小变化标签为因果只是阈值判定，不能由此证明严格因果；帧级及单次扰动",
+      "bytes": 3473,
+      "lines": 52,
+      "sha256": "62564387de726e6f06b74f3e15094f10bd2fedb0dab2e64df69cc7351afcef1c"
+    },
+    "train-sys-undefined-globals.log": {
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/runs/train-sys-undefined-globals.log",
+      "read_status": "全文审阅",
+      "condition": "历史静态undefined global扫描，无运行",
+      "result": "comet_logger、MetricsTextColumn、CustomProgress被列出",
+      "evidence_boundary": "静态结果属历史版本，不等于当前入口仍未定义",
+      "bytes": 268,
+      "lines": 5,
+      "sha256": "af7462a20571941f5974b36d6339f1bb51c7bb5cb46ce8d9a8d357a482ac2a40"
+    }
+  },
+  "other_log_count": 27,
+  "other_logs_unreviewed_this_round": [
+    "04-eval-flow.log",
+    "04-losses.log",
+    "04-macs.log",
+    "04-metrics.log",
+    "04-video.log",
+    "conda-env-verify.log",
+    "layers-dsp-verify.log",
+    "lead-causality.log",
+    "lead-real-weights.log",
+    "r2-causality-conditions.log",
+    "r2-review-03-pl-contract.log",
+    "r2-review-03.log",
+    "r3-layers-revision.log",
+    "r3-macs.log",
+    "r3-mono-eval-repro.log",
+    "r3-studio-weights.log",
+    "r3-video.log",
+    "r3-weights.log",
+    "r4-prep-studio-backend.log",
+    "r4-review-08-d22.log",
+    "r4-review-08-node.log",
+    "r4-review-08-pytest-cache.log",
+    "r4-review-08-pytest-nocache.log",
+    "r4-review-08-scripts.log",
+    "review-08-by-studio-backend.log",
+    "review_layers/05-review-checks.log",
+    "studio-backend-verify.log"
+  ],
+  "nonlog_data_pipe_sha256": "另行审阅：历史R3.1记录与当前文件哈希不匹配，详见 /tmp/falcon-flat-doc-review-20261110/status.md"
+}

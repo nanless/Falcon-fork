@@ -1,9 +1,11 @@
 # Phase1 T3 报告：评测指标修复（F7/F8）+ `audio_visual_test.py` 可运行化
 
+> **2026-11-10 更新：LRS2-2Mix 发布包含嘴部数据，RealSSA 数据已获批并完成相关评测。当前数据和评测结果见[数据指南](../../DATA_ACCESS_GUIDE.md)与[复现状态](../../STATUS.md)。**
+
 > 任务：`task-11`（分支 `repro/phase1`，**未 commit**）
 > 依据：`docs/REPRODUCTION_PLAN.md` §6.2 F7/F8、§6.3；`docs/understanding/FINAL_PROJECT_UNDERSTANDING.md` §5
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / fast-bss-eval 0.1.4 / pypesq+pesq shim / pystoi）
-> 写作用域：`look2hear/metrics/`、`audio_visual_test.py`、`tools/repro/tests/`、`docs/verification/phase1/`（未碰其它源码）
+> 涉及文件：`look2hear/metrics/`、`audio_visual_test.py`、`tools/repro/tests/`、`docs/verification/phase1/`。
 
 ## 1. 摘要（结论先行）
 

@@ -1,9 +1,11 @@
 # Data Pipeline 补充验证（R2-prep）：mono-eval P0 复现 + 评测入口数据路径契约
 
+> **当前实现：**本文记录 2026-10-21 的历史复现；mono 数据退化为标量的问题已在 Phase 1 修复。实验使用随机权重和替身依赖，当前实现见[数据与训练说明](../understanding/20261110-data-and-training.md)、[评测说明](../understanding/20261110-evaluation-and-apps.md)。
+
 > 作者：`data-pipe`（应 Lead 要求，2026-10-21）。
 > 关联文档：`docs/understanding/05-data-pipeline.md`（§4.7 P0、§5.3/§5.4/§3.5）。
 > 目的：(1) 用真实模型复现并坐实 P0（mono wav → `AVSpeechEvalDataset` 退化 0 维 → 评测命令崩溃）；(2) 固化 `audio_visual_test.py` 的数据路径断言，供 R2 评审 `04-losses-metrics-video.md` 使用。
-> 限制：无真实数据集/权重；用最小合成 fixture + 真实代码路径（真实 `look2hear` model，`pretrain=None`）。**未修改任何源码**。
+> 输入采用最小合成 fixture，模型由真实 `look2hear` 代码构建，`pretrain=None`。
 
 ---
 
@@ -72,7 +74,7 @@ traceback 末三帧：`Falcon.py:1110 spec = torch.stft(...)` → `torch/functio
 
 **该异常不会被吞掉**：`audio_visual_test.py:231` 的 `model(...)` 在 try 之外；try 从 `:233` 开始、只捕获 `ValueError`（`:237-242`，且仅 "all zeros"/"nan" 才 pass）。因此 RuntimeError 从 `process_worker` 抛出 → 单卡 `process_worker(0,1,config)`（`:284-285`）或 `mp.spawn` 直接失败。
 
-**结论：若真实数据是单声道，README:165 的评测命令 `python audio_visual_test.py --conf_dir ... --gpus 0` 在第一个测试样本上必然崩溃。** 这不是理论推断，是真实模型前向的 [验证] 结果。
+**结论：**在当时的评测路径中，单声道 fixture 在第一个样本的模型前向阶段触发上述错误。Phase 1 已添加维度守卫。
 
 ### 2.3 训练期验证路径同样受影响（重要推论）
 
@@ -84,7 +86,7 @@ mixture.shape = (1,)  targets.shape = (1,)  mouth.shape = (1,62,88,88)  n_near.s
 !! val path EXCEPTION: RuntimeError: ... padding (128,128) ... input [1,1,1]
 ```
 
-推理：Falcon 若是用该仓库代码训练出来的，则**真实训练/评测数据必然是多声道**（否则第一次 `validation_step` 就崩，early stopping/ checkpoint 监控无法工作）；或评测/验证路径从未被真正跑过。这与 README:67 “RealSSA … all audio is mono 16 kHz” 的表述**存在矛盾**，需要数据侧确认（05 文档 Q1；本补充实测 stereo 路径正常：`(1,1,40000)`）。
+该探针对应当时的验证代码路径，stereo fixture 的输出形状为 `(1,1,40000)`。作者训练时使用的数据通道和代码版本仍待确认；README:67 关于 RealSSA 的 mono 描述需结合数据版本阅读。
 
 ### 2.4 修法建议（最小、与训练集一致）
 
@@ -95,7 +97,7 @@ mixture.shape = (1,)  targets.shape = (1,)  mouth.shape = (1,62,88,88)  n_near.s
    ```
    实测该修法后：`fixed_mix.shape = (40000,)`、`est_sources.shape = (1,1,40000)`、输出长度 == 输入长度 → 评测可正常继续。
 2. **可选系统化**：统一用 `sf.read(..., always_2d=True)` + `.mean(-1)`，或抽一个 `_to_mono()` helper，三处（eval / 旧 train / check 脚本）共用。
-3. **防御性断言**：在 `AVSpeechEvalDataset.__getitem__` 返回前断言 `mixture.ndim == 1 and mixture.shape[-1] >= 1`（或在 DataModule 启动时打印首个样本形状），让数据格式错误早失败、且信息明确。
+3. **形状断言**：在 `AVSpeechEvalDataset.__getitem__` 返回前断言 `mixture.ndim == 1 and mixture.shape[-1] >= 1`（或在 DataModule 启动时打印首个样本形状），让数据格式错误早失败、且信息明确。
 4. 文档层：README 数据准备章节明确“wav 通道数”要求（mono 或 2ch）；`_meta.json`/mouth `.pt` 同理。
 
 ---
@@ -130,12 +132,12 @@ mixture.shape = (1,)  targets.shape = (1,)  mouth.shape = (1,62,88,88)  n_near.s
 ### 3.3 eval 下 mouth 与 audio 的时间对齐：整句、不截断/不填充，模型内部按帧数插值
 
 - **Dataset 层无任何截断/填充/2 s 窗口**：`start=0, stop=None` 读整段（`avspeech_dataset.py:179-187`），嘴部整段帧（`:189-191`）。实测：48513 采样点、75 帧全部原样返回（`audio T = 48513 | mouth F = 75 | input wav frames = 48513`）。
-- **模型层容忍任意帧数比**：`NeuroSCNetFusion.forward`（`look2hear/models/Falcon.py:248-262`）在 `v_feat.shape[-1] != T_a` 时 `F.interpolate(v_feat, size=T_a, mode="nearest")`（`:257-258`）。实测 fusion 调用：`audio (1,112,380,129), video (1,512,75)` → 75 帧最近邻插值到 380 个音频时间步。
+- **模型层按音频长度插值视觉特征**：`NeuroSCNetFusion.forward`（`look2hear/models/Falcon.py:248-262`）在 `v_feat.shape[-1] != T_a` 时 `F.interpolate(v_feat, size=T_a, mode="nearest")`（`:257-258`）。实测 fusion 调用：`audio (1,112,380,129), video (1,512,75)` → 75 帧最近邻插值到 380 个音频时间步。
 - **输出长度严格等于输入**：`STFTDecoder.forward` 取 `length = input_shape[-1]`（`Falcon.py:1166`），`torch.istft(..., length=length)`（`:1182-1188`）→ 实测 `out.shape = (1,1,48513)`，`length == T: True`。
 - **标称对应关系**：25 fps 每帧 640 采样点，STFT hop=128（`configs/Falcon.yml:28-29`）→ 每视频帧 ≈ 640/128 = 5 个音频时间步；实测 T'=380 / F=75 ≈ 5.07（因 `T' = 1 + floor(T/128)` 的取整项）。**评测侧没有显式的 2 s 截断/补齐，也没有对 mouth 帧数做校验**——若 `.pt` 帧率/时长与音频不一致，模型会静默 nearest 拉伸（质量风险而非报错）。
 - 对 04 的含义：若 04 声称“评测按 2 s 窗口/50 帧”或“mouth 与 audio 被裁剪对齐”，与代码不符；评测是**整句变长**推理（T、F 均随样本变化）。
 
-### 3.4 `make_sets` 与 `use_near=False` 的实际行为
+### 3.4 当时 `make_sets` 与 `use_near=False` 的行为
 
 复刻 `audio_visual_test.py:183-189`（`data_config` 剔除 `use_near/train_samples` 后强制 `use_near=False`）：
 
@@ -168,7 +170,7 @@ use_near=False + 删除全部 near.json: setup() OK (train near all empty: True)
 | S2 | 退化后 `mix[None]` 形状 `(1,)`，真实音频模型在 `torch.stft` 处抛 RuntimeError | 实测；`Falcon.py:1095-1097,1110-1116` | [验证] |
 | S3 | 该异常不被评测脚本捕获（model 调用在 try 之外，try 只吞 metrics 的 ValueError） | `audio_visual_test.py:231,233-242` | [代码] |
 | S4 | 训练期 val 路径同样受影响（default_collate + 同一 Dataset） | 实测；`avspeech_dataset_near.py:286-290,309-318`；`av_litmodule.py:86-119` | [代码][验证] |
-| S5 | 若真实数据为 mono，README 评测命令必然在第一个样本崩溃；能训练成功则反证真实数据是多声道 → README:67“mono”表述需核实 | S1-S4 | [推断] |
+| S5 | 当时的 mono fixture 在评测前向出错；作者训练数据通道与代码版本待确认 | S1-S4 | [推断] |
 | S6 | 修法：在 eval 的 mean(-1) 前加 ndim 守卫（与 near.py:176-177 一致）；实测修复后 `(1,1,T)` 正常 | §2.4；实测 | [验证] |
 | S7 | `audio_visual_test.py` 不用 DataLoader，逐条 `test_set[idx]`，整句推理 | `:189,192-193,229-231`；AST 审计无 DataLoader/dataloader/make_loader | [代码][验证] |
 | S8 | eval dataset 输出 `(T,)`/`(T,)`/`(F,88,88)`/str/int（多声道数据） | 实测；`avspeech_dataset.py:176-212` | [验证] |
@@ -177,9 +179,9 @@ use_near=False + 删除全部 near.json: setup() OK (train near all empty: True)
 
 ---
 
-## 5. 未能验证 / 边界
+## 5. 实验输入与环境
 
-- 未使用真实 LRS2/LRS3/RealSSA 数据：真实 wav 通道数仍未知（05 Q1）→ S5 是“若 mono 则必然崩溃”的条件结论 + “能训练成功则应为多声道”的反证推断。
-- 未运行完整 `audio_visual_test.py`（缺 `pystoi/pypesq/ptflops` 与 checkpoint）；但 P0 发生在模型前向、早于 metrics，且异常不被捕获，故阻断结论成立。
-- `FRCNNVideoModel` 用 `pretrain=None` 构建（未加载 `frcnn_128_512.backbone.pth.tar`）；形状/前向契约与权重无关。
+- 输入为合成 fixture；作者训练所用数据的通道和代码版本仍待确认。
+- 当时环境缺少 `pystoi/pypesq/ptflops` 和 checkpoint；实验复刻了完整评测前向中的相关步骤。
+- `FRCNNVideoModel` 以 `pretrain=None` 构建，实验记录了随机权重下的形状与前向行为。
 - 复现脚本与 fixture 均在 `/tmp/dp-verify/`（不随仓库提交）。

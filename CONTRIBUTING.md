@@ -1,46 +1,33 @@
-# 贡献指南
+# 参与 Falcon-fork 的维护
 
-本仓库是 [JusperLee/Falcon](https://github.com/JusperLee/Falcon) 的复现 fork：上游负责模型与论文，本仓库负责在 A800 机器上的复现、证据与工程化。下面的命令与数字都来自本机实测，依据是 [AGENTS.md](AGENTS.md)、[docs/STATUS.md](docs/STATUS.md) 和 `.github/workflows/tests.yml`。
+这个仓库保存上游 Falcon 的复现、工具和演示代码。提出修改前，先确认要解决的是模型、数据、评测还是演示问题；它们使用的输入、输出与验证方式不同。项目概览见 [中文 README](README_zh.md)，目前已知的实验条件和问题见[复现状态](docs/STATUS.md)。
 
-## 1. 运行环境
+## 环境和修改前状态
 
-- 依赖只装在 conda 环境 `falcon`（`/root/miniforge3/envs/falcon`）：Python 3.11、torch 2.8.0+cu128、`typeguard<3`。换其他解释器会在 `import look2hear.models` 处失败。
-- 重建步骤见 [AGENTS.md](AGENTS.md) §5。`pypesq` 兼容层是 site-packages 里的手写文件，**不在仓库内**，新环境要按该节手动创建。
-- 非交互式命令直接用 `/root/miniforge3/envs/falcon/bin/python`，不必先激活环境。
+开发服务器的专用环境位于 `/root/miniforge3/envs/falcon`。非交互式执行可使用其中的 `python`；依赖版本、`typeguard<3` 和 PESQ 兼容层见 [AGENTS.md](AGENTS.md)。环境在不同机器或不同时刻可能不同，记录 Python、PyTorch、设备、权重与数据路径有助于复查。
 
-## 2. 测试
+开始修改时记录 `git status --short` 和 `git diff --stat`，先保留工作区已有改动。报告模型结果时写明数据集、输入长度、目标方向、checkpoint、通道、推理模式和有效条数；同时写明检查所用的样本范围。
 
-| 套件 | 有 GPU | 无 GPU |
-|---|---|---|
-| `pytest tools/repro/tests -q` | 168 passed，约 147 s | 168 passed，约 170 s |
-| `pytest studio/tests -q` | 51 passed / 2 skipped | 53 passed / 0 skipped |
-| Studio Node 测试 | 8 通过 | 8 通过 |
+## 选择合适的检查
 
-`tools/repro/tests` 在本机用 1 张 GPU（`CUDA_VISIBLE_DEVICES=0`）跑；它读 `/root/data`、`/root/.cache/falcon_weights`、`/root/tmp`，并校验本机环境锁，只有在这台机器上才有意义。
+| 修改范围 | 适合先检查什么 | 补充验证 |
+| --- | --- | --- |
+| 模型及权重 | 对照源码、固定输入与权重，记录设备和参数；需要时比较张量形状和输出 | 按使用范围补充不同输入和设备 |
+| 数据 | 在隔离目录构造小样本，检查索引、目标身份、真实波形和异常条件 | 按样本核对目标身份 |
+| 评测 | 逐句指标、有效数、ID 集合和输出目录 | `verified` 主要检查行数，ID 集合需另行核对 |
+| Studio / Space | 对应 Python、Node 和窗口行为测试 | 使用摄像头、浏览器和会议设备做实际检查 |
+| 文档 | 对照来源、数字、命令和链接；检查保存后的实际文件 | 核实引用内容与正文结论一致 |
 
-## 3. CI 跑什么、不跑什么
+2026-11-10 在服务器 CPU 上运行复现套件为 **166 passed、2 skipped**；跳过项依赖历史临时文件。Studio/Space 非慢速测试为 **73 passed、2 deselected**。测试会因数据和运行环境不同而变化，详细命令及日志见[审查证据](docs/verification/deepdive-20261110/README.md)。
 
-`.github/workflows/tests.yml` 有两个 job：
+复现套件包含显式 `py_compile`，可能在源码目录写入被忽略的 Python 缓存。测试和评测产生的日志、合并表及检查点应使用与历史实验分开的目录。Studio 启动、驱动安装、数据下载与归档脚本有各自的写入或下载行为，阅读脚本后再按当前任务决定是否运行。
 
-- `frontend`：8 个 Studio Node 测试、Space 组装与 i18n（226 条中文串）、Space 静态测试、环境锁文件检查。
-- `python`：Falcon 训练/评测模块导入、`pytest studio/tests -q`、`pytest space/tests/test_clip.py -q -m "not slow"`。
+CI 中的 `frontend` 和 `python` 两个 job 执行轻量前端与 CPU 检查；依赖本机数据、权重和历史目录的 `tools/repro/tests` 不在托管 CI 门禁内。`.github/workflows/tests.yml` 是当前配置的具体来源。
 
-**不跑** `tools/repro/tests`：它依赖本机数据与 conda 环境锁，在托管 runner 上必然失败（`5371df7` 起不再作为 CI 门禁）。这 168 条是本地合并门禁，PR 里不用等它变绿。
+## 保存证据和文档
 
-## 4. 提交流程
+`docs/verification/` 中的历史日志、CSV 和记录用于回查旧结论。补测或纠正时新增带日期的文件，说明输入、权重、代码、命令与替代关系，避免覆盖旧记录。模型 `.pt`、`.ckpt` 和数据文件通常留在指定权重或数据目录，不写入 Git 历史。
 
-1. 动手前先记基线：`git status --short` 与 `git diff --stat`，改完再比一次。
-2. 证据按追加方式维护：`docs/verification/**` 下的 csv/log/json 不覆盖已有行；修正结论时新增带日期的文件，写明替代哪一份、为什么。
-3. 权重不进 Git：`.pt` / `.ckpt` 留在 `/root/.cache/falcon_weights`，提交会让每次 clone 多出近 180 MB，且历史删不干净。
-4. 提交由用户决定：默认只改工作区，交付时报清改了哪些文件、各增删多少行。
+[文档导航](docs/README.md)区分现用说明、历史报告和数据卡；修改正文后同步检查相对链接和相关入口。历史结论若被新的实验推翻，可在当前说明中给出更正及来源，旧证据仍保留原貌。提交、切换分支和清理工作区由具体任务决定。
 
-## 5. 文档
-
-- 中文按 `plain-chinese-writing` 的口径：结论先行、数字先行；事实要标清是实测、推断还是未验证。
-- 改动落在 `docs/`，并在 [docs/CHANGELOG.md](docs/CHANGELOG.md) 记一行（提交号 + 一句话 + 影响面）。
-- 证据代际与索引见 [docs/verification/README.md](docs/verification/README.md)；复现计划见 [docs/REPRODUCTION_PLAN.md](docs/REPRODUCTION_PLAN.md)。
-
-## 6. 联系与上游
-
-- 上游：`JusperLee/Falcon`（GitHub）。模型、论文与原始实现的问题转到上游。
-- 本仓库的问题：在本仓库提 issue 或 PR，附上 `git rev-parse HEAD`、环境版本与复现命令。
+上游模型和论文见 [JusperLee/Falcon](https://github.com/JusperLee/Falcon)。报告问题时，附上代码版本、环境、最小复现条件和输出结果，能帮助区分实现差异与数据条件。

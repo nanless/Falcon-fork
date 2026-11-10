@@ -1,0 +1,3 @@
+冻结序号	文件	阅读范围	当前sha256	发现及修订
+70	docs/understanding/deepdive-20261108/09-space-project-page.md	全文	7f3018e813a0b030cf3a36bdc60ad51c51c100dc4bf93c33aa80bb2da913444e	发布权重谱系未确认；测试及构建计数前后不一致；分离接口不等于唯一动态接口；已加更正
+71	docs/understanding/deepdive-20261108/10-ops-repro-git.md	全文	83422b339b79e42b3995e0a6196e3c452698c938605f058f1882c355b08386cf	现存 LRS2 分量不可再乘 gain；K=0 正项存在；RealSSA-Sim 为9169非3000；stub 等价性不可泛化；已加更正

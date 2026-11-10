@@ -1,0 +1,19 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/torch/functional.py:730: UserWarning: A window was not provided. A rectangular window will be applied,which is known to cause spectral leakage. Other windows such as torch.hann_window or torch.hamming_window are recommended to reduce spectral leakage.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at /pytorch/aten/src/ATen/native/SpectralOps.cpp:836.)
+  return _VF.stft(  # type: ignore[attr-defined]
+/tmp/falcon_ptflops_ops_probe_20261110.py:13: UserWarning: A window was not provided. A rectangular window will be applied.Please provide the same window used by stft to make the inversion lossless.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at /pytorch/aten/src/ATen/native/SpectralOps.cpp:1036.)
+  if self.mode=="istft": return torch.istft(x,n_fft=16,hop_length=8,length=64)
+ptflops 0.7.5 torch 2.8.0+cu128
+Warning! No positional inputs found for a module, assuming batch size is 1.
+matmul count= 512 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+mul_function count= 64 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+mul_operator count= 0 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+add_function count= 64 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+add_operator count= 0 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+stft count= 0 params= 0
+Warning! No positional inputs found for a module, assuming batch size is 1.
+istft count= 0 params= 0

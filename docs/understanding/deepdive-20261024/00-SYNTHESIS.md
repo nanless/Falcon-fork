@@ -2,8 +2,8 @@
 
 > 编写：Lead（2026-10-24）· 仓库 `/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`
 > 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800 80GB，当前全空）
-> **2026-10-31 起，当前状态/待办以 `docs/STATUS.md` 为准**；本文保留为 2026-10-24 的理解快照（`THREE_ROUND_REVIEW_20261030.md` 同为历史快照，只作历史问题清单，不作现状依据）。
-> **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`，最后更新 2026-11-08）**：仅修正与事实冲突处，其余保留 2026-10-24 快照。
+> 本文记录 2026-10-24 的项目理解；2026-10-31 后的状态和待办汇总在 `docs/STATUS.md`。`THREE_ROUND_REVIEW_20261030.md` 记录当时的问题清单。
+> **2026-11-08 校正**：参照 `docs/understanding/deepdive-20261108/` 更新与后续事实冲突的内容。
 > 已改 7 处：§0-1 论文已于 2026-10-23 公开（arXiv:2610.32749）；§0-4 补 RealSSA-Sim 实际分母；§0-5/§4.2/R6 改用 full4 DNSMOS 并写明口径；§0-6 的「3 份索引」状态已修；§7 两行旧文档状态已标已修；§8-1、§8-4 标为已解决。
 >
 > 本文是 9 个子代理深挖文档（01–09）的汇总入口。**每一条关键结论都指向 01–09 中的证据章节**；
@@ -11,29 +11,18 @@
 
 ---
 
-## 0. 三十秒版
+## 0. 项目与复现结果
 
-1. **这是什么**：NeurIPS 2026 论文 *Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World
-   Acoustic Scenes*（Falcon）的官方仓库 + 工程演示（Falcon Studio）。**论文 2026-10-23 已公开**（arXiv:2610.32749；
-   本快照编写时 README 仍写 “Paper link will be added when available”）。
-2. **模型有多大**：音频主干 **537,697 参数（0.538 M，论文“0.5 M”口径）**，其中前向真正生效 532,129、
-   扣训练期对比头 523,113；+ 冻结唇读编码器 11,186,688 = **11,724,385（≈11.72 M）**；MACs **10.611 G**（不含视觉编码器）。
-3. **架构一句话**：STFT（win256/hop128）→ 112 通道瓶颈 → 4 级 AudioBlock（每级融合冻结 FRCNN 视频特征）→
-   TFRB（频向双向 LSTM + 时间向单向 LSTM + tril-mask 2D attention）→ 复数掩码 → 因果 STFT 解码。
-   它是**窗口级因果（window-causal）+ 无跨窗状态**，**不是逐采样流式**（lookahead 57 帧≈456 ms）。
-4. **已经复现了什么**：L1 推理/结构 100%；**RealSSA-Sim 主结果已闭合**：官方权重在 test 9,169 条上
-   **SI-SNRi 7.774 / SDRi 8.479**（论文 7.7/8.2，+0.07/+0.28 dB）。这是唯一“数据+权重+指标”三者同时在手的同分布锚点。
-   （校正 2026-11-08：SI-SNRi 分母 9,169；SDRi/PESQ 实测分母 **9,166**，3 条退化样本被 `nanmean` 静默跳过，见 `deepdive-20261108/07` §3.4。）
-5. **还差什么**：LRS2-2Mix 列（论文 14.1/14.7）——官方权重是 LRS3 训练的，跨语料只有 7.03/7.71；我们自己单卡
-   130 epoch 训到 **8.858/9.270**，论文级 **8 卡配方已就绪但还没在 8 卡节点跑**。LRS3-2Mix / VoxCeleb2-2Mix 数据
-   未发布，**不可复现**。RealSSA-Real 的 DNSMOS 已测（full4：P808 3.3365 / OVRL 2.7941；full3 的 3.3285/2.7901 因窗口起点 bug 作废）。**2026-10-30 论文公开校正**：论文 DNSMOS 引用 P.835，
-   3.276 属 RealSSA-trained ckpt；我们用官方 falcon.pt 得到的 full4 OVRL 2.7941 不可与之比，P808 3.3365 只是数值巧合
-   （full3 的 2.7901/3.3285 因窗口起点 bug 已作废，2026-11-08 校正为 full4）。
-6. **最大的隐患不是模型，是证据**：`*.log` 被 `.gitignore` 全量忽略（phase2 29 个日志未入库）、全量评测 CSV 被
-   同路径覆盖、3 份索引仍写“RealSSA 403 / 训练进行中”（实际已归档、训练已结束；2026-11-08 已修这些索引）、`tools/repro/tests` 现状
-   104 passed / **1 failed** / 7 skipped。**“已复现”要附证据级别**（L1 硬证据入库 / L2 实测但未入库 / L3 转述 / L4 估计）。
-7. **下一步主线**：① P0 证据收口（1 天，无 GPU）；② LRS2 8 卡论文配方（唯一能显著缩小 14.1 差距的动作）；
-   ③ RealSSA 评测口径补强（ch0/整句 vs 窗口、DNSMOS 口径澄清）；④ 可选：RealSSA-Sim 从零训练（需 TOS 450 GB 恢复）。
+Falcon 是音视频目标说话人提取模型：输入混合语音和目标人物的嘴部画面，输出该人物的一路语音。仓库同时包含训练、评测与 Falcon Studio 窗口化演示。
+
+- **模型规模：**small 音频模型 537,697 个参数，冻结视觉前端 11,186,688 个，两者合计 11,724,385 个；音频侧 ptflops 计数为 10.611 GMAC。音频模型中 5,568 个参数属于当前前向未调用的模块。
+- **窗口与因果性：**STFT 使用 256 采样窗和 128 采样 hop。去除全窗归一化影响的特定实验中，单遍 AudioBlock 几何前视为 57 帧、约 456 ms，两遍整链为 113 帧、约 904 ms。发布实现的归一化使用整个输入窗口的统计量；Studio 每 0.5 秒处理一个 2 秒窗口。
+- **RealSSA-Sim：**历史全量评测的 SI-SNRi 为 7.774 dB、SDRi 为 8.479 dB，有效样本分别为 9,169 和 9,166 条。论文报告 7.7 / 8.2 dB；发布 checkpoint 的完整训练来源待确认，评测通道与论文口径需一并列出。
+- **LRS2-2Mix：**发布权重历史结果为 7.029 / 7.713 dB，自训 epoch 124 结果为 8.858 / 9.270 dB；论文表格为 14.1 / 14.7 dB。论文同协议训练结果仍待完成。
+- **RealSSA-Real：**full4 对 54 段得到 DNSMOS OVRL 2.7941、P808 3.3365；full3 因窗口起点错误作废。各次结果的窗口、通道与权重记录见[当前复现状态](../../STATUS.md)。
+- **数据与训练：**LRS2 的单方向与双方向索引使用不同的样本数；RealSSA-Sim near 负样本的构造和 8 卡训练需要对应数据、配置与运行记录。
+
+模型、数据、训练和应用的现行解释见 [模型与流式处理](../20261110-model-and-streaming.md)、[数据与训练](../20261110-data-and-training.md)及[评测与应用](../20261110-evaluation-and-apps.md)。
 
 ---
 
@@ -44,7 +33,7 @@
 | 模型结构/参数/因果性/真实权重是否对得上 | **01-model-core** | 537,697（生效 532,129）/11,724,385/10.611 G；falcon.pt strict 525+137 keys、ep714；train↔studio max|Δ|=0；窗口级因果 |
 | STFT/归一化/TFRB/视频骨干怎么实现 | **02-layers-dsp-video** | `cLNhw = 累积LN(全窗GN)`；TFRB=频双向LSTM+时单向LSTM+tril attention；FRCNN 冻结 11.19 M/±80 ms |
 | 训练入口能不能跑、怎么跑、8 卡怎么配 | **03-training-system** | F1–F9/F12/F17 已修并实测；F15（DDP gather）仍在；8 卡 runbook 有 9 项前置检查与 3 个坑 |
-| 指标怎么算、7.03 为什么不等于 14.1 | **04-losses-metrics** | 唯一可信口径是 `look2hear/metrics/core.py`；14.1 不是指标问题（变体 ≤0.4 dB），是缺 LRS2-trained ckpt |
+| 指标怎么算、7.03 为什么不等于 14.1 | **04-losses-metrics** | 评测实现见 `look2hear/metrics/core.py`；已测指标变体差异 ≤0.4 dB，14.1 与实测差异还需结合训练协议和权重核对 |
 | 数据在哪、怎么转、near 负样本怎么办 | **05-data-pipeline** | LRS2 链路可从零重建；RealSSA 只有 tt 本地、tr/cv 在 TOS；LRS2 的 near.json 已被一次性脚本改成 s2（K=1） |
 | Studio 能不能演示/部署、延迟多少 | **06-studio-backend** | 真实权重全链路等价；A800 单窗 47.1/56.5 ms，CPU 543 ms（不可实时）；demo 级、非生产 |
 | 前端/Space/i18n/工程完成度 | **07-studio-frontend-space** | 原生 ES Module 实时客户端，Node 8/8；Space 是从 studio 组装的 ZeroGPU 变体；i18n 5 处漂移 |
@@ -64,7 +53,7 @@
   `falcon-big.pt`（big，`SpeakerContrastiveV2`，epoch 715，audio 517 + video 137 keys，总 12,345,305 参数）。
   **训练侧只有 small 的代码**，big 只能推理（06 §4.4）。
 - 论文按 benchmark 分别训练（README:228 “under our training protocol”），但只发布了 1 个（+big）权重；
-  `Experiments/checkpoint/Falcon/conf.yml` 显示其训练数据为 `LRS3_complex_nonmoving`（ep714）。
+  `Experiments/checkpoint/Falcon/conf.yml` 含 `LRS3_complex_nonmoving` 和 ep714 线索；发布权重的实际训练数据仍待原始训练记录确认。
 
 ---
 
@@ -75,12 +64,12 @@
 | 模型核心 | 01 | `look2hear/models/{Falcon.py,Falcon_Contrastive.py}` | 0.538 M 音频 / 11.72 M 总 / 10.611 G MACs；4 种参数口径 |
 | 层与 DSP | 02 | `look2hear/layers/*`、`utils/*`、`videomodels/*` | 只有 normalizations/activations 被真正使用；其余是库/死代码 |
 | 训练系统 | 03 | `audio_train.py`、`look2hear/system/*`、`configs/*.yml` | 入口已可运行；8 卡配方就绪；F15 未修 |
-| 损失/指标 | 04 | `look2hear/{losses,metrics}/*`、`audio_visual_test.py` | core.py 唯一可信；训练/验证/评测三名不同义 |
+| 损失/指标 | 04 | `look2hear/{losses,metrics}/*`、`audio_visual_test.py` | core.py 实现评测指标；训练、验证和评测中的名称含义不同 |
 | 数据管线 | 05 | `look2hear/datas/*`、`DataPreProcess/*`、`tools/repro/*` | LRS2 可重建；RealSSA 训练未就绪（tr/cv 在 TOS、near 缺失） |
 | Studio 后端 | 06 | `studio/{server.py,falcon_runtime.py,infer_file.py}` | 32000/8000/1280/22720/320；GPU 实时、CPU 不可 |
 | Studio 前端/Space | 07 | `studio/web/*`、`space/*`、`project_page/*` | 8/8 Node 测试；Space 组装 54 文件/i18n 226 条 |
 | 验证/运维 | 08 | `docs/verification/**`、`tools/repro/tests` | 证据分级；日志未入库；索引过期 |
-| 基准对齐/规划 | 09 | `README.md`、Phase1/2 报告、火山 runbook | 16 行矩阵；LRS2 8 卡是唯一主线 |
+| 基准对齐/规划 | 09 | `README.md`、Phase1/2 报告、火山 runbook | 16 行矩阵；LRS2 8 卡为候选训练路线 |
 
 ---
 
@@ -91,7 +80,7 @@
 | 层 | 状态 | 证据级别 | 说明 |
 |---|---|---|---|
 | **L1 推理/结构** | ✅ 完成 | L1 | 参数/MACs/权重 strict/bit-identical/Studio/因果性全部复算（01、06） |
-| **L2 评测** | ⚠️ 部分 | RealSSA-Sim L2、LRS2 L2 | RealSSA-Sim 7.774/8.479 ✅；RealSSA-Real DNSMOS 口径未定；LRS2 14.1 未复现；LRS3/Vox 不可复现 |
+| **L2 评测** | ⚠️ 部分 | RealSSA-Sim L2、LRS2 L2 | RealSSA-Sim 7.774/8.479；通道和权重身份待核；RealSSA-Real DNSMOS 见后续校正；LRS2 14.1 未复现；LRS3/Vox 不可复现 |
 | **L3 训练** | ⚠️ 单机小配方 | L2 | LRS2 130 epoch 8.858/9.270；8 卡 1000 epoch 未跑；RealSSA-Sim 从零训练未开始 |
 | **L4 消融/效率** | ⚠️ 少量 | L1（P2-A/B） | 视觉/窗口化/模型规模/mouth 偏移/协议变体已做；TFRB/GCI、NASS 配方消融、3090 延迟未做 |
 
@@ -99,9 +88,9 @@
 
 | Benchmark | 论文 | 实测 | 结论 |
 |---|---|---|---|
-| RealSSA-Sim SI-SNRi / SDRi | 7.7 / 8.2 | mean **7.774/8.479**；ch0（论文通道）**7.977/8.452** | ✅ 复现（±0.3，两通道均成立） |
-| RealSSA-Real DNSMOS | 3.276 | P808 **3.3365** / OVRL **2.7941**（full4；full3 的 3.3285/2.7901 作废） | ⚠️ 口径已定：论文是 P.835 且属 RealSSA-trained ckpt（2026-10-30 校正） |
-| LRS2-2Mix SI-SNRi / SDRi | 14.1 / 14.7 | 官方跨语料 7.029/7.713；自训 8.618/9.042；+对比 8.858/9.270 | ❌ 未复现（差 5–7 dB） |
+| RealSSA-Sim SI-SNRi / SDRi | 7.7 / 8.2 | mean **7.774/8.479**；ch0（论文通道）**7.977/8.452** | 数值接近；通道和权重身份待核 |
+| RealSSA-Real DNSMOS | 3.276 | P808 **3.3365** / OVRL **2.7941**（full4；full3 的 3.3285/2.7901 作废） | ⚠️ 口径已定：论文是 P.835，论文结果使用 RealSSA-trained ckpt（2026-10-30 校正） |
+| LRS2-2Mix SI-SNRi / SDRi | 14.1 / 14.7 | 官方权重 7.029/7.713；自训 8.618/9.042；+对比 8.858/9.270 | ❌ 未复现（差 5–7 dB） |
 | LRS3-2Mix / VoxCeleb2-2Mix | 16.4/16.7、10.5/11.8 | 无数据 | ❌ 不可复现 |
 | 参数量 / MACs | 0.5 M / 10.6 G | 537,697 / 10.611 G | ✅ |
 | 延迟（3090） / RAM / 显存 | 51.3 ms / 125.3 MB / 364.7 MB | 未测（A800：47.1/56.5 ms 单窗） | ⚠️ 硬件不同 |
@@ -187,15 +176,15 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 
 1. ~~论文未公开~~：2026-10-23 已公开（arXiv:2610.32749），训练配方、消融设置、评测协议已可逐条核对
    （见 `deepdive-20261108/11`）；论文宣称的“无时域 lookahead/120 ms”与代码不符，改列本表第 9 条。
-2. 官方 `falcon.pt` 只在 `conf.yml` 里留下 `LRS3_complex_nonmoving`/ep714；它与 RealSSA-Sim 的“同分布”是推断，不是作者确认。
+2. 官方 `falcon.pt` 在 `conf.yml` 留有 `LRS3_complex_nonmoving`/ep714 线索；权重的实际训练数据和与 RealSSA-Sim 的关系等待作者或原始训练记录确认。
 3. LRS2 14.1 需要 LRS2-trained ckpt；作者 issue #1 未见回复。
-4. ~~RealSSA-Real DNSMOS 3.276 的列名未定~~：2026-10-30 已定，论文用 **P.835** 且属 RealSSA-trained ckpt；本机 full4 OVRL 2.7941 不可直接比。
+4. ~~RealSSA-Real DNSMOS 3.276 的列名未定~~：2026-10-30 已定，论文用 **P.835**，论文结果使用 RealSSA-trained ckpt；本机 full4 OVRL 2.7941 不可直接比。
 5. LRS3-2Mix / VoxCeleb2-2Mix 数据不存在。
 6. `concat_layers[2]` 5,568 参数闲置是否为上游漏调用。
 7. F15 DDP all_gather 在 8 卡的挂死风险未验证。
-8. 真实 best ckpt（ep99）未评测；跨 seed 稳定性未知（目前单 seed）。
+8. best ckpt（ep99）已补测，结果为 8.726/9.122；跨 seed 稳定性仍待比较（目前单 seed）。
 9. RealSSA-Sim near 负样本无法忠实复现（官方未发布）。
-10. 3090 延迟/RAM/显存不可复现（硬件不在手）。
+10. 3090 延迟、RAM 和显存尚待在对应硬件上测量。
 
 ---
 
@@ -220,7 +209,7 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 `Experiments/checkpoint/Falcon/{conf.yml,best_k_models.json}`；`configs/LRS2_2Mix_Paper_8gpu.yml`；
 `tools/repro/phase2/*`。
 **仓库外一手证据（P0 需固化）**：`/root/tmp/realssa_sim_eval_official.log`、`/root/tmp/p2d_eval_{epoch86_full,contrastive_epoch124}.log`、
-`/root/tmp/p2d_train|p2d_near_train/**/metrics.csv`、`/root/data/falcon_eval/realssa_real_mean_full3/{summary.json,*.csv}`、
+`/root/tmp/p2d_train|p2d_near_train/**/metrics.csv`、`/root/data/falcon_eval/realssa_real_mean_full3/{summary.json,*.csv}`（历史 full3 因窗口起点错误作废；full4 结果见当前复现状态）、
 `/root/data/RealSSA-Real`、TOS 归档 `_MANIFEST.json`/`_archive_done.json`。
 
 ---
@@ -231,7 +220,7 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 |---|---|
 | 2026-10-24 | 9 个子代理并行深挖（01–09），Lead 汇总 00；独立复核 RealSSA-Sim/LRS2/DNSMOS 数字、证据审计、基准矩阵与规划 v2 |
 
-> 维护约定：本目录只追加、不删除；数字口径以 01–09 对应章节为准，本文若与 01–09 冲突，以 01–09 为准。
+> 历史记录按实验日期阅读；现行数据与协议口径见 [当前复现状态](../../STATUS.md)。
 
 ## 11. 执行记录（2026-10-24）
 
@@ -239,7 +228,7 @@ G4（训练复现）⏳ 部分（单机小配方）；G5（消融/效率）⏳ �
 
 - **证据入库**：9 类关键 eval/训练证据复制进 `docs/verification/phase2/`；`.gitignore` 放行 verification 日志/CSV。
 - **补测（已完成）**：ep99 全量 **8.726/9.122**（真实最佳 val 13.2014）+ 官方权重全量 **7.029/7.713**
-  （恢复被覆盖的跨语料证据，与 Phase-1 完全一致）。
+  （恢复被覆盖的官方权重评测证据，与 Phase-1 完全一致）。
 - **可复现**：`--near-mode other-speaker`（s2 负样本）落地并逐条验证；CSV 空串回归修复；conda lock 去绝对路径。
 - **文档**：6 份过期状态加 2026-10-24 校正；`AGENTS.md` 更新（lock 115 行、deepdive 入口、证据入库约定）。
 - **回归**：`tools/repro/tests` **109 passed / 6 skipped / 0 failed**；`studio/tests` 35/2。

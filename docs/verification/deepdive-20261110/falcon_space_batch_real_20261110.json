@@ -1,0 +1,40 @@
+{
+  "sample_index": 0,
+  "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+  "mix_sha256": "2f3d3e7ebf1f6089e625ce14c6d487aee5aff3e79843b2a3a4f2b35d3cebcce6",
+  "target": "/root/data/falcon_lrs2_2mix/tt/target/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+  "target_sha256": "aeeea8ea33b3b26e42bd380af015300901518bded450ca60cb3e2e84350ae3d0",
+  "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+  "mouth_sha256": "416cef8430415e7f93dd6f16f3d425ed12b66185abb104f6d09d327983477386",
+  "checkpoint": "/root/.cache/falcon_weights/falcon.pt",
+  "checkpoint_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "sample_rate": 16000,
+  "ref_sample_rate": 16000,
+  "audio_samples": 32000,
+  "mouth_shape": [
+    50,
+    96,
+    96
+  ],
+  "mouth_dtype": "uint8",
+  "times": "center timestamps 320+640*i samples",
+  "device": "cpu",
+  "torch_threads": 4,
+  "torch": "2.8.0+cu128",
+  "window_count": [
+    4,
+    4
+  ],
+  "clip_count": [
+    0,
+    0
+  ],
+  "batch1_rms": 0.09576760232448578,
+  "batch4_rms": 0.09573481231927872,
+  "delta_rms": 0.0002722377539612353,
+  "delta_max": 0.004360079765319824,
+  "delta_pct": 0.28426915407180786,
+  "batch1_sisdr": 9.548262764008644,
+  "batch4_sisdr": 9.558404385796248,
+  "duration_s": 5.187336101196706
+}

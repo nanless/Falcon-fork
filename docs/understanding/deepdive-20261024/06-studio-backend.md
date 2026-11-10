@@ -1,9 +1,11 @@
 # 06 深挖：Studio 后端 / 运行时 / 窗口化实时推理协议
 
-> 小组：项目理解 + 模型复现规划深挖（成员 `studio-backend`）。只读分析，只写本文件。
+> **2026-11-10 校正：** 本页为历史后端快照。A800 47.1/56.5 ms 只有历史文档表格，未找到原始计时记录；副本一致性基于当次输入和设备。`infer_file.py` 在本环境不能正确读取 PCM32/float WAV；Studio 依赖约束及测试数量也已变化。当前窗口、格式和证据边界见[评测与应用说明](../20261110-evaluation-and-apps.md)及 [Studio 使用说明](../../../studio/README_zh.md)。
+
+> 小组：项目理解与模型复现规划（`studio-backend`）。
 > 仓库 `/root/code/github_repos/Falcon-fork`，分支 `repro/phase2`，HEAD `2beec38`。
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800，本任务期间 GPU 空闲）；
-> 权重 `/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`（HF 缓存，未联网、未训练、未改源码）。
+> 权重：`/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`，使用 HF 缓存。
 > 基线：旧文档 `docs/understanding/06-studio-backend.md`（1252 行，commit `7576854`）。
 > 证据标记：`[代码]` 直接读源码；`[验证]` 本次实际运行（命令/输出见 §8）；`[推断]` 由源码/实测合理推断；`[文档]` 引用仓库已有文档/日志。
 
@@ -11,13 +13,11 @@
 
 ## 0. 一句话结论
 
-**Studio 后端是一个只绑定 loopback、单进程、单模型、串行推理的「固定 2 s 窗口 + 每 0.5 s 全窗重算」演示服务，不是生产服务，也不是论文意义上的流式模型。**
+**Studio 后端使用 loopback 监听、单进程和串行推理：每 0.5 s 对固定 2 s 窗口重新计算一次。**
 本次用**真实发布权重**验证了：协议算术（32000/8000/1280/22720/9280/320）、strict 加载（small 525+137 keys、big 517+137 keys）、
-Studio 副本与训练侧代码在 CPU 上**全链路 bit-identical（max|Δ|=0）**；实测 A800 单窗前向 **p50 47.1 ms（small）/ 56.5 ms（big）**、
-本机 CPU **543 ms/窗**（> 500 ms hop，**CPU 无法实时**）。
-同时必须把边界说清：P2-B 的 300 条配对显示**窗口化协议本身比整句评测低 −1.912/−1.730 dB（small）、−2.318/−2.133 dB（big）**，
-README 的 **51.3 ms 是 3090 上单次 2 s 片段前向**、不是端到端流式延迟；因此 Studio 能证明「模型/权重/协议跑得通、且与训练代码等价」，
-**不能**证明「论文流式质量/延迟已复现」，更不能直接对外部署（无鉴权、单推理锁、Origin/Host 只允许 loopback）。
+Studio 副本与训练侧代码在 CPU 上**全链路 bit-identical（max|Δ|=0）**；历史表记录 A800 单窗前向 **p50 47.1 ms（small）/ 56.5 ms（big）**、
+CPU **543 ms/窗**；原始计时记录尚未找到，这些数字需要重新测量。
+P2-B 的 300 条配对实验中，窗口化相对整句的 SI-SNRi / SDRi 差值为 small **−1.912 / −1.730 dB**、big **−2.318 / −2.133 dB**。论文 51.3 ms 是 RTX 3090 的单次 2 秒片段前向值。Studio 的 loopback 访问、单推理锁与窗口化协议见下文；部署和端到端延迟还需结合实际设备与访问方式测量。
 
 ---
 
@@ -152,7 +152,7 @@ future  ：pred[30720 : 30720+320]            （下一窗交叉淡化用，serv
 
 **稳态输出年龄**（[推断]，由 `app.js:621-624` 公式）：发送时采集头 `samples = end + r`，`r ∈ [0, HOP)`；
 输出块末端真实时间 = `end − GUARD`。所以**算法侧输出滞后 = GUARD + r ∈ [80, 580) ms（均值 ≈330 ms）**；
-再加推理（实测 GPU 47–57 ms）与播放缓冲，对应 `studio/README.md:99` 的“设计延迟约 0.7–0.8 s”。
+再加推理和播放缓冲（历史表的 GPU 47–57 ms 尚需原始计时记录或重测），对应 `studio/README.md:99` 的“设计延迟约 0.7–0.8 s”。
 
 ### 2.3 REST 接口（[代码] + [验证] §3.3/§8）
 
@@ -391,9 +391,11 @@ same abs samples [30720,32000): n=1280 max|d|=0.0043 rms(d)=0.0012 rms(sig)≈0.
 scale window tail 30720:32000 x10 -> emitted chunk 7988/8000 样本变化，max|d|=0.0172，rms(out)≈0.0003
 ```
 
-说明：`GUARD` 丢掉的只是“最不可靠的末端 80 ms”，**不能消除全窗统计带来的未来依赖**；这正是必须重算 + 淡化拼接的原因（§2.5）。
+说明：`GUARD` 丢掉的只是“最不可靠的末端 80 ms”，**全窗统计仍会引入未来依赖**；这正是必须重算 + 淡化拼接的原因（§2.5）。
 
-### 3.4 CPU / GPU 单窗延迟（真实权重，A800）
+### 3.4 CPU / GPU 单窗延迟（历史表，A800）
+
+下表保留历史记录；原始计时数据尚未找到，结论需重测确认。
 
 命令：`FalconRuntime(variant).load(device)` 后先额外 warm 一次，再各计时（含 `preprocess_mouth`、H2D/D2H、`.cpu().numpy()`）：
 
@@ -440,7 +442,7 @@ Studio 实际运行以 conda `falcon` 为准，测试/权重验证均已通过�
 
 ## 4. 缺陷与风险
 
-### 4.1 P1（影响“能不能实时/能不能演示好”）
+### 4.1 P1：实时处理与演示体验
 
 | 编号 | 问题 | 证据/影响 |
 |---|---|---|
@@ -461,7 +463,7 @@ Studio 实际运行以 conda `falcon` 为准，测试/权重验证均已通过�
 | R10 | `status()` 可能出现 `error` 与 `ready=True` 并存（手动注入 error 时）；正常路径不可达但字段语义不互斥 | `server.py:113-116`（`ready` 只看 runtime）+ 旧文档 §5.6 |
 | R11 | `Engine.infer` 的 finally 先 `busy=False` 再 `infer_lock.release()` → 存在“busy 已 false、锁未放”的竞态窗口，错误文案两种 | `server.py:163-172` |
 | R12 | 依赖表不可用：`requirements.txt` 版本下限不存在；`requirements-lock.txt` 与项目环境不符；`check_environment.py` exit 1；`einops` 死依赖 | §3.5；`studio/requirements.txt:3-9` |
-| R13 | `read_wav` 的 32-bit float 路径不校验范围/不 clip，与 WS 路径 `max|amp|≤4` 不对称 | `infer_file.py:34-38`；`server.py:49` |
+| R13 | `read_wav` 在当前环境无法正确读取 PCM32/float WAV；WS 路径校验 `max|amp|≤4` | `infer_file.py:34-38`；`server.py:49` |
 | R14 | 无 metrics/健康检查/结构化日志；只有 `/api/status` 与 uvicorn 日志；`clipped_samples/window_rtf/warning` 前端未消费 | `server.py:105-116,262-267` |
 | R15 | 模型切换必须断开所有 WS；`/api/load` 不能指定设备/本地 checkpoint；设备只能启动时 `--device`/`FALCON_DEVICE` | `server.py:137-146,183,294` |
 | R16 | 模块级 `app = create_app()`（`autoload=True`）与 `main()` 再建 Engine → `uvicorn server:app` 会在 lifespan 自动加载；import 本身不加载（旧文档“不 autoload”表述不准确） | `server.py:182-192,287,332` |
@@ -525,16 +527,13 @@ Studio 实际运行以 conda `falcon` 为准，测试/权重验证均已通过�
 
 ## 6. 对复现演示的价值与边界
 
-### 6.1 Studio 是不是“生产可用/论文指标”的真实证据？
+### 6.1 Studio 的验证与使用范围
 
-**不是；它是“模型 + 权重 + 协议能跑通且与训练代码等价”的真实证据，是 demo 级工具。** 具体：
+当时的对照完成了真实权重 strict 加载；在同一个 2 s 窗口、CPU 和 eval 条件下，Studio 与训练侧全链路的最大差值为 0。`infer_file` 与整句评测可复用同一运行时。
 
-- **能证明**：真实权重 strict 加载；2 s 窗口前向数值正确（与训练侧 CPU 全链路 max|Δ|=0）；协议/时间轴/错误处理完整；
-  GPU 单窗远低于 hop（A800 0.094–0.113 RTF）；`infer_file` 与评测整句路径可复用同一运行时。
-- **不能证明**：生产可用（无鉴权/并发/限流/超时/浏览器矩阵，§4.3）；论文流式质量（窗口化自身 −1.9~−2.3 dB，P2-B）；
-  论文延迟（51.3 ms 是单窗前向，不是端到端，§6.2）；CPU 实时（543 ms > 500 ms）。
-- **对复现报告的正确用法**：定性演示/样例生成可用 Studio；**报 SI-SNR/SDR 必须用整句评测协议**（`audio_visual_test.py`），
-  若要用 Studio 的实时数字，必须显式标注“windowed protocol，比整句低约 2 dB，首窗仅 0.58 s 真实上下文”。
+Studio 可用于定性演示和样例生成。整句 SI-SNR/SDR 使用 `audio_visual_test.py` 的评测协议；Studio 的窗口化结果应同时记录窗口、首窗上下文与拼接方式。P2-B 所测的窗口化结果比整句低约 1.9–2.3 dB；首窗有约 0.58 s 的真实上下文。
+
+论文中的 51.3 ms 是单窗前向值；历史表中 CPU 单窗为 543 ms，hop 为 500 ms。部署条件、设备和更完整的计时记录见 §4.3 与 §6.2。
 
 ### 6.2 与论文“streaming / 51.3 ms on 3090”的关系
 
@@ -546,7 +545,7 @@ Studio 实际运行以 conda `falcon` 为准，测试/权重验证均已通过�
 | Studio 设计端到端延迟 | **≈0.7–0.8 s** | 0.5 s hop + 80 ms guard + 推理 + 播放缓冲 | `studio/README.md:99` |
 | 算法输出年龄（发送时） | **80–580 ms（均值≈330 ms）** | `GUARD + r`，`r∈[0, HOP)` | `app.js:621-624` 推导 |
 
-**结论**：论文 51.3 ms 与 Studio 的“每 hop 一次 2 s 前向”属于**同一量级的单窗前向**（本次 A800 实测同量级；论文口径是否含冻结 FRCNN/预处理未说明，见 §7-Q1），
+**结论**：论文 51.3 ms 与 Studio 的“每 hop 一次 2 s 前向”属于**同一量级的单窗前向**（历史 A800 表格所记数值同量级，原始计时记录待补；论文口径是否含冻结 FRCNN/预处理未说明，见 §7-Q1），
 但论文数字**不包含** 0.5 s 分块、80 ms 保护带、播放缓冲、采集/编码/网络，也不是“每输出一个采样”的延迟；
 Studio 的 0.7–0.8 s 才是系统级设计延迟。论文的 “causal/streaming” 是**窗口级因果**（窗口内时间因果 mask + 全窗统计），
 不是样本级流式；Studio 的 2 s/0.5 s 包装与论文延迟口径**不可直接互换**。
@@ -563,8 +562,7 @@ Studio 的 0.7–0.8 s 才是系统级设计延迟。论文的 “causal/streami
 
 ### 6.4 对复现计划的具体建议
 
-- **演示端**：用 Studio（本地 loopback）做定性样例；GPU 机器上 small/big 都能实时（p50 47/56 ms），
-  CPU 机器明确告知会跳窗（543 ms/窗）。
+- **演示端**：用 Studio（本地 loopback）做定性样例；历史表记录 small/big p50 为 47/56 ms、CPU 为 543 ms/窗；使用目标机器重新测量端到端表现。
 - **指标端**：一律用整句评测（`audio_visual_test.py` + 修正后的 metrics）；不要把 Studio 窗口化输出当作论文数字来源。
 - **等价性**：引用本文 §3.2(b) 的“真实权重全链路 max|Δ|=0”作为“Studio 副本 = 训练代码”的证据；
   引用 §3.2(c) 说明 big 只能推理、无训练侧代码。
@@ -612,11 +610,10 @@ git rev-parse --short HEAD                                      # 2beec38
 | 8 | `python studio/scripts/check_environment.py` | **exit 1**：torch/numpy/Pillow 三项版本不符 | <2 s |
 | 9 | `git log 7576854..HEAD -- studio/{server.py,falcon_runtime.py,infer_file.py,configs,tests,falcon_model,scripts/check_environment.py}` | 空（后端自基线未改）；`607352c` 仅前端诊断 | <1 s |
 
-### 8.3 限制（诚实声明）
+### 8.3 验证范围
 
-- 未启动 `server.py`/uvicorn、未占端口、未跑浏览器（遵守任务约束）；协议层用 `TestClient` + `verify_studio_backend.py` + 仓库测试覆盖。
-- 未联网、未下载、未训练；权重来自 `/root/.cache/falcon_weights/` 的 HF 缓存符号链接。
-- GPU 延迟是 **A800** 而非论文 3090；只用于“是否实时”的判断，不作论文对标。
+- 协议层用 `TestClient` + `verify_studio_backend.py` + 仓库测试覆盖。
+- 权重来自 `/root/.cache/falcon_weights/` 的 HF 缓存符号链接。
+- GPU 延迟历史表的设备为 **A800**；原始计时记录待补。
 - “窗口位置/未来扰动”实验用**合成随机音频 + 随机嘴部帧**，模型输出幅度很小，故只报告相对量；真实语音/真实嘴部下的绝对幅度会不同，但“非逐样本流式”的结论由代码结构（全窗 GroupNorm/无状态接口）支撑。
-- 未修改任何源码/配置/他人文档；本文是唯一写入文件。
 - 与 07 前端文档的分工：前端 `bounded()/falconDiagnostics()` 的完整行为、Node 测试、Space 差异以 07 为准，本文只列与后端契约相关部分。

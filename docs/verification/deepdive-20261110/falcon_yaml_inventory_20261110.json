@@ -1,0 +1,410 @@
+[
+  {
+    "path": ".github/workflows/pages.yml",
+    "lines": 55,
+    "sha256": "a99633d2721249778c23f403ae0826a3877a886f178e833da5d7df4b97114c14",
+    "status": "full_read",
+    "key_values": {
+      "model": null,
+      "train_loss": null,
+      "gpus": null,
+      "epochs": null,
+      "accumulate": null,
+      "batch": null,
+      "samples": null,
+      "train_dir": null,
+      "beta_epochs": null,
+      "seed": null
+    }
+  },
+  {
+    "path": ".github/workflows/tests.yml",
+    "lines": 124,
+    "sha256": "e12e85253f1da3eab13839c27295acaa31303d4308c72e702991a600e00585a7",
+    "status": "full_read",
+    "key_values": {
+      "model": null,
+      "train_loss": null,
+      "gpus": null,
+      "epochs": null,
+      "accumulate": null,
+      "batch": null,
+      "samples": null,
+      "train_dir": null,
+      "beta_epochs": null,
+      "seed": null
+    }
+  },
+  {
+    "path": "Experiments/checkpoint/Falcon/conf.yml",
+    "lines": 168,
+    "sha256": "c7cd50c27ff5f438bd900c82e2e5095ef731a9f9d2b4cd6baa547131a929c1ce",
+    "status": "full_read",
+    "key_values": {
+      "model": "SpeakerContrastiveV2",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "epochs": "1000",
+      "accumulate": null,
+      "batch": "4",
+      "samples": null,
+      "train_dir": "${DATA_ROOT}/small/DataPreProcess/LRS3_complex_nonmoving/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/conf.yml",
+    "lines": 161,
+    "sha256": "19630c0807814bfad91582ac47e304d8efd395c83388327d68cea9148208b8a7",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "3",
+      "accumulate": "5",
+      "batch": "4",
+      "samples": "2000",
+      "train_dir": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/version_0/hparams.yaml",
+    "lines": 139,
+    "sha256": "e040f11afd171b9b9c598b35dc16d41d457520689286d987ca5b1317941d5e4f",
+    "status": "full_read",
+    "key_values": {
+      "model": null,
+      "train_loss": null,
+      "gpus": null,
+      "epochs": null,
+      "accumulate": null,
+      "batch": null,
+      "samples": null,
+      "train_dir": null,
+      "beta_epochs": null,
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/Falcon.yml",
+    "lines": 173,
+    "sha256": "a0a8149c4ebcba688140cb9c0823f0192b28e3f833b4dae14407d2ce6a9f82f3",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "epochs": "1000",
+      "accumulate": null,
+      "batch": "4",
+      "samples": null,
+      "train_dir": "--",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/LRS2_2Mix.yml",
+    "lines": 155,
+    "sha256": "e55dd79a2bdedd1ce1af1fbc10b1e307412720ee7b294e9a1f10baa7e1314a35",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "100",
+      "accumulate": null,
+      "batch": "4",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/LRS2_2Mix_Paper_2gpu.yml",
+    "lines": 155,
+    "sha256": "3f0926ab923c6a707751f5958b44b9225bc17c943e2ecf2a15d609854780c3ca",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "1000",
+      "accumulate": "5",
+      "batch": "4",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/LRS2_2Mix_Paper_2gpu_smoke.yml",
+    "lines": 155,
+    "sha256": "1e06658700dc0f7b98c41ea895bd39153c65b691b0748bd8557275914dd79cd8",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "3",
+      "accumulate": "5",
+      "batch": "4",
+      "samples": "2000",
+      "train_dir": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/LRS2_2Mix_Paper_8gpu.yml",
+    "lines": 159,
+    "sha256": "a20f32ec2b9694767ca6899d1961b2526bcd90238e719322be48643f6ef88516",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": "-1",
+      "epochs": "1000",
+      "accumulate": "1",
+      "batch": "5",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "configs/LRS2_2Mix_Paper_v2.yml",
+    "lines": 175,
+    "sha256": "a6045ee9311a502b4404991f28d414bdf309f777fdaecf267c01cc9d2ec751b8",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_sisdr",
+      "gpus": "-1",
+      "epochs": "1000",
+      "accumulate": "1",
+      "batch": "4",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "beta_epochs": "1000",
+      "seed": "42"
+    }
+  },
+  {
+    "path": "docs/verification/conda-env.yml",
+    "lines": 94,
+    "sha256": "dbd9b3d3604298f7c5a2f4fe06e24ad1666355fa1b1d216d7394b06e99164fb5",
+    "status": "full_read",
+    "key_values": {
+      "model": null,
+      "train_loss": null,
+      "gpus": null,
+      "epochs": null,
+      "accumulate": null,
+      "batch": null,
+      "samples": null,
+      "train_dir": null,
+      "beta_epochs": null,
+      "seed": null
+    }
+  },
+  {
+    "path": "studio/configs/Falcon.yml",
+    "lines": 171,
+    "sha256": "0de67f8994cbf09abdf6004472f8b2f43c7eca9824718a8920d56d077b5782fd",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "epochs": "1000",
+      "accumulate": null,
+      "batch": "4",
+      "samples": null,
+      "train_dir": "--",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "studio/configs/FalconBig.yml",
+    "lines": 166,
+    "sha256": "dbdfe406c79e28f9b467ef8a44c597e87963673b38ebdcebb6397e9d725a2b6e",
+    "status": "full_read",
+    "key_values": {
+      "model": "SpeakerContrastiveV2",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "epochs": "1000",
+      "accumulate": null,
+      "batch": "4",
+      "samples": null,
+      "train_dir": "${DATA_ROOT}/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "tools/repro/phase2/LRS2_2Mix_1gpu.yml",
+    "lines": 153,
+    "sha256": "6af78f11bd177d139f358a466ee8b270c8051af0de912483a0b50689f4b31695",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0"
+      ],
+      "epochs": "100",
+      "accumulate": null,
+      "batch": "4",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "tools/repro/phase2/LRS2_2Mix_near_s2.yml",
+    "lines": 153,
+    "sha256": "1ecd600bbc24acb6b911ee5611a40f403aeca0c3800764ca9533b062a22c22e0",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0"
+      ],
+      "epochs": "130",
+      "accumulate": null,
+      "batch": "4",
+      "samples": "10000",
+      "train_dir": "/root/data/falcon_lrs2_2mix/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "tools/repro/phase2/smoke_lrs2.yml",
+    "lines": 150,
+    "sha256": "8780b5636b0b5e9d64c34aa4fe4b4a0c01d3dc9fe4e993b38edb6fcf4c82f4f0",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "1",
+      "accumulate": null,
+      "batch": "4",
+      "samples": "800",
+      "train_dir": "/root/data/lrs2_2mix/index_smoke/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "tools/repro/phase2/smoke_lrs2_1gpu.yml",
+    "lines": 149,
+    "sha256": "980449ec16a1e949d749fe3640f063bbbf6eab54f10fc23fcf6372445d4d2989",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0"
+      ],
+      "epochs": "1",
+      "accumulate": null,
+      "batch": "4",
+      "samples": "400",
+      "train_dir": "/root/data/lrs2_2mix/index_smoke/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  },
+  {
+    "path": "tools/repro/phase2/smoke_lrs2_bs8.yml",
+    "lines": 150,
+    "sha256": "f38e0d74728790e2ba66cf15dbcdaa2d4e7c17129f26b14e6374b42aff890f73",
+    "status": "full_read",
+    "key_values": {
+      "model": "FalconSpeakerContrastive",
+      "train_loss": "pairwise_neg_snr",
+      "gpus": [
+        "0",
+        "1"
+      ],
+      "epochs": "1",
+      "accumulate": null,
+      "batch": "8",
+      "samples": "800",
+      "train_dir": "/root/data/lrs2_2mix/index_smoke/tr",
+      "beta_epochs": "200",
+      "seed": null
+    }
+  }
+]

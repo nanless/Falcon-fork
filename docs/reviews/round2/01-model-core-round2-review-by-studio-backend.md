@@ -7,11 +7,11 @@
 > 评审人范围（00-round-plan R4 表）：`studio-backend` → 01，指定动作 = **“用 Lead 的脚本复算参数量/形状，验证‘因果’表述”**。
 > 证据：我的独立脚本 `docs/verification/scripts/r4_review_01_exec.py`，日志
 > `docs/verification/runs/r4-review-01-exec.log`；环境 `/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0+cu128，
-> CPU/随机权重；stubs 注入 `timm.DropPath`）。未修改任何源码/被评审文档。
+> CPU/随机权重；stubs 注入 `timm.DropPath`）。
 
 ## 1. 结论
 
-**未通过（阻塞）——原因不是 01 的数据错误，而是流程缺失：R3 未发生。**
+**未通过：R3 尚未执行，当前记录保留在 R2 阶段。**
 
 - 01 的**核心数据断言经我独立执行级复算全部成立**：参数量 537,697 / 11,724,385、逐模块账、`video_bottleneck` Identity、
   金字塔形状 `(251,129)→(126,65)→(63,33)→(32,17)`、STFT 8 ms 自然前瞻（帧 125 首变）、AudioBlock 去 cLNhw 后
@@ -79,7 +79,7 @@ A07 train 返回 tuple、A19 的“1.4e-6”精确数值（我测到的是全模
 
 ### P1-3｜A19 的 1.4e-6 与 02 文档 4.7e-5 的差异需给“扰动协议”说明（沿用 R2）
 
-- 两者不是矛盾而是协议不同（改哪段/改动幅度/mouth 是否固定）。建议 A19 附一行“本数值的扰动协议”，
+- 两者使用不同协议（扰动片段、幅度及 mouth 是否固定）。建议 A19 附一行“本数值的扰动协议”，
   否则 FINAL 读者会误判。
 
 ### 新增 P2（本文）
@@ -137,7 +137,6 @@ A07 train 返回 tuple、A19 的“1.4e-6”精确数值（我测到的是全模
 - 独立执行：`docs/verification/scripts/r4_review_01_exec.py`（参数账/调用计数/因果/开关/死路径/形状链）；
   Lead 的 `verify_model_params.py`、`verify_causality.py` 复跑（`docs/verification/runs/r4-prep-studio-backend.log`：
   单采样点扰动首变 9612（−649 ms）、encoder 首变帧 156 对应 ±128 自然前瞻、separator 首变帧 0 为归一化泄漏）。
-- 未修改源码/被评审文档；`git status` 仍只有 `docs/` 未跟踪。
 - 局限：无真实权重/GPU；A07/A19/A24/A37 等未独立复跑（保持作者 [验证] 标注）；01 的 R3 尚未出现（本复核对 R1 版）。
 
 ---
@@ -148,9 +147,8 @@ A07 train 返回 tuple、A19 的“1.4e-6”精确数值（我测到的是全模
 > `afe00188097e4d7d5ada48dbcdd96703248ea7942233f3b699658e48d2db0058`，与我 round2 评审所据 R1 版 `cd58a08…`（807 行）不同）。
 > 方法：①逐条核对 R3 §9.1 对我 round2 评审 P0/P1/P2/建议的响应；②独立执行验证（新脚本
 > `docs/verification/scripts/r4_incremental_01_r3.py`，日志 `docs/verification/runs/r4-incremental-01-r3.log`）：
-> 使用 Lead 提供的本地真实权重 `/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`（未联网、未下载），
+> 使用 Lead 提供的本地真实权重 `/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`，
 > 覆盖真实权重结构/strict 加载/Studio 运行时加载/真实权重 bit-identical/关键数字复算。
-> 未修改源码与 01 文档。
 
 ### 增量结论
 
@@ -221,4 +219,4 @@ R3 已逐条修复我 round2 评审的 **P0×1、P1×3、P2×4 与 §4 建议 1/
 
 - 命令：`PYTHONPATH=$PWD/docs/verification/stubs:$PWD /root/.venvs/falcon/bin/python docs/verification/scripts/r4_incremental_01_r3.py`
   → 日志 `docs/verification/runs/r4-incremental-01-r3.log`（含 [W0-W4]/[S]/[H]/[F]/[A21]/[D] 全部输出）。
-- 未联网；未修改源码；01 文档 sha256 复核前后均为 `afe00188…d2db0058`（未变化）。
+- 未联网；01 文档 sha256 复核前后均为 `afe00188…d2db0058`（未变化）。

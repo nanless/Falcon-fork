@@ -1,0 +1,36 @@
+{
+  "index": 0,
+  "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+  "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+  "ckpt_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "device": "cpu",
+  "threads": 4,
+  "indices_old_first_10": [
+    0,
+    2,
+    2,
+    4,
+    4,
+    6,
+    6,
+    8,
+    8,
+    10
+  ],
+  "indices_correct_first_10": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "delta_rms": 0.006552285980433226,
+  "delta_max": 0.08121798187494278,
+  "sisdr_old": 9.703734220797427,
+  "sisdr_correct": 9.885974263293537
+}

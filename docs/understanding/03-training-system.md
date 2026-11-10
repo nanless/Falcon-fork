@@ -1,6 +1,8 @@
 # 03 训练系统（入口 / 配置 / Lightning modules / 优化调度 / 训练协议）
 
-> 方向负责人：`train-sys`。行号以当前 `main`（commit `7576854`）为准，静态核对 + 沙箱内
+> **2026-11-10 复核提示：**本文是 `7576854` 的历史记录。当前训练入口已构建可选 logger 并处理设备策略，验证日志已改用通用 `log_dict`；模型和 Separator 已深拷贝配置，因此未定义 `comet_logger`、构造污染导致新配置退化等旧结论不应作为当前故障。`_mdcl_loss` 已有兼容别名。发布权重的训练数据和论文 checkpoint 身份有待确认；10 卡模板与论文实际设备配置分别记录。条件性分桶 DDP 集合通信风险仍需按当前实现评估；有关实际训练和完整推理的证据边界见 [当前状态](../STATUS.md) 与 [数据和训练](20261110-data-and-training.md)。
+
+> 行号以 commit `7576854` 为准；依据静态核对与当时环境的
 > 动态验证（torch 2.8.0 / pytorch_lightning 2.6.6，见 `docs/understanding/VERIFY-ENV.md`）。
 > 证据标注：`[代码]` 直接读源码确认；`[推断]` 由源码合理推断但未直接运行证明；`[验证]` 实际运行脚本确认
 > （脚本与日志见 `docs/verification/scripts/verify_train_*`、`docs/verification/runs/train-sys-*`）。
@@ -9,8 +11,7 @@
 
 **结论：训练系统是一条「YAML → argparse 回填 → 手工逐件实例化 → `pl.Trainer` → 收尾导出」的
 两段式（`__main__` + `main()`）脚本链，核心装配逻辑全部在 `audio_train.py` 的 203 行里；
-LightningModule 只负责损失组合与日志，不负责数据/优化器构造。当前仓库状态下训练入口无法直接运行
-（`comet_logger` 未定义，P0），且模型/优化器/调度器的实例化顺序带来若干可复现性缺陷。**
+LightningModule 只负责损失组合与日志，不负责数据/优化器构造。在 `7576854` 基线上，训练入口曾因 `comet_logger` 未定义而失败；该问题已修复。模型、优化器和调度器的装配顺序见下文和[现行数据与训练说明](20261110-data-and-training.md)。**
 
 - 定位：训练产品线的入口层，上游是 `DataPreProcess/` 产出的 JSON 索引与 `look2hear/datas/` 数据类，
   下游是 `Experiments/checkpoint/<exp_name>/`（`conf.yml`、`epoch=*.ckpt`、`last.ckpt`、
@@ -87,8 +88,7 @@ LightningModule 只负责损失组合与日志，不负责数据/优化器构造
 - 但内容不自洽（P1）：`audionet_name: SpeakerContrastiveV2`（88）在仓库不存在；
   数据路径是 `${DATA_ROOT}/small/DataPreProcess/LRS3_complex_nonmoving/{tr,cv,tt}`（99-102），
   与 README 的 LRS2/LRS3 布局和 `configs/Falcon.yml` 的占位 `--` 都不同；`options.conf_dir` 指向
-  `${DATA_ROOT}/small/configs/small_1.yml`（127）——**说明真正的论文运行不是用 `configs/Falcon.yml`**，
-  而是另一个 `small_1.yml` + `small/` 数据树，发布时做了两次不同的路径匿名化。
+  `${DATA_ROOT}/small/configs/small_1.yml`（127）。该快照记录了 `small_1.yml` 与 `small/` 数据树；发布 checkpoint 的训练配置和论文结果所用权重身份仍待确认。
 - `[推断]` `conf.yml` 大概率由「dump 早于模型实例化」的旧版脚本产生：当前代码里
   `Falcon.__init__` 会写入 `audio_params.causal`/`video_params.causal`（`Falcon.py:1314-1315`），
   `Separator.__init__` 会 `pop` 掉 `repeats`/`shared`（`Falcon.py:991-996`）；实测建模后这两个 dict 变成
@@ -121,7 +121,7 @@ LightningModule 只负责损失组合与日志，不负责数据/优化器构造
 - 训练链实际使用：`adamw` → `torch.optim.AdamW`，`lr=1e-3, weight_decay=0.01`（Falcon.yml:142-144）。`[代码]`
 - 依赖 `torch_optimizer`（3-19）：该包 0.3.0 的元数据声明依赖 `pytorch-ranger>=0.1.1`（`pip show` 实测）。
   本沙箱 venv **缺少 `pytorch_ranger`**，干净进程 `import torch_optimizer` → `ModuleNotFoundError: pytorch_ranger`；
-  这是**沙箱环境缺依赖，不是仓库代码问题**（正常 `pip install -r requirements.txt` 会拉取该依赖）。`[验证]`（见 §8）
+  该环境缺少此依赖；标准依赖安装会一并拉取它。`[验证]`（见 §8）
 
 ### 2.7 `look2hear/system/schedulers.py`（112 行）
 
@@ -569,7 +569,7 @@ AudioVisualLightningModuleNASSv2(
   这是训练能否跑起来的第一阻塞点。
 - **Q2（loss-metric-eval / ops-tests-docs）** `Experiments/checkpoint/Falcon/conf.yml` 的
   `audionet_name: SpeakerContrastiveV2` 不存在；README:165 的评测命令会 `AttributeError`
-  （`audio_visual_test.py:129`）。评测侧是否有 alias/兼容逻辑？我未读完评测入口，请 eval owner 确认。
+  （`audio_visual_test.py:129`）。评测侧是否有 alias/兼容逻辑？现行评测入口见[评测专题](20261110-evaluation-and-apps.md)。
   **R3 补充**：与 04 §2.4/§3.4 对齐后，两条 README 评测命令各有独立失败点——不带 `--ckpt_path` 时
   `_find_best_ckpt` 先 `FileNotFoundError`（无 ckpt）；带 `hf://` 时在 `_load_models_from_ckpt` 的
   `getattr` 抛 AttributeError；若修好类名，还有 §4.5 的 49,081 参数静默错误。
@@ -633,7 +633,7 @@ AudioVisualLightningModuleNASSv2(
 | V15 | **R3** `pl.loggers.TensorBoardLogger("/tmp/tb")`；`grep print_only audio_train.py`；audionet_config 顶层键计数 | TensorBoardLogger → `ModuleNotFoundError: Neither tensorboard nor tensorboardX`（A54）；print_only 调用点 9 处；audionet_config 顶层 11 键（P2-2/P2-4 证据） |
 | V16 | **R3** 读码核对：`NASSContrastiveLoss.n_valid` 无条件 +1；`_mdcl_loss_hard` 返回 batch 均值；`save_hyperparameters` 副作用 | A51/A52 成立（`nass_contrastive_loss.py:77`；`Falcon.py:1448,1462`；`av_litmodule.py:46,223-241`） |
 
-**失败/限制说明**：
+**实验环境与覆盖范围**：
 1. 沙箱 venv 缺 `torchvision`/`cv2`/`espnet`/`pytorch_ranger` → 无法 import `look2hear.datas`（数据类）
    与直接 import `look2hear.system`（需 stub `pytorch_ranger`），因此**没有**真实 dataloader 参与的端到端
    训练（这也符合「无数据/无权重不训练」的约定）。V4 用 dummy 模型隔离验证了 litmodule 逻辑。

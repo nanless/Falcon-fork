@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史评测更新：本地发布权重的训练语料身份尚待确认；论文差距及 epoch 变化涉及多个训练因素；RealSSA-Real full4 修正了 full3 的覆盖缺口，但帧选择和相位配对仍存在协议限制。阈值过滤保留 `loss > -30` 的结果；CSV 文件身份可用哈希核对。比较结果时同时核对样本和评测协议。详见[评测专题](../20261110-evaluation-and-apps.md)和[数据审计](../../verification/deepdive-20261110/data-audit-20261110/README.md)。
+
 # 07 评测入口与 benchmark 数字审计
 
 > W1-07 · 2026-11-08 · 范围：`audio_visual_test.py`(约 875L) 全文、`docs/verification/phase2/**`、`phase1/**` 评测相关、`/root/data/falcon_eval`、`docs/STATUS.md §3` 复现矩阵。
@@ -13,7 +15,7 @@
 3. **5.3e-8 dB 的复现误差**：官方 `falcon.pt` 跑 5 条，`max|Δ|` 对 `P2D-eval-falcon-full.csv` 前 5 行为 5.3e-8 dB（SI-SNRi）、PESQ 2.3e-5；两次历史全量 run 之间 3.3e-7 dB。误差在 float32 内核噪声量级，评测本身确定性足够。
 4. **9,169 与 9,166 两个分母**：RealSSA-Sim 的 SI-SNRi 用 9,169 条，SDRi 与 PESQ 只有 **9,166** 条（3 条 NaN），STATUS 把两个口径写成了同一个数。avg 行可精确定位：LRS2 类 `:3002`、RealSSA-Sim 类 `:9171`，两份逐句 CSV 都能复算。
 5. **−1.6 ~ −2.3 dB 是协议伪影**：整段 vs 分窗，5 句实测 −1.648，300 句历史 −1.912/−2.318。2 s 片段上模拟流式时首窗有 1.42 s 零前缀，这个差值不能反过来解释论文 14.1 与本仓库 7.03 的差距。
-6. **−7.07 dB 来自 ckpt 训练语料**：`README.md:232` 写 `falcon.pt` 来自 `LRS3_complex_nonmoving`（epoch 714），LRS2-2Mix 上是跨语料结果。本机 LRS2 自训 ep124 得 8.858/9.270，仍差 −5.24/−5.43；SI-SNRi 的定义本身与论文同义（§2.3）。
+6. **论文差距原因待核实**：官方权重在 LRS2-2Mix 为 7.029/7.713，自训 ep124 为 8.858/9.270；发布权重训练语料及论文权重身份尚未确认。
 7. **+0.0040 OVRL 与一次确定性错误**：DNSMOS full3 → full4 的均值只涨 0.0040，但 full3 每条估计开头 21,440 样本（1.34 s）恒为 0，属输出确定性错误，4 个值作废（§4.4）。
 8. **覆盖率断言：当时 0 处，2026-11-08 已补**：在 `6c1d5b7` 时点，`audio_visual_test.py` 全文 23 处 `raise`（按 `raise` 语句计）没有一条校验「跑了几条/共几条」，只能靠日志 `utterances=N` 与 `metrics_counts.json.n_utterances` 事后核对；`eval_realssa_real.py` 是在 `2062528` 才补上逐样本 `filled` 断言的（`:428-459`）。2026-11-08 已补三层覆盖率自检（rank 内「计划 vs 实际」、跨 rank 合计、合并 CSV 行数），并加 `--allow-partial`（`9a920ce`）；`raise` 现 28 处（`STATUS.md:141`，`grep -c 'raise '` 同值；其中 27 处为语句，另 1 处是文件头 docstring 的描述）。
 9. **0 条失败句被剔除**：`drop_utt/drop_len` 是永远打印 0 的死代码（`:162-175`）；指标级 NaN 由 `nanmean` 静默跳过，只在 `n_*` 列留痕。这是 §0-4 那个 9,166 的成因。
@@ -120,7 +122,7 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
    └─ n_src==1 → pesq(clean,est,fs) / stoi(clean,est,fs) # :112-114（n_src>1 才记 nan，:115-119）
 ```
 
-- `PIT_SI_SDR` 定义在 `core.py:75-79`：`PITLossWrapper(PairwiseNegSDR("sisdr", zero_mean=True), pit_from="pw_mtx", threshold_byloss=False)`。`threshold_byloss=False` 是必须的——否则 `pit_wrapper.py:227-229` 会把 `loss > -30`（即 SI-SDR > 30 dB 的近完美样本）剔掉，让"做对了"变成 nan。
+- `PIT_SI_SDR` 定义在 `core.py:75-79`：`PITLossWrapper(PairwiseNegSDR("sisdr", zero_mean=True), pit_from="pw_mtx", threshold_byloss=False)`。`threshold_byloss=False` 是必须的——否则 `pit_wrapper.py:227-229` 会保留 `loss > -30`，剔除更低 loss 的样本，让"做对了"变成 nan。
 - **PIT 在本配置下是恒等操作**：`PITLossWrapper.forward(ests, targets)`（`pit_wrapper.py:168-237`）对 `pw_mtx` 先算 `[B,S,S]` 配对矩阵，再 `find_best_perm` 取最优排列后 `mean`。S=1 时矩阵是 1×1，唯一排列就是恒等 → `si_sdr()` 返回值 = 单路 SI-SDR。**不存在"从 2 个输出里挑最好的"**（那是 S=2 才有的行为；本仓库 `n_src=1`，见 §2.1）。
 - `_prepare_pair()`（`core.py:115-129`）里 `ref.expand(..., est.shape[1], ...)`（`:119-120`）只在 S 不匹配时生效，本例 S 相等不触发。
 - 数值口径：SI-SDR `zero_mean=True`（`core.py:76`）；SDR = `fast_bss_eval.sdr_pit_loss(filter_length=512)`（`core.py:69,174`）；PESQ/PSTOI 采样率 16 kHz（`core.py:70`），STOI `extended=False`（`core.py:215`）。
@@ -144,7 +146,7 @@ metrics(mix, clean, estimate, key)                       # allwrapper.py:132
   - `P2D-eval-epoch99-cols-20261031.counts.json` → `"max": 5.329e-15`, `finite_pairs: 3000`
   - `P2D-eval-falcon-full-cols-20261031.counts.json` → `"max": 4.441e-15`, `finite_pairs: 3000`
   - 我自己的 5 句 run → 逐行 `0 / 1.776e-15 / 0 / 1.776e-15 / 0`，max `1.776e-15`
-  → **恒等式真的成立**（这是构造性的：`si-snr_i ≡ si-snr − si-snr_mix` 由 `:105` 直接相减得到，恒等式只能验证"CSV 没被手改"）。
+  → **恒等式真的成立**（这是构造性的：`si-snr_i ≡ si-snr − si-snr_mix` 由 `:105` 直接相减得到，恒等式只验证三列的算术关系，文件身份需用哈希核对）。
 - `metrics_counts.json` 的 `n_utterances` 是**唯一的机器可读覆盖率凭据**（`:768-789`）。
 
 ---
@@ -186,7 +188,7 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 三点容易读错，逐条写清：
 1. **基线是"逐句未处理 mix"，不是"整段/语料级平均 mix"**（`allwrapper.py:104` 每次调用用当条的 `mix`）。这与论文"relative to unprocessed mixture"（`PAPER_ALIGNMENT_20261030.md:145`）同义。
 2. **SI-SDR 对 ŝ 的尺度不变**，但 mix 基线值取决于该条混合的 SIR。实测全 3000 条：`SI-SDR(mix, s1)` 均值 **4.9937**（`P2D-eval-falcon-full-cols-20261031.csv:3002` 的 `si-snr_mix` 列），与 `P2A-report.md:23` 的"SIR 均值 5.01 / 实测 4.97"、`P2F-report.md` 的"baseline 全 3000 条 mean 4.994、std 3.003、median 5.011"三方吻合。**7.029 + 4.994 = 12.023**（`si-snr`）—— 这就是 §1.6 恒等式的物理含义：绝对 SI-SDR ≈ 12 dB，其中 5 dB 来自混合本身。
-3. **不存在"PIT 上界"红利**：target 固定 s1。`P2A-report.md:16` 实测"best-of-s1/s2（PIT 上界）**+0.02 dB**"，`P2F-report.md` §1 独立测得"2-target oracle 上界 **+0.000 dB**"（两处微小分歧见 §7-G6）。→ 用固定 s1 与用"任选一个说话人"评测，差别 ≤0.02 dB，**不构成与他文不可比的理由**。
+3. **不存在"PIT 上界"红利**：target 固定 s1。`P2A-report.md:16` 实测"best-of-s1/s2（PIT 上界）**+0.02 dB**"，`P2F-report.md` §1 独立测得"2-target oracle 上界 **+0.000 dB**"（两处微小分歧见 §7-G6）。→ 用固定 s1 与用"任选一个说话人"评测，差别 ≤0.02 dB，**结果间差异不超过 0.02 dB**。
 
 ### 2.3 与他文 14.1 的口径同义性判定
 
@@ -198,9 +200,9 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 | 归一化 | `normalize_audio=False`，不重标定 | 多数论文同样不重标定 | ⚠️ 需其文声明；本仓库实测"target 按 mix 能量/RMS 缩放 ±0.00"（`P2A-report.md:16`），故不敏感 |
 | SDR 实现 | `fast_bss_eval.sdr_pit_loss(filter_length=512)` | 论文极少声明滤波器长度 | ⚠️ **不可逐位对齐**：512→2048 差 **+0.257 dB**（`P2F-report.md` §1） |
 | 推理协议 | 整段一次前向（2 s clip = 一段） | 离线评测通常也是整段 | ✅ 同义（若其文用流式 2 s 窗，则我方乐观 ~2 dB，见 §2.4） |
-| ckpt | `falcon.pt` = **LRS3** 训练（跨语料） | 各文自训 LRS2 | ❌ **不可比**（这是 7 dB 的主因） |
+| ckpt | `falcon.pt` 训练来源未知 | 论文对应权重身份待核 | ⚠️ 无法确认训练来源及差距原因 |
 
-**结论：口径本身同义，数字不可比的原因是 ckpt 训练语料，而不是 SI-SNRi 的定义。**
+**结论：SI-SNRi 的定义可对照；权重与完整评测协议仍需确认，差距原因尚未确定。**
 
 ### 2.4 分窗协议在 LRS2 上的真实含义（别把它当"论文复现失败"的解释）
 
@@ -260,7 +262,7 @@ SI-SNRi_i     = SI-SNR_i − SI-SNR_mix,i      # allwrapper.py:105
 
 ### 3.3 不可比却并列的数字（需改写表述）
 
-1. **RealSSA-Sim "✅ +0.07/+0.28"**（STATUS §3 第 3 行）：论文 7.7/8.2 = **RealSSA-Sim-trained ckpt + channel-1**；我们 = `falcon.pt`（LRS3）+ channel mean。**两轴同时不同**，不能写 "✅ 复现"。可写的表述：「官方 `falcon.pt` 在 RealSSA-Sim tt（channel mean，整段）得 7.774/8.479；与论文 7.7/8.2 数值接近，但 ckpt 与通道均不同，属**巧合级吻合**，不构成复现证据」。
+1. **RealSSA-Sim 与论文结果**：论文报告 7.7/8.2；发布 `falcon.pt` 在 RealSSA-Sim tt、四通道均值和整段前向下得到 **7.774/8.479**。论文使用 channel-1；发布 checkpoint 与论文表格权重的身份及训练语料仍待确认。两组数据的通道与权重身份应随结果一起说明。
 2. **ch0 行 "✅ +0.28/+0.25"**：通道轴修好了（对齐论文 channel-1），但 **ckpt 轴仍不同** → 只能写「口径向论文靠拢一步」，不能写"复现"。
 3. **LRS2 7.029/7.713 与 14.1/14.7 并列**：STATUS 已标注"跨语料基线，不是论文列"（正确）；但同列排版容易被读成"复现失败"，换成"复现"两字则是错的——两个数分别是 LRS3 训练权重与 LRS2 训练权重的结果。建议补一列"ckpt 训练集"。
 4. **ep124 "距论文 −5.24/−5.43"**：这是**训练预算差**，不是协议差。同表里"官方权重 −7.07/−6.99"才是语料不可比项。两者混在同一"结论"列里会误导。
@@ -434,7 +436,7 @@ PYTHONPATH=$REPO OMP_NUM_THREADS=4 $ENV $REPO/tools/repro/phase2/compare_variant
 我做的逐段 diff（`full3/per_segment.csv` ⨝ `full4/.../realssa_real_dnsmos_per_segment.csv`，54 段全匹配）：
 - OVRL `|Δ|` 按段长分层：**0–30 s（n=4）mean 0.0820 / max 0.2472**；30–60 s（n=11）mean 0.0422 / max 0.1244；60–200 s（n=39）mean 0.0288 / max 0.0777。
 - 最大 OVRL 变动段 = `outdoor/street_side-2/2-1`（29.68 s，静音前缀占 4.5%）。
-- **mix_* 四列逐位相同** → 差异确实只来自分离输出，DNSMOS 侧无漂移（与 `P2E-report.md:281` 的声明一致）。
+- **mix_* 四列逐位相同**；该对照不能单独证明 DNSMOS 侧所有条件均无漂移（与 `P2E-report.md:281` 的声明一致）。
 
 **为什么幅度这么小（可验证的解释）**：`speechmos/dnsmos.py:12` `INPUT_LENGTH = 9.01`、`:65-73` 以 **9.01 s 窗 + 1 s hop** 滑动取均值。1.34 s 静音只落在首窗，占该窗内容的 15%，而段长 20.6–153.4 s（`run_metadata.json` 合计 5,037.6 s / 54 段，均 93.3 s），首窗在 N 个窗里只占 `1/N`。→ 均值移动 +0.002~+0.008 MOS 完全可解释，且**短段影响更大**（实测就是 0–30 s 组 |Δ| 最大）。
 
@@ -460,7 +462,7 @@ PYTHONPATH=$REPO OMP_NUM_THREADS=4 $ENV $REPO/tools/repro/phase2/compare_variant
 9. **`_merge_results` 先删分片再返回**（`:801-804`）：`metrics_rank{r}.csv` 只在崩溃时留下，正常结束即消失 → 事后无法核对"逐句行是否被改动"，只能靠 `metrics_counts.json` + 恒等式。
 10. **DNSMOS 的"整段"其实是 9.01 s 窗均值**（`speechmos/dnsmos.py:12,65-73`），且 `score_array` 在 `peak>1` 时会先做峰值归一（`eval_dnsmos.py:81-83`）。→ 与论文"DNSMOS=3.276"的自定义实现细节不可能逐位对齐。
 11. **PESQ 在 3 条 RealSSA-Sim 句子上报 `No utterances detected`**（`P2E-realssa-sim-eval-official.log:5,8,11`），`SDR` 有 6 次 `singular matrix`、`PESQ` 有 3 次。这些 NaN 被 `nanmean` 静默吞掉，**只有 `n_*` 列能看出来**（而 STATUS 引用的 10-24 版 CSV 还没有 `n_*` 列）。
-12. **恒等式通过不代表数字正确**：`si-snr_i ≡ si-snr − si-snr_mix` 是 `allwrapper.py:105` 直接相减得到的，恒等式只证明"CSV 没被手改"，不证明数值对。真正的外部校验是 `P2F` 的独立实现（1.8e-7 dB）。
+12. **恒等式检查与独立指标检查**：`si-snr_i ≡ si-snr − si-snr_mix` 是 `allwrapper.py:105` 直接相减得到的，恒等式核对了这三列的算术关系；CSV 文件身份可通过哈希核对。真正的外部校验是 `P2F` 的独立实现（1.8e-7 dB）。
 
 ---
 
@@ -599,5 +601,3 @@ PY
 期望输出（我实测）：`sdr/sdr_i 7.451e-08`、`si-snr/si-snr_i 5.317e-08`、`pesq 2.265e-05`、`stoi 1.789e-09`。
 
 ---
-
-*本报告不含任何远端仓库写入；所有 GPU 命令使用空闲卡并已释放（`nvidia-smi` 前后均 0 MiB）。*

@@ -2,7 +2,7 @@
 
 > 目标：让 `audio_train.py` / `audio_visual_test.py` 在 conda `falcon` 环境可运行、指标语义正确、
 > 数据层对 mono 与 RealSSA 兼容、视觉骨干可导出，并建立可复跑的冒烟与回归。
-> 上游分支：`main`（= 上游 `689555c`）；工作分支：`repro/phase1`（不 commit，最终由用户/Lead 决定）。
+> 上游分支：`main`（= 上游 `689555c`）；工作分支：`repro/phase1`。
 > 计划全文：`docs/REPRODUCTION_PLAN.md` §6/§7。
 
 ## 任务分工
@@ -30,8 +30,7 @@
   - train 模式 est sha256 = `5f01a596…e7545a`，sep_emb `[1,1,112,251,129]` sha256 = `8a8e5c2a…bddc16`
 - 视频前端（seed 1，`[1,1,50,88,88]` randn）：输出 `[1,512,50]`，sha256 = `2afcea08…dd40`
 
-> 任何 Phase1 改动后若这些 sha256 变化，必须给出理由（预期：T5 的 `_mdcl_loss` 别名/`return self`/`__all__`
-> 都不应改变数值；T1–T4 不触碰前向）。
+> Phase 1 用这些 sha256 比较修复前后的输出。T5 修改 `_mdcl_loss` 别名、`return self` 和 `__all__`，T1–T4 的修改范围不含前向计算。
 >
 > **video 指纹约定（QA 已定位）**：`video_forward` 是在 **FRCNN 默认 `training=True`、未调用 `.eval()`**
 > 下生成的（此时 BatchNorm3d 用批内统计）。若先调 `.eval()` 会得到不同结果（sum 5955.7 而非 7832.2563）。

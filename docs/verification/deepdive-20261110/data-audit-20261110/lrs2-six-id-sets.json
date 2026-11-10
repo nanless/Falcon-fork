@@ -1,0 +1,56 @@
+{
+  "index": "/root/data/falcon_lrs2_2mix/tt/mix.json",
+  "index_sha256": "ff6b029b11951879fe0775bb12c4ea729f8ff43539529549839aa0c840c958ad",
+  "index_n": 3000,
+  "index_duplicates": 0,
+  "results": [
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon-full.csv",
+      "csv_sha256": "a9b9488e8b555abbd98573ecad224cdb65c15bf5863c4ef0ba230bcb3ec1ceb4",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-falcon-full-cols-20261031.csv",
+      "csv_sha256": "abd8098ad4fbf5dd3396e4bf2583bea3f36d3e896a9f2c87c2488ee18acc06e1",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch86.csv",
+      "csv_sha256": "7121115195636a5aa301667bb60f42c68623596280a4f1de444ecd9fe72f70e4",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch99.csv",
+      "csv_sha256": "1d6db53ac8c5001f9df51a29a5d381a62c9a593cd086b35f9aef5ec6e90f3651",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch99-cols-20261031.csv",
+      "csv_sha256": "8ebab90864b73dd85e1422ff67f91b480cbeef52c4475712144d617f2bbe2348",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    },
+    {
+      "path": "docs/verification/phase2/P2D-eval-epoch124-contrastive.csv",
+      "csv_sha256": "c9dbf7803f088501e8ccb1cd51876f0d888dbe87b734da5c033b47a7e1f7c701",
+      "n": 3000,
+      "duplicates": 0,
+      "missing": 0,
+      "extra": 0
+    }
+  ]
+}

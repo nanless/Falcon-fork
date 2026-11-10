@@ -1,0 +1,824 @@
+[
+  {
+    "path": "docs/verification/scripts/data_pipe/make_fake_data.py",
+    "line_count": 121,
+    "sha256": "0bcaeb9298b0f171d6ab1ba766a5225c8009b711a6d38ef2fccfba9ed421efeb",
+    "purpose": "Build a synthetic LRS2/LRS3-layout data tree + near-source wavs for data-pipeline verification.",
+    "markers": [
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/tmp/dp-verify"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/data_pipe/verify_dataset2.py",
+    "line_count": 462,
+    "sha256": "93790b021a2bacfc62164ce35336f65db7001dd9c85ff548c448549243c8549f",
+    "purpose": "Dynamic verification of the Falcon data pipeline with synthetic fixtures (v2).",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "device_mentioned",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/dp-verify",
+      "/tmp/dp-verify/data",
+      "/tmp/dp-verify/does_not_exist/cv",
+      "/tmp/dp-verify/index",
+      "/tmp/dp-verify/index_badlen",
+      "/tmp/dp-verify/index_badnear",
+      "/tmp/dp-verify/index_nearmiss",
+      "/tmp/dp-verify/shortmouth",
+      "/tmp/dp-verify/silence",
+      "/tmp/dp-verify/stereo",
+      "/tmp/dp-verify/stubs",
+      "/tmp/dp-verify/stubs:",
+      "/tmp/dp-verify/verify_dataset2.py"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/data_pipe/verify_p0_eval.py",
+    "line_count": 276,
+    "sha256": "ec92291967492aa1e543ff3cdb7a9015675d2b9ffbffe0d71b93806c199cefc2",
+    "purpose": "R2-prep supplement: reproduce P0 (mono wav -> eval Dataset collapse) with real models,",
+    "markers": [
+      "stub_or_path",
+      "device_mentioned",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/dp-verify",
+      "/tmp/dp-verify/stubs",
+      "/tmp/dp-verify/stubs:",
+      "/tmp/dp-verify/verify_p0_eval.py"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/data_pipe/verify_preprocess.py",
+    "line_count": 166,
+    "sha256": "38c136bd7fc690c43995f9e45016a84d020ecc868563a64d2f7d0a4380c01401",
+    "purpose": "Verify DataPreProcess scripts + check_avspeech_dataset.py with subprocess runs.",
+    "markers": [
+      "stub_or_path",
+      "possible_write_or_process"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/dp-verify",
+      "/tmp/dp-verify/stubs",
+      "/tmp/dp-verify/stubs:",
+      "/tmp/dp-verify/verify_preprocess.py"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/data_pipe/verify_realweight_eval.py",
+    "line_count": 127,
+    "sha256": "06a95b6c7ab8ff25cc2bb60494e089424795a6e99a1a0a40f02f753c15a8e5e7",
+    "purpose": "R3: real-weight verification of the evaluation data path (falcon.pt, local, no network).",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights/falcon.pt",
+      "/root/.venvs/falcon/bin/python",
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/dp-verify/realweight",
+      "/tmp/dp-verify/stubs",
+      "/tmp/dp-verify/stubs:",
+      "/tmp/dp-verify/verify_realweight_eval.py"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_r3_verify.py",
+    "line_count": 173,
+    "sha256": "b2de095372fac34ea0bbf60623a07090d3223261270600fec818149421bee7bb",
+    "purpose": "model-core R3 验证：真实权重（falcon.pt / falcon-big.pt）+ concat[2] 闲置 + Studio 副本 diff + 探针分界敏感性。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_verify.py",
+    "line_count": 420,
+    "sha256": "44437ebfe4c157a3610fa85976c3b15ad3199786979899ed545f6a78a950eb4e",
+    "purpose": "model-core 独立验证脚本：构造链 / 参数量拆解 / 逐级形状 / 逐组件因果性 / MDCL 数学 / 死代码。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_verify2.py",
+    "line_count": 200,
+    "sha256": "8cb78a75069cb622e81d1925963b4ecea9418f0ce366bc44af1151e28f272d77",
+    "purpose": "model-core 补充验证：因果性定量（感受野/新增延迟）、视频分支因果性、说话人头与 NASS 损失。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_verify3.py",
+    "line_count": 88,
+    "sha256": "10b3d7e2a01258e5dbbcd8ed40b95213cf2c5c664b2c478ad51d129646f0d4f0",
+    "purpose": "model-core 补充验证 3：返回类型契约 + MDCL 非零损失/梯度/β 语义（用相关信号使 sim>margin）。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_verify4.py",
+    "line_count": 154,
+    "sha256": "2f80ea6d1c67c243ba8a16f147d714abb50da6774147b185485fa0806c52d725",
+    "purpose": "model-core 补充验证 4：定量 lookahead（严格/非严格因果的界）、视频分支因果性。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/model_core_verify5.py",
+    "line_count": 124,
+    "sha256": "30f90d14f9579e741d4cf1d1fce17abda19fd0bff9e892ea965cb5b0380d4b10",
+    "purpose": "model-core 补充验证 5：参数量手算复核 + causal 开关是否改变行为 + config 污染（dict.pop）复现。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/pil_stub/PIL/Image.py",
+    "line_count": 56,
+    "sha256": "efa3e94f936c62e0efcb7bdc3c011c61928bcb1da7689b50e53dfe2729f6702a",
+    "purpose": "Stub Pillow.Image (see PIL/__init__.py). No real image codec.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/pil_stub/PIL/__init__.py",
+    "line_count": 12,
+    "sha256": "82f5384ecb7a867d358532c13a4642734179e0e7923bfbad516c18d9fbed0fa2",
+    "purpose": "Minimal offline stand-in for Pillow used ONLY by studio-backend verification.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/r4_incremental_01_r3.py",
+    "line_count": 208,
+    "sha256": "69f3fde063414f37fff51ff5c7e2427be211d6c189f99379e6994c1569f00275",
+    "purpose": "R4 incremental re-review of 01-model-core R3 (sha afe00188...) — independent verification.",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "device_mentioned",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights/",
+      "/root/.cache/falcon_weights/falcon-big.pt",
+      "/root/.cache/falcon_weights/falcon.pt",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/r4_review_01_exec.py",
+    "line_count": 194,
+    "sha256": "80ca4d143359f60134e8d580f4d9ecf9f720fd087386eaecbf8b022234623880",
+    "purpose": "R4 execution-level re-verification for `docs/understanding/01-model-core.md` (reviewer: studio-backend).",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/review_05_data_pipeline_checks.py",
+    "line_count": 129,
+    "sha256": "28e3646f8a09acbf75bd85aced7ad2ec74c762bdbd81098e58ab7297fe2b7c4d",
+    "purpose": "R2 复核（layers-dsp → 05-data-pipeline）：执行级验证 A60/A64/A65/A68 与关键契约。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights/falcon.pt",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/review_model_core_checks.py",
+    "line_count": 331,
+    "sha256": "1b6e0f1e1804289c8db14a0e477345a9d1469a99fe2b0ba6bafaf9aa298e444d",
+    "purpose": "R2 评审用独立复核脚本：核对 01-model-core.md 的关键断言（不改源码）。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_causality.py",
+    "line_count": 131,
+    "sha256": "6bea659577db4d7b809862a111407eb1644b868e7a5b224f742616fc6cd62147",
+    "purpose": "Lead 独立验证脚本 2：因果性 / 有效前瞻（lookahead）精确定位。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_eval_flow_04.py",
+    "line_count": 218,
+    "sha256": "a787a09d24fbb4b92d2baedc4ec4731a93008fe3b369cbb1069e81428b11b203",
+    "purpose": "R1 verification for docs/understanding/04: audio_visual_test.py evaluation flow.",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "device_mentioned",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_layers_dsp.py",
+    "line_count": 403,
+    "sha256": "377ddf5bb1e02b75d8497f35b033e960862729786a3cc0406e0cf33e97c59c90",
+    "purpose": "layers-dsp 验证脚本：STFT/iSTFT 等价性、归一化语义、因果性、层形状/参数。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_losses_04.py",
+    "line_count": 262,
+    "sha256": "cebf2cbc6550102506b031c33197b48d8c83b0cd90e9fb283b89d95f7f9012c9",
+    "purpose": "R1 verification for docs/understanding/04: loss functions (pairwise/single/multi neg-SDR,",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_macs_04.py",
+    "line_count": 58,
+    "sha256": "1cc2b99ff29895e76935395486a295f118be8b9a7b27771ef845495413ac4411",
+    "purpose": "R1 verification for docs/understanding/04: evaluated_mac_params.py methodology and README numbers.",
+    "markers": [
+      "stub_or_path",
+      "device_mentioned",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_metrics_04.py",
+    "line_count": 108,
+    "sha256": "014631f5ef6553d3e1601e4d2d977aed7a9b27f5b30d6f587544601df72673be",
+    "purpose": "R1 verification for docs/understanding/04: metrics trackers (wrapper/allwrapper/splitwrapper)",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/tmp/04_metrics"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_model_params.py",
+    "line_count": 133,
+    "sha256": "13851e668f21b0f34722d3c3feb812d76bcfaa2a533f140a7ae00ba8c8709f55",
+    "purpose": "Lead 独立验证脚本 1：模型结构 / 参数量 / 形状 / 因果性 / 死代码。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_r2_causality_conditions.py",
+    "line_count": 163,
+    "sha256": "dbe21fe2f20abd5b6cda08ea7874a442ec945597d8c3d055f27030ec8bc2f317",
+    "purpose": "R2 评审用：统一「因果性探针」的可复现条件表（回答 02 文档 1.2e-03 vs 01 文档 1.4e-6 的口径差异）。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_r2_review_03.py",
+    "line_count": 128,
+    "sha256": "552ebf22666d3887c93003acf8f3abab091d82cdd3b4909b0c01e47e35f64f2b",
+    "purpose": "R2 独立复核脚本：评审 docs/understanding/03-training-system.md 的关键断言。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "device_mentioned",
+      "possible_write_or_process"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/tmp/r2_mini.ckpt"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_r3_layers_revision.py",
+    "line_count": 216,
+    "sha256": "69a52db3d0c85c33ad128c623eea4d207ebf725604681c04d80ef3efbd0cf4f0",
+    "purpose": "R3 修订用复核：A36'/§4.1 采样级/ A19 协议表 / A49 逐级 / A57 行号 / §2.1 计数 / PL 依赖链。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_r3_studio_weights.py",
+    "line_count": 87,
+    "sha256": "9ba27f5229990052cfd7f9367c671b7486b0dd1b0d8644908c8187d72808bfec",
+    "purpose": "R3 复核：真实权重下 Studio 副本与训练副本的 state_dict 对齐 + CPU 数值一致性。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights/falcon.pt",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_r3_weights_04.py",
+    "line_count": 130,
+    "sha256": "f0057f8911dd7a6a7e0f812756c482aed0b77125418e39d524d12e51969411c3",
+    "purpose": "R3 真实权重检查（Lead 已下载 /root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}）：",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights",
+      "/root/.cache/falcon_weights/{falcon.pt",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_real_weights.py",
+    "line_count": 179,
+    "sha256": "94a235a226be73ecb731134562dedefc5db6785128ba42be48931bd43376b368",
+    "purpose": "Lead 独立验证脚本 3：真实发布权重（falcon.pt / falcon-big.pt）格式、strict 加载、双代码库一致性。",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.cache/falcon_weights",
+      "/root/.cache/falcon_weights/falcon-big.pt",
+      "/root/.cache/falcon_weights/falcon.pt",
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_studio_backend.py",
+    "line_count": 524,
+    "sha256": "ee089c9755f695ac4e49a2363d4f1e21cf99c68975c916e63309f1cb305bb6c1",
+    "purpose": "Studio backend verification (studio-backend / task-6).",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "device_mentioned",
+      "possible_write_or_process",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/tmp/x.pt"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_config_mutation.py",
+    "line_count": 18,
+    "sha256": "6b2cca4ae1d39d7fec780fef8f00dd371f0f4583d8cfd35a54d8298a59fd291d",
+    "purpose": "audio_params before:; audio_params after :; video_params before:",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_ddp_bucket_gather.py",
+    "line_count": 104,
+    "sha256": "a727432b715a61406b63c9e62cf0ae860a9f0445f05b8e1c7b5fa5612748fd27",
+    "purpose": "[ddp2-probe] starting fit (asymmetric buckets expected); [ddp2-probe] fit finished OK",
+    "markers": [
+      "stub_or_path",
+      "device_mentioned",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_imports.py",
+    "line_count": 46,
+    "sha256": "c0c51f30f5b157a9f702754c68361cdf279b54515cccb3848c9fbe5e639ebee4",
+    "purpose": "Probe: import chain of look2hear.system / look2hear.utils under an installed",
+    "markers": [
+      "stub_or_path",
+      "device_mentioned"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_litmodules.py",
+    "line_count": 205,
+    "sha256": "ccb6b1d5579cebc0b172cd1c2e8b4abf0f7eeb0ca030ceb5a415e4bdc7b9f173",
+    "purpose": "no module docstring; manual review required",
+    "markers": [
+      "stub_or_path",
+      "device_mentioned",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_pl_contract.py",
+    "line_count": 129,
+    "sha256": "73fba1e7d364e28b3dab6d1b6f9b9f718f1e250c26cb2ce2b99751f08ff6c50b",
+    "purpose": "no module docstring; manual review required",
+    "markers": [
+      "checkpoint_or_load",
+      "device_mentioned",
+      "random_input"
+    ],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r2_frcnn_shape.py",
+    "line_count": 13,
+    "sha256": "e826b290b901135a09b7d0164081109f78c2f20f250167a928d208019eff30aa",
+    "purpose": "frontend3D:; backend_out:",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r2_numpy_dtype.py",
+    "line_count": 6,
+    "sha256": "fbff5d36ec6f833d1dd389937dd6524e7ce86676ac7447e1687fa0321567a6d5",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r3_convdump.py",
+    "line_count": 60,
+    "sha256": "4e6a3be1d7885c3f149c9bb064b8d20e8d8aff11cb1369ed4e99edf39826148e",
+    "purpose": "R3 执行级验证 B: 最小复现 audio_train.py:82-84 的 conf.yml dump（monkeypatch Trainer/comet_logger），",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load",
+      "possible_write_or_process"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/dp-verify/index/cv",
+      "/tmp/dp-verify/index/tr",
+      "/tmp/dp-verify/index/tt",
+      "/tmp/repro_run",
+      "/tmp/repro_run/Experiments/checkpoint/repro_conf_dump/conf.yml"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r3_eval_pollution.py",
+    "line_count": 39,
+    "sha256": "733306fa4bc2d8b076f89d1ebbb8224df4eb6368fc9ec53ca331e485f3eba2b4",
+    "purpose": "R3 执行级验证 A: 建模污染 config 后重建模型 → 参数量下降 + strict=False 静默丢权重。",
+    "markers": [
+      "stub_or_path"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork",
+      "/root/code/github_repos/Falcon-fork/Experiments/checkpoint/Falcon/conf.yml",
+      "/root/code/github_repos/Falcon-fork/configs/Falcon.yml"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r3_polluted_eval.py",
+    "line_count": 33,
+    "sha256": "22ed2df7e697879031da2e93d1daa4fdaa542329049a93e7ece04333451e1bfb",
+    "purpose": "no module docstring; manual review required",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork",
+      "/tmp/repro_run/Experiments/checkpoint/repro_conf_dump/conf.yml"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r4_chain_causal.py",
+    "line_count": 18,
+    "sha256": "e31e6ccfaa411f206306330f500cad577ff68a2a1c127f4d63d15382d97470ed",
+    "purpose": "no module docstring; manual review required",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork",
+      "/root/code/github_repos/Falcon-fork/configs/Falcon.yml",
+      "/root/code/github_repos/Falcon-fork/docs/verification/stubs"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r4_layers_causal.py",
+    "line_count": 176,
+    "sha256": "7c99c015da98e80f240618fa00b4972b5e796fbb3e3be55b68998e1b96ae9e8e",
+    "purpose": "R4 执行级验证：02-layers-dsp 的归一化 / STFT / 注意力因果性声明独立复核。",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python",
+      "/root/code/github_repos/Falcon-fork"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_r4_params.py",
+    "line_count": 15,
+    "sha256": "121e404fca2e7cc1af698779a715dc7479e369962c1b593eb71c299e89fa3089",
+    "purpose": "no module docstring; manual review required",
+    "markers": [
+      "stub_or_path"
+    ],
+    "literal_paths": [
+      "/root/code/github_repos/Falcon-fork",
+      "/root/code/github_repos/Falcon-fork/configs/Falcon.yml",
+      "/root/code/github_repos/Falcon-fork/docs/verification/stubs"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_train_undefined_globals.py",
+    "line_count": 29,
+    "sha256": "5fb4a7833313594cc3b627808fa5ca8739511ed941cbc081b35bec06f8765d3f",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/scripts/verify_video_04.py",
+    "line_count": 71,
+    "sha256": "e6567b0b3a585f7f82a91e4cb2509e103522d95fee980ce5814f587ff3d34bab",
+    "purpose": "R1 verification for docs/understanding/04: videomodels (FRCNN + variants).",
+    "markers": [
+      "stub_or_path",
+      "checkpoint_or_load"
+    ],
+    "literal_paths": [
+      "/root/.venvs/falcon/bin/python"
+    ],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/cv2.py",
+    "line_count": 12,
+    "sha256": "cf5fe046ae2c92bff53b7f60870942556e6bf0331c2a2a222f3928c7b351a080",
+    "purpose": "Minimal cv2 stub: only cvtColor(RGB2GRAY) and flip are referenced in transform.py.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/matplotlib/__init__.py",
+    "line_count": 6,
+    "sha256": "7fc5d3b3810e94cfb6a03bacd9738a66595998778c2d642994b57479699a1e71",
+    "purpose": "Minimal matplotlib stub: repo datas import pyplot but never plot in the data path.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/matplotlib/axes.py",
+    "line_count": 6,
+    "sha256": "87debf9934f1c2a8a1677e0a706a4183e0f27f2d04b14864b8ce1cf65c61b822",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/matplotlib/colors.py",
+    "line_count": 2,
+    "sha256": "083816d34fce95fcf43ec90f08b885d26b673f3bc7269aed4af23bbd8ed0d848",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/matplotlib/figure.py",
+    "line_count": 2,
+    "sha256": "af82365bbc92cef37ae085e9b914d248d41fe1b06ae4b992e120d71b6957d693",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/matplotlib/pyplot.py",
+    "line_count": 45,
+    "sha256": "d3c0b8950bd8348b4ce421f833d7d95134b96a5cdd11de66543c3052609857d7",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/torchvision/__init__.py",
+    "line_count": 1,
+    "sha256": "2feb07980fae8d773d9ca9aaddeb9887fd1a06ac559b899ab229c9a4c1759f48",
+    "purpose": "Minimal torchvision stub (only transforms.Grayscale is used by the repo datas).",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/torchvision/models/__init__.py",
+    "line_count": 17,
+    "sha256": "27afc601967c375bfc02c49caf2e93e8b4c83976f6676d7cf5ef73df66fa6c91",
+    "purpose": "torchvision.models stub: only pulled in by torchmetrics image extras at import time.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/data_pipe/torchvision/transforms.py",
+    "line_count": 61,
+    "sha256": "aecd9a8a593590d83633d4c115f936dd218a91aa3b012070d1e16903f0ac3467",
+    "purpose": "Faithful-enough stubs: Grayscale / Compose / Normalize / RandomCrop / CenterCrop.",
+    "markers": [
+      "stub_or_path",
+      "random_input"
+    ],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/timm/__init__.py",
+    "line_count": 6,
+    "sha256": "18feaa4e278da5924e60e7daea183cb07b1b630fbfc5aa108a4d38228725a49a",
+    "purpose": "Minimal local stub of `timm` for offline static/dynamic verification.",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/timm/models/__init__.py",
+    "line_count": 1,
+    "sha256": "82cadb6b4a60ee7d462336cb66c011f0627d4e8892865b988c780315126adccd",
+    "purpose": "no module docstring; manual review required",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/timm/models/layers.py",
+    "line_count": 29,
+    "sha256": "9428c78c2470b25446cd3e6428e21b45059c4fd80e9bb0b93cf3798e9d38500d",
+    "purpose": "Faithful re-implementation of timm.models.layers.DropPath (drop_path=0 -> identity).",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  },
+  {
+    "path": "docs/verification/stubs/typeguard.py",
+    "line_count": 10,
+    "sha256": "c741117411435da65183d464c352ec78dce144b3fdc67b8b5057beb9ff528da1",
+    "purpose": "Stub for `typeguard.check_argument_types` (removed in typeguard>=3).",
+    "markers": [],
+    "literal_paths": [],
+    "review_status": "full"
+  }
+]

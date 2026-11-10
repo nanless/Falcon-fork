@@ -12,6 +12,7 @@
 [English](README.md) | **中文**
 
 > 本目录是 [Falcon](../README.md) 仓库的实时演示部分。论文：[arXiv:2610.32749](https://arxiv.org/abs/2610.32749)。训练与评测代码见仓库根目录 README。
+> 窗口时间、离线评测和 Space 的区别见[评测与应用详解](../docs/understanding/20261110-evaluation-and-apps.md)；当前结果及未解决问题见[复现状态](../docs/STATUS.md)。
 
 > **🎙️ 在线体验：** <https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/>（Chrome）。在线版运行在 GPU 服务器上，摄像头和麦克风数据会发送到该服务器。本文其余部分介绍本地安装。
 >
@@ -29,7 +30,7 @@ Falcon Studio 在 Mac 或带 NVIDIA GPU 的 Linux 上实时运行 Falcon 音视�
 4. 默认使用 **自动跟踪**。正对摄像头、露出嘴部，等绿色嘴部轮廓和 **AUTO** 取景框跟上后，点击 **开始分离**。
 5. 想实时听到结果时，先戴上耳机，再打开 **耳机实时监听**（默认关闭）。
 6. 停止后可以 **试听** 或 **导出 WAV**。在 **分离结果** 和 **原始混合** 之间切换，可以试听或保存分离后的声音，或者模型收到的麦克风原始输入，两者按同一时刻对齐。浏览器最多保留 5 分钟可导出的录音；超过后实时分离和会议输出仍会继续。
-7. 界面中的 **停止** 会先把最后约 1 秒的语音分离完，再释放设备（再点一次立即停止）；退出整个应用时，在终端窗口按 **Control-C**。
+7. 点击 **停止** 后，界面会尝试处理尾部再释放设备；再次点击可立即停止。排空等待有 8 秒超时，推理过慢时尾部可能未全部处理。退出整个应用时，在终端窗口按 **Control-C**。
 
 界面首次打开为英文，可随时在右上角切换 **English / 中文**。切换语言不会中断采集、更换模型或清空录音。
 
@@ -96,7 +97,9 @@ Chrome 在切换到会议窗口后仍会继续采集摄像头画面；其他浏�
 | 拼接 | 相邻输出短暂交叉淡化；以带限重采样转换到设备采样率 |
 | 过载 | 有界队列；算不过来时跳过过时窗口，不让延迟累积 |
 
-首次输出需要约 0.58 秒有效输入，再加上计算时间。每次开始或重新锁定目标时，在左侧补 1.42 秒静音并沿用该目标的首帧有效嘴部画面，使第一段输出从真实采集起点开始，不再丢弃开头的字；补入的上下文不写入两条录音。录制不足一个步长时点停止，也会补齐并处理，保存长度截至点击停止的时刻。起始段的分离质量可能与拥有完整真实上下文的窗口不同。稳态的设计延迟约 0.7–0.8 秒（0.5 秒步长 + 80 ms 上下文 + 推理 + 播放缓冲）。模型没有可复用的流式状态，每一步都重新计算完整的 2 秒窗口，所以这是滑动窗口推理，不是原生流式模型。在 Apple M5 Pro 上，一个 2 秒窗口在 Metal 上约 0.12 秒，在 CPU 上约 0.65 秒，CPU 可能需要跳过部分窗口。
+首窗按设定需要约 0.58 秒有效输入，再加上计算与播放时间；开头不足的 1.42 秒历史补零，并沿用首个有效嘴部帧。起始段的分离质量可能与完整真实上下文不同。正常停止会尝试补齐和处理尾部，但如果 8 秒排空超时，尚未完成的尾部可能丢失。
+
+每个步长重新计算完整 2 秒窗口，模型在窗与窗之间不保留隐藏状态。80 ms 是输出块距窗尾的余量；窗口内全窗归一化使输出依赖该窗口的其他位置。实际延迟还受采集、排队、推理和播放缓冲影响。历史 Apple M5 Pro / A800 耗时未保存逐次原始测量；持续超过 0.5 秒出块预算时会跳过过时窗口。
 
 自动跟踪得到的是关键点引导的方形嘴部裁剪，不是生成训练数据时的完整人脸对齐，因此实时输入和训练条件会有差异。大幅转头、遮挡和光照变化都可能降低效果。
 
@@ -116,18 +119,18 @@ Chrome 在切换到会议窗口后仍会继续采集摄像头画面；其他浏�
 ./scripts/doctor.sh --check-only                 # 只诊断：不 bootstrap、不安装
 ```
 
-`auto` 依次尝试 CUDA、Metal，GPU 预热失败时退回 CPU。在 Linux 上，先安装 CUDA 版 PyTorch（见 pytorch.org）和依赖，然后运行 `python server.py --device cuda`，用 Chrome 打开终端里显示的地址；`.command` 启动入口和 BlackHole 仅适用于 macOS。启动脚本会复用本目录中可用的 `.venv`，否则使用 iCloud 之外的 `~/Library/Caches/FalconStudio/venv`；安装缺失依赖必须显式运行 `./scripts/bootstrap.sh --yes`，并优先使用固定版本的 `requirements-lock.txt`。支持 Python 3.10–3.12（推荐 3.11）；可用 `FALCON_PYTHON=/path/to/python3.11` 指定解释器，用 `FALCON_VENV=/path` 指定环境目录，用 `./scripts/bootstrap.sh` 只安装不启动。
+`auto` 依次尝试 CUDA、Metal，GPU 预热失败时退回 CPU。在 Linux 上，先安装 CUDA 版 PyTorch（见 pytorch.org）和依赖，然后运行 `python server.py --device cuda`，用 Chrome 打开终端里显示的地址；`.command` 启动入口和 BlackHole 仅适用于 macOS。启动脚本会复用本目录中可用的 `.venv`，否则使用 iCloud 之外的 `~/Library/Caches/FalconStudio/venv`；安装缺失依赖必须显式运行 `./scripts/bootstrap.sh --yes`，并优先使用固定版本的 `requirements-lock.txt`。支持 Python 3.10–3.12（推荐 3.11）；可用 `FALCON_PYTHON=/path/to/python3.11` 指定解释器，用 `FALCON_VENV=/path` 指定环境目录，用 `./scripts/bootstrap.sh --yes` 安装依赖而不启动；无 `--yes` 时不会安装包，但可能先创建环境目录。
 
 `--checkpoint` 在 `launch.sh`、`server.py` 和 `infer_file.py` 上都可用（权重要与所选 small/big 模型匹配）；服务端还接受 `/api/load` 的 `{"variant": "small", "checkpoint": "..."}`，并由 `/api/status` 回显已加载检查点的文件名与 SHA-256。已能导入 torch、numpy、Pillow 的解释器（`FALCON_PYTHON`、`FALCON_VENV` 或 `FALCON_MANAGED_ENV=1`）会原样复用，绝不会被安装或升级；`FALCON_MANAGED_ENV=1` 下若该检查失败，则直接报错而不会安装。`bootstrap.sh` 会先打印将安装/变更的包，只有加 `--yes` 才继续；`doctor.sh --check-only` 完全跳过 bootstrap，直接使用给定解释器。
 
 ### 离线处理一段录音
 
 ```bash
-ffmpeg -i input.mp4 -ac 1 -ar 16000 mix.wav
+ffmpeg -i input.mp4 -ac 1 -ar 16000 -c:a pcm_s16le mix.wav
 python infer_file.py --audio mix.wav --mouth mouth.npy --out target.wav --model JusperLee/Falcon
 ```
 
-`mouth.npy` 是目标说话者 25 fps 的 96×96 灰度嘴部裁剪，形状为 `(T, 96, 96)`（也支持 `.npz` 和 `.pt`）。`--checkpoint` 可以传入本地权重文件或 `hf://<org>/<repo>/<file>`，代替模型默认的权重（`server.py` 同样支持）。
+`mouth.npy` 是目标说话者 25 fps 的 96×96 灰度嘴部裁剪，形状为 `(T, 96, 96)`（也支持 `.npz` 和 `.pt`）。仓库 LRS2 转换数据的 `(T,96,96,3)` 三通道 `.pt` 需先在新文件中转换为三维灰度，并核对视频与音频时间。当前实现建议使用 **16 kHz 单声道 16 位 PCM WAV**：32 位整数 PCM 会被误当作 float，标准 float WAV 在本机 Python 3.11 下会被读取库拒绝。`--checkpoint` 可传入本地权重或 `hf://<org>/<repo>/<file>`。
 
 ### Python API
 
@@ -196,4 +199,4 @@ for t in tests/*.mjs tests/*.cjs web/*.test.cjs; do node "$t"; done
 
 设备启动会显示具体阶段，预览、音频模块等步骤超时后会释放设备并允许重试。设备列表加载不会阻止开始分离。运行中会分别提示麦克风停止送入数据、输入接近静音、缺少有效嘴部画面、音视频未对齐或模型响应慢。
 
-若需排查，可在浏览器开发者工具控制台执行 `JSON.stringify(window.falconDiagnostics(), null, 2)`，提供设备/浏览器版本和返回内容。该诊断只包含采样计数、帧数、输入输出能量和状态，不包含音频、图像或 Cookie。它不能替代真实录音的音质检查。
+若需排查，可在浏览器开发者工具控制台执行 `JSON.stringify(window.falconDiagnostics(), null, 2)`，提供设备/浏览器版本和返回内容。该诊断只包含采样计数、帧数、输入输出能量和状态，不包含音频、图像或 Cookie。音质可通过实际录音检查。

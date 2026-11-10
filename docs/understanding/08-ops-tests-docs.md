@@ -1,14 +1,15 @@
 # 08 运维、测试、CI、文档与配置一致性
 
+> **2026-11-10 更新：**本文记录 `7576854` 的代码与当时测试。训练入口的 `comet_logger` 未定义问题已修复；评测快照中的 `SpeakerContrastiveV2` 尚未由当前模型模块导出，需按现行说明准备兼容配置。Studio 当前 torch 约束为 `>=2.8,<3`，numpy 约束为 `>=2.2,<3`。现行操作与验证见[当前状态](../STATUS.md)、[评测与应用专题](20261110-evaluation-and-apps.md)及依赖文件。
+
 > 负责人：`ops-tests-docs`（R1 初稿 v1 → **R3 修订 v2**；依据 `docs/reviews/round1/08-ops-tests-docs-review-by-studio-backend.md`，逐条响应见 §9.1）
 > 版本哈希：R1 评审基线 sha256 = `75692199722df17160157529bb95073e47787e471369f352afe0844869084b98`；R3 交付 sha256 见 §9.1 末行（写入前计算）
 > 分析对象：commit `7576854`（`git log --oneline -1`，工作区干净，只有未跟踪的 `docs/`）
 > 证据约定：`[代码]` 直接读源码；`[推断]` 由源码/文档推断；`[验证]` 本轮实际运行命令确认。
-> 本轮约束：未修改任何源码/脚本/配置；未 `pip install`；未下载权重；未 commit。
 
 ## 1. 子系统职责与总体位置
 
-**一句话结论**：本域覆盖 Falcon 的两条"最后一公里"——①Studio 的 macOS/Linux 一键安装与启动链（`studio/scripts/` + 两个 `.command` + `server.py` 的 CLI/端口/浏览器逻辑）；②仓库的"可信度基础设施"——测试矩阵（8 个 Node 测试全部可跑且通过；4 个 pytest 文件在注入仓库内最小 PIL stub 后可完整运行）、CI 发布（Pages 仅 main + 公开仓库）、依赖策略（Studio 用"范围下限 + 精确 lock"，训练侧基本不锁），以及四份 README 与代码的逐条一致性审计。**本域最重要的产出不是复述 README，而是偏差清单**：共确认 **2 个 P0**（`audio_train.py` 训练入口因未定义变量必然崩溃；README 给出的评测命令因 `conf.yml` 的 `audionet_name` 无法 import 必然崩溃）、**若干 P1/P2**（`best_k_models.json` 的 `${ROOT}` 占位路径、根 requirements 缺 `huggingface_hub`、`evaluated_mac_params.py` 硬编码 CUDA、项目页 `large/Dolphin.wav` 大小写、公网在线 demo 与本地 loopback 限制冲突（D22）等）。
+**一句话结论**：本域覆盖 Falcon 的两条"最后一公里"——①Studio 的 macOS/Linux 一键安装与启动链（`studio/scripts/` + 两个 `.command` + `server.py` 的 CLI/端口/浏览器逻辑）；②仓库的"可信度基础设施"——测试矩阵（8 个 Node 测试全部可跑且通过；4 个 pytest 文件在注入仓库内最小 PIL stub 后可完整运行）、CI 发布（Pages 仅 main + 公开仓库）、依赖策略（Studio 用"范围下限 + 精确 lock"，训练侧基本不锁），以及四份 README 与代码的逐条一致性审计。偏差清单记录当时的 **2 个 P0**（其中训练入口问题已修复）（`audio_train.py` 训练入口因未定义变量必然崩溃；README 给出的评测命令因 `conf.yml` 的 `audionet_name` 无法 import 必然崩溃）、**若干 P1/P2**（`best_k_models.json` 的 `${ROOT}` 占位路径、根 requirements 缺 `huggingface_hub`、`evaluated_mac_params.py` 硬编码 CUDA、项目页 `large/Dolphin.wav` 大小写、公网在线 demo 与本地 loopback 限制冲突（D22）等）。
 
 ### 1.1 范围与位置
 
@@ -25,7 +26,7 @@
 
 ### 1.2 本域 Top 结论（详见 §4.7 偏差清单）
 
-1. **P0** 训练入口不可运行：`audio_train.py:170` 使用未定义的 `comet_logger`（全仓库仅此一处出现），`pl.Trainer(...)` 构造即 `NameError`；根 `requirements.txt` 也没有 `comet_ml`。[代码+验证（全仓库 grep）]
+1. **历史 P0（当前已修复）** 旧版训练入口不可运行：`audio_train.py:170` 使用未定义的 `comet_logger`（全仓库仅此一处出现），`pl.Trainer(...)` 构造即 `NameError`；根 `requirements.txt` 也没有 `comet_ml`。[代码+验证（全仓库 grep）]
 2. **P0** README 给出的评测命令不可运行：`Experiments/checkpoint/Falcon/conf.yml:88` 写 `audionet_name: SpeakerContrastiveV2`，但 `look2hear/models/__init__.py:1-2` 只导出 `Falcon` / `FalconSpeakerContrastive`；`audio_visual_test.py:129` 用 `getattr(look2hear.models, ...)` → `AttributeError`。本环境注入 stub 后实测 `hasattr(look2hear.models,'SpeakerContrastiveV2') == False`。[验证]
 3. **P1** `best_k_models.json` 的 5 个 key 是字面量 `${ROOT}/Falcon/epoch=*.ckpt`；`audio_visual_test.py:83-94` 只做 `os.path.exists(best_path)`，**不展开 `${ROOT}`**，且仓库里没有任何 `*.ckpt`（被 `.gitignore:24` 忽略）→ 不传 `--ckpt_path` 时评测最终 `FileNotFoundError`（`audio_visual_test.py:103-107`）。[代码+验证（json 解析/存在性）]
 4. **P1** 根 `requirements.txt`（29 行）没有声明 `huggingface_hub`，而 README 的 `--ckpt_path hf://...` 命令在 `audio_visual_test.py:323-326` 需要它 → 全新训练环境按 README 安装后该命令 `ModuleNotFoundError`。[代码+验证（全量 import 审计）]
@@ -35,7 +36,7 @@
 8. **启动链认知修正**：任务描述里归给 `launch.sh` 的"venv 选择/锁优先/端口 7860-7899/Metal-CUDA 探测/自动开浏览器"，实际分布在 `bootstrap.sh`（venv/依赖，`:12-83`）、`server.py`（端口/浏览器，`:304-329`）、`falcon_runtime.py`（设备，`:81-92,183-196`）；`launch.sh` 只有 20 行，只做"调 bootstrap → 确保权重 → exec server.py"（`:6-20`）。[代码]
 9. **测试面修正 Lead 侦察图**：`00-project-map.md:71` 写 `check_*.mjs/cjs（5 个）`，实际 `studio/tests/` 有 **6 个**（4 `.mjs` + 2 `.cjs`），另有 `studio/web/*.test.cjs` **2 个**；`test_*.py` 4 个正确。[验证（ls/wc）]
 10. **CI 与仓库状态一致**：`pages.yml` 只在 push `main` 且路径命中 `project_page/**` 或本 workflow 时触发，并有 `workflow_dispatch`；deploy job 用 `if: ${{ !github.event.repository.private }}` 保证私有仓库不部署；artifact 路径是 `project_page`。[代码+验证（YAML 解析）]
-11. **P1（R3 新增，D22）README 公网在线 demo 与本地同源限制冲突**：`README.md:21`/`README_zh.md:23`/`studio/README.md:16`/`studio/README_zh.md:16` 提供 `https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/` 在线 demo（并明说摄像头/麦克风数据发往该服务器），但 `server.py:175-179` 的 `same_origin` 只接受 loopback origin（hostname ∈ localhost/127.0.0.1/::1），`:196` 的 `TrustedHostMiddleware` 白名单也只有 loopback/testserver。我实测：公网 origin + 同 host → `same_origin=False`；`TestClient` 注入公网 `Host` → **HTTP 400 "Invalid host header"** ⇒ 线上必然是另一份部署补丁/反向代理改写，本仓库 `server.py` 不能原样提供该 demo，README 未说明。[代码+验证]
+11. **P1（R3 新增，D22）README 公网在线 demo 与本地同源限制冲突**：`README.md:21`/`README_zh.md:23`/`studio/README.md:16`/`studio/README_zh.md:16` 提供 `https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/` 在线 demo（并明说摄像头/麦克风数据发往该服务器），但 `server.py:175-179` 的 `same_origin` 只接受 loopback origin（hostname ∈ localhost/127.0.0.1/::1），`:196` 的 `TrustedHostMiddleware` 白名单也只有 loopback/testserver。我实测：公网 origin + 同 host → `same_origin=False`；`TestClient` 注入公网 `Host` → **HTTP 400 "Invalid host header"** ⇒ 线上具体部署方式待确认，本仓库 `server.py` 不能原样提供该 demo，README 未说明。[代码+验证]
 
 ## 2. 文件清单与逐文件解析
 
@@ -412,7 +413,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 
 ### 4.6 `Experiments/checkpoint` 两个文件的"来历"与可信度 [推断]
 
-- `conf.yml` 的 `audionet_name` 与 `configs/Falcon.yml` 不一致、且包含 `configs/Falcon.yml` 没有的嵌套 `causal` 键、`options.conf_dir` 指向 `${DATA_ROOT}/small/configs/small_1.yml`——这些痕迹表明它是**原始（未发布）训练仓库某次实验**的配置快照，而不是本仓库 `audio_train.py` 用 `configs/Falcon.yml` 训练后写出的文件（否则 `audionet_name` 应为 `FalconSpeakerContrastive`）。
+- `conf.yml` 的 `audionet_name` 与 `configs/Falcon.yml` 不一致、且包含 `configs/Falcon.yml` 没有的嵌套 `causal` 键、`options.conf_dir` 指向 `${DATA_ROOT}/small/configs/small_1.yml`——这些差异表明它与本仓库 `audio_train.py` 使用 `configs/Falcon.yml` 直接写出的配置不同：后者的 `audionet_name` 为 `FalconSpeakerContrastive`。原始训练仓库及实验来源尚待确认。
 - `best_k_models.json` 的 `${ROOT}` 占位与缩进同样不符合本仓库 `audio_train.py:184-186` 的写出格式（应为绝对路径、`indent=0`）→ 也是从原始环境带过来的**元数据展示**，不是可直接执行的文件。
 - 因此 README 把它们描述为 "config snapshot and best-checkpoint metadata"（`README.md:220`）是准确的；但 README `:174` 的"自动选 best ckpt"流程在**本次发布的仓库**中无法直接执行，需要先训练或显式 `--ckpt_path`（P1，建议 README 补充一句）。
 
@@ -444,7 +445,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 | D19 | 仓库/README 未写 | — | `check_environment.py:25-27` 强制要求 requirements 行含 `>=` 与 `,<`；`bootstrap.sh:24` 依赖它 | 未来若把 Studio 依赖改为 `==`（或加 hash/环境标记），bootstrap 会抛 `ValueError` 而非友好提示 | P2（Q12） |
 | D20 | `README.md:107` | 权重"只包含 audio_model.* 和 video_model.*" | `falcon_runtime.py:164-169` 要求 ckpt 同时含两类前缀、`strict=True` 否则报错；`infer_file`/评测路径同理 | 代码侧约束与 README 一致；但**权重文件本身**未下载，无法验证"只包含"与体积 45 MB | 未验证（Q6） |
 | D21 | `README.md:174` | 训练代码与 Studio runtime 对 `falcon.pt` 输出完全一致 | 无法在本环境验证（无权重）；两侧代码差异见 `studio/falcon_model/PROVENANCE.md` | 需 backend/model-core 复验；README 把它写成已验证事实 | 未验证（Q6） |
-| D22 | `README.md:21`；`README_zh.md:23`；`studio/README.md:16`；`studio/README_zh.md:16` | 提供公网在线 demo `https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/`，并称“camera and microphone data are sent to that server” | `server.py:175-179` `same_origin` 要求 origin hostname ∈ {localhost,127.0.0.1,::1}；`server.py:196` `TrustedHostMiddleware` 仅允许 loopback/testserver。实测：`same_origin(公网 origin, 同 host)=False`；`TestClient` 注入公网 `Host` → **HTTP 400 "Invalid host header"** | 本仓库代码**不能**以公网域名原样提供该 demo（同源/主机校验会拒绝），线上必为另一份部署补丁或反向代理改写；README 未说明该前提，读者会误以为仓库代码可直接公网部署 | **P1（R3 新增；待部署方确认，Q15）** |
+| D22 | `README.md:21`；`README_zh.md:23`；`studio/README.md:16`；`studio/README_zh.md:16` | 提供公网在线 demo `https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/`，并称“camera and microphone data are sent to that server” | `server.py:175-179` `same_origin` 要求 origin hostname ∈ {localhost,127.0.0.1,::1}；`server.py:196` `TrustedHostMiddleware` 仅允许 loopback/testserver。实测：`same_origin(公网 origin, 同 host)=False`；`TestClient` 注入公网 `Host` → **HTTP 400 "Invalid host header"** | 本仓库代码**不能**以公网域名原样提供该 demo（同源/主机校验会拒绝），线上具体部署方式待确认；README 未说明该前提，读者会误以为仓库代码可直接公网部署 | **P1（R3 新增；待部署方确认，Q15）** |
 
 补充：**没有发现** README 与代码矛盾的以下项（均为一致，计入 §6 断言表）：Studio 端口/浏览器、窗口 2 s/步长 0.5 s/80 ms/0.58 s/1.42 s/5 分钟/4 帧/2.5 s、venv 位置/lock 优先/Python 3.10–3.12/FALCON_PYTHON/FALCON_VENV、训练超参（DDP/AdamW 1e-3/ReduceLROnPlateau/早停 30/梯度裁剪 5）、评测输出 CSV 路径与 ckpt 选择顺序、数据预处理脚本参数、BlackHole 行为、`.command` 文件名/可执行位、Pages 触发/权限/私有仓库逻辑。
 
@@ -539,7 +540,7 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 | A40 | `best_k_models.json` 5 条、key 为字面 `${ROOT}/Falcon/epoch=*.ckpt`、路径 5/5 不存在、min=epoch=714 | `best_k_models.json:1-7`；`audio_visual_test.py:83-94` | json 解析 + os.path.exists [验证] | 高 |
 | A41 | `conf.yml` 与 `configs/Falcon.yml` 的差异：`audionet_name`（SpeakerContrastiveV2 vs FalconSpeakerContrastive）、data 目录占位符 `${DATA_ROOT}`、多 2 个嵌套 `causal` 键（`conf.yml:11` audio_params / `:73` video_params；`:45` 是顶层 audionet_config.causal）、多 main_args/options | 两文件全文；`Falcon.py:1314-1315` | Python yaml 展平对比 [验证]（R3 修正 causal 行号） | 高 |
 | A42 | 嵌套 `causal` 差异无实际影响（`Falcon.__init__` 强制写回） | `look2hear/models/Falcon.py:1314-1315` | 读码 | 高 |
-| A43 | `audio_train.py` 的 `comet_logger` 未定义（全仓库唯一出现） | `audio_train.py:170`；`grep -rn comet_logger --include=*.py` | 全仓库 grep [验证] | 高 |
+| A43 | 旧版 `audio_train.py` 的 `comet_logger` 未定义（当前已修复）（全仓库唯一出现） | `audio_train.py:170`；`grep -rn comet_logger --include=*.py` | 全仓库 grep [验证] | 高 |
 | A44 | `look2hear.models` 未导出 `SpeakerContrastiveV2`，但导出 `FalconSpeakerContrastive` | `look2hear/models/__init__.py:1-2` | 注入 stub 后 import 实测 [验证] | 高 |
 | A45 | 根 requirements 完全未声明 huggingface_hub；timm **有**声明（`:17`） | `requirements.txt:1-29`；`grep -ci hugging`=0 | grep + import-AST 审计 [验证] | 高 |
 | A46 | Studio requirements 8 个下限与 lock 8/8 自洽；lock 由 uv 对 Python 3.11 编译 | `studio/requirements.txt:1-11`；`requirements-lock.txt:1-2` | 脚本逐条比对 [验证] | 高 |
@@ -555,13 +556,13 @@ README 解释 "outside iCloud"（`studio/README.md:115`）。动因 [推断]：m
 | A56 | README 公网在线 demo 与仓库 `same_origin`/`TrustedHost` 的 loopback 限制冲突（D22） | `README.md:21`；`README_zh.md:23`；`studio/README.md:16`；`studio/README_zh.md:16`；`server.py:175-179,196` | 实测 `same_origin(公网 origin, 同 host)=False`；`TestClient` + 公网 `Host` → HTTP 400 [验证] | 高 |
 | A57 | pytest 四文件注入最小 PIL stub 后可运行（test_server 协议用例全过）：评审基线 33 passed/4 skipped | `docs/verification/scripts/pil_stub/`；`docs/verification/runs/review-08-by-studio-backend.log`；本轮复跑 35 passed/2 skipped（权重已缓存） | pytest 实测 [验证] | 高 |
 
-（断言 **57** 条，≥30 达标；未标 [验证] 的多为纯读码事实。R3 新增 A56/A57 并更新 A4/A28/A32/A41。）
+（断言 **57** 条；未标 [验证] 的多为纯读码事实。R3 新增 A56/A57 并更新 A4/A28/A32/A41。）
 
 ## 7. 未解疑问 / 需其它子系统确认的问题
 
 | 编号 | 问题 | 需要谁确认 |
 |---|---|---|
-| Q1 | `Experiments/checkpoint/Falcon/conf.yml:88` 的 `audionet_name: SpeakerContrastiveV2` 是笔误（应为 `FalconSpeakerContrastive`）还是来自另一个训练分支？发布版 `falcon.pt` 是否应该用这份 conf 评测？（P0 直接相关）**R2 06 域初答：不是笔误，是私有训练分支/类名时代痕迹（`PROVENANCE.md` 与 `best_k_models` 的 epoch=714 互证）；发布训练代码缺该类 ⇒ 评测不可运行，仍需作者确认** | `train-sys` / `model-core` |
+| Q1 | `Experiments/checkpoint/Falcon/conf.yml:88` 的 `audionet_name: SpeakerContrastiveV2` 是笔误（应为 `FalconSpeakerContrastive`）还是来自另一个训练分支？发布版 `falcon.pt` 是否应该用这份 conf 评测？（P0 直接相关）**发布训练代码缺该类；名称和配置来源仍需作者确认。** | `train-sys` / `model-core` |
 | Q2 | `best_k_models.json` 的 `${ROOT}` 占位是谁/何时替换？原训练机的 `${ROOT}` 应指向什么目录（`<cwd>/Experiments/checkpoint`？）？该文件是否本就是"展示用"而非可执行元数据？ | `train-sys` |
 | Q3 | `audio_train.py:170` 的 `comet_logger` 原计划是什么（CometLogger）？是否漏了 `import comet_ml` 与对应 requirement？训练入口在发布前是否真跑通过？ | `train-sys` |
 | Q4 | `audio_train.py:77-84` 在模型构造**之后**写 conf.yml，而 `Separator.__init__` 会 `pop("repeats"/"shared")`（`look2hear/models/Falcon.py:991-996`）——但提交的 `conf.yml` 仍含这些键，说明它不是本脚本产出。发布的 conf.yml 与训练代码是否来自不同版本？ | `train-sys` / `model-core` |
@@ -748,7 +749,7 @@ $ git check-ignore -v Experiments/checkpoint/Falcon/last.ckpt
 
 | 评审项 | 等级 | 回应 | 落点 |
 |---|---|---|---|
-| P1-1 在线 demo vs 本地同源限制 | P1 | **采纳**：新增 D22（§4.7）+ §1.2 第 11 条 + A56 + Q15；实测 `same_origin(公网)=False`、公网 `Host` → HTTP 400；README 未说明“线上为独立部署补丁” | §1.2、§4.7、§6、§7 |
+| P1-1 在线 demo vs 本地同源限制 | P1 | **采纳**：新增 D22（§4.7）+ §1.2 第 11 条 + A56 + Q15；实测 `same_origin(公网)=False`、公网 `Host` → HTTP 400；README 未说明线上部署方式 | §1.2、§4.7、§6、§7 |
 | P1-2 test_server 可运行（PIL stub） | P1 | **采纳**：§2.4 测试矩阵改“✅ 可运行（注入 `docs/verification/scripts/pil_stub/` + `-p no:typeguard`）”，§8.2 重写；保留“真实 JPEG/PNG 解码未验证”边界；引用评审脚本/日志 | §2.4、§6 A32、§8.2 |
 | P2-1 `studio/.gitignore` 行数 | P2 | 18→**14** | §2.9 |
 | P2-2 `node --check` 文件数 | P2 | 19→**21**（13+4+2+2，实测 21/21） | §2.4、A28、§8.1 |

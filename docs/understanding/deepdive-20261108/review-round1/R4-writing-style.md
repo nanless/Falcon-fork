@@ -1,8 +1,10 @@
 # R4 写作规范审查（review-4）
 
+> **2026-11-10 复核提示：**本文评估的是 2026-11-08 的文档版本。文中把两份权重的训练语料视为已确定不同，发布 checkpoint 的完整训练身份仍待确认；跨窗实验也存在后续发现的选帧限制。见[复现状态](../../../STATUS.md)。
+
 审查对象：`dev_a800_2gpus:/root/code/github_repos/Falcon-fork` 工作区改动（HEAD `6c1d5b7` + 未提交重写）。
 规范：`plain-chinese-writing`（SKILL + user-preferences / sentence-editing / structure-and-detail / review-workflow）与 `document-rewrite` SKILL。
-只读仓库；除本报告外未写任何文件。
+报告记录当时的审查结果。
 
 ## 0 结论速览
 

@@ -1,5 +1,7 @@
 # Falcon 项目完整理解（FINAL · Lead 汇总版）
 
+> **2026-11-10 更新：**本篇汇总 2026-10-22 前后的源码、实验与后续记录。现行模型、数据和评测口径见[状态页](../STATUS.md)、[模型专题](20261110-model-and-streaming.md)、[数据专题](20261110-data-and-training.md)、[评测专题](20261110-evaluation-and-apps.md)和[论文对照](deepdive-20261108/11-paper-alignment.md)。原始训练语料与论文评测协议仍待确认。
+
 > 本文件是 8 个 subagent 多轮“理解 R1 → 交叉评审 R2 → 修订 R3 → 复核 R4”的汇总产物，由 Lead 写成。
 > 证据规范：`[代码]` 读源码、`[验证]` 本机实际运行（脚本/日志在 `docs/verification/`）、`[推断]` 推断。
 > 仓库：`/root/code/github_repos/Falcon-fork`（commit `7576854`；**2026-10-21 已同步上游 `689555c`，差异见 §17**）。8 份子系统深度文档见 `docs/understanding/0X-*.md`，
@@ -15,7 +17,7 @@
 
 1. 这是 **NeurIPS 2026 论文《Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World
    Acoustic Scenes》的官方仓库**，包含两条相互独立、共享模型定义的产品线：
-   - **训练/评测代码**（仓库根 + `look2hear/`，PyTorch Lightning）——研究代码，发布状态下**不可直接跑通**（有 P0，见 §10）。
+   - **训练/评测代码**（仓库根 + `look2hear/`，PyTorch Lightning）——研究代码；早期问题及后续修复见 §10 和状态页。
    - **Falcon Studio**（`studio/`，FastAPI/WebSocket + 纯前端 JS）——工程完成度高，**真实权重可加载、窗口化实时推理可跑**（Lead 已实测）。
 2. **模型本体极小**：音频网络 **537,697 参数（≈0.538 M，即论文“0.5 M trainable”口径）**；加冻结的
    11,186,688 参数 FRCNN 唇读编码器后总计 **11,724,385 ≈ 11.72 M**（与 README 精确一致）[验证]。
@@ -23,7 +25,7 @@
    VideoBlock 融合）→ 最粗尺度 TFRB（频向双向 LSTM + 时间向单向 LSTM + 因果 2D attention）→ 复数掩码 →
    因果 STFT 解码。README 图里的 **TFRB/GCI 是组件名**，代码里对应 `DualPathRNN(dim=4)+DualPathRNN(dim=3)+
    MultiHeadSelfAttention2D` 与 `InjectionMultiSum`。
-4. **“causal”要精确表述为“窗口级因果（window-causal）”**：卷积/RNN/attention 结构单向，但
+4. **默认模型按窗口计算，且窗口内部依赖未来输入**：卷积/RNN/attention 结构单向，但
    `torch.stft(center=True)` 有 ±128 采样（8 ms）分析窗、AudioBlock 的下采样/融合卷积 `causal=False`
    （关掉归一化后实测 lookahead **57 帧=7,296 采样≈456 ms**）、`cLNhw` 的 `GlobalLayerNorm` 是**全窗口**统计、
    FRCNN 时间感受野 ±2 帧（±80 ms）。端到端单点扰动可影响**改动点之前 9,612 采样（≈−649 ms）**的输出 [验证]。
@@ -35,10 +37,10 @@
    137 video keys), architecture: FalconSpeakerContrastive, epoch: 714}`；`falcon-big.pt` = `{...517+137,
    SpeakerContrastiveV2, epoch:715}`；两个文件只含 `audio_model.*`/`video_model.*`；**训练侧与 Studio 侧代码
    对同一真实权重、同一输入的前向输出逐位相同（max|Δ|=0）** [验证]。
-7. **训练入口有 2 个 P0**：`audio_train.py:170` 使用了全仓库未定义的 `comet_logger`（NameError）；三个
+7. **旧版训练入口曾有 2 个 P0，现已修复**：`audio_train.py:170` 使用了全仓库未定义的 `comet_logger`（NameError）；三个
    litmodule 的日志又硬依赖 Comet 专属 `self.logger.experiment.log(dict)`（换任何非 Comet logger 即
    AttributeError）。按 README 训练命令**无法启动**。
-8. **评测入口/指标有 3 个 P0**：`Experiments/checkpoint/Falcon/conf.yml` 的 `audionet_name: SpeakerContrastiveV2`
+8. **旧版评测入口和指标曾有以下问题**：`Experiments/checkpoint/Falcon/conf.yml` 的 `audionet_name: SpeakerContrastiveV2`
    在 `look2hear.models` 中不存在（AttributeError）；该快照与 `best_k_models.json` 使用未展开的
    `${ROOT}/${DATA_ROOT}` 占位路径且仓库无 ckpt；`ALLMetricsTracker` 的 **“sdr/sdr_i”列实际是 −SNR/SNRi**
    （真正的 SDR 只在死代码 `MetricsTracker` 里），且逐句行与 avg/std 行符号相反、PESQ 实参传反。
@@ -47,8 +49,7 @@
    fallback 哨兵 → **NASS 对比损失负项恒 0、MDCL 无效、val 分桶全 0near**（即论文核心贡献之一在复现流程中静默失效）。
    另：评测 Dataset 对 mono wav 的 `mean(-1)` 会退化为 0 维并在 `torch.stft` 崩溃（与 README “mono 16 kHz”矛盾）。
 10. **Studio 的协议/安全/窗口切片设计与前端高度自洽**（常量、payload 长度、坐标换算、20 ms+5 ms 淡化、
-    349 条 i18n 全部实测一致）；但仓库内 `server.py` 只允许 loopback + TrustedHost 白名单，**公开在线 demo
-    必然是另一份部署补丁**；且“服务端 error 是否致命”在前端实现为整场停止，与后端“跳过该窗口”文案不一致。
+    349 条 i18n 全部实测一致）；但仓库内 `server.py` 只允许 loopback + TrustedHost 白名单，**公网 demo 的具体部署方式待确认**；且“服务端 error 是否致命”在前端实现为整场停止，与后端“跳过该窗口”文案不一致。
 
 ---
 
@@ -60,7 +61,7 @@
 | 入口 | `audio_train.py`、`audio_visual_test.py`、`evaluated_mac_params.py` | `studio/scripts/launch.sh` → `server.py` → 浏览器 |
 | 依赖面 | torch、PyTorch Lightning、librosa、torch_complex、typeguard、timm、torch_optimizer、ptflops、pystoi/pypesq、torch_mir_eval、fast_bss_eval 等 | torch、numpy、fastapi、uvicorn、huggingface_hub、soundfile（无 librosa/PL） |
 | 代码量 | `look2hear/` ≈ 12 k 行 + 根脚本 ~700 行 | `studio/` ≈ 35 k 行（含 38 MB MediaPipe vendor） |
-| 发布状态 | **不可直接跑通**（P0 阻塞，见 §10） | **可跑通**（真实权重已实测加载 + infer） |
+| 发布状态 | 早期版本的 P0 与后续修复见 §10 和状态页 | **可跑通**（真实权重已实测加载 + infer） |
 | 共享 | `Falcon.py` 模型定义、`Falcon.yml` 超参、window/fps 约定 | `falcon_model/` 为推理拷贝（含 +9 行 MPS CPU FFT bridge） |
 
 项目还有：`DataPreProcess/`（JSON 索引生成）、`Experiments/checkpoint/Falcon/`（训练快照，非权重）、
@@ -115,7 +116,7 @@ LRS2/LRS3/VoxCeleb2 ──► DataPreProcess ──► mix/target/near.json ─�
 | → `DualPathRNN`（TFRB 的 RNN 部分） | 频向双向 / 时间向单向 | `dim=4`: batch=B·T、seq=F、bidirectional；`dim=3`: batch=B·F、seq=T、单向（因果）；底层 `getattr(nn,"LSTM")`，**不是** `layers/rnnlayers.py` 的 DPRNN；`out_proj` 48→64 / 72→64 |
 | → `MultiHeadSelfAttention2D`（TFRB 的 attention 部分） | 时间轴 masked attention | `causal=True` 用 `tril` mask（只看过去帧）；`n_freqs` 必须等于运行时 F（γ 形状 `[1,C,1,F]`）；只在最粗级调用 |
 | → `InjectionMultiSum`（GCI） | 跨尺度门控融合 | `nearest` 插值对齐 + 门控；`causal=False`（对称 k=2 卷积） |
-| → `VideoBlock` | 视觉特征时间下采样 + 融合 | Conv1d stride=2 → 50→25 帧；eval 因果、**train 下 BatchNorm1d 用批统计（非因果）** |
+| → `VideoBlock` | 视觉特征处理与融合 | 默认保留 50 帧；默认 LSTM 将批次轴作为序列轴。训练时 BatchNorm 使用批统计 |
 | `MaskGenerator` | 复数掩码生成与应用 | `RI_split=True`：112 通道=56 复通道×2；复乘 `est_real=e_r m_r−e_i m_i` 等；输出 `[B,n_src,112,T',F]` |
 | `STFTDecoder` | 复谱 → 波形 | 因果 ConvTranspose2d(112→2) + `torch.istft(length=L)`；参数 2,016；采样级严格因果（改动点前恒 0） |
 | `AttentionSpeakerPool`（`Falcon_Contrastive.py`） | 说话人 embedding 池化 | 频向均值 → 时间注意力 → 投影 + L2 归一化；参数 14,584 |
@@ -186,9 +187,7 @@ LRS2/LRS3/VoxCeleb2 ──► DataPreProcess ──► mix/target/near.json ─�
 | FRCNN 视觉前端 | Conv3d（5,7,7）时间 kernel 5 + 无时间下采样 | 时间感受野 ±2 帧 = ±80 ms |
 | 端到端 | 上述叠加 | 改 1 个采样点，输出从 **−649 ms** 处开始变化；改未来 1 s，前 0.5 s 仍差 ~1e-4→4e-2 梯度 |
 
-**结论**：Falcon 的 “causal” = 结构层面（因果卷积、时间单向 RNN、tril-masked attention、无跨窗状态），
-**不是逐采样因果**；工程上以“2 s 窗口全窗重算 + 80 ms 右上下文 + 20 ms 淡化”实现低延迟，论文的 latency
-与“streaming”应在此口径下理解。Studio 的 80 ms guard 恰好等于 FRCNN 的 ±80 ms 时间感受野，二者设计意图一致。
+**结论**：默认模型整窗计算；部分卷积、全窗统计和视觉前端涉及未来输入。Studio 以 2 s 全窗重算、80 ms guard 和 20 ms 淡化组织输出。guard 与视觉前端时间范围数值相同，设计意图尚待确认。
 
 ---
 
@@ -229,7 +228,7 @@ S11 fit；结束后写 best_k_models.json（indent=0）与 best_model.pth（audi
 - val_dataloader = `[val_loader, test_loader]`（test_loss 每 10 epoch 计算一次）；1 epoch ≈ `train_samples=10000`
   个随机 2 s 片段（DDP 下每 rank 约 250×世界大小；`use_distributed_sampler` 默认生效）。
 
-### 4.3 训练侧 P0/P1
+### 4.3 早期训练侧 P0/P1
 
 | 级别 | 问题 | 证据 |
 |---|---|---|
@@ -258,7 +257,7 @@ S11 fit；结束后写 best_k_models.json（indent=0）与 best_model.pth（audi
 - 真实权重整句评测实测（05 R3 §8.7）：`T=32000/F=50` 与 `T=48513/F=75` 均能完成
   `audio(1,112,T',129) ← video(1,512,F)` 融合并输出 `est(1,1,T)`（`len==T`、finite）——**整句变长推理契约成立** [验证]。
 
-### 5.2 指标实现的三处问题（P0/P1）
+### 5.2 早期指标实现的三处问题（P0/P1，现已修订）
 
 1. **`ALLMetricsTracker`（评测实际使用）**：`sdr = pit_snr(...)`、`sdr_i = sdr − baseline`，写入 CSV 的
    “sdr/sdr_i” 实际是 **−SNR / SNRi**；而 `si-snr` 列取负号后为正；**逐句行与 avg/std 行符号相反**
@@ -336,7 +335,7 @@ $INDEX/{tr,cv,tt}/
 - `check_avspeech_dataset.py`：诊断脚本；当前环境因依赖缺（cv2 等）不可直接跑（静态可读）。
 - 两个脚本对空 split/缺失目录容错很弱（空 split 直接崩），且 **README 未记录 mouth 目录名/.pt 格式、meta 生成方式**。
 
-### 6.4 数据侧风险
+### 6.4 早期数据侧风险
 
 1. mono wav 在 eval Dataset 中 `mean(-1)` 退化 0 维 → `torch.stft` 崩；训练 val 同路径 → 反证真实数据应为多声道
    （与 README 的 “mono 16 kHz” 矛盾，需作者/数据侧确认）。
@@ -399,7 +398,7 @@ $INDEX/{tr,cv,tt}/
 ### 7.5 部署边界
 
 - 仓库 `server.py` 绑定 127.0.0.1、`same_origin` 只接受 loopback、TrustedHost 白名单仅 loopback →
-  **README 中的公网在线 demo 必然是另一份部署补丁**（改 host/origin/鉴权），仓库内代码不能直接对外。
+  仓库代码的本地同源限制需要在公网部署时处理；在线 demo 的实际部署方式待确认。
 - 前端把任何 `type:"error"`（包括后端“模型忙，请跳过此窗口”）当致命错误并停止整场会话 → 多标签页并发
   时非持锁页面会被打断（前后端契约 P1，产品口径待定）。
 
@@ -460,9 +459,9 @@ $INDEX/{tr,cv,tt}/
 
 ---
 
-## 10. 风险清单（按严重度）
+## 10. 早期版本的风险清单（当时严重度）
 
-### 10.1 P0 —— 会直接阻断“按 README 复现”
+### 10.1 早期 P0 与后续状态
 
 | # | 问题 | 证据 | 影响 |
 |---|---|---|---|
@@ -553,8 +552,8 @@ $INDEX/{tr,cv,tt}/
 | 术语 | 含义 |
 |---|---|
 | AVTSE | Audio-Visual Target Speaker Extraction，音视频目标说话人提取 |
-| RealSSA | 论文提出的真实场景模拟 benchmark（2–6 动态近/远场说话人，四类场景 + 真实录制 split） |
-| causal / window-causal | 本文档口径：结构单向 + 2 s 窗口内整窗计算；非逐采样流式因果 |
+| RealSSA | 论文提出的真实场景模拟与录制 benchmark；数据卡与实际场景设置见[评测专题](20261110-evaluation-and-apps.md) |
+| causal / window-causal | 按窗口接收和处理数据；默认模型在窗口内部存在未来输入依赖 |
 | TFRB | Time-Frequency Refinement Block；代码 = DualPathRNN(dim4, freq, biLSTM) + DualPathRNN(dim3, time, uniLSTM) + MHSA2D(tril mask) |
 | GCI | Gated Cross-scale Injection；代码 = InjectionMultiSum（nearest 上采样 + 门控融合） |
 | cLNhw | `LayerNormalizationHW` = 全窗 GroupNorm(1,C) + 沿时间累积 LN(CumulateLN4D) |
@@ -587,7 +586,7 @@ print(rt.status()["parameters"], rt.infer(__import__("numpy").zeros(32000, "floa
 PY
 ```
 
-### 14.2 想跑训练/评测（需先修 P0）
+### 14.2 早期训练与评测修复建议
 
 1. 补 `comet_logger`（改 CSVLogger/TensorBoardLogger 并把 litmodule 的 `logger.experiment.log(dict)` 换成
    `self.log_dict(...)`，或在 requirements 加 comet-ml 并定义 `CometLogger`）。
@@ -609,7 +608,7 @@ PY
 
 ---
 
-## 15. 验证与轮次状态（诚实记录）
+## 15. 验证与轮次状态
 
 | 文档 | R1 | R2 交叉评审 | R3 修订 | R4 复核 |
 |---|---|---|---|---|
@@ -658,7 +657,7 @@ PY
   → NASS 对比损失的精确训练复现**在官方数据下不可行**，只能替代负样本或近似重建（见 `docs/REPRODUCTION_PLAN.md` §5.1）。
 - RealSSA-Real 的 enrollment 音频不是时间对齐的干净 target → 不能算 SI-SDR。
 - 仓库无 `_meta.json` 生成器、无嘴部 crop 提取流水线（LRS 系列需要）；`pretrain_zoo` 骨干权重链接仍是 README TODO，
-  但**可以从 `falcon.pt` 的冻结 `video_model.*` 导出**（训练时视觉分支冻结，所以发布的权重就是该骨干）。
+  但**可以从 `falcon.pt` 的冻结 `video_model.*` 导出**（是否与原训练所用骨干完全相同仍待确认）。
 
 ### 17.3 论文状态
 
@@ -667,24 +666,21 @@ PY
   复现报告需要显式列出这些假设（见 `docs/REPRODUCTION_PLAN.md` §9）。
 - **复现进展（2026-10-22）**：Phase 1（复现前置修复）已完成——训练/评测入口可跑、指标修正、mono 修复、
   视觉骨干可导出、官方权重数值指纹不变；并已在真实数据上跑通首个 benchmark：
-  **LRS2-2Mix test（3000 条，官方 `falcon.pt`）SI-SNRi 7.03 / SDRi 7.71**（20 条子集 7.91/8.55；target=s1 约定已确证），
+  **LRS2-2Mix test（3000 条，官方 `falcon.pt`）SI-SNRi 7.03 / SDRi 7.71**（20 条子集 7.91/8.55；本次实验采用 target=s1 约定），
   与论文 14.1/14.7 仍有 ~7 dB 差距，需 Phase 2 排查（训练集匹配度/评测协议/嘴部对齐）。
   详见 [`docs/REPRODUCTION_PHASE1_REPORT.md`](../REPRODUCTION_PHASE1_REPORT.md)。
 - **Phase 2 结论（2026-10-22）**：官方 `falcon.pt` 在 LRS2-2Mix 全量 test 的 **7.03/7.71 属“跨语料”结果**
-  （训练 datamodule 为 LRS3_complex_nonmoving；README 明示论文表格按 benchmark 训练），
+  （训练语料尚待确认；当时依据配置名称作出该判断），
   协议/指标/对齐变体最多解释 ~0.4 dB、falcon-big 仅 +0.97 dB、Studio 窗口化 −1.9 dB；
   视觉分支贡献 +4.8~+15 dB（置零 mouth 后显著下降）。要复现论文 LRS2 列需按 LRS2 配方训练（进行中）。
   LRS2-2Mix 已全量转换（28,000 条，target=s1），单卡训练 87 epoch 的 ckpt 在 test 上达 **SI-SNRi 8.62 / SDRi 9.04**；
   **RealSSA 访问已获批**：官方权重在 RealSSA-Sim test（前 1000 条）实测 **SI-SNRi 7.94 / SDRi 8.75**，
   与论文 7.7/8.2 一致（±0.5 dB）；RealSSA-Real 54 段 DNSMOS **P808 3.329**（论文 3.276）、OVRL 2.790（mixture 基线 1.760）。
-  结论：官方权重的主 benchmark（RealSSA）已复现；LRS2 列需按 LRS2 训练配方（进行中/需 contrastive 负样本微调）。
+  结论：该次 RealSSA 数值接近论文，权重身份及评测协议仍待确认；LRS2 列需按 LRS2 训练配方（进行中/需 contrastive 负样本微调）。
   详见 [`docs/REPRODUCTION_PHASE2_REPORT.md`](../REPRODUCTION_PHASE2_REPORT.md)。
 - 详细的复现步骤、缺口清单、分阶段计划与验收标准：**[`docs/REPRODUCTION_PLAN.md`](../REPRODUCTION_PLAN.md)**。
 
 
-## 16. 一句话结论
+## 16. 项目概述
 
-**Falcon 是一个“小模型 + 冻结唇读前端 + 单次多尺度分离”的高效 AVTSE 研究工程：模型与 Studio 推理链路
-真实可跑且两套代码逐位等价，但训练/评测入口按发布状态不可直接复现（Comet 日志与快照配置 P0），
-“causal” 应理解为窗口级因果，数据管线与指标口径存在多处静默失效陷阱——这些正是深入理解本项目后
-最需要向作者反馈/修复的部分。**
+Falcon 将音频分离网络与冻结的唇读前端结合，Studio 通过窗口化推理提供浏览器应用。代码与权重的验证结果、数据协议和实验条件见[复现状态](../STATUS.md)。

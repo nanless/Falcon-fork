@@ -305,7 +305,7 @@
         <div class="stat-card"><span class="stat-number">0.5M</span><span class="stat-label">Parameters, Falcon</span></div>
         <div class="stat-card"><span class="stat-number">51.3 ms</span><span class="stat-label">Per-window forward, Falcon (paper value)</span></div>
       </div>
-      <p class="section-subtitle" style="margin:26px auto 0; max-width:820px; font-size:0.85rem;">51.3 ms times one forward pass over a single 2 s window and is the value the paper reports (RTX 3090). End-to-end latency adds the 80 ms guard and the 0&ndash;500 ms chunk granularity, about 0.13&ndash;0.63 s. The repository holds no raw measurement file for the 51.3 ms figure; the number comes from the paper's table (inferred, not re-measured here).</p>
+      <p class="section-subtitle" style="margin:26px auto 0; max-width:820px; font-size:0.85rem;">The paper reports 51.3 ms for one 2 s window on an RTX 3090. Adding an 80 ms guard and 0&ndash;500 ms chunk interval gives an estimated 0.13&ndash;0.63 s, before capture, queuing, network, decoding and playback delays.</p>
     </div>
   </header>
 
@@ -330,7 +330,7 @@
         </div>
       </div>
       <div class="note-box" style="max-width:980px;margin:26px auto 0;">
-        <strong>Reproduction note (2026-11-08).</strong> In this release the &ldquo;causal&rdquo; property is <strong>window-causal</strong>: no state is carried across windows, but inside a 2 s window the model is not frame-causal. With the released weights the measured one-pass lookahead (encoder ladder plus the first AudioBlock pass) is <strong>57 frames &asymp; 456 ms</strong>; the second pass adds 56 frames, so the full chain reaches <strong>113 frames = 904 ms</strong>. The 15-frame / 120 ms encoder ladder is the first term inside that 57. Window-wide <code>cLNhw</code> normalization then ties every output frame to the window end, so the paper&rsquo;s App. E claim of zero temporal lookahead and 120 ms does not match the code. Studio therefore recomputes a 2 s window every 0.5 s. Measurements: <code>docs/understanding/deepdive-20261108/12-causality-latency.md</code>.
+        <strong>Reproduction note (2026-11-08).</strong> In this release the &ldquo;causal&rdquo; property is <strong>window-causal</strong>: no state is carried across windows, but inside a 2 s window the model is not frame-causal. With normalization layers replaced by identity operations, a single AudioBlock perturbation probe reaches approximately <strong>57 frames &asymp; 456 ms</strong>; a separate full-model gradient probe reaches approximately <strong>113 frames = 904 ms</strong>. The paper describes an encoder ladder of 15 frames / 120 ms. Window-wide <code>cLNhw</code> normalization then ties every output frame to the window end, so the paper&rsquo;s App. E claim of zero temporal lookahead and 120 ms does not match the code. Studio therefore recomputes a 2 s window every 0.5 s. Measurements: <code>docs/understanding/deepdive-20261108/12-causality-latency.md</code>.
       </div>
     </div>
   </section>
@@ -633,7 +633,7 @@
             </tbody>
           </table>
         </div>
-        <div class="note-box" style="max-width:860px;margin-left:auto;margin-right:auto;">Efficiency comparison among Falcon and the four best-performing causal AVTSE baselines from the main results table. Lower is better for all metrics. GPU latency is one forward pass over a 2 s window; end-to-end latency adds the 80 ms guard and the chunk granularity, about 0.13&ndash;0.63 s for the 51.3 ms figure.</div>
+        <div class="note-box" style="max-width:860px;margin-left:auto;margin-right:auto;">Efficiency comparison among Falcon and the four best-performing causal AVTSE baselines from the main results table. Lower is better for all metrics. GPU latency is one forward pass over a 2 s window. With the 80 ms guard and chunk interval, the estimated total before capture, queuing, network, decoding and playback is 0.13&ndash;0.63 s.</div>
       </div>
 
       <div id="dataset-ablation" class="tab-content result-content">

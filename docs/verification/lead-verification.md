@@ -5,10 +5,10 @@
 > （见仓库根 `AGENTS.md` 与 `docs/understanding/VERIFY-ENV.md`）。历史日志保留原样以保持证据链。
 
 
-> 目的：Lead 不只看队友的结论，独立用可执行验证给最关键的数字/声明“兜底”。所有结论可复跑。
+> 目的：通过独立实验核查模型参数、形状、因果探针与代码路径。
 > 环境与 stub 见 `docs/understanding/VERIFY-ENV.md`；脚本在 `docs/verification/scripts/`，日志在 `docs/verification/runs/`。
 >
-> 复跑命令（仓库根）：
+> 当时的运行命令（仓库根）：
 > ```bash
 > PYTHONPATH=$PWD/docs/verification/stubs:$PWD /root/.venvs/falcon/bin/python docs/verification/scripts/verify_model_params.py
 > PYTHONPATH=$PWD/docs/verification/stubs:$PWD /root/.venvs/falcon/bin/python docs/verification/scripts/verify_causality.py
@@ -39,7 +39,7 @@
 
 - 输入 `audio [B, L]`（16 kHz）、`mouth_emb [B, 512, Tv]`；训练模式返回 `(est[B,1,L], sep_emb[B,1,112,T',129])`，
   eval 模式只返回 `est[B,1,L]`（`Falcon_Contrastive.py:94-118`）。
-- `T' = 1 + L/hop = 1 + L/128`：L=16000→126，32000→251，48000→376 [验证]。
+- `T' = 1 + ⌊L/hop⌋ = 1 + ⌊L/128⌋`：L=16000→126，32000→251，48000→376 [验证]。
 - `F = win/2 + 1 = 129`（win=256，实 STFT）。
 - `sep_emb` 通道 = encoder out_chan = 112。
 - 前向 `est` 长度与输入严格相等（decoder `torch.istft(..., length=length)`）。
@@ -59,7 +59,7 @@
 | stage | 首变位置 | 说明 |
 |---|---|---|
 | encoder | 帧 156–159（≈19968–20352 采样） | 仅 `torch.stft(center=True)` 的 ±128 采样（±8 ms）分析窗前瞻，属正常 |
-| audio_bottleneck | 帧 156 起，泄漏到窗口末尾 | 因果卷积（causal padding=2）只向后传播，符合预期 |
+| audio_bottleneck | 帧 156 起，泄漏到窗口末尾 | 本次探针结果；该层含全窗归一化，不能据此推广为因果 |
 | **separator** | **帧 0 起（全窗口）** | **泄漏源**：内部多处 `cLNhw = LayerNormalizationHW`，其 `GlobalLayerNorm = nn.GroupNorm(1,C)` 在 `[B,C,T,F]` 上对 (C,T,F) 做**全窗口统计** → 任一点变化影响整窗 |
 | mask_generator | 帧 0 起 | 继承了 separator 的全窗口依赖 |
 | decoder | — | 因果 ConvTranspose + `istft` |
@@ -67,11 +67,7 @@
 最终波形：改动 s=20000 时，输出从 **9612** 采样点就开始有 >1e-6 的差异（约 -649 ms 的“反向前瞻”），
 越靠近改动点差异越大（改动点处 ~7.8e-2），[验证]。
 
-**结论（建议全组统一表述）**：Falcon 的“causal”指**结构上无未来卷积/未来 RNN 步/未来 attention**
-（causal padding、单向时间轴 LSTM、masked attention），且单次前向的因果卷积链严格单向；
-但 **cLNhw 的全局归一化统计使模型在窗口级并非严格逐采样因果**——整窗统计会把未来信息带进过去。
-这与 Studio 的做法自洽：整窗 2 s 重算 + 保留 80 ms 右上下文，而不是维护流式状态（README 也明确说
-“windowed inference, not a native streaming model”）。论文的 latency/因果性论述应以“窗口级因果”理解。
+**结论**：本次单点扰动显示窗口内未来输入会影响较早输出。`cLNhw` 包含全窗统计，AudioBlock 还使用对称卷积；默认 VideoBlock 的 LSTM 把批次轴当作序列，B>1 时存在跨样本影响。Studio 每次重算 2 秒窗口并保留 80 ms 右上下文；论文延迟与这次探针的定义应分别说明。
 
 > 相关证据：`look2hear/layers/normalizations.py:204-221`（LayerNormalizationHW）、
 > `:134-143`（GlobalLayerNorm=GroupNorm(1)）、`:165-202`（CumulateLN4D 沿 H 累积）；
@@ -80,6 +76,8 @@
 > global_gate/local_embedding/global_embedding 等）。
 
 ## V5. 死代码 / 不一致（同上日志）
+
+以下 `_mdcl_loss` 与 `__all__` 是 R1 时的缺陷，Phase 1 已修复；保留原探针以说明修复前行为。
 
 - `look2hear/models/Falcon.py:1480` 调用 `self._mdcl_loss(...)`，但类中只有 `_mdcl_loss_hard`
   （`:1410`）→ 若以训练模式、且 `near_audio is not None` 调用基类 `Falcon.forward`，必 `AttributeError` [验证]。

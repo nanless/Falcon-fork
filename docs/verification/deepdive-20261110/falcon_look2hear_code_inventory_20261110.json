@@ -1,0 +1,219 @@
+[
+  {
+    "path": "look2hear/layers/__init__.py",
+    "lines": 50,
+    "sha256": "292d1beda52b95332e7dcb45503769b7f0e0609be443c301838497628d6ffc91",
+    "status": "full_read",
+    "note": "导出多个备用层，导入包不等于默认 forward 调用"
+  },
+  {
+    "path": "look2hear/layers/activations.py",
+    "lines": 67,
+    "sha256": "f2952eb31ed2a4382fe0bddcf36d300bd314640afe3d480cc2c8420cd3902256",
+    "status": "full_read",
+    "note": "此前直接全文阅读：激活注册与查找"
+  },
+  {
+    "path": "look2hear/layers/cnnlayers.py",
+    "lines": 884,
+    "sha256": "9adb745d910c15cb16cf64350002fdad48096592b6a6ad0d5c47799ded7bb084",
+    "status": "full_read",
+    "note": "备用一维卷积、多尺度上下融合及多麦克风 TAC；非 Falcon 内嵌卷积"
+  },
+  {
+    "path": "look2hear/layers/enc_dec.py",
+    "lines": 461,
+    "sha256": "d55fec79a146ac7901688682cf921c59cf4f898781a5e56536fcd0f643f25132",
+    "status": "full_read",
+    "note": "备用可学习滤波器组、卷积/转置卷积与伪逆；非 Falcon 的 STFT 实现"
+  },
+  {
+    "path": "look2hear/layers/normalizations.py",
+    "lines": 331,
+    "sha256": "a81117507080ff7d4ea7810ca45bdca2aafd26747cb641d54e27bd19ab9a22b2",
+    "status": "full_read",
+    "note": "全窗/逐帧/累积归一化；文档中早期最小值误称全段零"
+  },
+  {
+    "path": "look2hear/layers/rnnlayers.py",
+    "lines": 908,
+    "sha256": "7c66634f2f8801a6db052dc096535eccdc6f307168827e5c11e6da757f3b0c3a",
+    "status": "full_read",
+    "note": "备用单/双路径 RNN、分块 overlap-add 与 Conformer；DPRNNLinear 轴错误已实测"
+  },
+  {
+    "path": "look2hear/layers/stft.py",
+    "lines": 785,
+    "sha256": "5a4755bbed9a7e56b3c21d366acdcf723b660fa59f55837e494cdff6c8ed5bb6",
+    "status": "full_read",
+    "note": "备用卷积或 torch STFT/ISTFT、窗、mel 与帧数；与 utils 副本近同"
+  },
+  {
+    "path": "look2hear/layers/stft_tfgn.py",
+    "lines": 245,
+    "sha256": "88d4d7388fbf44866ac376d660d3883bf06acf6b2b6e479401ec1f268b8e2c44",
+    "status": "full_read",
+    "note": "多通道 STFT/逆变换兼容层，依赖 typeguard/torch_complex"
+  },
+  {
+    "path": "look2hear/models/Falcon.py",
+    "lines": 1549,
+    "sha256": "6956216db79cd80766126b16ae7247264e3e2de9e531c64d1a470c1b5dadfa0d",
+    "status": "full_read",
+    "note": "全文阅读：主模型与非默认 GlobalAttention/MDCL；已验证默认与开关局限"
+  },
+  {
+    "path": "look2hear/models/Falcon_Contrastive.py",
+    "lines": 129,
+    "sha256": "0698180abb7d04e0768c12b8aed337ba0598adf10d55c196ea3ee3524bc049c7",
+    "status": "full_read",
+    "note": "此前直接全文阅读：编码器特征池化及训练/eval 返回差异"
+  },
+  {
+    "path": "look2hear/models/__init__.py",
+    "lines": 44,
+    "sha256": "ae5ab44b196db85dfbb5755cdb23742f9b2a226d5f8d54b21037b23072fe1ea9",
+    "status": "full_read",
+    "note": "注册 Falcon 与 FalconSpeakerContrastive，大小写无关查找"
+  },
+  {
+    "path": "look2hear/models/base_model.py",
+    "lines": 108,
+    "sha256": "a2727f302abe8865453533696cfdb1536df83961a91987b2a534ef957797b434",
+    "status": "full_read",
+    "note": "序列化、重建、state_dict 和补长度公共接口"
+  },
+  {
+    "path": "look2hear/utils/__init__.py",
+    "lines": 41,
+    "sha256": "10e44a8a94db31c4f9096bb8b5ba23938644e4f11e960c39369368fc9fa2ed4a",
+    "status": "full_read",
+    "note": "统一导出工具，可能引入附加依赖"
+  },
+  {
+    "path": "look2hear/utils/attn.py",
+    "lines": 29,
+    "sha256": "a5a5cfbc393748be415012500142b6a35a6edbe13a1bb8495d6f6af6a038d368",
+    "status": "full_read",
+    "note": "交叉注意力，可选工具；需 dim 整除头数"
+  },
+  {
+    "path": "look2hear/utils/complex_utils.py",
+    "lines": 184,
+    "sha256": "294ba092363023169a0622a4997dd94285b59d325581b801eb37131f79501163",
+    "status": "full_read",
+    "note": "torch_complex 与原生复数相容、矩阵运算接口"
+  },
+  {
+    "path": "look2hear/utils/get_layer_from_string.py",
+    "lines": 43,
+    "sha256": "31acd3c607f6eba7c5423fd97295ebdfd3f588f8e978b3415a4b0f9f3613eb5c",
+    "status": "full_read",
+    "note": "层名大小写匹配，但候选列表固定来自 torch.nn"
+  },
+  {
+    "path": "look2hear/utils/inversible_interface.py",
+    "lines": 13,
+    "sha256": "2c0f87270c6bab775b11f36072598cf2ebbea3a0a40d181e55684fba6f0230cb",
+    "status": "full_read",
+    "note": "逆变换抽象接口"
+  },
+  {
+    "path": "look2hear/utils/lightning_utils.py",
+    "lines": 112,
+    "sha256": "4ad88997c80898ecd776351cbbfac5a39d577921a3b7cf9e302b62d30c798cc8",
+    "status": "full_read",
+    "note": "rank-zero 日志与 Rich Lightning 进度展示"
+  },
+  {
+    "path": "look2hear/utils/nets_utils.py",
+    "lines": 503,
+    "sha256": "1eb7ad669212ce7f71a3f6cfa31ae4e5a9197926d031f7884e1a2b3dce181667",
+    "status": "full_read",
+    "note": "填充掩码、张量转换、子采样等工具；部分依赖 ESPnet"
+  },
+  {
+    "path": "look2hear/utils/parser_utils.py",
+    "lines": 151,
+    "sha256": "a77bc8c3da6264bbee05c17f4e6dc87e668b3b6c4c536262fb3c6dd4f05c56bf",
+    "status": "full_read",
+    "note": "配置字典转 argparse 分组及类型转换"
+  },
+  {
+    "path": "look2hear/utils/separator.py",
+    "lines": 69,
+    "sha256": "2085152fedeafa7a6190814f313ee1a620f1e4de9adffa06ae14217aec978c5c",
+    "status": "full_read",
+    "note": "通用张量/数组分离和全局绝对值重标定"
+  },
+  {
+    "path": "look2hear/utils/stft.py",
+    "lines": 785,
+    "sha256": "f0dcfaa7f03f02809799a213fc567e6b7b08630aa3cf5ffa4d2768beaaa291aa",
+    "status": "full_read",
+    "note": "备用 STFT 副本；与 layers/stft.py 仅空白差异；非 Falcon 内嵌编码器"
+  },
+  {
+    "path": "look2hear/utils/torch_utils.py",
+    "lines": 42,
+    "sha256": "c9b9ec5095ad747492b9727ce25f6f509ab45be97a3b132984eab523b4b9ee4c",
+    "status": "full_read",
+    "note": "补齐、维数还原与嵌套设备迁移"
+  },
+  {
+    "path": "look2hear/videomodels/__init__.py",
+    "lines": 60,
+    "sha256": "35ccee69f6c380a22cb7589256ba3b2d2aa1072d970f29386edc577a97e5362e",
+    "status": "full_read",
+    "note": "导入视觉网络并注册查找，默认模型为 FRCNN"
+  },
+  {
+    "path": "look2hear/videomodels/frcnn_videomodel.py",
+    "lines": 202,
+    "sha256": "5a08903df0a0075c680f57103f2a5219bdabca93a6ed678e0e5d81c5decca261",
+    "status": "full_read",
+    "note": "默认3D前端+ResNet/ShuffleNet；严格预训练键并冻结，训练时BN冻结"
+  },
+  {
+    "path": "look2hear/videomodels/light_videomodel.py",
+    "lines": 124,
+    "sha256": "37fb05c9aeb2de04a3a772769c9bb2f4c5240a938af7b3da2f58ec6586a8984f",
+    "status": "full_read",
+    "note": "备用3D+ShuffleNet；允许部分预训练且冻结"
+  },
+  {
+    "path": "look2hear/videomodels/resnet.py",
+    "lines": 140,
+    "sha256": "3beafc033e900a2f1eb629e7871ba201c0be9a8c6bf866ac6f4b52fc1b2f11b9",
+    "status": "full_read",
+    "note": "此前直接全文阅读：视觉 ResNet 2D 残差骨干"
+  },
+  {
+    "path": "look2hear/videomodels/resnet1D.py",
+    "lines": 139,
+    "sha256": "543f54eea9ffafd9782c6dd17a0c1874d486b0fad34eab1a277285267ea5ff3f",
+    "status": "full_read",
+    "note": "备用一维残差网络，被导入但默认视觉前端未实例化"
+  },
+  {
+    "path": "look2hear/videomodels/resnet_videomodel.py",
+    "lines": 125,
+    "sha256": "7c690b1ac85393bc35fe8f38b3b1887402906a05a72cce7f383a3b4a21631fa1",
+    "status": "full_read",
+    "note": "备用3D+ResNet；允许部分预训练且冻结"
+  },
+  {
+    "path": "look2hear/videomodels/shufflenetv2.py",
+    "lines": 173,
+    "sha256": "3395cd0599dbbfea1b660cc68b8742f41673b81c89a51bf706035fcc5ede891b",
+    "status": "full_read",
+    "note": "此前直接全文阅读：视觉 ShuffleNetV2 备选骨干"
+  },
+  {
+    "path": "look2hear/videomodels/wujian_videomodel.py",
+    "lines": 182,
+    "sha256": "56251c2052b3278d47f03a6375ac4e6c8fd3e0585d88ba9e532b421350fcc739",
+    "status": "full_read",
+    "note": "备用3D+ResNet分类嵌入；期望输入先缺channel轴，加载后冻结"
+  }
+]

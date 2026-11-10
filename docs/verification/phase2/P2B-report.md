@@ -1,6 +1,8 @@
 # Phase-2 B 报告：Falcon-Big vs Small、整句 vs 窗口化推理、mouth 分支贡献
 
-> 分支 `repro/phase2`（HEAD `af74cca`，未 commit）· owner `model-core`（task-19）· 2026-10-21
+> **2026-11-10 更新：这组比较使用 300 个 2 秒片段；窗口首块补零、输出边界和真实长音频不同。视觉置零在归一化输入上对应中灰，big 全量评测停在 100/3000；权重训练来源和论文差距原因仍待确认。见[评测说明](../../understanding/20261110-evaluation-and-apps.md)。**
+
+> 分支 `repro/phase2`（HEAD `af74cca`）· owner `model-core`（task-19）· 2026-10-21
 > 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128，2×A800；本任务用 GPU 0/1 各一进程，单卡 batch=1）
 > 数据：`/root/tmp/lrs2_eval_tt_full`（LRS2-2Mix tt 3000 条，target=s1，2 s/16 kHz，mouth 3ch `.pt` → 预处理后 `[50,88,88]`）
 > 权重：`/root/.cache/falcon_weights/falcon.pt`（small，epoch 714）、`falcon-big.pt`（big，epoch 715）
@@ -22,7 +24,7 @@
 4. **三轴合计不能解释 7 dB 差距**：模型版本最多 +1 dB；窗口化协议只影响推理模式（整句协议本身仍是 7.03）；
    视觉分支正常。**剩余 ~6 dB 必须来自数据/混合协议/指标定义**（LRS2-2Mix 的混音构造、target 选择、SDR 定义或论文测试集口径），
    属 P2-A（`gap_analysis.py`）/P2-F（`protocol_check.py`）的结论范围；本报告给出的是"已排除项"。
-5. **GPU 已释放**：本任务所有评测进程已结束（`nvidia-smi` 无本任务进程），big 全量 3000 条评测按 Lead 要求**未继续**（见 §6 局限与排期）。
+5. **big 全量评测**：运行至 100/3000 后停止，300 条配对结果见 §3。
 
 ## 2. 方法
 
@@ -141,4 +143,4 @@ $ENV tools/repro/phase2/analyze_p2b.py --dir docs/verification/phase2 | tee docs
    > `P2B-summary-b300.json` 是并行运行时的旧汇总（仅含 small 两行，已被带 variant 名的新 summary 取代），分析脚本以逐句 CSV 为准。
 3. 窗口化 mouth 对齐取"窗口起点最近帧 + 越界边缘复制"（±1 帧 ≈ 40 ms 不确定性）；Studio 前端真实帧窗对齐见 `07-studio-frontend.md`。
 4. `shuffle` 只做时间 roll，未做跨说话人替换；如需更强控制可加"用另一条样本的 mouth"（脚本预留 visual 扩展位）。
-5. **GPU 已释放**：本任务无残留进程（`nvidia-smi` 中 GPU 占用来自其它任务）；后续变体实验按 Lead 要求优先单卡小 batch/CPU。
+5. 后续变体实验可先从单卡小批量开始。

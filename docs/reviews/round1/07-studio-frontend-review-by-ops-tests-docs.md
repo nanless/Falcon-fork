@@ -3,7 +3,7 @@
 > 评审轮次：R2（交叉评审 1）；被评审文档：`docs/understanding/07-studio-frontend.md`（1100 行，R1 版）
 > 评审人视角：运维/测试/CI/文档一致性（task-8），R1 已独立核对 `studio/server.py`、`studio/falcon_runtime.py`、`studio/tests/**` 与全部前端测试。
 > 证据等级沿用 CONVENTIONS：`[代码]` 读源码；`[推断]` 合理推断；`[验证]` 本轮实际运行。基线 commit `7576854`。
-> 评审方式：除通读 07 全文外，**逐行抽查了 60+ 条 `file:line` 证据**（`app.js`、`capture-worklet.js`、`playback-resampler.js`、`mouth-tracker.js`、`video-worker.js`、`spectrum-dsp.js`、`spectrum-worker.js`、`audio-inspector.js`、`i18n*.js`、`index.html`、`server.py`、`falcon_runtime.py`、8 个 Node 测试与 4 个 pytest），并重跑 Node 测试/计数脚本；未修改任何源码或本文档。
+> 评审方式：除通读 07 全文外，**逐行抽查了 60+ 条 `file:line` 证据**（`app.js`、`capture-worklet.js`、`playback-resampler.js`、`mouth-tracker.js`、`video-worker.js`、`spectrum-dsp.js`、`spectrum-worker.js`、`audio-inspector.js`、`i18n*.js`、`index.html`、`server.py`、`falcon_runtime.py`、8 个 Node 测试与 4 个 pytest），并重跑 Node 测试/计数脚本。
 
 ## 1. 结论（通过 / 需修订：P0/P1 计数）
 
@@ -158,5 +158,3 @@ server.py:28-30/35-67/70-91/160-172/233-276/262-267/278-283/332-333；
 falcon_runtime.py:24-27/95-104；mouth-tracker.js 11 处；video-worker.js 18 处；spectrum-dsp.js 13 处；
 i18n.js 1-124 全段；audio-inspector.js 38-345 主要函数；8 个 Node 测试的引用行段
 ```
-
-未修改源码；未 commit；本文件为 R2 唯一新增（`docs/reviews/round1/07-studio-frontend-review-by-ops-tests-docs.md`）。

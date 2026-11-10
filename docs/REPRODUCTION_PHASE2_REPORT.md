@@ -1,5 +1,7 @@
 # Falcon 复现 Phase 2 执行报告（7 dB 归因 + LRS2-2Mix 训练启动 + RealSSA 预置）
 
+> **2026-11-10 结果更新：**发布权重的训练谱系和 7 dB 差距的原因仍待确认；RealSSA-Real full3 因窗口起点错误作废，修正后的 full4 见[复现状态](STATUS.md)。RealSSA-Sim 的本地均值使用四通道，论文所述实验使用第一通道。不同 epoch 的比较同时涉及训练时长和条件变化。数据、训练和目标方向见[数据和训练说明](understanding/20261110-data-and-training.md)。下文记录 Phase 2 当时的执行情况。
+
 > 日期：2026-10-22 · 分支 `repro/phase2`（Phase 1 已合入 `main` = `ac91800`，已 push）
 > 环境：conda `falcon`（见 `AGENTS.md`）· 数据/权重在仓库外 `/root/data`、`/root/.cache/falcon_weights`
 > 各子任务报告：`docs/verification/phase2/P2A…P2F-report.md`、`QA-report.md`、`REGRESSION-docs.md`

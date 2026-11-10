@@ -2,7 +2,10 @@
 
 来源：作者 R1/R2/R3 期间的 `/tmp/dp-verify/`（原文保留），按 VERIFY-ENV.md §4 补交到仓库，供 R4 独立复核。
 
-## 依赖
+## 当时使用的环境
+
+以下命令记录了原实验使用的环境。当前服务器环境为 `/root/miniforge3/envs/falcon`，详见 [环境与运行说明](../../../../AGENTS.md)。`/root/.venvs/falcon` 是历史路径。
+
 
 - 解释器：`/root/.venvs/falcon/bin/python`（3.10 + torch 2.8）。
 - 仓库缺 torchvision/cv2/matplotlib，本目录配套 stub：`docs/verification/stubs/data_pipe/`
@@ -23,7 +26,7 @@ $PY DataPreProcess/process_lrs23.py --in_audio_dir /tmp/dp-verify/data --out_dir
 $PY docs/verification/scripts/data_pipe/verify_dataset2.py
 # 4) DataPreProcess/check 脚本验证：19 PASS / 0 FAIL
 $PY docs/verification/scripts/data_pipe/verify_preprocess.py
-# 5) mono-eval P0 复现（需真实模型权重？不需要——用配置构建模型，无权重）
+# 5) mono-eval P0 复现（由配置构建随机权重模型）
 $PY docs/verification/scripts/data_pipe/verify_p0_eval.py
 # 6) 真实权重评测形状验证（需 /root/.cache/falcon_weights/falcon.pt；可选）
 $PY docs/verification/scripts/data_pipe/verify_realweight_eval.py

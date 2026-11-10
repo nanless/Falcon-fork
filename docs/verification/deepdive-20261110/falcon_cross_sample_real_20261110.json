@@ -1,0 +1,18 @@
+{
+  "indices_in_current_tt_index": [
+    7,
+    15,
+    43
+  ],
+  "before_video_1": "/root/data/falcon_lrs2_2mix/tt/mouths/6331733559511729306_00026.pt",
+  "before_video_2": "/root/data/falcon_lrs2_2mix/tt/mouths/6332062124509813446_00018.pt",
+  "target_audio": "/root/data/falcon_lrs2_2mix/tt/mix/6332062124509813446_00059_4.0938_6330311066473698535_00011_-4.0938.wav",
+  "target_video": "/root/data/falcon_lrs2_2mix/tt/mouths/6332062124509813446_00059.pt",
+  "checkpoint_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "device": "cpu",
+  "threads": 4,
+  "output_rms": 0.15479634702205658,
+  "diff_rms": 0.00027844804571941495,
+  "diff_max": 0.004413485527038574,
+  "diff_rms_pct": 0.17988024652004242
+}

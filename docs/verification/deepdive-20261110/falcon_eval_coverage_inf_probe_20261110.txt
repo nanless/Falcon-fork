@@ -1,0 +1,20 @@
+/root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[eval] coverage OK: 4/4 planned utterances produced rows (per rank [2, 2], world_size=2)
+
+✅ [Success] Combined metrics saved to: /tmp/falcon_coverage_inf_probe___1d05qj/results/metrics_combined.csv
+✅ [Success] Valid counts saved to: /tmp/falcon_coverage_inf_probe___1d05qj/results/metrics_counts.json
+----------------------------------------
+Final metrics (per-utterance, all workers):
+si-snr    inf
+----------------------------------------
+Valid counts (finite values per column):
+si-snr=4/4
+----------------------------------------
+source_sha256 7c06e6629cf1413c4f17edb24186501a59e56d3bb8b3a8cb0e1628d8ad1b90e4
+expected_ids ['A', 'B', 'C', 'D'] actual_ids ['A', 'B', 'A', 'D'] unique 3
+coverage {"allow_partial": false, "dataset_len": 4, "is_subset": false, "limit": null, "planned_per_rank": [2, 2], "planned_total": 4, "rows_merged": 4, "rows_per_rank": [2, 2], "verified": true}
+merged_count 4 merged_nan_count 0
+merged_avg inf
+tracker_count 3 tracker_mean inf
+temp_root /tmp/falcon_coverage_inf_probe___1d05qj

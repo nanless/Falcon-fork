@@ -1,7 +1,7 @@
 # Phase-2 A 报告：LRS2-2Mix ~7 dB 差距排查（指标 / 协议变体）
 
-> 分支 `repro/phase2`（HEAD `af74cca`，未 commit）· owner `loss-metric-eval`（task-18）· 2026-10-21
-> 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / fast-bss-eval 0.1.4；GPU 用 `CUDA_VISIBLE_DEVICES=1` 单卡批处理，已释放）
+> 分支 `repro/phase2`（HEAD `af74cca`）· owner `loss-metric-eval`（task-18）· 2026-10-21
+> 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / fast-bss-eval 0.1.4；GPU 用 `CUDA_VISIBLE_DEVICES=1` 单卡批处理）
 > 数据：`/root/tmp/lrs2_eval_tt_full/tt`（3000 条 LRS2-2Mix tt，target=s1，2 s/16 kHz，mouth `(50,96,96,3)` uint8 .pt）
 > 权重：`/root/.cache/falcon_weights/falcon.pt`（官方 small，epoch 714；audio 525 + video 137 keys strict 加载）
 > 产物：`tools/repro/phase2/gap_analysis.py`、`docs/verification/phase2/P2A-small-200.{log,json}`、
@@ -10,12 +10,12 @@
 ## 1. 结论（TL;DR）
 
 1. **指标/协议变体无法解释 7 dB 差距。** 在固定 200 条随机子集（seed 0）上，官方 small 权重
-   **SI-SNRi 6.95 / SDRi 7.62 dB**（Phase-1 全量 3000 条为 7.03/7.71；子集有代表性）。
+   **SI-SNRi 6.95 / SDRi 7.62 dB**（Phase-1 全量 3000 条为 7.03/7.71；子集和全量的基线接近）。
    所有“合理”的指标/协议变体相对基线的变化都在 **±0.35 dB 内**：plain-SNR +0.34、4 段平均 +0.28、
    2 段平均 +0.15、SDR 滤波长度 256/128/64 = −0.09/−0.21/−0.35、zero-mean −0.02、
    target 按 mix 能量/RMS 缩放 ±0.00、best-of-s1/s2（PIT 上界）+0.02。
    ⇒ 即使把口径全部换到最有利的变体，最多回收 **~0.3–0.4 dB**，剩余 **~6.6 dB** 仍无法解释。
-2. **我们当前的评测协议在全部变体中已是最优/正确**：mouth 用 target(s1) 的裁片、88 中心裁剪、
+2. **基线在本次输入变体中表现最好**：mouth 用 target(s1) 的裁片、88 中心裁剪、
    标准 mean/std 归一化、2 s 整句、精确帧对齐、mono 16 kHz——任何偏离都变差或不变：
    mouth 换 s2 为 −16.7 dB、置黑为 +2.16（相对 6.95 降 4.8）、96 不裁 −0.04、时间平移 ±5/±12 帧
    **−10~−13 dB**（灾难性）、单通道 vs 3ch 灰 ±0.00、不做归一化 −0.45；音频截 1 s −0.48、
@@ -31,7 +31,6 @@
    比 small +0.971/+0.911）；窗口化协议反而 −1.9 dB。因此 ~6 dB 差距更可能来自
    **发布 `falcon.pt` 的训练数据/配方与论文 LRS2 列不匹配**（论文可能按 benchmark 分别训练；发布权重
    训练集未知），而非评测协议。需 P2-D 训练复现 / 向作者确认 benchmark-specific checkpoint。
-6. **GPU 已释放**：本任务所有 GPU 实验已结束（P2-A 无残留进程/显存），未启动新的全量长评测。
 
 ## 2. 方法
 
@@ -39,7 +38,7 @@
 
 - 评测集 `/root/tmp/lrs2_eval_tt_full/tt`（Phase-1 构建）：3000 条，JSON 顺序即 Phase-1 `--limit` 顺序。
 - 固定子集：`--subset random --seed 0 --limit 200`（对 3000 条无放回随机、排序后取 200）；
-  子集 filename SIR 均值 5.010 dB vs 全量 3000 条 4.974 dB，代表性好。
+  子集 filename SIR 均值 5.010 dB vs 全量 3000 条 4.974 dB，两者基线接近。
 - anchor 子集：`--subset first --limit 20` 用于复现 Phase-1 20 条基线（7.911/8.547）。
 
 ### 2.2 模型与推理
@@ -198,7 +197,7 @@ CUDA_VISIBLE_DEVICES=1 $ENV tools/repro/phase2/gap_analysis.py \
 - mouth 变体是**诊断性**的，不代表论文真实协议；置黑/时间平移用于量化视觉分支与对齐敏感性。
 - `change_sign`：`fast_bss_eval.sdr_pit_loss` 返回负 SDR loss，本报告统一取负为正值指标；单独取反只会整体变号、不改变结论，故未作为独立变体。
 - target 缩放的 **SDR** 变体未单列：`fast_bss_eval` 内部对信号归一化，预期同样尺度不变；本报告以 SI-SDR 变体验证（±0.00）。
-- 真实“论文协议”仍未知（论文未给评测脚本）；本报告只能证明“我们的协议是最优且自洽的”，不能证明
+- 真实“论文协议”仍未知（论文未给评测脚本）；本报告显示所测协议自洽，尚不能确定
   论文用了别的协议。
 
 ## 6. 下一步建议（交接）
@@ -224,6 +223,4 @@ cd /root/code/github_repos/Falcon-fork
 # 复跑：见 §2.4（anchor 约 30 s；主实验 200 条×14 变体约 5 min，GPU1 batch=4）
 ```
 
-- 本任务只写 `tools/repro/phase2/` 与 `docs/verification/phase2/`；未修改 Phase-1 源码，未 commit。
-- GPU：实验已结束，无残留进程/显存（`nvidia-smi` 无本任务进程），已按要求释放。
 - 备注：并发执行时 GPU/CPU 争用会显著变慢（本任务最初在 GPU0 与 P2-B 争用，已中断后改 GPU1 批处理完成）。

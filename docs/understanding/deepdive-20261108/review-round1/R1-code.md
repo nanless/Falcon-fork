@@ -1,15 +1,17 @@
 # R1 逐行代码审查（Falcon-fork，HEAD 6c1d5b7 + 工作区改动）
 
+> **2026-11-10 复核提示：**本文评的是当时的 HEAD 和工作区；子集 `verified` 的历史问题已有修订，但当前覆盖检查仍主要对行数，重复 ID 与遗漏可能同时存在。默认路径对照对应当次输入、测试环境和版本。当前边界见[复现状态](../../../STATUS.md)。
+
 审查对象：`look2hear/models/Falcon.py`、`studio/falcon_model/models/Falcon.py`、`look2hear/losses/{sisnri,pit_wrapper}.py`、
 `look2hear/datas/{avspeech_dataset,avspeech_dataset_near}.py`、`look2hear/layers/normalizations.py`、`audio_visual_test.py`、
 `evaluated_mac_params.py`、`tools/repro/phase2/eval_realssa_real.py`、`tools/repro/phase2/*.sh`、`configs/*.yml`、
 `docs/verification/scripts/data_pipe/verify_dataset2.py`、`tools/repro/tests/test_metrics.py`。
-仓库只读：所有实验都在 `/tmp/r1` 的 `git archive` 副本上做，仓库工作区未改动。
+实验在 `/tmp/r1` 的 `git archive` 副本上进行。
 
 ## 0 结论速览
 
 - **P0 = 0 / P1 = 2 / P2 = 9。建议本轮合并**；其中 **P1-1（coverage 戳）建议合并前改掉（约 5 行）**，P1-2 可在合并后立即改文档+默认值。
-- 默认路径**逐位零漂移已实测**：`configs/Falcon.yml` 建 `FalconSpeakerContrastive`，HEAD vs 工作区 → 525 个 state_dict 键、参数哈希、前向输出全等（`out_sum = -71.21968841552734`）。
+- 所测模型默认路径**逐位一致**：`configs/Falcon.yml` 建 `FalconSpeakerContrastive`，HEAD vs 工作区 → 525 个 state_dict 键、参数哈希、前向输出全等（`out_sum = -71.21968841552734`）。
 - **checkpoint 兼容已实测**：旧 `model_args`（无两个新键）/ 新 `model_args` 都能 `BaseModel.from_pretrain`，`strict=True` 无 missing/unexpected；`nn.LSTM(batch_first=)` 不改变参数名与形状（537,697 参数不变）。
 - 数据集默认路径：`AVSpeechTrainDatasetWithNear`（默认 16 kHz）**逐位一致**；plain `AVSpeechTrainDataset`（默认 **8000**）**不一致**（P1-2）。
 - **`paper_causal=True` 不是"纯 padding 开关"**：stride=2 的 3 个 downsample 层输出长度 50→48，且末帧输入对输出**零影响**（P2-3）。

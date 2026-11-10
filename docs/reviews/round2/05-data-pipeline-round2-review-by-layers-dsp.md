@@ -9,7 +9,7 @@
 > `docs/verification/runs/review_layers/05-review-checks.log`；另**复跑了作者的两套验证套件**
 > （`verify_dataset2.py` 57 PASS / 0 FAIL；`verify_preprocess.py` 19 PASS / 0 FAIL）与
 > `verify_realweight_eval.py` 关键结论。环境 `/root/.venvs/falcon/bin/python`（3.10 + torch 2.8，CPU）；
-> 真实权重 `/root/.cache/falcon_weights/falcon.pt`（只读，不联网/不训练）。**未修改任何源码与被评审文档。**
+> 真实权重 `/root/.cache/falcon_weights/falcon.pt`。
 
 ## 1. 结论
 

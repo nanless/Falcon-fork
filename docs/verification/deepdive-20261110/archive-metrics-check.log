@@ -1,0 +1,10 @@
+command: CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/root/code/github_repos/Falcon-fork OMP_NUM_THREADS=4 /root/miniforge3/envs/falcon/bin/python /tmp/falcon_full_review_20261110/archive_metrics_check.py
+test_source: /root/code/github_repos/Falcon-fork/tools/repro/tests/test_phase2_pipeline.py
+archive: /root/code/github_repos/Falcon-fork/docs/verification/phase2/P2D-train-metrics-1gpu.csv
+archive_sha256: c6d5704e4fab99b00194de4f63f70aba9fd20df43dcc3d34d325845508fef675
+formal_status: SKIPPED, original /root/tmp/p2d_train/... path absent
+checking: direct test function with P2D_TRAIN_ROOT redirected to temporary symlink
+P2D val PIT SI-SNR: [6.732, 7.334, 8.104, 8.458, 8.81, 9.08, 9.276, 9.477, 9.723, 9.91, 10.077, 10.203, 10.366, 10.442, 10.614, 10.695, 10.715, 10.801, 10.929, 10.989, 11.185, 11.174, 11.229, 11.223, 11.453, 11.51, 11.644, 11.547, 11.685, 11.732, 11.705, 11.647, 11.717, 11.769, 11.884, 12.015, 12.063, 12.052, 12.13, 12.13, 12.102, 12.225, 12.256, 12.089, 12.233, 12.327, 12.445, 12.383, 12.317, 12.36, 12.401, 12.357, 12.414, 12.515, 12.531, 12.533, 12.444, 12.528, 12.539, 12.463, 12.608, 12.532, 12.644, 12.621, 12.708, 12.663, 12.694, 12.638, 12.541, 12.635, 12.523, 12.667, 12.736, 12.823, 12.591, 12.648, 12.863, 12.683, 12.841, 12.813, 12.879, 12.742, 12.786, 12.82, 12.894, 13.011, 13.118, 12.997, 12.815, 13.032, 12.797, 12.95, 12.916, 12.971, 12.985, 12.939, 13.138, 13.115, 13.038, 13.201]
+P2D 训练曲线: 5000 行, step 49..249999, loss first10=-5.97 last10=-14.27
+archive_assertions: PASS
+interpretation: alternative evidence check only; original suite remains 166 passed, 2 skipped

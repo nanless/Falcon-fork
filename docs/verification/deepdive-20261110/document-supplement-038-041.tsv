@@ -1,0 +1,5 @@
+冻结序号	文件	阅读范围	发现与状态
+38	docs/understanding/05-data-pipeline.md	全文	§3.6无90°旋转；K=0正样本项仍存在，页首已更正；仅两个样例不能证明任意T/F
+39	docs/understanding/06-studio-backend.md	全文	§2.6依赖范围已过期，页首已更正；stub图像解码不等于真实依赖
+40	docs/understanding/07-studio-frontend.md	全文	A20 的追踪丢失应区分尚无 ROI 与已有 ROI：后者会沿用画面继续；流程图已由图片组修订
+41	docs/understanding/08-ops-tests-docs.md	全文	旧训练 logger 已修复；原评测快照类名仍不受支持需兼容配置；旧依赖版本已更新，页首已更正

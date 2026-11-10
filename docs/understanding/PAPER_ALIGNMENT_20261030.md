@@ -1,6 +1,7 @@
 # 论文公开后对齐：arXiv 2610.32749 协议提取与复现差异校正（2026-10-30）
 
-> 任务：共享任务 `task-14`（owner `losses-metrics`）。**只写本文件**；未改源码/他人文档，未 git commit。
+> **2026-11-10 更新：**本篇保留 10 月 30 日论文提取与实验记录。发布权重的训练语料、训练损失及其与论文模型的对应关系仍待确认；历史 RealSSA-Real full3 的窗口无效。通道、指标、评测窗口和 near 源生成条件见[当前状态](../STATUS.md)及[后续论文对照](deepdive-20261108/11-paper-alignment.md)。
+
 > 论文：Wendi Sang, Kai Li, Yifan Li, Jianqiang Huang, Xiaolin Hu,
 > *"Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World Acoustic Scenes"*,
 > **arXiv:2610.32749v1 [cs.SD]，2026-10-23 提交，28 页**（NeurIPS 2026）。
@@ -20,10 +21,10 @@
 |---|---|---|---|
 | 1 | 是否每个 benchmark 分别训练？ | **部分明确**：baseline 在 RealSSA-Sim 与 VoxCeleb2-2Mix 上**分别重训**（§6.1）；Table 6 明确存在“RealSSA-Sim-trained Falcon”与“VoxCeleb2-trained Falcon”两版。LRS2/LRS3 baseline 数字直接引用 Swift-Net。**Falcon 在 LRS2/LRS3 列的训练集/ckpt 论文未明说** | 🟡 部分确认（“按数据集训练”成立；但不是论文逐字声明的 per-benchmark 全矩阵） |
 | 2 | 训练损失/配方 | `L_recon = −SI-SNR`、λ_spk=1.0、m=0.5、**τ 0→1 线性退火（Table 16：前 1000 epoch）**；AdamW lr 1e-3/wd 0.01；ReduceLROnPlateau(15, 0.5)；early stop 30；**8×RTX3090、bs 4/GPU、1000 epoch**；2 s/50 帧/25 fps；seed 42（§5.2, App D Table 16） | ❌ **推翻**我们“训练用 SNR 是论文技巧”的推断：论文白纸黑字 **−SI-SNR**；仓库 `configs/Falcon.yml:117` 的 `pairwise_neg_snr` 与 τ=200 都**不是论文最终配方** |
-| 3 | 对比损失负样本怎么来（RealSSA 无 near 波形） | 负样本 = **每个 near-field 干扰源的 clean per-source 波形**，与 target 同 RIR、同 `E_a` 编码、stop-grad；**far-field 被排除**（§4.3 Eq.8-10）；RealSSA-Sim 的 near 波形由 LibriSpeech 干扰源+RIR 仿真生成，**发布包不含 near 波形，但论文承诺发布生成脚本与 metadata（含 RIR hash/位置/SIR）可重生成**（App A.2）；Limitations 也承认该损失依赖仿真 near 源 | 🟡 **确认并填上**：负样本语义与我们的 NASS 公式一致；我们“RealSSA 无 near → K=0”仍是**数据发布现状**，但**可用论文 pipeline 重生成**（需 LibriSpeech+LRS3+WHAM!+Hive） |
+| 3 | 对比损失负样本怎么来（RealSSA 无 near 波形） | 负样本 = **每个 near-field 干扰源的 clean per-source 波形**，与 target 同 RIR、同 `E_a` 编码、stop-grad；**far-field 被排除**（§4.3 Eq.8-10）；RealSSA-Sim 的 near 波形由 LibriSpeech 干扰源+RIR 仿真生成，**发布包不含 near 波形；论文承诺发布生成脚本与 metadata（含 RIR hash/位置/SIR）**（App A.2）；Limitations 也承认该损失依赖仿真 near 源 | 🟡 **确认并填上**：负样本语义与我们的 NASS 公式一致；我们“RealSSA 无 near → K=0”仍是**数据发布现状**，可在生成脚本、完整元数据和 LibriSpeech/LRS3/WHAM!/Hive 可用后尝试重生成并验证对齐 |
 | 4 | DNSMOS 3.276 是 P.835 OVRL 还是 P.808？ | 论文引用 **[35] = Reddy et al., “DNSMOS P.835” (ICASSP 2022)**，不是 P.808；Table 3 单列一个 DNSMOS 数值 3.276（§5.2, App E）；**具体子分数（SIG/BAK/OVRL）未写明**，按惯例应为 **OVRL** `[推断]` | ❌ **推翻**我们 P2-E“P808 3.3285≈3.276”的猜法：P.808 不是论文指标；我们同 ckpt 的 OVRL 2.7901 与论文 3.276 **不可比**（论文 3.276 是 **RealSSA-Sim-trained** ckpt，见 §6.1/Table 6） |
 | 5 | RealSSA-Sim 生成参数 | 四场景（small meeting / medium indoor / large public / outdoor），RT60 0.3-0.6 / 0.5-0.9 / 1.0-2.0 / 0.05-0.1 s；near 干扰 1-5（各场景 1-5/1-3/1-4/1-4），far 10-15；near SIR 2-5/2-8/2-8/2-15 dB；far SIR 20-35 dB；env SIR 5-15/5-10/2-8/−2-5 dB；**split 100,826 / 9,133 / 9,169，129.2/11.7/11.7 h，avg 4.61 s、avg 13.2 speakers、near SIR 8.5 dB、far SIR 27.5 dB**；**评测只用 channel-1**（§3, Table 2/11, App A.1-A.3） | ✅ **确认** test=9,169 与我们的数据一致；❗**发布数据卡写 4-channel，论文写“released waveforms are channel-1 streams”**——见 §5 的口径冲突；我们取 4ch **mean** 是**偏离论文**的 |
-| 6 | 消融 / MDCL / 窗口化 | TFRB 是架构块（Eq.5），**GCI 是架构块（Eq.6）但没有独立消融**；消融只有：stage 数（1/2/3→7.1/7.4/7.7）、递归单元（LSTM vs RNN/GRU/SRU）、对比损失（+0.4/+0.2/+0.3 dB）、τ 调度、输出参数化、overlap、missing visual。**全文无 MDCL、无窗口化/流式评测数字** | ✅ **确认**“MDCL 不在论文”；❌ **无法**用论文解释 Studio 窗口化 −1.9~−2.3 dB（论文只有 2 s clip 评测协议） |
+| 6 | 消融 / MDCL / 窗口化 | TFRB 是架构块（Eq.5），**GCI 是架构块（Eq.6）但没有独立消融**；消融只有：stage 数（1/2/3→7.1/7.4/7.7）、递归单元（LSTM vs RNN/GRU/SRU）、对比损失（+0.4/+0.2/+0.3 dB）、τ 调度、输出参数化、overlap、missing visual。**全文无 MDCL、无窗口化/流式评测数字** | ✅ **确认**“MDCL 不在论文”；❌ **无法**用论文解释 Studio 窗口化 −1.9~−2.3 dB（论文训练采用 2 s 片段，评测窗仍待确认） |
 
 **一句话**：论文把“训练配方 / DNSMOS 口径 / RealSSA 生成参数 / 消融”四块空缺全部填上了；但它**没有**说明
 Falcon 在 LRS2/LRS3 各列的训练集、也**没有**说明发布 `falcon.pt` 是哪一个 ckpt——这两点仍只能靠仓库证据（`conf.yml`
@@ -77,8 +78,7 @@ Falcon 在 LRS2/LRS3 各列的训练集、也**没有**说明发布 `falcon.pt` 
 λ_spk=1.0.”
 
 **影响**：仓库 `configs/Falcon.yml` 与发布权重的 `conf.yml` 都是 **SNR + β/200**；论文最终模型是 **SI-SNR + τ/1000**。
-所以发布 `falcon.pt` 的训练目标**不是论文 Table 16 的目标**（至少损失与退火不同），这与我们既有推断
-“发布 ckpt 是旧配方”一致，但此前我们以为论文未公开、无法确证——现在可以确证。
+配置快照与论文 Table 16 在损失和退火上不同；该快照与发布 `falcon.pt` 的训练身份仍待确认。
 
 ### 2.2 是否每个 benchmark 分别训练？
 
@@ -132,8 +132,8 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
   interferers available in simulation”。
 - `[我们]` 已下载的 RealSSA-Sim 包只有 mix/target/mouth（4ch wav），`near.json` 只能生成 mix 哨兵
   （`tools/repro/realssa_to_falcon.py:482-489`），所以我们的 RealSSA 训练若直接开跑会 **K=0**（只剩正项）。
-- `[推断]` **可在本地重生成的路径**：拿到 released metadata + 生成脚本 + LibriSpeech/LRS3/WHAM!/Hive 后，
-  按记录的 RIR/位置/SIR 重放 mixing，即可得到每个 near 源的 clean 波形（对齐到 segment 后作为负样本）。
+- `[推断]` **可供探索的重生成路径**：拿到 released metadata + 生成脚本 + LibriSpeech/LRS3/WHAM!/Hive 后，
+  在生成脚本、完整元数据及原始资产可用后，按记录的 RIR/位置/SIR 重放 mixing，并验证近场波形及对齐（对齐到 segment 后作为负样本）。
   这是论文公开后**新解锁**的 RealSSA 训练复现路径（此前我们判定“无法忠实复现负样本”）。
 
 ---
@@ -151,15 +151,15 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
 | NISQA | [36] NISQA（Interspeech 2021） | 未做 | ➕ 可补 |
 | WER | **Mega-ASR [37]**（arXiv 2605.19833），RealSSA-Sim 全部 + RealSSA-Real 54 段（App E） | 未做 | ➕ 可补（模型可得性待查） |
 | target-speaker similarity | **WeSpeaker ResNet34-LM**（HF: Wespeaker/wespeaker-voxceleb-resnet34-LM），与独立 enrollment utterance 的 cosine×100 | 未做 | ➕ 可补（checkpoint 公开） |
-| 评测对象 | RealSSA-Real 的指标用 **RealSSA-Sim-trained** 模型（§6.1） | 我们的 RealSSA-Real DNSMOS 用的发布 `falcon.pt`（仓库快照=LRS3 训练） | ❌ **不同 ckpt，不可直接比** |
+| 评测对象 | RealSSA-Real 的指标用 **RealSSA-Sim-trained** 模型（§6.1） | 我们的 RealSSA-Real DNSMOS 用的发布 `falcon.pt`（仓库保留 LRS3 配置快照，权重训练语料待确认） | ⚠️ 权重身份与评测协议待核对 |
 
 **DNSMOS 口径的最终答案（旧问题 4）**：
 - `[论文]` 引用 [35] “DNSMOS p. 835”（Reddy/Gopal/Cutler, ICASSP 2022），**不是 P.808**；Table 3 单值 3.276。
 - `[论文]` Table 6：RealSSA-Sim-trained Falcon **3.276**，VoxCeleb2-trained Falcon **2.878** —— 训练数据差 0.4 MOS。
-- `[我们]` 发布 `falcon.pt`（非 RealSSA-trained）在 RealSSA-Real（channel=mean、窗口化推理）上：
+- `[我们]` 发布 `falcon.pt`（训练语料待确认）在 RealSSA-Real（channel=mean、窗口化推理）上：
   **SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285**（`docs/REPRODUCTION_PHASE2_REPORT.md:98-107`）。
 - `[推断]` 论文 3.276 最可能是 **P.835 OVRL**（单值惯例）；我们的 OVRL 2.79 与论文 3.276 差 0.49，
-  与 Table 6 的“非 RealSSA 训练版本 2.878”同量级（−0.09）→ **差距主要来自 ckpt 训练数据，而非 DNSMOS 实现**。
+  与 Table 6 的“非 RealSSA 训练版本 2.878”同量级（−0.09）→ 差距可能受训练数据、评测窗口和 DNSMOS 实现等因素影响，具体贡献待核对。
   我们此前用 P808 3.3285 对齐 3.276 是**巧合**（P.808 不是论文指标）→ **旧结论推翻**。
 - `[待确认]` 论文未写 DNSMOS 实现/版本（speechmos？DNS-Challenge 官方脚本？）与子分数；我们只能报告
   “speechmos 0.0.1.1 P.835 OVRL + 模型 sha256”并声明实现不同。
@@ -188,7 +188,7 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
   说话人高 1.0–1.9 m）；② 目标放 near 范围、干扰按场景距离范围放置；③ target 归一化 **−23 LUFS**（EBU R128），
   near 按 near SIR、far 按 20–35 dB、env 噪声（WHAM+Hive 各衰减 3 dB 后求和），突发事件同 SIR 分布，
   最终 **peak-limited −1 dBFS**，per-source gain clip ±40 dB。
-- 可复现性：**固定 master seed 42，train/val/test 独立 seed offset，可 bit-for-bit 重生成**；metadata 含
+- 可复现性：论文描述固定 master seed 42 与 train/val/test 独立 seed offset；逐位重生成需实际运行验证；metadata 含
   room/RT60/位置/RIR hash/SIR/Hive label；单卡 3090 全量训练集 **~48 GPU-hours** 生成；发布 generation scripts+metadata。
 - `[我们]` 下载的 RealSSA-Sim：242 files/240 shards、521.5 GB（`docs/REPRODUCTION_PHASE2_REPORT.md:164-167`），
   test 9,169 条与论文一致 ✅。
@@ -219,11 +219,11 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
 
 | 论文项 | 论文值 | 位置 | 我们的复现值 | 判定/解释 |
 |---|---|---|---|---|
-| RealSSA-Sim SI-SNRi / SDRi | **7.7 / 8.2** | Table 3 | 7.774 / 8.479（发布 ckpt；channel=mean） | 数值接近（+0.07/+0.28）；但论文是 RealSSA-trained + channel-1，**我们 ckpt/通道都不同**，不能称“复现 ✅”；先按 `--channel 0` 复评再判断 |
-| LRS2-2Mix SI-SNRi / SDRi | **14.1 / 14.7** | Table 3 | 7.029 / 7.713（发布 ckpt 跨语料） | 论文为（未声明的）LRS2 训练 ckpt；我们 P2-D 自训 130 ep 只到 8.858/9.270；差距=训练数据+算力（8×3090/bs4/1000ep vs 我们单卡/130 ep） |
+| RealSSA-Sim SI-SNRi / SDRi | **7.7 / 8.2** | Table 3 | 7.774 / 8.479（发布 ckpt；channel=mean） | 数值接近（+0.07/+0.28）；但论文是 RealSSA-trained + channel-1，**mean 通道不同，权重身份待确认**，不能称“复现 ✅”；先按 `--channel 0` 复评再判断 |
+| LRS2-2Mix SI-SNRi / SDRi | **14.1 / 14.7** | Table 3 | 7.029 / 7.713（发布 ckpt；训练语料待确认） | 论文对应 ckpt 的训练数据待确认；P2-D 自训 130 ep 达 8.858/9.270，差距的原因需要在匹配协议后研究 |
 | LRS3-2Mix SI-SNRi / SDRi | **16.4 / 16.7** | Table 3 | 无法评测（LRS3-2Mix 数据未发布） | ❌ 仍不可复现 |
 | VoxCeleb2-2Mix SI-SNRi / SDRi | **10.5 / 11.8** | Table 3 | 无法评测（数据未发布） | ❌ 仍不可复现；但 Table 6 证明论文训练过 VoxCeleb2 版 Falcon |
-| RealSSA-Real DNSMOS | **3.276** | Table 3 | OVRL 2.7901 / P808 3.3285（发布 ckpt，channel=mean，窗口化） | 论文 = P.835 [35]，**非 P808**；3.276 = RealSSA-trained ckpt；我们 ckpt 不同 → 当前 2.79 不可直接比（见 §3） |
+| RealSSA-Real DNSMOS | **3.276** | Table 3 | OVRL 2.7901 / P808 3.3285（发布 ckpt，channel=mean，窗口化） | 论文 = P.835 [35]，**非 P808**；3.276 = RealSSA-trained ckpt；full3 窗口无效，论文模型与发布权重关系待确认（见 §3） |
 | RealSSA-Real WER / similarity | Falcon **32.74% / 42.23** | Table 4 | 未做 | ➕ 可补（Mega-ASR + WeSpeaker） |
 | RealSSA-Sim WER / similarity | Falcon **25.47% / 43.05**；GT **11.83% / 64.69** | Table 4 | 未做 | ➕ 可补 |
 | Params | **0.5 M**（trainable） | Table 5 / README | 537,697 = 0.538 M（audio only） | ✅ 口径一致（论文“0.5M”为 trainable/音频网络；11.72M 含冻结 FRCNN 见 README 脚注） |
@@ -265,7 +265,7 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
 
 **对我们的意义**：Table 8 的 +0.4 dB 与我们在 LRS2 上实测“s2-near 微调 +0.24/+0.23 dB”同向同量级 ✅；
 但论文的 τ 消融（Table 9）在 **K≥2** 的 RealSSA-Sim 上做，我们的 LRS2 K=1 实验**不能**验证 τ（见 §3）→
-复现 τ 消融必须走 RealSSA-Sim 重生成 near 源路径。
+复现 τ 消融需要构造 K≥2 的有效负样本；RealSSA-Sim near 重生成是待验证的一条路径。
 
 ---
 
@@ -275,12 +275,12 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
 |---|---|---|
 | DNSMOS 口径（P.835 vs P.808） | ✅ **填上**：P.835 [35]（子分数未写，推断 OVRL） | 报告改称“P.835 OVRL”；**不再声称 P808 3.3285≈3.276**；要复现 3.276 需 **RealSSA-Sim-trained ckpt** |
 | RealSSA 训练配方（loss/λ/m/τ/bs/lr/epoch/硬件） | ✅ **填上**（Table 16） | 用 `pairwise_neg_sisdr`（不是 SNR）+ τ/1000 + 8×3090 bs4 重训；仓库 `configs/LRS2_2Mix_Paper_8gpu.yml` 的 bs5、β200 需改 |
-| RealSSA near 负样本 | 🟡 **半填**：语义/来源/pipeline 明确；发布包不含 near 波形，需重生成 | 等 generation scripts+metadata 发布，或按 App A.2 用 LibriSpeech+LRS3+WHAM!+Hive 重放 mixing；此前说“无法忠实复现负样本”应改为“可重生成，成本高” |
-| LRS2 14.1 配方 | 🟡 **半填**：通用训练配方给了；**LRS2 专用配方/混合脚本仍引用 prior work [6,17]**；Falcon LRS2 ckpt 未声明 | 用 Table 16 配方 + 我们的 LRS2-2Mix 数据（s1 target / s2 near）训练 1000 ep/8×3090；这是唯一有希望从 8.86→14.1 的路径 |
+| RealSSA near 负样本 | 🟡 **半填**：语义/来源/pipeline 明确；发布包不含 near 波形，需重生成 | 等 generation scripts+metadata 发布，或按 App A.2 用 LibriSpeech+LRS3+WHAM!+Hive 重放 mixing；此前说“无法忠实复现负样本”应改为“在生成资产与脚本可用时可尝试重生成，结果需验证” |
+| LRS2 14.1 配方 | 🟡 **半填**：通用训练配方给了；**LRS2 专用配方/混合脚本仍引用 prior work [6,17]**；Falcon LRS2 ckpt 未声明 | 用 Table 16 配方 + 我们的 LRS2-2Mix 数据（s1 target / s2 near）训练 1000 ep/8×3090；可作为后续训练与对照方向，结果需实测 |
 | LRS3 16.4/16.7、Vox 10.5/11.8 | ❌ 数据未发布（LRS3-2Mix/VoxCeleb2-2Mix 仓库无数据） | 仍不可复现；只能引用论文 + 用 Vox 训练 RealSSA-Real（Table 6 路径）做部分交叉验证 |
 | RealSSA-Real 的 WER/NISQA/speaker-sim | ✅ 协议填上（Mega-ASR / WeSpeaker ResNet34-LM / NISQA） | 补测：WeSpeaker checkpoint 公开可下；Mega-ASR 可得性待查；NISQA 可 pip |
 | RealSSA-Sim 通道口径 | ✅ **填上**：channel-1（我们用了 4ch mean） | `realssa_to_falcon.py --channel 0` 重转 test（或直接读原 wav 第 1 通道）再评；预计改动 ±0.1~0.3 dB |
-| 窗口化/流式评测（Studio −1.9~−2.3 dB） | ❌ **未填**：论文只报 2 s clip、8 ms hop、lookahead 120 ms，无长录音拼接/流式评测协议 | Studio 的窗口化数字仍无论文对照；不能声称“与论文流式协议一致” |
+| 窗口化/流式评测（Studio −1.9~−2.3 dB） | ❌ **未填**：论文训练采用 2 s 片段，并报告 8 ms hop、lookahead 120 ms；评测窗口待确认，无长录音拼接/流式评测协议 | Studio 的窗口化数字仍无论文对照；不能声称“与论文流式协议一致” |
 | 发布 `falcon.pt` 的训练集 | ❌ **未填**：论文全文未提发布权重 | 仍只能引用仓库 `conf.yml` 快照（LRS3_complex_nonmoving）+ PROVENANCE；建议向作者确认 |
 | LRS2/LRS3/Vox 的 Falcon 训练 ckpt | ❌ **未填** | 建议向作者确认；若确有 ckpt 可省 1000 GPU-hours |
 
@@ -295,10 +295,10 @@ m = 0.5，τ: 0→1 线性退火（Table 16），λ_spk = 1.0
 | “训练用 SNR 是论文技巧”（`docs/understanding/04-*.md` §4.1） | ❌ **推翻** | 论文 App D：`L_recon = −SI-SNR`；仓库 config 的 SNR 是**旧配方/偏离**，不是论文设计 |
 | “NASS K=1 时 β 失效”（深挖 04 §2.2） | ✅ **确认并强化** | 论文 τ 消融必须在 K≥2 上做（Table 9）；K=1 时 softmax 恒 1 |
 | “MDCL 不在论文最终模型” | ✅ **确认** | 论文全文无 MDCL；§4.3/Table 8 只有 reconstruction+contrastive |
-| “RealSSA 无 near 波形 → 无法忠实复现负样本” | 🟡 **修正** | 发布包确实没有；但论文承诺发布 metadata+脚本，可按 App A.2 重生成 → 从“不可复现”改为“高成本可复现” |
+| “RealSSA 无 near 波形 → 无法忠实复现负样本” | 🟡 **修正** | 发布包确实没有；但论文承诺发布 metadata+脚本，可按 App A.2 重生成 → 重生成需脚本、完整元数据和原始资产，并须验证实际结果 |
 | “RealSSA-Sim 通道：论文未记录”（`realssa_to_falcon.py:24` 注释） | ❌ **推翻** | 论文 App A.2 明确 first-channel/channel-1；我们默认 mean 需重评 |
 | “RealSSA-Real 我们 P808 3.3285 最接近论文 3.276，可称复现”（Phase-2 报告 §5.1） | ❌ **推翻** | 论文 3.276 是 **RealSSA-Sim-trained** 模型的 P.835 指标；我们的 ckpt（发布权重）不是该模型；OVRL 2.79 只与 Table 6 的 Vox-trained 2.878 同量级 |
-| “14.1/14.7 需要 LRS2-trained ckpt”（Phase-2/深挖结论） | ✅ **确认（结构性）** | 论文 Table 6 直接量化“训练数据改变 RealSSA-Real 指标 0.4 MOS”；LRS2 14.1 不可能来自跨语料模型 |
+| “14.1/14.7 需要 LRS2-trained ckpt”（Phase-2/深挖结论） | ✅ **有待确认** | 论文 Table 6 直接量化“训练数据改变 RealSSA-Real 指标 0.4 MOS”；论文未明确 LRS2 结果对应权重的训练语料 |
 | “发布 falcon.pt 训练集 = LRS3_complex_nonmoving” | 🟡 **未见论文确认** | 仍只有仓库 conf 快照证据；论文未提发布权重 |
 | “窗口化推理 −1.9~−2.3 dB” | 🟡 **与论文无冲突也无支持** | 论文无窗口化/流式评测数字；只能作为 Studio 实现差异记录 |
 
@@ -347,7 +347,7 @@ grep -n "repeats\|audio_repeats\|fusion_repeats" look2hear/models/Falcon.py  # �
   仅引“App M missing visual”。
 - 未读内容：图 1/2/3/4/5/6/7/8/9 的像素内容（只读图注/正文描述）；Algorithm 1 的逐行伪代码（正文 A.2 已覆盖语义）；
   App N（LLM 声明）与致谢仅略读。
-- 本文件未改动任何代码/配置/他人文档；所有“应改”建议均以文字给出，供 Lead 统一整合与后续执行。
+- 本节命令和结果记录了当时的论文与代码对照。
 
 ## 11. 2026-10-30 ch0 复评结果（论文 channel-1 验证）
 
@@ -361,8 +361,8 @@ grep -n "repeats\|audio_repeats\|fusion_repeats" look2hear/models/Falcon.py  # �
 | SI-SNR / SDR | 9.980 / 10.645 | 9.320 / 10.111 | −0.660 / −0.534 | — | — |
 | PESQ / STOI | 2.094 / 0.817 | 2.004 / 0.815 | −0.090 / −0.002 | — | — |
 
-结论：**通道选择影响 <0.3 dB，两通道都在论文 ±0.3 容差内**；论文 channel-1 不解释残余偏差，也不改变“RealSSA-Sim 已复现”。
-真正不可比的是 **RealSSA-Real DNSMOS**：论文 3.276 属 RealSSA-trained ckpt 且为 P.835；我们官方权重同口径 **full4 = OVRL 2.7941 / P808 3.3365**（窗口起点 bug 修复后重跑，full3 作废）。
+结论：**本次 mean 与 ch0 两种处理的 SI-SNRi、SDRi 相差均小于 0.3 dB，数值接近论文表格**；论文 channel-1 不解释残余偏差，权重训练身份和完整评测协议仍待确认。
+真正不可比的是 **RealSSA-Real DNSMOS**：论文 3.276 引用 P.835，子分数与发布权重身份仍待确认；我们的 full4 为 **full4 = OVRL 2.7941 / P808 3.3365**（窗口起点 bug 修复后重跑，full3 作废）。
 证据：`docs/verification/phase2/P2E-realssa-sim-ch0-{eval-20261030.log,metrics_combined-20261030.csv,report.md}`。
 
 > 说明：当前结论/证据/待办以 `docs/STATUS.md` 为准；本文保留为 2026-10-30 论文协议提取记录。

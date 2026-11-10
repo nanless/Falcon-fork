@@ -1,0 +1,48 @@
+{
+  "checkpoint_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "torch_threads": 4,
+  "device": "cpu",
+  "description": "whole 2 s: same visual embeddings and inputs; only audio model batch differs; first four indices of P2A seed0 random 200 subset",
+  "samples": [
+    {
+      "index": 7,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6331733559511729306_00026_0.20614_6341949998218671745_00028_-0.20614.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6331733559511729306_00026.pt",
+      "rms": 0.08935290575027466,
+      "delta_rms": 1.5351787396866712e-08,
+      "delta_max": 1.1920928955078125e-07,
+      "sisdr_batch1": 14.355203283730377,
+      "sisdr_batch4": 14.355203358535968
+    },
+    {
+      "index": 15,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6332062124509813446_00018_2.8808_6367373198133943465_00073_-2.8808.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6332062124509813446_00018.pt",
+      "rms": 0.1429496705532074,
+      "delta_rms": 0.00010141602251678705,
+      "delta_max": 0.0008411332964897156,
+      "sisdr_batch1": 13.108693952005176,
+      "sisdr_batch4": 13.109370024232799
+    },
+    {
+      "index": 23,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6332062124509813446_00018_4.9512_6354369755148493407_00019_-4.9512.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6332062124509813446_00018.pt",
+      "rms": 0.14652931690216064,
+      "delta_rms": 7.368937076535076e-05,
+      "delta_max": 0.0007704421877861023,
+      "sisdr_batch1": 15.854903141437138,
+      "sisdr_batch4": 15.852619891562245
+    },
+    {
+      "index": 43,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6332062124509813446_00059_4.0938_6330311066473698535_00011_-4.0938.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6332062124509813446_00059.pt",
+      "rms": 0.15478387475013733,
+      "delta_rms": 0.00018380869005341083,
+      "delta_max": 0.002294763922691345,
+      "sisdr_batch1": 13.81582972304598,
+      "sisdr_batch4": 13.810689986521098
+    }
+  ]
+}

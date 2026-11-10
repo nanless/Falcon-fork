@@ -1,5 +1,7 @@
 # 10 复现工程 / 证据链 / git 历史
 
+> **历史记录更正（2026-11-10）**：此文的 Git、环境、产物和测试数字属于当时快照，现行结论见[当前状态](../../STATUS.md)和[数据与训练专题](../20261110-data-and-training.md)。§2.1 把文件名 gain 再乘到现存 s1/s2 的混音公式不适用于已保存的混合分量：抽查为 `mix≈s1+s2`；K=0 时 NASS 正样本项仍存在。§3.3 首行把 RealSSA-Sim 的 9,169 条数据误写成 3,000 条。§4.9 的两个 DropPath 样例对应所测输入；stub 与真实依赖的其他行为，以及发布权重谱系，需分别核对。
+
 > 子代理 W1-10。范围：`tools/repro/**`（含 `tests/`、`phase2/`）、`docs/verification/scripts/**`、`Experiments/**`、`.gitignore`、`AGENTS.md`、`docs/STATUS.md`、git 历史与 upstream 差异。
 > 仓库只读（本轮唯一写入是 pytest 自己产生的 `__pycache__`/`checkpoints/*.ckpt`，均被 `.gitignore` 覆盖，`git status` 全程干净）。
 > 全部命令在 `/root/code/github_repos/Falcon-fork`，Python 用 `/root/miniforge3/envs/falcon/bin/python`。
@@ -14,7 +16,7 @@
 4. **1 类必然失败（修前是 2 类）**：新增 CI 的复现测试 job 在 `ubuntu-latest` 跑全量 `tools/repro/tests`，且 `actions/checkout` 未设 `fetch-depth`（浅克隆），而 `test_phase1_regression.py:113-118` 对浅克隆显式 fail。无 GPU 那一类（skip 硬断言 / 线程敏感指纹）**已修**；浅克隆这一条仍在，可用本地等价条件复现（§4.6）。
 5. **3 个 ckpt 的 sha256 字节一致**：`P2D-train-metrics-1gpu.csv` 与 `/root/tmp/p2d_train` 的 `metrics.csv` sha256 相同；`metrics_combined.csv` 的 `avg` 行与日志 `Final metrics` 15 位小数一致；两次 LRS2 评测的 `si-snr_mix/sdr_mix` 列逐元素相同（同 3000 条、同顺序）。
 6. **2 种 ckpt 混在同一棵树里**：`LRS2_2Mix_Paper_2gpu_smoke/*.ckpt` 是 ~51.9 MB 的真 ckpt（3 epoch 冒烟），`checkpoints/*.ckpt`（88 个，5,269 B；2026-11-08 实测，每跑一次测试 +1）是单标量参数的废桩（`state_dict={'audio_model.w': ()}`），由测试写进仓库根。
-7. **每跑一次测试 +1 个废桩 ckpt**：实测 79→80→81→82（2026-11-08 已到 88）。因为 `*.ckpt` 被忽略，`git status` 永远干净，看不出工作区被改过。
+7. **历史测试曾每次写入 1 个单标量 ckpt**：实测 79→80→81→82（2026-11-08 已到 88）。因为 `*.ckpt` 被忽略，`git status` 永远干净，看不出工作区被改过。
 8. **115 个包、0 漂移**：`conda-env-lock.txt` 与 `pip freeze` 的名称+版本完全一致，`test_lock_matches_current_env_pip_freeze` 通过；但 lock 把 18 个 `file:///root/wheelhouse/...` 改写成 `pkg==version`，来源与哈希不在 lock 里。
 9. **1 个 shim、1 个真缺口**：`pypesq.py` shim 存在（792 B）；`espnet` 确实缺失；`typeguard 2.13.3` 确实导出 `check_argument_types`，所以 `docs/verification/stubs/typeguard.py` 的 docstring 理由已失效。
 10. **396 文件 / +107,000 / −523**：upstream 差异里 `docs/verification` 独占 72,118 插入（67%），真正跑起来的模型代码只有 `look2hear/** +693/−196`。这是一个以测量和证据为主的 fork。
@@ -119,8 +121,8 @@ fetch_data.py ──► lrs2_2mix_to_falcon.py / realssa_to_falcon.py ──► 
                                             tools/repro/phase2/protocol_check.py（第三方对拍）
 ```
 
-1. **`tools/repro/audit_data.py:1-14`** 是唯一「训练前只读门禁」：逐 split 读 `mix/target/near.json`，统计 K 分布与「自引用哨兵」（`near == mix` 时 Dataset 静默跳过 → 对比损失失效），并以 **退出码 0/1** 表达通过与否（`audit_data.py:11-14`）。这把「数据错但训练照跑」变成「训练前失败」。
-2. **`lrs2_2mix_to_falcon.py:1-15`** 定义转换契约：`<stem>=<s1>_<gain1>_<s2>_<gain2>`，`mix == gain1*s1 + gain2*s2`（PCM16 取整），**target 恒为 s1**。这个「target=s1」不是随手约定，它被 `protocol_check.py` 独立验证过（见 §3.3：s1 vs s2 差 +24.55 dB）。
+1. **`tools/repro/audit_data.py:1-14`** 是唯一「训练前只读门禁」：逐 split 读 `mix/target/near.json`，统计 K 分布与「自引用哨兵」（`near == mix` 时 Dataset 静默跳过 → 负样本项为空，正样本项仍保留），并以 **退出码 0/1** 表达通过与否（`audit_data.py:11-14`）。这把「数据错但训练照跑」变成「训练前失败」。
+2. **`lrs2_2mix_to_falcon.py:1-15`** 定义转换契约：`<stem>=<s1>_<gain1>_<s2>_<gain2>`，`mix ≈ s1+s2`（发布源已含增益）（PCM16 取整），**target 恒为 s1**。这个「target=s1」不是随手约定，它被 `protocol_check.py` 独立验证过（见 §3.3：s1 vs s2 差 +24.55 dB）。
 3. **`realssa_to_falcon.py:1-14`** 解 WebDataset 四分片（`mix.wav/target.wav/.json/.mouths.pt`），并做 mouths 原子写（commit `714e1a5`：临时文件 + `O_EXCL` + `fsync` + `os.replace`），避免并发覆盖共享 inode。
 4. **`audio_visual_test.py:466-540`** 是证据生成的核心：`_merge_results()` 把 per-rank CSV 合并，**先剔除 `avg`/`std` 行**（`:478`），再算 `mean`（NaN skip）与 **population std `ddof=0`**（`:493`），逐列写 `n_<col>` 有效计数，并输出 `si_snr_identity_check`（`:505-512`，规则 `|si-snr − si-snr_i − si-snr_mix|`）。这套设计让「平均数是几条算出来的」不再靠猜。
 5. **`tools/repro/phase2/eval_realssa_real.py:381-455`** 负责长音频窗口化推理（2 s 窗 / 0.5 s hop / 80 ms guard），并在 `:428-455` 加了**覆盖率断言**：`filled` 布尔数组逐样本记录是否被某窗写入，不用 `out.sum()` 之类的间接判据，`filled.all()` 为假就列出缺口 raise。
@@ -184,7 +186,7 @@ STATUS 需要「指认当前 HEAD」，但 HEAD 的 SHA 在写文档时还不存
 | `test_eval_entry.py` | 165 / 12 | `audio_visual_test.py` 助手 | ckpt 发现、config 加载、结果合并（不需 GPU/权重） | 无 | ✅ |
 | `test_litmodule_logging.py` | 216 / 3 | 3 个 LightningModule 的 `self.log` | CSVLogger 下 `on_validation_epoch_end` 不崩；`val_pit_sisnr_*near` 键存在；`logger=None` 不崩 | 无 | ✅（**副作用：写 `checkpoints/`**） |
 | `test_lock_portable.py` | 147 / 3 | `conda-env-lock.txt` | 无 `file://`/`/root/`/`@ url`；每行 `name==version` 且唯一；**包集合与版本 == 活环境 `pip freeze`**（`@ file://` 用 `importlib.metadata.version` 归一，`:82-95`） | 无 | ✅ |
-| `test_lrs2_convert.py` | 318 / 10 | `lrs2_2mix_to_falcon.py` | 布局/契约、`mix==g1*s1+g2*s2`、幂等（二次运行 skip 已有）、fallback 布局 | 无（合成树） | ✅ |
+| `test_lrs2_convert.py` | 318 / 10 | `lrs2_2mix_to_falcon.py` | 布局/契约、`mix≈s1+s2`（发布源已含增益）、幂等（二次运行 skip 已有）、fallback 布局 | 无（合成树） | ✅ |
 | `test_lrs2_paper_build.py` | 180 / 4 | `build_lrs2_paper_data.py` | `--copy-wavs` 同名塌缩（P0）、构建闸门、40k/10k/6k 计数 | 无（合成树） | ✅ |
 | `test_metrics.py` | 241 / 8 | `look2hear/metrics` | 与解析值 ±0.05 dB；PESQ/STOI **参数顺序**；`ALLMetricsTracker` CSV 的 per-utt + `avg`/`std` 同向约定 | 无 | ✅ |
 | `test_model_rebuild.py` | 335 / 18 | `Falcon`/`Separator` 参数与重建 | 537,697 口径、`serialize→from_pretrain` 525 keys、config 不被污染（同 dict 连构两次） | 2 skip（缺 backbone/ckpt） | 部分 |
@@ -220,7 +222,7 @@ STATUS 需要「指认当前 HEAD」，但 HEAD 的 SHA 在写文档时还不存
 
 | 交叉项 | 方法 | 结果 |
 |---|---|---|
-| 3000 条逐句 CSV vs 日志 | 读 `avg` 行 | `si-snr_i 7.774307312097187` / `sdr_i 8.479394557369417` — 与 log 逐位一致 |
+| 9169 条逐句 CSV vs 日志 | 读 `avg` 行 | `si-snr_i 7.774307312097187` / `sdr_i 8.479394557369417` — 与 log 逐位一致 |
 | **两次评测是否同一测试集** | 比较 `epoch99` 与 `falcon-full` 的 `si-snr_mix`/`sdr_mix` 列 | **逐元素完全相等**（`np.array_equal=True`），`snt_id` 顺序 3000/3000 相同 |
 | 配对增益 | `epoch99 − falcon-full` 的 `si-snr_i` | mean **+1.697 dB**、median +1.319、**88.4% 句子为正** |
 | 指标恒等式 | `|si-snr − si-snr_i − si-snr_mix|` | max **4.44e-15**（falcon-full）/ **5.33e-15**（ep99），finite_pairs 3000 |
@@ -237,8 +239,8 @@ STATUS 需要「指认当前 HEAD」，但 HEAD 的 SHA 在写文档时还不存
 | 位置 | 内容 | 大小 | 性质 | 入库 |
 |---|---|---|---|---|
 | 仓库 `checkpoints/` | 88 × `epoch=0-step=2[-vNN].ckpt`（2026-11-08 实测） | 5,269 B/个，共 640 KB | **废桩**：`state_dict = {'audio_model.w': ()}`（1 个 0 维张量，1 元素），epoch 0 / step 2 | ❌ `*.ckpt` 忽略 |
-| 仓库 `Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/` | `epoch=0/1/2.ckpt`、`last.ckpt`（各 51.9 MB）、`best_model.pth`（2,376,222 B，525 张量 / **537,762** 参数）、`conf.yml`、`best_k_models.json`、`version_0/` | 203 MB | **真**（3 epoch 冒烟） | ❌ `Experiments/checkpoint/LRS2_*/` 忽略 |
-| 仓库 `Experiments/checkpoint/Falcon/` | `conf.yml`（audionet 配置快照）+ `best_k_models.json` | 小 | 发布权重的训练配方证据 | ✅ **仅这两个文件被跟踪** |
+| 仓库 `Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/` | `epoch=0/1/2.ckpt`、`last.ckpt`（各 51.9 MB）、`best_model.pth`（2,376,222 B，525 张量 / **537,762** 个 state_dict 元素）、`conf.yml`、`best_k_models.json`、`version_0/` | 203 MB | **真**（3 epoch 冒烟） | ❌ `Experiments/checkpoint/LRS2_*/` 忽略 |
+| 仓库 `Experiments/checkpoint/Falcon/` | `conf.yml`（audionet 配置快照）+ `best_k_models.json` | 小 | 历史训练配置快照；与发布权重的对应关系未确认 | ✅ **仅这两个文件被跟踪** |
 | `/root/tmp/p2d_train/…/LRS2_2Mix_1gpu/` | `epoch={86,96,97,98,99}.ckpt`+`last.ckpt`（各 51,922,804 B）、`best_model.pth`、`best_k_models.json`、`version_0/{hparams.yaml,metrics.csv(757,616 B)}` | 301 MB | **真，100 epoch 正式训练** | ❌ 仓库外 |
 | `/root/tmp/p2d_near_train/…/LRS2_2Mix_near_s2/` | `epoch=124.ckpt` | 52 MB | 真，contrastive 微调 | ❌ 仓库外 |
 
@@ -413,7 +415,7 @@ drop_prob=0.0 equal=True maxdiff=0.000e+00
 drop_prob=0.3 equal=True maxdiff=0.000e+00
 ```
 
-- `timm` stub：**逐位等价**（真 timm 1.0.30 的 `drop_path` 与 stub 同实现），所以参数/MACs/前向指纹类证据**不受影响**。
+- `timm` stub：**两个被测输入逐位一致**（真 timm 1.0.30 的 `drop_path` 与 stub 同实现），所以参数/MACs/前向指纹类证据**不受影响**。
 - `typeguard` stub：no-op，会**关闭实参类型检查**（不影响数值结论，影响「是否真的做过断言」）。
 - 但 **stub 的 docstring 前提已过时**：`stubs/timm/__init__.py:5` 说「timm 需要 torchvision，沙箱未装」、`stubs/typeguard.py:3-5` 说「装的 typeguard 不再导出 check_argument_types」——两者在当前 `falcon` 环境**都不成立**（torchvision 0.23.0+cu128 已装、typeguard 2.13.3 有该 API）。而 `verify_model_params.py:21` 仍然**无条件** `sys.path.insert(0, …/stubs)`。
 
@@ -421,7 +423,7 @@ drop_prob=0.3 equal=True maxdiff=0.000e+00
 
 ## 5. 坑与反直觉点
 
-1. **测试会往仓库根写 ckpt，而且永远看不见。**
+1. **历史测试曾向仓库根写 ckpt。**
    `tools/repro/tests/test_litmodule_logging.py:142-153` 构造 `pl.Trainer(max_epochs=1, limit_train_batches=2, accelerator="cpu", devices=1, …)`，**没有 `enable_checkpointing=False`，也没有 `default_root_dir`**。PL 默认 `ModelCheckpoint` 就写到 `<cwd>/checkpoints/`，pytest 的 cwd = 仓库根。实测每跑一次 +1 个 `epoch=0-step=2-vNN.ckpt`（当时 79→80→81→82，2026-11-08 已到 88）。因为 `.gitignore:24` 的 `*.ckpt`，`git status` 永远干净 —— **这是「测试零污染」的假象**。同时 `test_audio_train_entry.py:14` 的 docstring 还写着「no source files are modified by the tests」（严格说不算 source，但工作区确实被改了）。
 2. **`checkpoints/` 里的 88 个 ckpt 是废桩，不是模型（2026-11-08 实测，随每次全量测试 +1）。**
    `state_dict = {'audio_model.w': ()}` —— 1 个 0 维张量、1 个元素、5,269 B。任何「ckpt 存在就算有产物」的判断都会被它骗过。
@@ -475,7 +477,7 @@ drop_prob=0.3 equal=True maxdiff=0.000e+00
 4. **lock 文件不含 artifact hash。** 版本集合一致已验证，但 `pip install -r` 重建能否得到**同一二进制**无法保证（18 个包当前来自 `/root/wheelhouse`，含 sha256 只存在于活环境的 `pip freeze` 输出里）。
 5. **`checkpoints/` 废桩无任何守卫。** 需要一个测试或 CI 步骤断言「仓库根不产生新文件」（`git status --porcelain --ignored` 白名单），或在 `test_litmodule_logging.py:142` 传 `default_root_dir=tmp_path`。
 6. **mouth 消融只在 N=20 做过**（`P2F-results.json` 自己写「re-run `--stage variants --device cuda:1` to reproduce」），未在 N=50/3000 复核。−14.4 / −23.3 dB 这类强结论目前是 20 条样本。
-7. **`Experiments/` 的 203 MB 冒烟产物与 `/root/tmp` 的 301 MB 正式产物都没有归档策略**（`P2D-report.md:287` 承认「未归档」）。「复现」到此只保证数值，不保证产物可重建。
+7. **`Experiments/` 的 203 MB 冒烟产物与 `/root/tmp` 的 301 MB 正式产物都没有归档策略**（`P2D-report.md:287` 承认「未归档」）。这些结果需要连同配置、权重和数据路径一起归档，才能重建产物。
 8. **P2-A 与 P2-F 的 baseline 口径不同未在 STATUS 统一**：`phase2/README.md` 的 P2-A 写基线 6.95/7.62（200 条）、P2-F 写 4.994（3000 条 mixture 基线）、P2-B 写 small 6.916/7.492。三个「baseline」不是同一个东西，STATUS 未列出对照表。
 9. **`falcon-big.pt` 的架构名 `SpeakerContrastiveV2` 与 small 的 `FalconSpeakerContrastive` 不同**，且 `P2F-results.json` 的 `big.checkpoint` 段落带的是 small 的元数据（epoch 714 / `FalconSpeakerContrastive` / best_k 714–742）。big 的 517 个 audio key 与 small 的 525 个不同，说明结构有差异 —— 但「big 的参数量/MACs 口径」「big 的 best_k 归属」在本轮未核实（属模型范围，交给别组）。
 10. **STATUS:83 的 8 卡训练「33–50 h」估计无实测支撑**（本机 2 卡，未跑）。这条验收（tt 3000 SI-SNRi ≥13.6 / SDRi ≥14.2）仍是整个复现的唯一大缺口。

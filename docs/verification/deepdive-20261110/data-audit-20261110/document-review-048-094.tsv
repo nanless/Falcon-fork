@@ -1,0 +1,48 @@
+序号	路径	sha256_写入时	本轮阅读深度	核查结果与局限
+48	docs/understanding/VERIFY-ENV.md	906184cad5cf61b80b26c0c29c8558ebedc972565bd68a9a42759764c1f77c9e	全文	旧环境指令、失效 torch 约束与锁文件覆盖危险；已加日期更正横幅。
+49	docs/understanding/deepdive-20261024/00-README-门牌.md	3f7571a5b002324879abbfdb0094e5a07c7171e8607f369e1fd810b34f34a45c	全文	历史导航将 20261108 当唯一事实源、checkpoint 身份过度确定；已加日期更正。
+50	docs/understanding/deepdive-20261024/00-SYNTHESIS.md	60a6a17e23ae90381bdc91aed79a2c25a3143a9449a5d189eb0e0b1aa17a158d	全文	历史总纲曾将 RealSSA 数值吻合写成同分布复现，默认权重训练来源和57帧端到端判断现已被后续审查限定；既有页首标历史，当前以 STATUS 为准。
+51	docs/understanding/deepdive-20261024/01-model-core.md	33f6e92f31744680c3fd12a9667bf27a28a855684a8003cedce0a11c7e69cf6c	全文	已逐行分3段全文读；旧文将同分布、LRS3训练、57帧端到端及单例前向等价推广过宽，当前状态与本轮批次、归一化证据应优先；历史原文保留。
+52	docs/understanding/deepdive-20261024/02-layers-dsp-video.md	259b5c2e01adc403c01b084cae4180258d364fbe958cad42bbb144247346e95f	全文	历史 DSP 报告全文；含 stub 探针、单遍57帧及当时模型上下文；旧论文未公开、GPU延迟和泛化因果论断按历史处理，现状以当前模型说明和审查记录为准。
+53	docs/understanding/deepdive-20261024/03-training-system.md	e81bb658e2c8760983d0e565ff3204f87690b11d403caf93a1c8b251f7e8d687	全文	历史训练报告全文；两卡 smoke 仅限定条件，DDP分桶为未证真实训练风险；论文10卡和200轮beta推断已过时，训练恢复及8卡命令需以现行指南为准。
+54	docs/understanding/deepdive-20261024/04-losses-metrics.md	ceb3cca6d2374d556a4198f177a695c32ef204caa795a418f9f8942587b22b3f	全文	全文读；核心 K0 正项与 K1 温度边界有据；full3、权重谱系和旧 SISNRi 故障已在页首校正，历史正文保留。
+55	docs/understanding/deepdive-20261024/05-data-pipeline.md	d3fc38808ebae94b6f6c0524d68f57fc5b66c760e8504301e290489e9a9d3da6	全文	历史数据报告全文；full3、s1恒响、增益归因、旧proxy和固定目录操作已于页首更正，原命令会重建数据或启动训练，旧记录保留。
+56	docs/understanding/deepdive-20261024/06-studio-backend.md	92bb16c6ce320e74d6ede4c33e8e377711aa1e35487e8283c18cb41da201385c	全文	历史 Studio 后端全文，旧GPU计时无原始记录、PCM32/float和依赖约束过期；已页首标注且链接当前使用及评测说明。
+57	docs/understanding/deepdive-20261024/07-studio-frontend-space.md	a52bc3dc20a41aaad7665c20bd07f9f83418f9e146123992798329e81ca93d6c	全文	历史前端和Space报告全文；旧窗口等价忽略批次耦合和持续跟踪身份边界，已加页首校正，旧依赖和测试视为快照。
+58	docs/understanding/deepdive-20261024/08-verification-ops-env.md	1934a46793537f018d00c8a4b787ba14f96858327d48aadc3ae663b56015b453	全文	历史验证运维报告全文；日志/CSV、无CI、锁和测试数属于当时状态，full3已作废；已加时间校正和当前证据链接。
+59	docs/understanding/deepdive-20261024/09-benchmark-alignment.md	ae40d457679c7edb6cf5b3569aed4f3ed6efd468a37fab9f43aaed9dc03c955d	全文	历史benchmark报告全文；P2B 300条被错引为3000条、full3失效和权重身份未知已在页首校正，旧正文保留。
+60	docs/understanding/deepdive-20261108/00-RECON-LEAD.md	2f7556b1140a0a8bfc36313280b39d63ef7863f6939ac297528ca0e7f52e4904	全文	历史 Lead 基线含当时工作区/设备与已被修正的 paper_causal 表述；不作为当前状态。
+61	docs/understanding/deepdive-20261108/00-SYNTHESIS.md	621d9e9651f8fcd0f9739cfe083b48ffb94ed8f2300a9950b5352b333e02bdd9	全文	历史总纲全文；权重谱系、跨样本、near缩放、抽样覆盖、归一化响应与因果开关结论已在页首纠正。
+62	docs/understanding/deepdive-20261108/01-model-core.md	6b2c6e11e95cf743279d15be34d2f95083b192a4d413e1e17a252cbdcfafd96f	全文	模型核心报告分4段全文；已页首更正60个BN buffer差异、四级attention、特征掩码相位、隔离延迟与因果过裁。
+63	docs/understanding/deepdive-20261108/02-layers-dsp.md	3a27c6d7a0b86cc2db4139648077b6354083a8d44a209c4ae7ebce08149e6f9a	全文	全文复读；页首纠正复掩码相位、跨样本递推、early_min及 FLOP 等推断边界，保留历史正文
+64	docs/understanding/deepdive-20261108/03-video-frontends.md	21cf4385d60f7d69c39c08c2956137508b979bca39c370454f434f1988a51bea	全文	全文复读；页首纠正裁剪等价、8000 Hz 起点、权重相同与帧数普遍性等推断
+65	docs/understanding/deepdive-20261108/04-training-system.md	5639b77e12f0f6a16dc47c130a5ecd47c1e5bc737ce3199422a7e8f3803574d6	全文	全文复读；页首纠正 near 缩放、方向条目与唯一混音分母、margin 外推与多卡证据边界
+66	docs/understanding/deepdive-20261108/05-losses-metrics.md	377a51d71fd39d8b38221b5b13ee059453de024334b6d21caa207ef6117d8a3f	全文	全文复读；纠正 SISNRi 时效、3000 与 6000 索引身份、指标有效分母和计算量口径
+67	docs/understanding/deepdive-20261108/06-data-pipeline.md	fb8047647a253212aede2d1c5066378199d973784af72ca2506bc4ea5e34d222	全文	全文复读；纠正增益与实际响度、near 缩放、β 与 K=0、采样覆盖率、帧起点及秒数
+68	docs/understanding/deepdive-20261108/07-eval-benchmark.md	55e7078b56fde605196b16598ce0e6caa647c3317131340771a4b477825a9249	全文	全文复读；纠正权重语料及归因、full4 限制、阈值方向与恒等式证据范围
+69	docs/understanding/deepdive-20261108/08-studio.md	0791e2a83e7f241353c43950e27dd24f3060670dab28ca545332da0d2a3cd6ff	全文	全文复读；纠正单例外推、guard 因果归因、视频半帧比较、时点测试和 OpenAPI 推断
+70	docs/understanding/deepdive-20261108/09-space-project-page.md	7f3018e813a0b030cf3a36bdc60ad51c51c100dc4bf93c33aa80bb2da913444e	全文	docs 代理全文复读；纠正权重谱系、构建测试计数和接口范围，详见 document-supplement-070-071.tsv
+71	docs/understanding/deepdive-20261108/10-ops-repro-git.md	83422b339b79e42b3995e0a6196e3c452698c938605f058f1882c355b08386cf	全文	docs 代理全文复读；纠正 LRS2 gain、K=0 正项、RealSSA 条数与 stub 证据，详见 document-supplement-070-071.tsv
+72	docs/understanding/deepdive-20261108/11-paper-alignment.md	043b20a3d121e3999b646d804a7ef5d3969d46455ed5d2ef7e515d0322254009	全文	images 代理全文复读；纠正权重身份、批轴递归、梯度裁剪及场景标签矛盾，详见 documents-review-072-073.md
+73	docs/understanding/deepdive-20261108/12-causality-latency.md	fde246d15b6f3b0909d492537c24f9fdaec77e2853900f7fbcb3e8e6770375c1	全文	images 代理全文复读；纠正前视实验范围、延迟推断及六秒覆盖记录矛盾，详见 documents-review-072-073.md
+74	docs/understanding/deepdive-20261108/14-UPDATE-20261108.md	2e92cf3f5369447fa40d42a0a2eb55d572a360efec1c4431702ad381a0d062e6	全文	历史验收数、旧权重训练身份和自比较结论只能作当时记录；新审查已纠正。
+75	docs/understanding/deepdive-20261108/review-round1/R1-code.md	88337a99239613b94e781a8d07956b6372cb0638a6358bca1844423cf2feee4c	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+76	docs/understanding/deepdive-20261108/review-round1/R2-tests.md	4c15f4207d99e57711eb1bd5a179da8383af051f3afde9d760f0781fdbbcec29	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+77	docs/understanding/deepdive-20261108/review-round1/R3-docs-facts.md	3232b6451e74239f3c9ed7fbae3d1cb986bdcda2c7857d32e1f9516cd74eaeea	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+78	docs/understanding/deepdive-20261108/review-round1/R4-writing-style.md	bff1e3cf67edf88f123a0c0683a4a4bc0b313a45599905d13a67d3c9dec9f917	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+79	docs/understanding/deepdive-20261108/review-round1/R5-consistency.md	1206d3a894860033d3eb2d511fa22fd490c85a75f9838ef37b9625aa4913fc68	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+80	docs/understanding/deepdive-20261108/review-round1/R6-streaming-tiebreak.md	89123a2aaf125f7e35f98cc1b8acd92d020606a71889dc65cab6e7b3116036e3	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+81	docs/understanding/deepdive-20261108/review-round1/R7-final-verification.md	b71d78947d1a5dd9419ce55f6ef51cb97472f98e86fcde071c76e752daa45b3f	全文	主代理全文复读；已按需添加页首历史纠错提示，保留正文
+82	docs/verification/README.md	47a30ebfcc1b88b128583a2404f2abdef63b7f4c518cec87062f0e4384d3174c	全文	现用证据导航与指标有效数、full3作废和历史文件保护一致。
+83	docs/verification/data-pipe-supplement.md	bb477f61212571ef3eb88f396b810eb1bccaf05eb7efe2db724e5db07e4b630b	全文	旧 mono P0、三 split 旧评测契约均非现状；已添加修复历史和当前专题链接。
+84	docs/verification/deepdive-20261108/README.md	abfafbd36b54ec5e4b73f460e6a526f99478ac771333d9776bada2b583a3cd1e	全文	旧 lookahead 自比较、流式取帧、嘴部ID与说话人混同，已加后续复核横幅。
+85	docs/verification/deepdive-20261110/README.md	d04e67ccd59c1e439213b6057bed5c89a9301603b9cb6e9060057ec82116719c	全文	全文复读更新后的证据导航；历史四表为早期范围，现另有六表数据审计；未逐项重做实验 最终导航更新后由主审全文回读并刷新哈希。
+86	docs/verification/deepdive-20261110/data-audit-20261110/README.md	e0b23a2827440e32d4cfc219456829a3e16494e64e99a7736c4bf39ac3394984	全文	本轮数据审计入口全文；区分211文件格式、CSV算术、三组日志阅读、动态进度机器解析及未重新推理。
+87	docs/verification/deepdive-20261110/data-audit-20261110/log-semantic-079-117.md	e2326d05ab2a54ee1f8c9d0217356a3e7a9805dc6387a39b7e9421bfb33dbe32	全文	第79–117份日志语义记录，明确第86份超长键列表未逐名核验。
+88	docs/verification/deepdive-20261110/diagram-render-20261110/README.md	4f6af4ee6e007b5a23a662537f6dc64799d9bf09256c0093896a866c638b2e22	全文	15张 Mermaid 渲染路径及原图修订说明；检查内容与代码语义仍需独立核对。
+89	docs/verification/deepdive-20261110/image-review-20261110.md	7a6c3ad25d046fd6c64f3fcad416ebe6fd251007595a9defc46b31949efa4cc7	全文	原有静态图片13张，当前另新增渲染图，已建议作者标明扫描时点。
+90	docs/verification/deepdive-20261110/log-review-040-078.md	a7413bb27f47dff44bd1322b69d68b25ead97f723e56c74f347c3596b2f1490b	全文	第40–78份日志逐项条件、状态与历史异常；重复进度条以重复进度处理。
+91	docs/verification/deepdive-20261110/phase2日志-summary.md	7946b46ff62c23e068407bb2c0f6c9634738f35b058b08f4fa30879b40414094	全文	Phase2日志摘要，记录P2A batch混杂、full3作废及near K0正项等边界。
+92	docs/verification/deepdive-20261110/其余文档审阅.md	5d031faa6f7d05be25910211732d3b7efcb732e3ae58a2d5ccb7e8991c6f34a2	全文	先前其他文档审阅快照；已重写现用文档，其旧代码版本与当前状态需区分。
+93	docs/verification/deepdive-20261110/历史验证报告审阅.md	e350f091c3a9b9e4f1f3dd026bf916b4920129145dfe4cf6a4f4c44337ef50a6	全文	先前Phase1/2报告审阅结果，按历史语境保留；需区别全文阅读与独立重跑。
+94	docs/verification/deepdive-20261110/审查记录.md	ebf279351c41300e537d0d2386e88c05b4f760b545d4583249d12166bfbfd709	全文	按时间记录多个源码与定向实验发现；前部待办由后续补充，禁止直接当全部仍未完成。

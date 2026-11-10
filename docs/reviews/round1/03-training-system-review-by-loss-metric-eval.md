@@ -4,11 +4,11 @@
 > 评审对象 sha256（评审开始时）：`16ad59ea43a7397f1395b024e1eccbf6bec3072b0d8587324816f6f9b575780f`
 > 评审范围：以 Lead 指定的 5 组重点（S0–S26 装配链 / 损失组合对照 / P0 `comet_logger`+Comet API / P1 PL 2.x+死配置+DDP 死锁 / conf.yml 四处差异与评测复现）为主线，
 > 并对 A01–A46 断言表逐条核对，抽查正文全部 `file:line` 证据。
-> 评审方式：**独立读源码** + **独立运行脚本**（不只看 03 自己的日志）：
+> 评审方式：**独立读源码** + **独立运行脚本**：
 > - 我自写 `docs/verification/scripts/verify_r2_review_03.py`（symtable、PL 2.6.6 契约、round-trip、best_k 格式、Falcon AST、依赖、torch.load），日志 `docs/verification/runs/r2-review-03.log`；
 > - 独立重跑 03 的 `verify_train_pl_contract.py`（结果另存 `docs/verification/runs/r2-review-03-pl-contract.log`）、`verify_train_undefined_globals.py`、`verify_train_config_mutation.py`；
 > - 交叉阅读 `04-losses-metrics-video.md`、`05-data-pipeline.md`、`08-ops-tests-docs.md` 的对应结论。
-> **评审对象 sha256（评审结束时）仍为** `16ad59ea…b575780f` —— 评审期间 03 文档未被改动（未施加任何修改）。
+> **评审对象 sha256（评审结束时）仍为** `16ad59ea…b575780f` —— 评审前后版本一致。
 
 ---
 
@@ -237,4 +237,3 @@
 - 本评审新增文件：`docs/reviews/round1/03-training-system-review-by-loss-metric-eval.md`；
   评审支撑脚本/日志：`docs/verification/scripts/verify_r2_review_03.py`、
   `docs/verification/runs/r2-review-03.log`、`docs/verification/runs/r2-review-03-pl-contract.log`。
-- 未修改任何源码，未修改 03 文档。

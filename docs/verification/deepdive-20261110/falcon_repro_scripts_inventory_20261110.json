@@ -1,0 +1,156 @@
+[
+  {
+    "path": "tools/repro/audit_data.py",
+    "lines": 205,
+    "sha256": "da7af4ffb9365844d23dca3f7b0e76db13301edc71b9de9332a3381747110d9f",
+    "status": "full_read",
+    "note": "索引全量及文件抽样检查；可写 JSON；未运行"
+  },
+  {
+    "path": "tools/repro/experiments/_falcon_cpu_common.py",
+    "lines": 64,
+    "sha256": "1fde433b2915544286b9bbb41b586d0bbd10fefa36348ef046a49f1f57b759b2",
+    "status": "full_read",
+    "note": "CPU small 严格加载音频/可选视频权重、预处理并推理；未运行"
+  },
+  {
+    "path": "tools/repro/experiments/ln_variant.py",
+    "lines": 455,
+    "sha256": "03226553ea21c105b388d4f42f7e9e5f8d3c198f07c9e9d3a030473b3be18182",
+    "status": "full_read",
+    "note": "不重训替换 cLNhw 并测试尾扰动；零视频；归档 early_max 否定前121帧均为零；本轮未运行"
+  },
+  {
+    "path": "tools/repro/experiments/lookahead_ab.py",
+    "lines": 345,
+    "sha256": "c0086cef819360495e7ed4c9cf28f8e664f45387f0d7b9a40397a60034be594e",
+    "status": "full_read",
+    "note": "真实权重随机输入，比较因果开关；默认行自比较；裸卷积探针跳过裁切；本轮未运行"
+  },
+  {
+    "path": "tools/repro/experiments/streaming_canonical.py",
+    "lines": 198,
+    "sha256": "40169fd947cf54442b186e9b79e0acdab36dbe5713feee4a914289e917f2daed",
+    "status": "full_read",
+    "note": "真实权重合成多片流；分窗和拼接、guard、相位扫；音视频拼接轴存在差异；本轮未运行"
+  },
+  {
+    "path": "tools/repro/experiments/streaming_consistency.py",
+    "lines": 485,
+    "sha256": "f5deb27f9732ba24c42067bda05be34820b33538525dc78b2c6f9cd1c8890ab3",
+    "status": "full_read",
+    "note": "窗口与整段对照、guard、相位；逐帧 rint 取帧错误；已往真实权重定量"
+  },
+  {
+    "path": "tools/repro/experiments/video_ablation_check.py",
+    "lines": 883,
+    "sha256": "b7d3ac76ce6f4b93b126bd0cf8b562b3d14b6fa4270e035368449ed4ed05afae",
+    "status": "full_read",
+    "note": "逐样本四类视觉消融及按 mouth 文件聚类；FRCNN 始终执行；本轮未运行"
+  },
+  {
+    "path": "tools/repro/extract_video_backbone.py",
+    "lines": 180,
+    "sha256": "c7078e93b05a3492a50562b8b3724673c7501ed12c7a8ea266379dc92348e4cc",
+    "status": "full_read",
+    "note": "从 checkpoint 前缀导出视觉权重；默认写缓存；未运行"
+  },
+  {
+    "path": "tools/repro/fetch_data.py",
+    "lines": 395,
+    "sha256": "aba0a2b26a794a150d6d7f309e4275734c004cc2fcab8684a3e16b387b4bc035",
+    "status": "full_read",
+    "note": "获取 HF 数据；dry-run 仍联网；可续传/验证；未运行"
+  },
+  {
+    "path": "tools/repro/lrs2_2mix_to_falcon.py",
+    "lines": 689,
+    "sha256": "e6e5da9288aa353061356354698b8f77eab5f0a03f60a2e1467bd61d4b2cb920",
+    "status": "full_read",
+    "note": "LRS2 索引/复制/三类 near；验证默认只抽样且问题不影响退出码；未运行"
+  },
+  {
+    "path": "tools/repro/make_synthetic_data.py",
+    "lines": 355,
+    "sha256": "01c49ffdd7a6bad4ec9dcf5f1f5d8772a3dd44aad0890dd40eb8a2cebd71940a",
+    "status": "full_read",
+    "note": "合成独立谐波/噪声/嘴帧并复用预处理建索引；overwrite 可删除输出；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/analyze_p2b.py",
+    "lines": 149,
+    "sha256": "0d33088b63b165d800a13b2601e7487cbae0c796e464bc532c38262105796790",
+    "status": "full_read",
+    "note": "读取 P2B 结果按 ID 取交集作配对汇总；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/build_lrs2_paper_data.py",
+    "lines": 311,
+    "sha256": "cbf35d91dc9e22022bdeedd405d362587744045de324b7f00ab77ff44920c9ac",
+    "status": "full_read",
+    "note": "双向 s1/s2 和 near 建索引，目标可复制，门禁仅校验路径/文件名；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/compare_variants.py",
+    "lines": 278,
+    "sha256": "677425598f66dbdfa0d27ddeaeca1891b137e0949ee63bc38b7abed53237f726",
+    "status": "full_read",
+    "note": "small/big、整段/分窗、视觉消融；依赖权重及实际数据；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/download_realssa_shared.py",
+    "lines": 331,
+    "sha256": "4f50420c412cbddaf1e034ab9c071c45700e721a0fa8b69e66df98948592b490",
+    "status": "full_read",
+    "note": "HF 共享下载和迁移；尺寸验收且归档删除源；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/eval_dnsmos.py",
+    "lines": 281,
+    "sha256": "957020d453c0ede198ef3e534a13a0be7ec1cac7a85efc5ba888c2bbab6eed13",
+    "status": "full_read",
+    "note": "离线 speechmos ONNX 评分和合成链路自检；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/eval_realssa_real.py",
+    "lines": 726,
+    "sha256": "4147988fa1b3d537b732fa385fec55990023060ee23a8d889088a2af8a9fa118",
+    "status": "full_read",
+    "note": "RealSSA-Real 分窗分离及 DNSMOS；输入官方/回退加载，输出 CSV/JSON；本轮未运行"
+  },
+  {
+    "path": "tools/repro/phase2/gap_analysis.py",
+    "lines": 660,
+    "sha256": "2c60ee929d68925b420b6b55d94c0d95bae4eaf011b8558bdec70bd21b7e079d",
+    "status": "full_read",
+    "note": "批量模型与数据指标消融；默认 batch 4 存在串扰风险；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/monitor_lrs2_paper.py",
+    "lines": 97,
+    "sha256": "8a904a2d4b0a44c8b2c5ea177969706e7712517c44eac2efb5e076baf650f02f",
+    "status": "full_read",
+    "note": "跨路径选版本监控 CSV；未运行"
+  },
+  {
+    "path": "tools/repro/phase2/protocol_check.py",
+    "lines": 966,
+    "sha256": "95ea54703d15e9fcb51fb2fce747fa431a32bebc3209da01052c644df80bb17e",
+    "status": "full_read",
+    "note": "阶段式协议、历史 CSV 与缓存复核；best-lag 移位方向已用合成例验证错误；其余未运行"
+  },
+  {
+    "path": "tools/repro/phase2/windowed_diag.py",
+    "lines": 97,
+    "sha256": "1f1a3177ee81e7d43ed4cb6a4da07cc2403190a640d7d894856ecc5634298610",
+    "status": "full_read",
+    "note": "重用 compare_variants 逐条评估分窗输出与边界；未运行"
+  },
+  {
+    "path": "tools/repro/realssa_to_falcon.py",
+    "lines": 580,
+    "sha256": "187d7c0924078cf0803f7e92ede055c268433e76df8261d1ef1db15621d78168",
+    "status": "full_read",
+    "note": "RealSSA 分片转单通道与嘴部数据索引；overwrite 可递归删除；未运行"
+  }
+]

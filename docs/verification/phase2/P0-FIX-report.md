@@ -1,10 +1,10 @@
-# P0 收口执行报告（2026-10-24 · 用户授权"该干的干了、该修的修了"）
+# P0 收口执行报告（2026-10-24）
 
 > 执行：Lead + 4 个子代理（train-system / verify-ops / data-pipeline / model-core）
 > 分支 `repro/phase2`，基于 HEAD `2beec38`；环境 conda `falcon`（Py3.11 / torch 2.8.0+cu128 / 2×A800）
 > 依据：`docs/understanding/deepdive-20261024/09-benchmark-alignment.md` §9（证据审计）与 §4（P0–P5 规划）。
 >
-> **2026-11-08 校正（按 `deepdive-20261108/07、10`，最后更新 2026-11-08；冻结证据未改）**：① RealSSA-Sim 的“9,169 条”
+> **2026-11-08 校正（按 `deepdive-20261108/07、10`，最后更新 2026-11-08）**：① RealSSA-Sim 的“9,169 条”
 > 只对 SI-SNRi 成立，**SDRi/PESQ 实际分母 9,166**（6 次 SDR 奇异 + 3 次 PESQ 无语音，`nanmean` 静默跳过）；
 > ② 本报告 §2.7 的回归数字已过时——`tools/repro/tests` 现收集 168 条，2026-11-08 实测有 GPU
 > **168 passed / 148.07 s**、无 GPU **同样 168 passed / 170.47 s**；Studio 套件 **51 passed / 2 skipped**；

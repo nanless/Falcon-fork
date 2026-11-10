@@ -1,0 +1,48 @@
+{
+  "checkpoint_sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c",
+  "torch_threads": 4,
+  "device": "cpu",
+  "description": "whole 2 s: same visual embeddings and inputs; only audio model batch differs; first four LRS2 tt items",
+  "samples": [
+    {
+      "index": 0,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+      "rms": 0.09894508868455887,
+      "delta_rms": 1.833658025418572e-08,
+      "delta_max": 1.4901161193847656e-07,
+      "sisdr_batch1": 9.885974263293537,
+      "sisdr_batch4": 9.88597485870336
+    },
+    {
+      "index": 1,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_2.6743_6343252661930009508_00067_-2.6743.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+      "rms": 0.15851178765296936,
+      "delta_rms": 0.0002014218334807083,
+      "delta_max": 0.002162426710128784,
+      "sisdr_batch1": 11.781896626354076,
+      "sisdr_batch4": 11.782958369880532
+    },
+    {
+      "index": 2,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_2.9639_6349847154585871175_00027_-2.9639.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+      "rms": 0.17623642086982727,
+      "delta_rms": 0.00013526377733796835,
+      "delta_max": 0.0019187480211257935,
+      "sisdr_batch1": 14.0647880861918,
+      "sisdr_batch4": 14.068564968049577
+    },
+    {
+      "index": 3,
+      "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_3.0079_6357353898425821669_00030_-3.0079.wav",
+      "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+      "rms": 0.16017340123653412,
+      "delta_rms": 0.0004486145044211298,
+      "delta_max": 0.0063700489699840546,
+      "sisdr_batch1": 12.083852320821062,
+      "sisdr_batch4": 12.089254308027154
+    }
+  ]
+}

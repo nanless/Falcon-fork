@@ -10,16 +10,18 @@ ZeroGPU 每次调用临时分配 GPU，并计入每日配额，不适合实时�
 
 ## 工作方式
 
-1. 浏览器以 16 kHz 采集音频，并用 MediaPipe Face Landmarker 跟踪嘴部，与 Falcon Studio 相同。跟踪在浏览器内完成，视频画面不上传。
+1. 浏览器以 16 kHz 采集音频，并用 MediaPipe Face Landmarker 跟踪嘴部。完整摄像头画面不上传；录制结束后会发送嘴部裁剪图像。
 2. 每段录音最长 60 秒。停止后，音频和 96×96 灰度嘴部画面（各带采集时间）一起发送到 Space。开头和结尾没有嘴部画面的部分会被裁掉。
-3. 服务端把整段切成实时工作台发送的窗口：2 秒音频和 50 个嘴部位置、0.5 秒步长、取每个窗口末端前 80 ms 的 0.5 秒、相邻 20 ms 交叉淡化、开头之前补零历史、结尾之后补零。每个位置取时间上最近的嘴部画面，与 Studio 一致。所有窗口在一次 GPU 调用内分批计算。嘴部画面相同时，结果等于没有跳过窗口的实时工作台；Studio 因画面过旧而暂停的地方，Space 沿用最近的画面。
+3. 服务端按 2 秒窗口和 0.5 秒步长切分，逐个位置取最近的嘴部画面，裁出距窗尾 80 ms 的 0.5 秒输出，再以 20 ms 淡化拼接。一次请求内部默认最多 32 个窗口一批；录音前后补零，画面边界沿用首帧或末帧。窗口几何接近 Studio，但当前默认模型的批次维度实现会使一个窗口受前序窗口视频影响，同一条真实音视频在 batch=1 与 batch=4 时输出有差异；整体质量影响有待更多样本测量。
 4. 页面显示 GPU 耗时，可以试听、与原始混合对比，并导出两者的 WAV。
+
+跟踪基于位置而非身份。人脸暂时丢失时，页面可能沿用上一次取景；其他人进入该区域时应重新确认目标。Space 在画面间隔较长时仍选取最近帧；音画同步需要结合采集时间检查。源码仓库中的 `docs/understanding/20261110-evaluation-and-apps.md` 解释窗口、实验及风险，`docs/STATUS.md` 汇总复现状态。
 
 Space 启动时加载两个模型：[`JusperLee/Falcon`](https://huggingface.co/JusperLee/Falcon)（论文模型）和 [`JusperLee/Falcon-Big`](https://huggingface.co/JusperLee/Falcon-Big)。
 
 ## 隐私与配额
 
-音频和嘴部画面只用于本次分离，不写入磁盘；结果只保存在你的浏览器中。从 Space 页面打开时，分离计入你自己的 ZeroGPU 配额。未登录访客的配额最少，可能被拒绝（"ZeroGPU runs limit"）；登录 Hugging Face 后配额更多、排队优先级更高。一次分离约占 0.2–2.5 秒 GPU 时间（8 秒 Small 到 60 秒 Big，实测），另加上传和排队时间。
+音频和嘴部画面只用于本次分离，不写入磁盘；结果只保存在你的浏览器中。从 Space 页面打开时，分离计入你自己的 ZeroGPU 配额。未登录访客的配额最少，可能被拒绝（"ZeroGPU runs limit"）；登录 Hugging Face 后配额更多、排队优先级更高。代码注释记录过不同长度的 GPU 耗时示例，但仓库没有随该说明保存逐次原始计时；实际等待还包括上传和排队，取决于设备与负载。
 
 ## 开发
 
@@ -35,8 +37,9 @@ conda 环境是 Python 3.11 + `torch 2.8`（见 `AGENTS.md` §2）。不要把
 ```bash
 pip install -r space/requirements.txt gradio==6.29.1
 python space/build.py --out /tmp/falcon-space    # 复制 studio/ 的运行时和网页文件，再加上 space/
-cd /tmp/falcon-space && python app.py            # http://127.0.0.1:7860，默认 CPU，可用 FALCON_DEVICE 指定
+(cd /tmp/falcon-space && python app.py)          # 停止后返回仓库根目录
 python -m pytest space/tests                     # 在仓库根目录运行
+# 发布会删除目标 Space 中不属于本次构建的已有文件，请确认后执行：
 python space/build.py --push JusperLee/Falcon-Studio
 ```
 

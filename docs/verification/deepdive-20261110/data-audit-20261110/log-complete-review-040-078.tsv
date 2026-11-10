@@ -1,0 +1,40 @@
+序号	文件	sha256	阅读范围	终态与解释
+40	docs/verification/phase2/P2D-eval-falcon-full-cols-20261031.log	23a5f5c468f7792eabd3deffb9fd08ef3b8446b1dbd21786e7df93d3df73a4ba	全文；逐条审阅	3000条 SI-SNRi 7.029101、SDRi 7.712925；有限值各3000
+41	docs/verification/phase2/P2D-eval-falcon-full.log	414802eedab97f9ecc4706a11fb43042374338ebb120c44587ad72fc13eb373f	全文；逐条审阅	3000条 SI-SNRi 7.029101、SDRi 7.712925
+42	docs/verification/phase2/P2D-eval-falcon.pt.log	a638fd1bdde5edb0c82d7f83ca29b340fe93ae69c87a7cb322496bd606850c8d	全文；逐条审阅	300条子集 SI-SNRi 6.91624、SDRi 7.491614
+43	docs/verification/phase2/P2D-near-train.log	a9369c83c3a3d5c6fbe3b63528f8e97c582d3c234854646af8b9b4c83c666522	全文；逐条审阅	单卡续训 epoch100–129；最佳 epoch124，无法单凭日志归因收益
+44	docs/verification/phase2/P2D-smoke-1gpu.log	27389878b545b9f28a3f022097259314bf36e25e6d20feb08c57ebcd37a9fcb7	全文；逐条审阅	单卡100步 smoke 完成；near 为混合回退
+45	docs/verification/phase2/P2D-smoke-bs8.log	32fd153719f83988de790c58f9950bfd5f45afe0956bfcf671eeb5b3cdc887bf	全文；逐条审阅	双卡 batch8 首步 OOM；GPU1 当时空闲仅1.35GB，有其他进程占用
+46	docs/verification/phase2/P2D-smoke.log	6e0363c4f1ae98d2c4002e34f32014f7326c148d2da45d2645f20f4188873a7d	全文；逐条审阅	双卡 batch4 100步 smoke 完成；不证明所有分布式场景安全
+47	docs/verification/phase2/P2D-train.log	62b6ad0ea50d328e983b9a354df25a3ebd9142bfd1a9081e297aeadbe916fc6d	全文；逐条审阅	单卡100 epoch，epoch99 -13.20141；near 回退
+48	docs/verification/phase2/P2E-dnsmos-synthetic.log	9f19af1d4b543f7f49682d2615e5351ad30f3a3c1c2574cc4f7d2d15b42e4a90	全文；逐条审阅	四个合成 DNSMOS 样例通过，不是数据集评测
+49	docs/verification/phase2/P2E-realssa-real-full.log	953506ab2e45c18843caccc038fa9f2397329cc52fc321906c98765205292194	全文；逐条审阅	54项均 VIDEO_FPS NameError，退出1
+50	docs/verification/phase2/P2E-realssa-real-full2.log	7e18ca0851822f5da68b3f34c22d1621f4e84dfa19d40882f003208f4090844e	全文；逐条审阅	54项均 torch NameError，退出1
+51	docs/verification/phase2/P2E-realssa-real-full3.log	55a62acc71b04eedde7e9435abc551ee88e3c4734727dad90cbbe55a8d813ab1	全文；逐条审阅	54项计算完成但包含静音窗口，后续 full4 修正
+52	docs/verification/phase2/P2E-realssa-sim-ch0-convert.log	0d2983ca4dd3f60d7075a06bac23367d6e0147e82d5755471a34183b9be91a3b	正文及转换进度已读；386条回车动态进度未逐条读	19 shards 转换9169；near全部回退；历史称K=0损失全停错误，正样本项仍在
+53	docs/verification/phase2/P2E-realssa-sim-ch0-eval-20261030.log	2c743f402f6ef45c9af9d38ee834e484972f906cf17d5e82d3b60226aaaa30c0	全文；逐条审阅	9169条，SDR失败6、PESQ失败3；9166有效；SI-SNRi 7.976709、SDRi 8.452396
+54	docs/verification/phase2/P2E-realssa-sim-ch0-eval.log	603001ac3bbb6a4f62edc2fb70838ebdb9fc0e4a3e1d40dca7a8ac918903c5b6	全文；逐条审阅	中止，无完整结果
+55	docs/verification/phase2/P2E-realssa-sim-convert.log	3851e5c5e26661a9582a4d635a7bb029c023b6a4be2bb372a9076e08668416c5	正文及转换进度已读；522条回车动态进度未逐条读	19 shards 转换9169；near全部回退；历史K=0说法不准确
+56	docs/verification/phase2/P2E-realssa-sim-eval-official.log	0da3816168e994016d9b8344d5feb808d6b06f3da6ccc21184d68b37c9b602a7	全文；逐条审阅	均值通道9169条；有效9166；SI-SNRi 7.774307、SDRi 8.479395
+57	docs/verification/phase2/P2E-sim-pipeline.log	d133aaefbe0457ad4dfaf39a4979e9bde9a29848f182fafe627c1c2659551cf5	全文；逐条审阅	旧 gated dry-run 含403但退出0；旧参数不可视作现状
+58	docs/verification/phase2/P2E-smoke-loader-dryrun.log	7bead0b77ab702060115f068d733af30f7f42310371496c19dcb8496936377ee	全文；逐条审阅	mock 两条 dry-run，未执行模型及CSV
+59	docs/verification/phase2/P2E-smoke-official-loader.log	b99a6ddd08c785a437f6e204b7e05327e72b8de4394541ad4e7dd9c02b9b66df	全文；逐条审阅	mock 一段，2.3637；不是实际数据集
+60	docs/verification/phase2/P2E-smoke-realssa-real.log	484040c262d310e19e776e46133ad10e819454a595cb0ed32d17aebd68f6d1b9	全文；逐条审阅	LRS2派生 mock 两段，不是 RealSSA-Real
+61	docs/verification/phase2/P2F-protocol-check.log	f6085790a502cc6ce703068a49848da7ae111cf23ef30ecdc120a6048093ccb0	全文；逐条审阅	缓存50项 4.8e-8；历史权重来源及偏移方向推断有误，零偏移仅限该组
+62	docs/verification/phase2/QA-regression.log	d042403020278bf754e1f212eca1fad7b5dfd5612807756d30db8f6aa3619def	全文；逐条审阅	历史测试快照先81通过1失败12跳过，后111通过1跳过；非当前结果
+63	docs/verification/phase2/logs/P2B-big-b300.log	cff6f085ded9db3addcb36da66dcdb5e141ea16b8563f7da042c7c3ea3da8b25	全文；逐条审阅	big 300，整段7.887/8.403，窗口5.569/6.270
+64	docs/verification/phase2/logs/P2B-big-full.log	aa84efafcabb3bf4c949e0c88e21ad039c13015a0a6ba6510703ed6ef2691ff8	全文；逐条审阅	big 全量仅到100/3000，无完整结果
+65	docs/verification/phase2/logs/P2B-big-visual-b300.log	882f1ce2f86c220b22979f8cfa0c8bc8a9eb615662091c3f5d42f16e24940590	全文；逐条审阅	big 300视觉置零3.512/4.267；归一化后置零
+66	docs/verification/phase2/logs/P2B-small-b300.log	1d219c077a5600588c525f39f5595c1eb60673895ce1b6bfc2475cf5c48b8159	全文；逐条审阅	small 300，整段6.916/7.492，窗口5.004/5.762
+67	docs/verification/phase2/logs/P2B-small-visual-b300.log	1a59884564c67f620a1bde7c84bc2b9390dc03e94a05151c0644b37c623d8373	全文；逐条审阅	small 300归一化后视觉置零及打乱结果；须保持干预口径
+68	docs/verification/runs/04-eval-flow.log	4a40c5eca21ed9ff246f3b551be77927e60018486f53b7facde093be325ee4f0	全文；逐条审阅	评测流程合成与stub记录，含旧错误；不能外推真依赖
+69	docs/verification/runs/04-losses.log	4417d33a529842e6b7bd906d1e745bb9df480f023eb71843fa0a18d4d734209c	全文；逐条审阅	损失对拍与已知异常；K=0仍有正样本项
+70	docs/verification/runs/04-macs.log	e291cea563d163a68bbe6d56bb8427ca35e62d917aa35b5e254f3f129645f23e	全文；逐条审阅	参数和ptflops历史口径；10.6G不含视觉编码器
+71	docs/verification/runs/04-metrics.log	38fc86fe5b538e044ff70b7e9b8fab23e10d5b1c6338231f035876d1bfd109e3	全文；逐条审阅	历史指标tracker符号和PESQ参数顺序异常，非当前无条件结论
+72	docs/verification/runs/04-video.log	73b3f14a4aa6335ef73ae4a58d020d8a22745ce7de0ee3b544168d6d588e3116	全文；逐条审阅	视频模型形状、冻结及部分变体限制
+73	docs/verification/runs/conda-env-verify.log	e70337505f3e694a028f1b741928e0010e9b8c88f902f4bf6c6f898031bcc620	全文；逐条审阅	2026-10-21环境快照；35通过2跳过，非当前测试
+74	docs/verification/runs/data_pipe/verify_dataset.log	bdb7770650ff70194c2d6a87365da1cdf3aa8fc918df2c17965eb6fc9d532273	全文；逐条审阅	数据管线合成样例与历史缺陷；预期错误亦计PASS
+75	docs/verification/runs/data_pipe/verify_p0_eval.log	4d69207cca31f8ec364468a0d8d8167a71785816c53650defc44114dcff96bd3	全文；逐条审阅	单声道旧错误重现、手动guard和双声道对照，合成fixture
+76	docs/verification/runs/data_pipe/verify_preprocess.log	f2e32af43085538869f4904ea9e235641063e491b30d85c23826923143ca9747	全文；逐条审阅	预处理合成样例；旧版空目录和错配等异常
+77	docs/verification/runs/data_pipe/verify_realweight.log	4680f2b5ec72ddbaed1142dd282d8fa75eca8756d73e411e60cc0f18662956c5	全文；逐条审阅	真实权重严格载入、两个合成样例前向；epoch714不能证明训练谱系
+78	docs/verification/runs/layers-dsp-verify.log	e7c25ab949b1042922d70ceb9fb88be7f48f6ea8c79613ebc51bcdc852c2655f	全文；逐条审阅	层与DSP探测使用stub；GN跨窗口与帧内lookahead，不等同严格实时因果

@@ -1,5 +1,7 @@
 # Falcon 复现 Phase 1 执行报告（Gate G1）
 
+> **2026-11-10 结果更新：**`falcon.pt` 的完整训练谱系仍待确认；20 条 s1/s2 对照记录的是本地目标匹配。已下载的 LRS2-2Mix 包含嘴部数据。当前结果与依据见[复现状态](STATUS.md)和[数据访问指南](DATA_ACCESS_GUIDE.md)。下文记录 Phase 1 当时的执行情况。
+
 > 日期：2026-10-22 · 分支：`repro/phase1`（基于上游 `689555c`，**未 commit**）
 > 计划：[`docs/REPRODUCTION_PLAN.md`](REPRODUCTION_PLAN.md) §6/§7 · 环境：[`AGENTS.md`](../AGENTS.md)（conda `falcon`）
 > 所有命令/日志可在 `docs/verification/phase1/` 找到。

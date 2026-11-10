@@ -1,12 +1,14 @@
 # 06 Studio 后端：本地推理服务 + 运行时 + 模型推理拷贝
 
+> **2026-11-10 更新：**本文记录 `7576854` 的代码及当时的替身验证。§2.6 保留历史依赖快照；现行 `studio/requirements.txt` 为 torch `>=2.8,<3`、numpy `>=2.2,<3`。替身验证覆盖协议，真实图片解码的验证结果见[现行评测与应用专题](20261110-evaluation-and-apps.md)和[当前状态](../STATUS.md)。
+
 > 范围：`studio/{server.py, falcon_runtime.py, infer_file.py}`、`studio/falcon_model/**`、
 > `studio/configs/{Falcon.yml, FalconBig.yml}`、`studio/requirements*.txt`、`studio/README.md` 运行时章节。
 > 证据行号以 `main`（commit `7576854`）为准；标注约定：`[代码]`=读源码确认，`[推断]`=合理推断，
 > `[验证]`=本轮实际运行命令确认（命令与输出见 §8，原始日志 `docs/verification/runs/studio-backend-verify.log`）。
 > 验证环境：`/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0+cu128 + fastapi 0.156 + pytest 9.1），
 > **无 Pillow**（协议层验证用 `docs/verification/scripts/pil_stub` 最小替身，真实图片解码未验证）、
-> **无 Falcon 权重且禁止下载**（运行时验证用“随机权重 + 自造 ckpt”完成，见 §8）。
+> 当时运行时验证使用“随机权重 + 自造 ckpt”（见 §8）。
 
 ---
 
@@ -320,8 +322,7 @@ separator 融合 → (1,112,251,129) → mask_generator → (1,1,112,251,129)
 - 更根本的原因：`cLNhw = LayerNormalizationHW` 内含在**整段 T 上的全窗统计**（`GlobalLayerNorm` 用
   `GroupNorm(1,C)` 在 `[B,C,T,F]` 上统计，`layers/normalizations.py:134-143,204-229`；01 域已给因果性结论），
   因此即使逐层“时间因果”，也无法逐采样复现——每次必须重算整个 2 s 窗口。
-- 右上下文 80 ms（1280 样本，`server.py:29`）是“窗口末端预测质量差”的保护带：iSTFT/卷积在末尾缺少未来
-  上下文，故丢弃末端 1280 样本；输出块取末端前 0.5 s（§5.5）。
+- 右上下文 80 ms（1280 样本，`server.py:29`）由切片器保留在输出块之后；输出块取此前 0.5 s（§5.5）。设计动机和该长度对音质的影响有待专项验证。
 - 频率轴不做因果（F 方向可双向），时间轴单向后向（01/02 域详述），与本服务的窗口化策略一致。
 
 ### 4.2 `OutputSlicer`：不重复、不丢样、相邻窗交叉淡化
@@ -437,7 +438,7 @@ GPU `auto` 下 warmup 失败会**降级 CPU 并写 warning**（`:185-195`），�
 边界推论（[推断]/[代码]）：
 - 反向代理 / 远端部署时，`Origin` 的 hostname 不在 {localhost,127.0.0.1,::1} → **403**；`Host` 不在白名单 → 400。
   因此 `README.md:16` 宣传的在线 demo（`https://u464727-...seetacloud.com:8443`）**不可能**由本文件的
-  `server.py` 原样提供服务，必然是另一份部署补丁（Q4）。
+  `server.py` 原样提供服务，线上部署的路由与服务实现仍需确认（Q4）。
 - 同源比较是字符串级 `netloc==Host`：页面开在 `localhost` 而代理把 Host 改写成 `127.0.0.1` 会被拒（P2 提示）。
 - 无鉴权/无限流：本机任意进程、任意用户可调 `/api/load`、`/ws`。模型页若在浏览器被恶意扩展注入则等同本机权限（设计如此）。
 
@@ -455,7 +456,7 @@ GPU `auto` 下 warmup 失败会**降级 CPU 并写 warning**（`:185-195`），�
 
 ### 4.8 `falcon_model/` vs `look2hear/`：PROVENANCE 逐条核验（**本节为核心**）
 
-> 方法：`diff -u`、`cmp`、`diff --strip-trailing-cr`（完整命令见 §8-A/B）。**不修改源码**。
+> 方法：`diff -u`、`cmp`、`diff --strip-trailing-cr`（完整命令见 §8-A/B）。
 
 **(a) 文件级结论表**
 
@@ -503,7 +504,7 @@ output = output.to(output_device)
 ```
 - 只在 `device.type == "mps"` 时改变执行位置；CPU/CUDA 路径与原实现逐运算相同（`.to(同 device)` 为恒等），
   所以 PROVENANCE 的“CPU 上 bit-identical”在代码上成立（[验证] 合成同权重下差值恰为 0，§8-A6）。
-- FFT 参数（win/hop/window/`length`）完全未变，因此**数值语义不变**，只是设备迁移。
+- FFT 参数（win/hop/window/`length`）保持一致；MPS 与 CPU 之间的数值误差仍需按设备实测。
 - 该 bridge 也改变了 MPS 上“模型整体在 MPS”的假设：每窗前向有 2 次 20 万级样本的 H2D/D2H 拷贝（[推断] 这是
   M5 Pro 上 0.12 s/window 仍可达的前提；未见实测数据）。
 - 训练侧文件不含此 bridge；[推断] 在 MPS 上训练侧 `torch.stft(return_complex=True)`/`torch.istft` 会因复数张量支持不全而报错
@@ -679,7 +680,7 @@ HTTP 侧非法 Host → 400；WS 侧 Starlette 会把 400 写到握手响应，�
 #### 4.11.9 部署形态（明确结论）
 即使把 `server.py` 绑到 `0.0.0.0` 或放在反向代理后面，`same_origin`（`server.py:175-179`）与
 `TrustedHostMiddleware`（`:196`）都会拒绝远端 `Origin`/`Host`。所以**仓库内 `server.py` 不能直接对外部署**；
-对外至少需要：放开/改写 Origin 与 Host 白名单、TLS、鉴权与限流。README 的“在线 demo”即属此类部署补丁（Q4）。
+对外至少需要：放开/改写 Origin 与 Host 白名单、TLS、鉴权与限流。README 的“在线 demo”使用的部署方式尚待确认（Q4）。
 
 ---
 
@@ -842,8 +843,7 @@ future = pred[30720 : 30720+320] = 右上下文前 20 ms，留给下一窗交叉
   - 收到结果后校验 `end_sample === 请求end + 22720 - 1280` 且 `start_sample === end_sample - 8000`，不符即停止播放
     （`:677-681`），再减 22720 转回绝对采样（`:682-683`）。
   - `contiguous` 用于播放：false 时重置上采样器并做 5 ms 淡入（`:718,747-759`）；与服务端 20 ms 淡化分工明确。
-- `[推断]` 设计动机：模型对“窗口最末端 80 ms”预测最不可靠（缺未来上下文+全窗归一化），丢掉它并把它作为
-  下一窗的重叠淡化区，可同时满足“低延迟（0.5 s 块）”“无重复样本”“无爆音”三个约束。
+- `[推断]` 切片策略：保留窗口末端 80 ms，取此前 0.5 s 输出，并用保留段的前 20 ms 与下一窗预测交叉淡化；具体听感和延迟需实测。
 
 ### 5.6 `Engine` 状态机（`server.py:92-172,105-116`）
 
@@ -988,7 +988,7 @@ server.py ✗不 import falcon_model 的类；只 import VARIANTS/weights_source
 | A60 | `TrustedHost` 对 WS 表现为握手拒绝（TestClient `WebSocketDenialResponse`），不是普通 400 响应 | `server.py:196` | [验证] R2 评审 §2.3-8（本文件 §8.4） | 高 |
 | A61 | `infer_file.read_wav` 的 32-bit float 路径不 clip、不校验范围；与 WS 路径 `\|amp\|≤4` 不对称 | `infer_file.py:34-38`；`server.py:49` | [代码] + §4.11.6 | 高 |
 | A62 | 模块级 `app = create_app()` 在 import 时创建 Engine（不 autoload）；`main()` 再建一个 → “双 Engine”，测试 import 有副作用但无害 | `server.py:287,332` | [代码] + §4.11.7 | 高 |
-| A63 | 仓库内 `server.py` 不能直接对外部署：`same_origin` 与 `TrustedHost` 拒绝远端 Origin/Host；在线 demo 必须是部署补丁 | `server.py:175-179,196`；`README.md:21`；`studio/README.md:16` | [验证] `same_origin(公网)=False`、Host=公网→400（评审日志） | 高 |
+| A63 | 仓库内 `server.py` 不能直接对外部署：`same_origin` 与 `TrustedHost` 拒绝远端 Origin/Host；在线 demo 的部署方式待确认 | `server.py:175-179,196`；`README.md:21`；`studio/README.md:16` | [验证] `same_origin(公网)=False`、Host=公网→400（评审日志） | 高 |
 | A64 | 协议坐标 `P` 与绝对采样坐标 `s` 的关系是 `P = s + 22720`（与 `sessionEpoch` 无关）；首窗请求 `end_sample = sessionEpoch + 32000`（`sessionEpoch=0` 时才恰为 32000） | `web/app.js:593,637`；`server.py:64-67,266` | [代码] + [验证] §8-B5（sessionEpoch=0 两窗）+ R4 执行级 §6-E3 | 高 |
 | A65 | 单 WS 连接内请求-响应串行：`while True` 中 `receive_text` → 处理 → `send_json` 后才读下一条（不会交错回包） | `server.py:242-267` | [代码] + §5.3 | 高 |
 | A66 | `2^53−1` 上限只由服务端校验；前端用 JS `number` 递增 id/时间戳且不检查该上限（服务端兜底） | `server.py:65,255`；`web/app.js:588,593` | [代码] + §5.3 | 高 |
@@ -1019,7 +1019,7 @@ server.py ✗不 import falcon_model 的类；只 import VARIANTS/weights_source
 **P1（重要遗漏/误导性行为）**
 
 - **Q4（已由 §4.11.9 回答；保留“部署方确认”项，不再计入未解问题）**：`README.md:16` 的在线 demo 与外网访问，与 `same_origin`（hostname 必须 localhost）
-  和 `TrustedHostMiddleware` 白名单冲突 → 线上必然运行了另一份 server 补丁；仓库内代码不能复现该部署，
+  和 `TrustedHostMiddleware` 白名单冲突 → 线上实际部署方式仍需确认；仓库内代码不能复现该部署，
   应在文档/README 中说明。
 - **Q5（需 studio-frontend / Lead 产品口径）**：服务端 `busy` 错误文案建议“跳过此窗口”，但前端对所有
   `type:"error"` 一律 `throw` → 停止整场会话（`web/app.js:672,721-724`）。多标签页/open 两个 WS 时，非持有
@@ -1201,7 +1201,7 @@ JPEG/PNG 解码**）。系统 `python3`=3.8 无 torch/fastapi，未使用。
 - **pytest（命令 7）**：`33 passed, 4 skipped`（跳过：2 个 GPU 回退用例因本机有 CUDA，2 个 `test_infer_file` 因无权重）。
   说明：仓库自带 `test_server.py`/`test_weights.py`/`test_device.py` 在本环境可真实运行；Pillow 用 stub 替代。
 
-### 8.3 失败/受限记录（诚实声明）
+### 8.3 验证条件与结果
 
 1. **Pillow 缺失**：`import server` 需要 `PIL`；首次尝试 `pytest` 因 `typeguard` 插件入口点报错，用 `-p no:typeguard`
    规避；图片解码路径用 stub 替代，**真实 JPEG/PNG 解码未验证**（Q9）。

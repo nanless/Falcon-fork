@@ -9,7 +9,7 @@
 
 ## 0. 一句话结论
 
-**Falcon 的 DSP 主干是“STFT 编码 → 112 通道瓶颈 → 4 级 AudioBlock（每级与视频特征融合）→ TFRB（频向双向 LSTM +
+**Falcon 的 DSP 主干是“STFT 编码 → 112 通道瓶颈 → 4 级 AudioBlock → 音视频特征融合 → AudioBlock（含 TFRB）（频向双向 LSTM +
 时间向单向 LSTM + 因果 2D attention）→ 复数掩码 → 因果 STFT 解码”，全部组件定义在 `look2hear/models/Falcon.py`，
 `look2hear/layers/**` 只贡献归一化/激活（+ 未被调用的卷积/RNN 库）。**
 
@@ -114,7 +114,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python docs/verification/script
 
 关键推论：**`cLNhw` 的 GN 部分是“无界依赖整个窗口”的**，论文配置下 `cLNhw` 实例 30 个
 （`audio_bottleneck 1 + projection 1 + downsample 4 + fusion/concat 3×8`，旧文档 `[V7]`），
-所以“全窗统计”不是个别层的瑕疵，而是音频主干每层都有 ⇒ 只能窗口化推理。
+音频主干各层使用全窗统计，因此现有推理路径以窗口为单位计算。
 
 ### 2.4 TFRB 的真实实现（`[8][9]`）
 
@@ -197,7 +197,7 @@ MHSA2D 为 `5.100`；`cLNhw` 单层为 `1.202e-03`（全窗统计泄漏，量级
 **本轮新增/强化的结论**：
 1. `verify_layers_dsp.py` 在真实 falcon 环境 exit=0（旧文档 `runs/layers-dsp-verify.log` 之外的新鲜证据）；
    注意该脚本会把 `docs/verification/stubs` 放进 `sys.path`（日志显示 `typeguard/timm -> stubs`），
-   所以它验证的是“数值语义”，**不能替代**真实依赖环境的 import 检查（真实环境 import 由 01/03 验证）。
+   该实验验证数值语义；真实依赖环境的 import 检查见 01/03。
 2. `[7]` 的逐层泄漏数字（Encoder 0 / bottleneck 4.7e-05 / Separator 1.706）给“窗口级因果”提供了按层分解。
 3. `[9]` 坐实 Comba 死分支；`[10]` 坐实 `Separator` pop 配置是 Studio deepcopy 的直接原因。
 
@@ -216,7 +216,7 @@ MHSA2D 为 `5.100`；`cLNhw` 单层为 `1.202e-03`（全窗统计泄漏，量级
 4. **评测别走 `look2hear/utils/separator.py`**：它会对输出做幅度重缩放（01 §5.6 第 4 条），污染 SI-SNRi/SDRi。
 5. **Studio/部署**：保持“固定 2 s 窗 + 0.5 s hop + 80 ms guard”；CPU 单窗 ~543 ms（06 §3.4）> hop，
    本机 CPU 无法实时；GPU A800 单窗 p50 47.1 ms（small）/56.5 ms（big）（06 §3.4）。
-6. **若要做 TFRB/GCI 消融**：只作为“架构意图”实验另开分支，不参与主表；论文未公开消融设置，结果只能定性。
+6. **若要做 TFRB/GCI 消融**：只作为“架构意图”实验另开分支，不参与主表；论文现已公开；具体消融设置与对比口径见 `deepdive-20261108/11`。
 
 ---
 
@@ -225,9 +225,9 @@ MHSA2D 为 `5.100`；`cLNhw` 单层为 `1.202e-03`（全窗统计泄漏，量级
 | # | 问题 | 现状 | 需要谁 |
 |---|---|---|---|
 | Q1 | `concat_layers[2]`（5,568 参数）是否上游漏调用？ | 代码中 level-2 融合层从未被调用；Phase 1 为保 bit-identical 有意不修 | 作者确认 |
-| Q2 | 论文“causal”是否指窗口级？ | 只能从代码/Studio 推断；论文未公开 | 论文/作者 |
+| Q2 | 论文“causal”是否指窗口级？ | 本文按代码和 Studio 分析；论文已于 2026-10-23 公开，见后续论文对照 | 论文/作者 |
 | Q3 | `cLNhw` 的全窗统计在训练时是否有正则/稳定性作用？ | 未做消融（会破坏权重语义） | 研究性问题 |
-| Q4 | `typeguard>=3` 是否可通过改 `stft_tfgn.py` 解除？ | 该模块不在 Falcon 前向链，可改但属源码修改（需授权） | 用户决策 |
+| Q4 | `typeguard>=3` 是否可通过改 `stft_tfgn.py` 解除？ | 该模块不在 Falcon 前向链；解除约束需要修改导入或兼容代码并验证 | 用户决策 |
 | Q5 | FRCNN 时间感受野 ±2 帧是否与 LRS2 mouth 对齐误差叠加？ | P2-F 已测 mouth ±2 帧 −5~−6 dB；FRCNN 自身 ±80 ms 未单独消融 | 可选实验 |
 
 ---

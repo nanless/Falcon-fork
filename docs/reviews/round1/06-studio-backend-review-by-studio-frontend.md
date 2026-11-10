@@ -4,7 +4,7 @@
 > 评审人范围：**WS/HTTP 协议前后端一致性 + 服务端行为**（R2 指派）；同时抽查协议之外的断言。
 > 评审依据：我**自己重读**了 `studio/server.py`、`studio/falcon_runtime.py`、`studio/infer_file.py`、
 > `studio/falcon_model/**`、`studio/configs/**`、`studio/tests/**`、`Experiments/checkpoint/Falcon/{conf.yml,best_k_models.json}`、
-> `audio_visual_test.py`、`look2hear/**` 相关文件；并独立复算/复跑了 §2.3 列出的检查（不是只读被评审文档）。
+> `audio_visual_test.py`、`look2hear/**` 相关文件；并独立复算/复跑了 §2.3 列出的检查。
 > 证据格式 `path:line`；`[复核]` = 本次评审实际运行确认，`[读码]` = 评审人读源码确认。
 
 ## 1. 结论
@@ -116,7 +116,7 @@ PYTHONPATH=$PWD/docs/verification/scripts/pil_stub:$PWD/docs/verification/stubs:
 #    WS Host=evil.example → WebSocketDenialResponse；Host=127.0.0.1 → 连接成功。
 ```
 
-**局限（与作者相同的诚实声明）**：无 Falcon 权重/禁止下载 → 真实 `falcon.pt` 的 key/输出一致性、
+**验证范围**：本次使用合成权重；真实 `falcon.pt` 的 key/输出一致性、
 真实 warmup 延迟、M5 Pro 数据均未复核；PIL stub 不解真实 JPEG，服务端图片解码路径未复核（作者已声明）。
 
 ## 3. 错误清单
@@ -282,4 +282,4 @@ PYTHONPATH=$PWD/docs/verification/scripts/pil_stub:$PWD/docs/verification/stubs:
 
 | 日期/轮次 | 内容 |
 |---|---|
-| 2026-10-21 / R2 | 初版评审：逐条核对 55 条断言（54 成立、1 无法独立确认）；独立复跑 pytest（33 passed/4 skipped）、`OutputSlicer` 数值、参数/state_dict/bit-identical/形状链/diff 统计/TrustedHost-WS 行为；判 P0=0、P1=1（§5.2 状态码）、P2=9、P3=3；提出 7 条遗漏与 4 条“完全理解”建议、8 个作者问题。未修改源码。 |
+| 2026-10-21 / R2 | 初版评审：逐条核对 55 条断言（54 成立、1 无法独立确认）；独立复跑 pytest（33 passed/4 skipped）、`OutputSlicer` 数值、参数/state_dict/bit-identical/形状链/diff 统计/TrustedHost-WS 行为；判 P0=0、P1=1（§5.2 状态码）、P2=9、P3=3；提出 7 条遗漏与 4 条“完全理解”建议、8 个作者问题。 |

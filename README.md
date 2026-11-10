@@ -1,288 +1,158 @@
 <div align="center">
-
-<a href="https://github.com/JusperLee/Falcon">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-tile.png">
-    <img src="assets/logo.png" alt="Falcon logo: a falcon head with sound waves" width="112">
-  </picture>
-</a>
-
-<h1>Falcon</h1>
-<p><strong>Efficient Streaming Audio-Visual Target Speaker Extraction<br>for Real-World Acoustic Scenes</strong></p>
-
-**NeurIPS 2026** · **English** | [中文](README_zh.md)
-
-Wendi Sang<sup>\*</sup>, Kai Li<sup>\*</sup>, Yifan Li, Jianqiang Huang, Xiaolin Hu  
-<sub><sup>\*</sup>Equal contribution</sub>
-
-<p>
-  <a href="https://arxiv.org/abs/2610.32749">arXiv paper</a> ·
-  <a href="https://cslikai.cn/Falcon/">Project page</a> ·
-  <a href="https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/">Live demo</a> ·
-  <a href="https://huggingface.co/spaces/JusperLee/Falcon-Studio">Hugging Face Space</a> ·
-  <a href="studio/README.md">Falcon Studio</a>
-</p>
-<p>
-  <strong>Models</strong> &nbsp;
-  <a href="https://huggingface.co/JusperLee/Falcon">Falcon</a> ·
-  <a href="https://huggingface.co/JusperLee/Falcon-Big">Falcon-Big</a>
-  <br>
-  <strong>Datasets</strong> &nbsp;
-  <a href="https://huggingface.co/datasets/JusperLee/RealSSA-Sim">RealSSA-Sim</a> ·
-  <a href="https://huggingface.co/datasets/JusperLee/RealSSA-Real">RealSSA-Real</a>
-</p>
-<p>
-  <a href="https://visitor-badge.laobi.icu/"><img src="https://visitor-badge.laobi.icu/badge?page_id=JusperLee.Falcon&amp;left_text=Visitors&amp;left_color=%23555555&amp;right_color=%23007ec6&amp;radius=0" alt="Visitors (README views)"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/code-Apache%202.0-blue?style=flat-square" alt="Code license: Apache 2.0"></a>
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10 or newer">
-  <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=flat-square&amp;logo=pytorch&amp;logoColor=white" alt="PyTorch 2.x">
-</p>
-
+  <img src="assets/logo.png" alt="Falcon logo" width="112">
+  <h1>Falcon: audio-visual target speaker extraction</h1>
+  <p>Extract one person's speech from a mixture, using that person's mouth video as a visual cue.</p>
+  <p><a href="README_zh.md">详细中文说明</a> · <a href="https://arxiv.org/abs/2610.32749">Paper</a> · <a href="https://cslikai.cn/Falcon/">Project page</a> · <a href="https://huggingface.co/JusperLee/Falcon">Weights</a> · <a href="https://huggingface.co/spaces/JusperLee/Falcon-Studio">Space</a></p>
+  <p><a href="https://huggingface.co/papers/2610.32749"><img src="assets/hf-paper-of-the-day.svg" alt="#2 Paper of the Day on Hugging Face Daily Papers" width="224"></a><br><small>Hugging Face Daily Papers, 2026-10-29</small></p>
 </div>
 
-> Falcon is an audio-visual **target speaker extraction** (AVTSE) model: a two-speaker mixture and the target speaker's mouth video go in, **one** target stream comes out (`n_src = 1`, one encoder–decoder pass). The "…-2Mix" benchmarks mean two speakers are mixed and one is extracted; this is not two-source separation, and `n_src = 2` fails in this code. It reaches state-of-the-art quality on RealSSA, LRS2-2Mix, LRS3-2Mix and VoxCeleb2-2Mix with 0.5 M trainable parameters — those are the paper's numbers, and [Reproduction status](#reproduction-status) below lists which rows this release actually reproduces.
->
-> **Reproduction notes (2026-11-08, code at `6c1d5b7`)** — "causal" here means **window-causal**, and that splits into four measured facts:
-> - **No cross-window state.** Each 2 s window is computed on its own, and Studio recomputes one every 0.5 s. On a 6 s stream (3×2 s LRS2 clips, 10 ms crossfades at the joins, Studio opening its window at t=0) stitching agrees with a single whole-clip pass at **+14.71 dB SI-SNR / 0.9835 / 53.4 % of the reference peak**, and at **+16.72 dB / 0.9895 / 28.5 %** once the cold-start first window is dropped. Widening the guard band 80→456 ms buys **+2.2 dB** when it discards the window tail (non-monotonic) and only **+0.8 dB** when it adds right context (saturating past 456 ms); shifting the window grid by ±250 ms moves whole-clip agreement only across **15.9–18.0 dB** (a 2.1 dB spread), with two phases agreeing with each other at about **17 dB**. The error is the window-length dependence of `cLNhw` — on one fixed checkpoint any two 2 s windowing schemes differ by 13–19 dB — not hop or guard.
-> - **Inside one window the geometric lookahead is 113 frames ≈ 904 ms**, not the 120 ms of the paper's App. E: one `AudioBlock` pass costs 57 frames, 15 of them from the encoder staircase and the rest from GCI and the decoder, and the second pass adds 56 more. Symmetric padding in the `AudioBlock` convolutions produces this, not the normalisation.
-> - **The released weights reach the window tail regardless.** The 30 `cLNhw` layers are window-wide `GroupNorm`, so a frame near the window start still moves when noise is injected at frame 245. Swapping in the paper's per-(t,f) `LN_c` returns the dependence to 904 ms, but that is a retraining change, not a switch.
-> - **Speed.** One 2 s window takes **about 0.6 s** on a CPU (B=1, 2 s window; 4 threads measure 592–694 ms, varying with machine load, 1 thread about 1.0 s), which is RTF **1.2–1.4** against the 0.5 s hop, so CPU operation is not real time. The **47.1 ms** A800 figure is quoted from an earlier table with no raw measurement file behind it and is not an independent result here.
->
-> Evidence: `docs/understanding/deepdive-20261108/00-SYNTHESIS.md`, `11-paper-alignment.md` and `12-causality-latency.md`; the earlier note is `docs/understanding/THREE_ROUND_REVIEW_20261030.md` (A2-1/A9-1).
+This fork contains Falcon training and evaluation code, a local Studio application, a recording-based Space, data conversion tools, and reproducibility records. The default model receives a mixture and a target speaker's mouth video and returns **one** speech signal. `2Mix` describes a two-speaker mixture; the model extracts the target speaker. All current root configurations use `n_src: 1`.
 
-## 💥 News
+The [Chinese README](README_zh.md) is the detailed starting point. The following project guides explain the current implementation and the evidence behind it:
 
-- **[2026-10-23]** The paper is on [arXiv](https://arxiv.org/abs/2610.32749).
-- **[2026-10-21]** **Falcon Studio** on a [Hugging Face ZeroGPU Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio): record a clip in the browser, then separate it on a GPU.
-- **[2026-10-20]** Training, evaluation and inference code released, together with **Falcon Studio**, an interactive demo that plugs into Zoom / Tencent Meeting.
-- **[2026-09-24]** Falcon is accepted to **NeurIPS 2026**.
+- [Model, visual fusion, and time dependence](docs/understanding/20261110-model-and-streaming.md)
+- [Data and training](docs/understanding/20261110-data-and-training.md)
+- [Evaluation, Studio, and Space](docs/understanding/20261110-evaluation-and-apps.md)
+- [Reproduction status](docs/STATUS.md) and [documentation index](docs/README.md)
+- [November 10 audit and experiment records](docs/verification/deepdive-20261110/README.md)
 
-## 🧩 Overview
+These guides are in Chinese. The [complete document index](docs/DOCUMENTS_INDEX.md) also lists historical reports with their original dates and conditions.
 
-Latency-sensitive applications such as calls, meetings and hearing assistance need AVTSE that runs on short causal hops. Current causal systems face two coupled gaps. Standard benchmarks fix the number of speakers at two and ignore near-/far-field interference, reverberation and sudden noise. Strong causal architectures are also too heavy for edge devices, and lightweight alternatives regain capacity by invoking a small separator many times, which offsets the savings.
+## How the model uses audio and video
 
-- **RealSSA** is a realistic simulated-scene AVTSE benchmark with near-/far-field interfering speech in four scene types, plus a real-recorded evaluation split.
-- **Falcon** is a window-causal AVTSE framework. Its AudioBlock performs multi-scale time-frequency separation in a single encoder–decoder pass.
-- An **encoder-space speaker contrastive loss** suppresses near-field leakage at zero inference cost and transfers across backbones.
-- Compared with the causal AV-TFGridNet baseline, Falcon cuts parameters by 91.9 %, computation by 20.2× and GPU latency by 11.1×.
-
-<p align="center">
-  <img src="assets/Overall_Pipeline.png" alt="Overall pipeline of Falcon: an audio encoder and a frozen video encoder feed the audio and video blocks, whose fused features drive the separator; its mask is applied to the encoder output before the audio decoder." width="100%">
-  <br><em>Overall pipeline of Falcon for audio-visual target speaker extraction.</em>
-</p>
-
-<p align="center">
-  <img src="assets/separator.png" alt="Single-pass multi-scale separator: four encoder layers, a TFRB at the coarsest scale, GCI fusion at every scale and a decoder of GCI and TFRB blocks; phi denotes upsampling." width="80%">
-  <br><em>Single-pass multi-scale separator. φ denotes the upsampling operation.</em>
-</p>
-
-<p align="center">
-  <img src="assets/TFRB.png" alt="Time-frequency refinement block: a bidirectional LSTM along frequency, a unidirectional LSTM along time, then masked 2D self-attention." width="100%">
-  <br><em>Time-frequency refinement block (TFRB).</em>
-</p>
-
-## 🌆 RealSSA benchmark
-
-The released RealSSA benchmark has two complementary datasets:
-
-| Dataset | Contents | Splits | Access |
-|---|---|---|---|
-| [**RealSSA-Sim**](https://huggingface.co/datasets/JusperLee/RealSSA-Sim) | Simulated scenes; 4-channel 16 kHz mixtures and target speech, RGB mouth crops and scene metadata | 100,826 train / 9,133 validation / 9,169 test examples | Gated, manual approval; CC BY-NC-ND 4.0 and source-specific terms |
-| [**RealSSA-Real**](https://huggingface.co/datasets/JusperLee/RealSSA-Real) | Real recordings; 54 paired AV segments from 40 recordings, 10 speakers, 8 scenes; 83.99 min | Test only; a separate original-recordings view contains 34 recordings | Gated, manual approval; research-use conditions in the dataset card |
-
-RealSSA-Sim covers `small_meeting`, `medium_indoor`, `large_public` and `outdoor` with static sound sources, near-/far-field interfering speech, environmental noise and sudden events. It is distributed as 240 WebDataset TAR shards. RealSSA-Real supplies stereo 16 kHz inputs, 25 fps target-face videos, mouth crops, landmarks, speaker enrollment audio and recording-level transcripts. Enrollment audio is an independent speaker reference, not a time-aligned clean target for SI-SDR.
-
-**Start with the dataset cards** for download, file schemas, channel selection, alignment and usage examples. The published multichannel shards need adaptation before use with the repository's mono, folder-based training loader. Sim metadata contains generation-time source paths; these are not downloadable near-speaker waveforms. The original negative-speaker contrastive training setup requires those source signals. Code/weight licensing does not override dataset access or usage terms.
-
-<p align="center">
-  <img src="assets/realssa_scenes.jpg" alt="Real-world AVTSE scenarios motivating RealSSA: small rooms, coffee shops, shopping malls and outdoor streets." width="100%">
-  <br><em>Real-world scenarios motivating RealSSA. From left: small rooms, coffee shops, shopping malls, outdoor streets.</em>
-</p>
-
-
-
-## ⚡ Installation
-
-The repository has two parts with separate environments:
-
-| Part | Folder | Purpose |
-|---|---|---|
-| Training & evaluation | repository root | Train Falcon and evaluate on LRS2/LRS3/VoxCeleb2/RealSSA-style data (`look2hear/`) |
-| Falcon Studio | [`studio/`](studio/README.md) | Live separation in the browser and in video meetings, offline clip inference, Python API |
-
-```bash
-git clone https://github.com/JusperLee/Falcon.git
-cd Falcon
-
-# Training & evaluation (PyTorch >= 1.13, CUDA recommended)
-pip install -r requirements.txt
-
-# Falcon Studio only (Python 3.10-3.12; runs on Apple Metal, NVIDIA CUDA or the CPU)
-pip install -r studio/requirements.txt
+```mermaid
+flowchart TB
+    A[Mixture audio] --> B[STFT and audio encoder]
+    V[Target mouth video] --> C[FRCNN visual encoder]
+    B --> D[Multiscale audio block]
+    C --> E[Video block and alignment]
+    D --> F[Additive fusion]
+    E --> F
+    F --> G[Shared audio block, second pass]
+    G --> H[Mask and decoder]
+    H --> O[One target speech signal]
 ```
 
-## 📦 Model weights
+For a two-second, 16 kHz example, the audio has 32,000 samples. With a 256-sample STFT window and 128-sample hop, the encoder has 251 time frames and 129 frequency bins. The mouth track has 50 frames at 25 fps; after preprocessing and FRCNN it provides 512-dimensional visual features. The model projects and aligns those features, adds them to the audio representation, and runs the shared audio block a second time.
 
-| Model | Hugging Face | File | Config | Audio network | Total params* | Used for |
-|---|---|---|---|---|---|---|
-| **Falcon** (paper) | [`JusperLee/Falcon`](https://huggingface.co/JusperLee/Falcon) | `falcon.pt` | `configs/Falcon.yml` | `FalconSpeakerContrastive` | 11.72 M | paper results, Studio default |
-| **Falcon-Big** | [`JusperLee/Falcon-Big`](https://huggingface.co/JusperLee/Falcon-Big) | `falcon-big.pt` | `studio/configs/FalconBig.yml` | `SpeakerContrastiveV2` (wider) | 12.35 M | Studio "Big" option, inference only |
+The block processes four time-frequency scales. Its deepest level is processed on the down path; the other levels use their frequency LSTM, time LSTM, and masked attention during the up path. The diagrams below are supplied by the upstream project; the [model guide](docs/understanding/20261110-model-and-streaming.md) describes the actual code path and implementation differences.
 
-\*Including the frozen 11.2 M-parameter FRCNN lip-reading encoder. The paper counts trainable parameters only (0.5 M for Falcon).
+<p align="center"><img src="assets/Overall_Pipeline.png" alt="Upstream overview of Falcon audio and video processing" width="100%"><br><em>Upstream Falcon architecture illustration.</em></p>
+<p align="center"><img src="assets/separator.png" alt="Upstream multiscale separator illustration" width="80%"><br><em>Upstream multiscale separator illustration.</em></p>
 
-Parameter counts measured on the released weights (2026-11-08): the audio network has **537,697** parameters, of which **5,568** never execute (`concat_layers[2]` is never called, leaving 532,129 reachable); the frozen FRCNN adds **11,186,688**, so the end-to-end count is **11,724,385**. Falcon-Big is 1,158,617 audio / 12,345,305 end to end. The frozen encoder sits outside the optimiser but inside every forward pass, so it counts for latency and for MACs.
+## Repository layout
 
-Nothing needs to be downloaded by hand. Falcon Studio, `infer_file.py` and `FalconRuntime.from_pretrained` load the weights from these Hugging Face short links on first use and cache them in `~/.cache/huggingface`. Each load also sends a HEAD request for the repo's `config.yaml`, the file the Hub counts downloads by (the `.pt` weights are not counted); `HF_HUB_DISABLE_TELEMETRY=1` turns it off. If huggingface.co is slow or blocked, set a mirror, e.g. `export HF_ENDPOINT=https://hf-mirror.com`. A local file can be passed with `--checkpoint`, for example one fetched with `hf download JusperLee/Falcon falcon.pt --local-dir weights`.
+| Location | Purpose |
+| --- | --- |
+| `audio_train.py`, `configs/` | Training entry point and experiment configurations |
+| `audio_visual_test.py` | Per-utterance evaluation and result merging |
+| `look2hear/` | Models, video frontends, datasets, losses, metrics, and training modules |
+| `tools/repro/` | Data conversion, experiments, tests, and launch scripts |
+| `studio/` | Local interactive application and offline file inference |
+| `space/` | Browser recording followed by windowed inference |
+| `docs/` | Current guides, historical reports, and experiment evidence |
 
-The files contain only the `audio_model.*` and `video_model.*` weights. Training additionally needs the pretrained visual backbone `frcnn_128_512.backbone.pth.tar` in `pretrain_zoo/` (see Training and evaluation below).
+## Environment on the development server
 
-## 🎧 Inference
-
-### Falcon Studio: live separation and meetings
-
-Two online instances are linked at the top of this page: the live demo runs Falcon Studio on a GPU server; the [Hugging Face Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio) records a clip of up to 60 s and separates it afterwards on ZeroGPU, with the live Studio's windows. Its code is in [`space/`](space/README.md).
-
-Falcon Studio runs the model locally, tracks the speaker's mouth with MediaPipe in the browser, and plays the separated voice on headphones or sends it to Zoom / Tencent Meeting through a virtual audio device (BlackHole). On macOS, double-click `studio/Start Falcon.command`, or run:
+The checked environment on `dev_a800_2gpus` is `/root/miniforge3/envs/falcon`. Its exact state may change; inspect it before running an experiment:
 
 ```bash
-cd studio
-./scripts/launch.sh
+cd /root/code/github_repos/Falcon-fork
+PY=/root/miniforge3/envs/falcon/bin/python
+"$PY" -V
+"$PY" -c 'import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.device_count())'
+"$PY" -c 'import look2hear.models, audio_train, audio_visual_test; print("imports OK")'
 ```
 
-Setup, meeting routing and troubleshooting are described in [`studio/README.md`](studio/README.md) ([中文](studio/README_zh.md)). The model processes 2 s audio-visual windows and outputs a new 0.5 s every hop; on an Apple M5 Pro a window takes about 0.12 s on Metal. On Linux with an NVIDIA GPU, use `--device cuda` (`auto` picks CUDA first).
+The November 10 check used Python 3.11.17, PyTorch 2.8.0+cu128, and two A800 GPUs. The [environment notes](AGENTS.md) explain the `typeguard<3` requirement and the local PESQ compatibility shim.
 
-### Offline: one clip
+Weights are typically cached under `/root/.cache/falcon_weights/`. Data and weights are not included in full in this Git repository; consult the [data guide](docs/DATA_ACCESS_GUIDE.md) and the providers' current access and licence terms.
+
+### A small CPU evaluation
+
+The command below creates a separate temporary output directory and evaluates only the first five items. It checks the evaluation pipeline on a five-item subset. It assumes that the server already has the LRS2 test data and `falcon.pt` at the specified paths.
 
 ```bash
-cd studio
-ffmpeg -i input.mp4 -ac 1 -ar 16000 mix.wav
+REPO=/root/code/github_repos/Falcon-fork
+PY=/root/miniforge3/envs/falcon/bin/python
+RUN_DIR="$(mktemp -d /root/tmp/falcon-eval-readme-XXXXXX)"
+cd "$RUN_DIR"
+PYTHONPATH="$REPO" OMP_NUM_THREADS=4 "$PY" "$REPO/audio_visual_test.py" \
+  --conf_dir "$REPO/configs/LRS2_2Mix.yml" \
+  --ckpt_path /root/.cache/falcon_weights/falcon.pt \
+  --data_dir /root/data/falcon_lrs2_2mix --gpus cpu --limit 5
+printf 'Results: %s\n' "$RUN_DIR"
+```
+
+`--limit` marks a subset. Separate working directories prevent runs with the same experiment name from overwriting one another. See the [evaluation guide](docs/understanding/20261110-evaluation-and-apps.md) for checkpoint formats, metrics, result files, and coverage checks.
+
+## Reproduction results and limits
+
+The values below come from saved evaluation records. SI-SNRi and SDRi are per-item improvements over the mixture, in dB.
+
+| Test and weights | Items | SI-SNRi / SDRi | Interpretation |
+| --- | ---: | ---: | --- |
+| LRS2, released `falcon.pt`, full utterance | 3,000 | 7.029 / 7.713 | Result for this data and checkpoint; the checkpoint's exact training provenance needs independent confirmation |
+| LRS2, locally trained ep124, older recipe | 3,000 | 8.858 / 9.270 | Not the paper's full eight-GPU training recipe |
+| RealSSA-Sim, released `falcon.pt`, four-channel mean | 9,169 | 7.774 / 8.479 | Numerically close to the paper; four-channel mean, with checkpoint identity still to confirm |
+| RealSSA-Sim, same weights, channel 0 | 9,169 | 7.977 / 8.452 | The channel axis is aligned to the stated channel-1 numbering; checkpoint provenance remains unresolved |
+
+For the two RealSSA-Sim rows, SI-SNRi has 9,169 valid values, while SDRi and PESQ each have 9,166. See [status and source CSVs](docs/STATUS.md#已有评测结果). The paper's LRS2 14.1 / 14.7 row and the full training/ablation protocol are not yet reproduced under matching conditions.
+
+The audio model has 537,697 parameter elements. A 2 s ptflops 0.7.5 run reports about 10.611 GMAC for the audio model, excluding the frozen visual frontend. A saved same-tool visual count at 50×88×88 is 15.897 GMAC. These are tool-dependent counts rather than a complete inventory of all hardware operations; the [operator probe](docs/verification/deepdive-20261110/falcon_ptflops_ops_probe_20261110.txt) found that direct STFT/iSTFT and some operator forms were not counted.
+
+## Windowing, causality, and batch behavior
+
+Studio takes a 2 s window and emits 0.5 s at a time, with an 80 ms right-side guard and 20 ms output crossfade. Space accepts a complete recording, then splits it into windows and normally batches up to 32 windows. RealSSA-Real uses another windowed evaluation path with different initial visual padding and output joining.
+
+The 80 ms guard sets the output slice position within the window; measured end-to-end delay also includes capture, processing, and playback. The default `cLNhw` includes statistics over the whole window. An earlier output can therefore depend on later input within that window.
+
+The default `VideoBlock` also feeds `[B,T,C]` into an LSTM configured with `batch_first=False`. In a real-weight, real-mouth isolation test, changing only the preceding batch item's mouth video changed the fixed target item's output. The isolation test used one example; its average quality effect remains to be measured. The [experiment record](docs/verification/deepdive-20261110/falcon_cross_sample_real_20261110.json) includes the input and checkpoint hashes.
+
+The `paper_causal` and `video_lstm_batch_first` switches change model outputs. The current `paper_causal` path also shortens intermediate time dimensions at stride 2, so the comparison includes changes in both padding and intermediate frame count. The quality and latency of a corrected, retrained model remain unverified. See the [model guide](docs/understanding/20261110-model-and-streaming.md).
+
+## Studio and input formats
+
+Start with the [Studio instructions](studio/README.md). Installation and startup scripts can create environments, download weights, or install an audio driver. Browser permissions, camera tracking, and meeting-software routing must be verified on the actual device.
+
+For `studio/infer_file.py`, the tested file path is mono 16 kHz, 16-bit PCM WAV. In the checked Python environment, standard IEEE float32 WAV is rejected by the reader, while 32-bit integer PCM can be misinterpreted as float. The offline mouth input expects a three-dimensional grayscale array; the existing `(T,96,96,3)` training-data `.pt` file needs conversion first. Tracking a region is not speaker identity verification: an existing ROI can be held after face detection is lost.
+
+### Offline file and Python examples
+
+The offline entry expects mono 16 kHz 16-bit PCM WAV and a synchronized grayscale mouth array. The example shows the interface and uses a separately prepared, synchronized mouth array.
+
+```bash
+cd /root/code/github_repos/Falcon-fork/studio
+ffmpeg -i input.mp4 -ac 1 -ar 16000 -c:a pcm_s16le mix.wav
 python infer_file.py --audio mix.wav --mouth mouth.npy --out target.wav --model JusperLee/Falcon
 ```
-
-`mouth.npy` holds grayscale 96×96 mouth crops of the target speaker at 25 fps, shape `(T, 96, 96)`, in the same format as the training data (`.npz` and `.pt` also work). The whole clip is processed in one pass.
-
-### Python API
 
 ```python
 import numpy as np
 from falcon_runtime import FalconRuntime  # run from studio/
 
-model = FalconRuntime.from_pretrained("JusperLee/Falcon")  # or "JusperLee/Falcon-Big"; device="auto", "cuda", "mps" or "cpu"
-audio = np.zeros(32000, dtype=np.float32)              # 2 s mono 16 kHz mixture
-mouth = np.zeros((50, 96, 96), dtype=np.uint8)         # 50 grayscale mouth crops, 25 fps
-target = model.infer(audio, mouth)                     # (32000,) float32 target speech
+runtime = FalconRuntime.from_pretrained("JusperLee/Falcon")
+audio = np.zeros(32000, dtype=np.float32)
+mouth = np.zeros((50, 96, 96), dtype=np.uint8)
+target = runtime.infer(audio, mouth)
 ```
 
-## 🏋️ Training and evaluation
+The zero arrays only illustrate the interface. For mouth formats, batch behavior and long recordings, see the [evaluation and applications guide](docs/understanding/20261110-evaluation-and-apps.md).
 
-Data follow the LRS2/LRS3 layout: `tr/`, `cv/` and `tt/`, each with `mix/` and `target/` WAV folders (16 kHz) and the target speakers' mouth crops. Build the JSON indices:
 
-```bash
-DATA=/path/to/data      # contains tr/ cv/ tt/
-INDEX=/path/to/index    # output folder for the JSON files
+## Tests and evidence
 
-python DataPreProcess/process_lrs23.py --in_audio_dir $DATA --out_dir $INDEX
-python DataPreProcess/generate_near_json.py --data_root $DATA --out_root $INDEX --sample_rate 16000
-```
+On November 10, the CPU reproduction suite reported **166 passed and 2 skipped**; the skipped tests depended on historical temporary files that were no longer present. A separate archived training CSV passed the relevant reused assertion, without changing the official suite result. Studio/Space non-slow tests reported **73 passed and 2 deselected**, Space static tests **3 passed**, and Studio Node checks **8 passed**. Conditions and logs are in the [audit evidence directory](docs/verification/deepdive-20261110/README.md).
 
-`process_lrs23.py` writes `mix.json` and `target.json` for each split. `generate_near_json.py` writes `near.json`, which indexes the near-field interferers that the speaker contrastive loss uses as negatives. Then edit `configs/Falcon.yml`: set `datamodule.data_config.train_dir`, `valid_dir` and `test_dir` to `$INDEX/tr`, `$INDEX/cv` and `$INDEX/tt` (the scripts do not expand environment variables). Put the lip-reading-pretrained visual backbone `frcnn_128_512.backbone.pth.tar` in `pretrain_zoo/` at the repository root. <!-- TODO: link to the backbone weights. -->
+Real browser devices, full eight-GPU training, and other identified edge cases require separate checks.
 
-```bash
-# Train (DDP, AdamW lr 1e-3, ReduceLROnPlateau, early stopping 30, grad clip 5)
-python audio_train.py --conf_dir configs/Falcon.yml
+## Paper, data, and licence
 
-# Evaluate SI-SDR / SDR on the test split (one or more GPUs)
-python audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml --gpus 0
+The upstream [paper](https://arxiv.org/abs/2610.32749), [project page](https://cslikai.cn/Falcon/), [Falcon weights](https://huggingface.co/JusperLee/Falcon), [Falcon-Big weights](https://huggingface.co/JusperLee/Falcon-Big), and [Space](https://huggingface.co/spaces/JusperLee/Falcon-Studio) provide the authors' materials. The [RealSSA-Sim](https://huggingface.co/datasets/JusperLee/RealSSA-Sim) and [RealSSA-Real](https://huggingface.co/datasets/JusperLee/RealSSA-Real) data cards describe their own access and use conditions. Code, model, and data licences are separate; see [LICENSE](LICENSE) and the applicable provider terms.
 
-# Evaluate the released weights directly from Hugging Face
-python audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml --ckpt_path hf://JusperLee/Falcon/falcon.pt --gpus 0
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution notes and the [documentation index](docs/README.md) for historical evidence and current guides.
 
-Evaluation reads the data paths from that `conf.yml` (edit them the same way) and, unless `--ckpt_path` is given, loads the best checkpoint in `Experiments/checkpoint/<exp_name>/`: the lowest entry of `best_k_models.json` if it exists, else `last.ckpt`, else the last `epoch=*.ckpt`. Results go to `Experiments/checkpoint/Falcon/results/metrics_combined.csv`. The training code (`look2hear/`) and the Studio runtime (`studio/falcon_model/`) produce identical output for `falcon.pt`; the Studio copy only drops training-time dependencies and adds a CPU FFT bridge for Apple Metal (see [`PROVENANCE.md`](studio/falcon_model/PROVENANCE.md)).
-
-### Parameter and MAC counting (needs one GPU)
-
-```bash
-# Parameters and MACs; reads configs/Falcon.yml
-python evaluated_mac_params.py
-```
-
-This is the one command here that expects a GPU. With no CUDA device visible it stops with exit code 2 and a message pointing at `--device auto` / `--device cuda` (measured 2026-11-08). `--device cpu` forces a CPU run; the script then prints its own warning that those numbers are not re-verified against `docs/verification/runs/r3-macs.log`. It counts the audio branch only — the frozen FRCNN is run before and outside the counter, which is how the paper's audio-only 10.6 G is obtained.
-
-## 📊 Results
-
-Causal AVTSE methods (SI-SNRi / SDRi in dB; DNSMOS on the real-recorded split). **Bold** marks the best result per column. All values in this table are the paper's; the rows this release reproduces are listed under [Reproduction status](#reproduction-status) below.
-
-| Method | RealSSA SI-SNRi | SDRi | LRS2-2Mix SI-SNRi | SDRi | LRS3-2Mix SI-SNRi | SDRi | VoxCeleb2-2Mix SI-SNRi | SDRi | Real-world DNSMOS |
-|---|---|---|---|---|---|---|---|---|---|
-| AV-ConvTasNet | 1.2 | 2.6 | 9.8 | 10.3 | 12.5 | 12.8 | 6.9 | 8.2 | 2.580 |
-| AV-Sepformer | 5.5 | 6.3 | 10.6 | 11.1 | 13.4 | 13.7 | 6.9 | 8.3 | 2.813 |
-| AV-TF-GridNet | 7.6 | 8.1 | 12.7 | 13.1 | 14.3 | 14.8 | 5.8 | 7.7 | 3.030 |
-| RTFSNet-12 | 4.9 | 5.7 | 12.4 | 12.8 | 14.0 | 14.4 | 8.4 | 10.7 | 3.066 |
-| CTCNet | 5.4 | 6.2 | 8.0 | 8.8 | 9.4 | 10.2 | 2.5 | 4.7 | 2.840 |
-| AV-DPRNN | 5.4 | 6.2 | 10.2 | 10.7 | 11.9 | 12.3 | 7.8 | 9.0 | 2.901 |
-| AV-Mossformer2 | 6.0 | 6.7 | 13.2 | 13.9 | 16.2 | 16.6 | 7.7 | 9.1 | 2.912 |
-| Swift-Net-12 | 7.3 | 7.8 | 13.9 | 14.1 | 16.0 | 16.3 | 9.4 | 10.8 | **3.276** |
-| Dolphin | 6.7 | 7.3 | 14.0 | 14.6 | 14.3 | 14.9 | 9.2 | 11.1 | 2.960 |
-| **Falcon (ours)** | **7.7** | **8.2** | **14.1** | **14.7** | **16.4** | **16.7** | **10.5** | **11.8** | **3.276** |
-
-Efficiency on a 2 s, 16 kHz clip with 50 mouth frames (RTX 3090 / Intel Xeon, batch size 1; trainable parameters only):
-
-| Method | Params (M) | MACs (G) | CPU latency (ms) | GPU latency (ms) | RAM (MB) | GPU memory (MB) |
-|---|---|---|---|---|---|---|
-| AV-ConvTasNet | 11.0 | 15.0 | 674.4 | 13.3 | 100.0 | 241.8 |
-| AV-Sepformer | 39.7 | 226.5 | 5143.0 | 53.9 | 178.0 | 369.7 |
-| AV-TF-GridNet | 6.2 | 213.8 | 5646.3 | 567.8 | 136.3 | 1015.8 |
-| RTFSNet-12 | 0.6 | 67.0 | 4149.3 | 164.7 | 457.9 | 411.7 |
-| CTCNet | 6.8 | 150.1 | 3267.4 | 162.8 | 233.2 | 216.5 |
-| AV-DPRNN | 1.3 | **4.5** | **271.0** | **5.8** | **73.0** | **192.4** |
-| AV-Mossformer2 | 56.7 | 224.2 | 16670.7 | 114.9 | 330.9 | 539.8 |
-| Swift-Net-12 | **0.5** | 45.3 | 4163.8 | 172.1 | 482.3 | 411.7 |
-| Dolphin | 5.6 | 18.1 | 2411.0 | 87.9 | 560.2 | 390.3 |
-| **Falcon (ours)** | **0.5** | 10.6 | 1361.2 | 51.3 | 125.3 | 364.7 |
-
-**What the 10.6 G counts.** In the Falcon row that number covers the **audio branch only**: ptflops, **including the LSTM** (about 47 % of it), **excluding the frozen FRCNN**, whose embedding is computed before the counter starts. The frozen video front end costs **15.897 GMAC** at 88×88×50 frames, so one full 2 s window is **26.51 GMAC** with vision at **60.0 %** (measured 2026-11-08). A `torch.utils.flop_counter` reading near 5.38 GMAC for the audio side is a different ruler — that counter does not bill `aten::lstm` — and does not belong next to 10.6 G. The 0.5 M is 537,697 audio parameters, of which 5,568 never execute.
-
-Dolphin and AV-Mossformer2 were re-implemented as causal variants under our training protocol; the other baselines follow the values reported by Swift-Net. Ablations and real-world NISQA results are in the [paper](https://arxiv.org/abs/2610.32749).
-
-### Reproduction status
-
-Status of this repository at `6c1d5b7` (2026-11-08), by level. ✅ = reproduced with evidence in the repo; ⚠️ = the numbers agree but the protocol differs on a named axis, so it is not a strict reproduction; ❌ = not reproduced, with the blocking item named.
-
-- **L1 structure and weights ✅** — `falcon.pt` loads into `configs/Falcon.yml` with `strict=True` (0 missing, 0 unexpected); 537,697 audio / 11,724,385 end-to-end parameters; the training copy and the Studio copy of the model give bit-identical output.
-- **RealSSA-Sim ⚠️** — **7.774 / 8.479** SI-SNRi/SDRi over 9,169 test items with the released weights, against the paper's 7.7 / 8.2. The numbers agree, but this is not a strict reproduction: the released `falcon.pt` was trained on `LRS3_complex_nonmoving` (epoch 714), not on RealSSA-Sim, and this run averages the four channels while the paper's protocol uses channel 1 (that variant gives 7.977 / 8.452). Two axes differ, so the agreement is a numeric match rather than a protocol-matched reproduction.
-- **LRS2-2Mix ❌** — the paper's **14.1 / 14.7** needs an LRS2-trained checkpoint. The released `falcon.pt` is trained on `LRS3_complex_nonmoving` (epoch 714), so LRS2-2Mix is cross-corpus here: **7.03 / 7.71**. A single-GPU run with the old −SNR objective reached 8.858 / 9.270 at epoch 124 of a 130-epoch schedule.
-- **LRS3-2Mix and VoxCeleb2-2Mix ❌** — 16.4/16.7 and 10.5/11.8 have no local data: neither benchmark is released, so nothing was run.
-- **Ablations 0 of 6 ❌** — none of the paper's six ablation tables (7, 8, 9, 18, 19, 21) has been run. Only a big-vs-small comparison (+0.97/+0.91 dB over 300 paired items) and a mouth-input ablation exist.
-
-Evidence and per-item detail: `docs/STATUS.md` and `docs/understanding/deepdive-20261108/` (01–12).
-
-## 🗂️ Repository layout
-
-```
-Falcon/
-├── audio_train.py            # training entry point (PyTorch Lightning, DDP)
-├── audio_visual_test.py      # SI-SDR / SDR evaluation, single or multi-GPU
-├── evaluated_mac_params.py   # parameters and MACs
-├── configs/Falcon.yml        # paper configuration
-├── DataPreProcess/           # mix/target/near JSON index generation
-├── look2hear/                # models, video models, layers, losses, datasets, Lightning systems, metrics
-├── Experiments/checkpoint/   # config snapshot and best-checkpoint metadata (weights downloaded separately)
-├── assets/                   # README figures
-├── project_page/             # project page with demo samples (https://cslikai.cn/Falcon/; media on oss.cslikai.cn)
-├── space/                    # Hugging Face ZeroGPU Space: record, then separate (build.py assembles it with studio/)
-└── studio/                   # Falcon Studio
-    ├── server.py             # local FastAPI + WebSocket inference server
-    ├── falcon_runtime.py     # Hugging Face weight download, strict loading, 2 s windowed inference
-    ├── infer_file.py         # offline clip inference CLI
-    ├── falcon_model/         # inference copy of the model code (see PROVENANCE.md)
-    ├── configs/              # Falcon.yml (Small) and FalconBig.yml (Big)
-    ├── web/                  # browser app: capture, mouth tracking, playback, meeting output
-    ├── scripts/              # launcher, environment bootstrap, BlackHole installer
-    └── tests/                # Python, Node and browser checks
-```
-
-## 📝 Citation
+### Citation and acknowledgements
 
 ```bibtex
 @inproceedings{sang2026falcon,
@@ -293,10 +163,4 @@ Falcon/
 }
 ```
 
-## 📄 License
-
-The code and the released weights are licensed under the [Apache License 2.0](LICENSE). Falcon Studio bundles MediaPipe Tasks Vision and its face landmarker model (`studio/web/vendor/mediapipe`), distributed by Google under the Apache License 2.0 with their own notices. LRS2, LRS3 and VoxCeleb2 are subject to their own licenses and are not redistributed here.
-
-## 🙏 Acknowledgements
-
-The frozen visual encoder follows [CTCNet](https://github.com/JusperLee/CTCNet). Baseline numbers follow [Swift-Net](https://github.com/JusperLee/Swift-Net) except for the causal re-implementations of [Dolphin](https://github.com/JusperLee/Dolphin) and [AV-MossFormer2](https://github.com/modelscope/ClearerVoice-Studio). Live mouth tracking in Falcon Studio uses [MediaPipe Face Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker).
+The comparison and efficiency tables transcribed in the former README are retained in [paper-reported results](docs/PAPER_REPORTED_RESULTS.md); the tables reproduce the numbers reported in the paper. The visual encoder follows [CTCNet](https://github.com/JusperLee/CTCNet), and baseline context includes [Swift-Net](https://github.com/JusperLee/Swift-Net). Studio mouth tracking uses [MediaPipe Face Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker).

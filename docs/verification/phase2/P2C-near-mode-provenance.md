@@ -1,7 +1,9 @@
 # P2C 补充：`near.json` 的 s2 负样本来源与 `--near-mode other-speaker` 复现说明
 
+> **2026-11-10 更新：s1/s2 是已经混合缩放的源分量；ep86 与 ep124 的差异同时包含训练时长和配置变化。数据条件见[数据训练说明](../../understanding/20261110-data-and-training.md)。**
+
 > 任务：P0-3（`task-12`）· owner `data-pipeline` · 2026-10-24
-> 分支 `repro/phase2`（HEAD `2beec38`）；未 git commit；未改动 `/root/data/falcon_lrs2_2mix`（只读）。
+> 分支 `repro/phase2`（HEAD `2beec38`）；读取数据目录 `/root/data/falcon_lrs2_2mix`。
 > 相关：`docs/verification/phase2/P2C-report.md`、`P2C-convert.log`、`P2D-report.md`、`P2D-near-train.log`、
 > `docs/REPRODUCTION_PHASE2_REPORT.md` §4.1、`tools/repro/lrs2_2mix_to_falcon.py`。
 
@@ -136,7 +138,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/te
 
 ---
 
-## 5 变更文件清单（未 commit）
+## 5 变更文件清单
 
 | 文件 | 状态 | 说明 |
 |---|---|---|
@@ -145,4 +147,4 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -m pytest tools/repro/te
 | `docs/verification/phase2/P2C-near-mode-provenance.md` | 新增（本文件） | 漂移来源/时间线/复现命令/验证 |
 | `docs/verification/phase2/P2C-report.md` | 末尾追加指针 | 见 §11 之后 |
 
-> 未 git commit；未改 `/root/data/falcon_lrs2_2mix`；临时验证产物在 `/root/tmp/lrs2_otherspk_check`（仓库外，可删）。
+> 临时验证产物位于 `/root/tmp/lrs2_otherspk_check`。

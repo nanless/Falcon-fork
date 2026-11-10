@@ -1,5 +1,7 @@
 # R5 全局一致性复核（review-5）
 
+> **2026-11-10 复核提示：**本文是当时的跨文档对照。`paper_causal=True` 对 stride-2 有额外裁帧，且全窗归一化仍引入未来依赖，该开关改变局部卷积，模型仍受全窗统计影响；测试、路径及跟踪状态也可能变化。见[复现状态](../../../STATUS.md)。
+
 > 仓库 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork`，HEAD `6c1d5b7`，工作区 **37 项改动**（含本轮重写的 `docs/STATUS.md` 402 行）+ 2 个未跟踪目录。只读复核，未改仓库任何文件。
 > 复核方式：全仓 grep/逐文件对读；`space/build.py` 与 4 个新脚本只做 `--help` + 一次构建到 `/tmp`（不写仓库、不跑长任务）。
 
@@ -133,7 +135,7 @@
 | C3 | `respect_index`（默认 **False**） | `avspeech_dataset.py` L105,133,195–207；`avspeech_dataset_near.py` L67,95,185–197 | `STATUS` L102/§4.7 仍写"`idx` 被丢弃、`shuffle` 无效、采样有放回"，当作不可改行为 | ❌ 默认行为描述对，但**没告诉读者有开关** |
 | C4 | `mouth_fps`（默认 **25.0**）、`pad_mouth`（默认 **False**） | `avspeech_dataset_near.py` L77–113,216–228；`avspeech_dataset.py` L57–94 | `STATUS` L102 写"`mouth_start` **写死 16000 与 25**"；`03-video-frontends.md` L480,503 同 | ❌ **与代码不符**：现为 `int(rand_start/sample_rate*mouth_fps)`，16000/25 只是默认值 |
 | C5 | `--allow-partial` + 覆盖率自检 | `audio_visual_test.py` L21,100–101,126–128,487–529,555；写入 `coverage_rank0.json`；`raise` 现 **28 处** | `STATUS` L141："全文 23 处 `raise`，**没有一条校验跑了几条/共几条**，只能靠 `utterances=N` 和 `metrics_counts.json`"；`07-eval` L18 同 | ❌ **本轮新增的能力被文档否定**（数字也旧：23→28） |
-| C6 | `paper_causal` 使"改 6 行"过时 | 开关已存在，打开即得论文式 causal padding | `STATUS` L167"即使把这三组卷积改回 `causal=True`（约 6 行）"、L303 待办 2"改动约 6 行"；`12-causality` L507/L496 | ❌ 会让人重复实现已有开关；正确写法是 `paper_causal=True`（A/B 用 `tools/repro/experiments/lookahead_ab.py`） |
+| C6 | `paper_causal` 使"改 6 行"过时 | 开关已存在，开启局部因果 padding；stride-2 裁帧及全窗归一化仍需分别评估 | `STATUS` L167"即使把这三组卷积改回 `causal=True`（约 6 行）"、L303 待办 2"改动约 6 行"；`12-causality` L507/L496 | ❌ 会让人重复实现已有开关；正确写法是 `paper_causal=True`（A/B 用 `tools/repro/experiments/lookahead_ab.py`） |
 | C7 | `--device` 语义 | `evaluated_mac_params.py`：`choices={auto,cuda,cpu}`，auto/cuda 无 GPU 时 **exit 2**；`streaming_consistency.py`：`choices={cpu,cuda,mps}`，默认 cpu；`video_ablation_check.py`：**自由字符串**，默认 `cpu` | README L210 只描述 `evaluated_mac_params` 的三个值 | ⚠️ 三个脚本三种语义，同名不同义 |
 | C8 | `--wrong-mode` / `--select` | `video_ablation_check.py` L202–216（`--select {first,spread}`、`--wrong-mode {other,next,s2}`） | 仅脚本自身 `--help`/docstring，无任何 md 引用 | ⚠️ 可用但不可发现 |
 | C9 | `--guard-ms` | **不存在**；对应开关是 `streaming_consistency.py --guards`（ms 逗号列表，默认 `80,160,320,456,640`） | `studio/README.md` L149 用 `--guards 80,456`（正确） | ❌ 任务书/若他处写 `--guard-ms` 会直接报错 |

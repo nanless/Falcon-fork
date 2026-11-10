@@ -1,0 +1,88 @@
+[
+  {
+    "path": "docs/verification/phase2/P2E-realssa-sim-ch0-convert.log",
+    "sha256": "0d2983ca4dd3f60d7075a06bac23367d6e0147e82d5755471a34183b9be91a3b",
+    "progress_entries": 386,
+    "parsed": 386,
+    "unparsed": [],
+    "groups": [
+      {
+        "key": [
+          "",
+          18338
+        ],
+        "count": 189,
+        "first": 0,
+        "last": 18338,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      },
+      {
+        "key": [
+          "",
+          9169
+        ],
+        "count": 128,
+        "first": 0,
+        "last": 9169,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      },
+      {
+        "key": [
+          "near.json:",
+          9169
+        ],
+        "count": 69,
+        "first": 0,
+        "last": 9169,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      }
+    ],
+    "note": "逐条机器解析进度数值；不能据此验证转换产物本身或替代正文语义阅读。"
+  },
+  {
+    "path": "docs/verification/phase2/P2E-realssa-sim-convert.log",
+    "sha256": "3851e5c5e26661a9582a4d635a7bb029c023b6a4be2bb372a9076e08668416c5",
+    "progress_entries": 522,
+    "parsed": 522,
+    "unparsed": [],
+    "groups": [
+      {
+        "key": [
+          "",
+          18338
+        ],
+        "count": 131,
+        "first": 0,
+        "last": 18338,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      },
+      {
+        "key": [
+          "",
+          9169
+        ],
+        "count": 280,
+        "first": 0,
+        "last": 9169,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      },
+      {
+        "key": [
+          "near.json:",
+          9169
+        ],
+        "count": 111,
+        "first": 0,
+        "last": 9169,
+        "max_pct": 100,
+        "out_of_bounds": 0
+      }
+    ],
+    "note": "逐条机器解析进度数值；不能据此验证转换产物本身或替代正文语义阅读。"
+  }
+]

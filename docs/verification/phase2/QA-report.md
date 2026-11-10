@@ -1,9 +1,7 @@
 # Phase 2 QA 报告（task-24，owner: layers-dsp）
 
-> 分支 `repro/phase2` @ `af74cca`（main `ac91800` = Phase1 合并后）；**未 commit、未改 Phase1/2 源码**。
+> 分支 `repro/phase2` @ `af74cca`（main `ac91800` = Phase1 合并后）。
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / 2×A800）。
-> 写作用域：`tools/repro/tests/test_phase2_*.py`（+ 对 `test_phase1_regression.py` 的基线路径/白名单/分阶段
-> skip 条件维护）、`docs/verification/phase2/`。
 > 本报告 **v1 = 终检**（快照时间 2026-10-21T19:52Z；当时 P2-D 正式训练仍在进行，见 §6）。
 > 日志：`docs/verification/phase2/QA-regression.log`。
 >
@@ -32,7 +30,6 @@
 | P2-E DNSMOS（环境/lock/sha256/分数域） | ✅ 版本与 conda lock 一致，4 个 ONNX sha256 齐全，分数 ∈ [1,5] | §5.5 |
 | P2-F 指标实现独立对拍 | ✅ 自实现 vs `look2hear.metrics.core` vs 评测 CSV：最大差 **4.8e-8 / 1.8e-7 dB** | §5.6 |
 | diff 范围守卫（Phase1/2 源码零改动） | ✅ protected 源码 vs main 差异 = **0**；tracked 改动仅文档/QA 测试 | §7 |
-| 未 commit / 未改源码 | ✅ | `git status`（§7） |
 
 **结论：Phase 2 交付物在“数值不变量、数据契约、指标实现、报告可追溯性、改动范围”五个维度全部通过
 独立 QA；无 P0/P1。当时唯一未收口项是 P2-D 正式训练仍在进行（外部 GPU 资源限制），其已完成部分（冒烟、
@@ -178,8 +175,7 @@ QA 用 `test_phase2_p2b_paired_stats_and_report_consistency` 从 7 个逐句 CSV
   相对 RMS 1.9e-4；全部 clip 32000 samples/16 kHz；target=s1 的 SI-SDRi 7.535 vs s2 −17.012（Δ+24.55）；
   对齐 lag 恒 0、无削波、尺度不变（1e-8 dB）、zero-mean Δ−0.0005 dB、8 kHz Δ+0.11/0.21 dB。
 - mouth 消融：置零 −14.4 dB、错说话人 −23.3 dB ⇒ 视觉分支生效且目标正确。
-- 结论采信：7.03/7.71 属“协议可信的跨语料结果”，非论文 LRS2 列协议复现；缺口是 LRS2-2Mix 训练出的
-  checkpoint（P2-D），不是评测/指标修复。
+- 测试结果支持所测指标实现和数据协议的自洽性。官方权重的训练来源未知，论文结果差距的原因仍需验证；P2-D 的自训评测结果见 §6。
 
 ## 6. P2-D 训练/评测数字（快照 2026-10-21T19:52Z）
 
@@ -205,7 +201,7 @@ QA 用 `test_phase2_p2b_paired_stats_and_report_consistency` 从 7 个逐句 CSV
 - untracked 54 个：`configs/LRS2_2Mix.yml`、`docs/verification/phase2/*`、`tools/repro/phase2/*`、
   `tools/repro/lrs2_2mix_to_falcon.py`、`tools/repro/tests/test_{lrs2_convert,phase2_data,phase2_pipeline}.py`。
 - **受保护源码 vs `main` 差异 = 0**：`audio_train.py`、`audio_visual_test.py`、`look2hear/`、`studio/`、
-  `configs/Falcon.yml`（Phase2 守卫断言）。未 `git commit`、未切分支、未清理工作区。
+  `configs/Falcon.yml`（Phase2 守卫断言）。
 - 白名单授权记录：`docs/*`、`tools/repro/*`、`configs/LRS2_2Mix.yml`、`AGENTS.md`（环境合规 §2/§4 + lock）、
   `space/*`；Phase1 测试中的 `configs/Falcon.yml` 注释级改动仍由独立测试保护。
 
@@ -244,4 +240,4 @@ git worktree list                                           # 校验 /root/wt-ba
 - **v1（19:52Z，本版）**：Phase2 QA 扩到 23 条（新增 P2A/P2B/P2C/P2D/P2E/P2F 证据复算 11 条）；
   `_landed` merge-aware 恢复 Phase1 T1/T3/T5 验收覆盖（skip 6→1）；终检
   **111 passed / 1 skipped / 0 failed, 106.62s**（2026-10-21 快照；现行数字见文首校正段）；P2-A..F 数字独立复算全部一致；P2-D epoch 0 通过；
-  无源码改动、未 commit。**task-24 保持 in_progress（P2-D 训练未完成，等 Lead 收口）。**
+  训练状态的后续结果见 §6。

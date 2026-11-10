@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史数据更新：文件名增益差和源信号本身的能量共同决定实测能量比；发布包 s1/s2 波形已按混音缩放，near 不是未经增益的原始波形。K=1 时 β 不参与负项计算；K=0 时仍保留正项。有放回抽取 10,000 次，期望覆盖 40,000 个方向条目的约 22.12%；8000 Hz 时固定除以 16000 导致帧起点为正确值的一半。17,280 个样本在 16 kHz 是 1.08 秒。数据构建命令可能写入现有目录，执行前应核对输出位置。详见[数据与训练专题](../20261110-data-and-training.md)和[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 # 06 数据管线与落盘数据
 
 > 子代理 W1-06 · 2026-11-08 · 目标仓库 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork`（HEAD `6c1d5b7`）
@@ -10,12 +12,12 @@
 ## 0. 结论速览
 
 1. **这个仓库做的是"目标说话人提取（TSE）"，不是 2 说话人分离**（任务定义与模型侧证据见 01 §2）：`n_src: 1`，`__getitem__` 只返回 **1 路 target**，没有 `s1/s2` 两个源字段。"2mix" 只描述数据层的两条源混合（`configs/LRS2_2Mix.yml:9`、`look2hear/datas/avspeech_dataset_near.py:282-284`）。
-2. **`mix` 是离线混好的，dataset 里不做任何混音**。混音发生在 LRS2-2Mix 发布包里：`mix = 10^(g1/20)·s1 + 10^(g2/20)·s2`，`g1∈[0,5] dB` 且 `g2 = -g1` ⇒ **SNR(s1 over s2) 严格落在 [0,10] dB，中位数 5.025 dB**（实测 20000 条 tr stem，§4.4）。dataset 只按随机起点切窗。
+2. **`mix` 是离线混好的，dataset 里不做任何混音**。混音发生在 LRS2-2Mix 发布包里：`mix ≈ s1 + s2（发布波形已含增益）`，`g1∈[0,5] dB` 且 `g2 = -g1` ⇒ **名义增益差落在 [0,10] dB，中位数 5.025 dB**（实测 20000 条 tr stem，§4.4）。dataset 只按随机起点切窗。
 3. **训练期"随机裁剪"在 LRS2 上是假的**：LRS2 每条正好 2.000 s / 32000 点，`segment=2.0` ⇒ `rand_start = randint(0, 0) = 0`（`avspeech_dataset_near.py:156`）。音频窗口恒定，只有视频侧的 `RandomCrop(88)` 与 `HorizontalFlip(0.5)` 还在随机（`transform.py:141-152`）。
 4. **视频侧读的是预存 tensor，不是文件**：`mouths/<target_utt_id>.pt`，uint8 `[T,96,96,3]`，LRS2 恒 `T=50`；`torch.load(...).permute(0,3,1,2)` → Grayscale → `[T,96,96]` → `RandomCrop(88,88)` → `[50,88,88]`，**dtype 被 numpy 提升成 float64**（实测 §4.1）。
 5. **音视频对齐是"帧 k 覆盖 640 点"的硬约定**，但代码把采样率**写死 16000**：`mouth_start = int((rand_start / 16000) * 25)`（`avspeech_dataset_near.py:168`、`avspeech_dataset.py:108`）。若 `sample_rate≠16000` 直接错位（当前所有 config 都是 16000，未触发）。
 6. **没有 pad，只有 slice**。长度不够就短一截，靠 `collate` 的 `torch.stack` 隐式要求同 batch 等长 ⇒ 只有 `T` 恒定（LRS2）时才敢 `batch_size>1`；val/test 一律 `batch_size=1`。
-7. **near 的语义是"同一 mixture 里的那个干扰源原始波形"**，不是 near-field 泄漏：`/root/data/falcon_lrs2_2mix/<split>/near.json` 100% 指向 `lrs2_2mix/lrs2_rebuild/audio/wav16k/min/<split>/s2/*.wav`，K 恒 = 1，fallback = 0（实测 §4.2）。RealSSA-Sim 侧 **100% fallback（自引用哨兵 ⇒ 被 dataset 跳过 ⇒ K=0）**，NASS 对比损失在 RealSSA 上等于关闭。
+7. **near 的语义是"同一 mixture 里的已缩放干扰源波形"**，不是 near-field 泄漏：`/root/data/falcon_lrs2_2mix/<split>/near.json` 100% 指向 `lrs2_2mix/lrs2_rebuild/audio/wav16k/min/<split>/s2/*.wav`，K 恒 = 1，fallback = 0（实测 §4.2）。RealSSA-Sim 侧 **100% fallback（自引用哨兵 ⇒ 被 dataset 跳过 ⇒ K=0）**，NASS 对比损失在 K=0 时仍保留正项。
 8. **`--copy-wavs` 的 P0（target/near 同名塌缩）已在 `2062528` 修掉**，修在 `build_lrs2_paper_data.py:98-117`（`.s1.wav`/`.s2.wav` 分名）+ `validate_build()` 闸门（`:182-260`，失败 `exit 2` `:303-306`）。
 9. **落盘数字有两处"账面"陷阱**：`falcon_lrs2_2mix` 与 `_paper` 的 `mouths/` 是**同一批 inode 的硬链接**，`falcon_realssa_sim` 与 `_ch0` 的 `mouths/` 同理。单目录 `du` 会把 4 个目录算成 110 G，**一次 `du` 去重后真实并集 = 62 G**（实测 §4.3）。
 10. **`falcon_lrs2_2mix/conversion_stats.json` 与磁盘状态不一致**：stats 写 `near_mode: "fallback"`（2026-10-21），而 `near.json` 是 2026-10-22 被原地改成 s2 的。仓库里已有 `docs/verification/phase2/P2C-near-mode-provenance.md` 承认并解释了这个漂移，我独立复核成立。
@@ -92,7 +94,7 @@ AudioVisualLightningModuleNASSv2.training_step  (av_litmodule_nass_v2.py:73-74)
         │  mouth → video_model（冻结）→ mouth_emb
         │  audio_model(mixtures, mouth_emb) → est_sources[B,1,T], sep_audio_embs
         ▼
-   pit_loss (PITLossWrapper, n_src=1 → 1×1 无置换) + β·NASS 对比损失(query=est, pos=target, neg=near)
+   pit_loss (PITLossWrapper, n_src=1 → 1×1 无置换) + weight·NASS 对比损失(query=est, pos=target, neg=near)
 ```
 
 ### 2.2 `__getitem__` 逐行（以 near 版为准，`avspeech_dataset_near.py:149-222`）
@@ -139,13 +141,13 @@ weight_1 = 10^(inwav1_snr/20);  weight_2 = 10^(inwav2_snr/20)
 文件名 stem 即配方：`<s1_id>_<g1>_<s2_id>_<g2>`。实测 20000 条 tr stem（§4.4）：`g1∈[0.000,5.000]`，`g2∈[-5.000,-0.000]`，且**逐条 `g1 == -g2`**（`True`）。于是：
 
 ```
-SNR_{s1 over s2} = g1 - g2 = 2·g1 ∈ [0, 10] dB     （中位 5.025，均值 5.011）
-mix = 10^(g1/20)·s1 + 10^(g2/20)·s2                （PCM16 舍入，实测 max|mix-(s1+s2)| = 3.05e-5 = 1 LSB）
+名义增益差 = g1 - g2 = 2·g1 ∈ [0, 10] dB     （中位 5.025，均值 5.011）
+mix ≈ s1 + s2（发布波形已含增益）                （PCM16 舍入，实测 max|mix-(s1+s2)| = 3.05e-5 = 1 LSB）
 ```
 
 **用户问题里的"SNR 范围/随机种子"答案**：SNR 在**发布包生成时**就已固定并编码进文件名，dataset 侧**没有任何 SNR 采样、没有种子、没有在线混音**。dataset 里唯一的随机性是"哪条样本 + 哪个起点 + 视频 crop/flip"。
 
-副作用：**s1 恒比 s2 响**（`g1>0>g2`，实测 `sign` 全一致）。不做双向 target 的话，模型可以只学"挑更响的那路"而不看嘴唇 —— 这正是 paper 配方要双向的原因（`build_lrs2_paper_data.py:4-8`）。
+副作用：文件名中 s1 的名义增益高于 s2；实测源波形能量比还受源信号影响。不做双向 target 的话，模型可以只学"挑更响的那路"而不看嘴唇 —— 这正是 paper 配方要双向的原因（`build_lrs2_paper_data.py:4-8`）。
 
 ### 2.5 视频侧：预存 tensor，切片而非 pad
 
@@ -201,7 +203,7 @@ for near_path, n_samples in self.near[mix_index]:
 - positive = `pool_spk_embed(encode_stft(targets[:,0]))`（`no_grad`）
 - negatives = 每个 near 波形 `_trim_or_pad(·, seg_len)`（`:60-66`，短补零长截断）后过同一个 encoder（`no_grad`）
 - `cl_loss = NASSContrastiveLoss(embed_query, embed_pos, embed_negs_list, beta)`；`total = pit_loss + weight·cl_loss`（`:134-136`）
-- β 线性退火：`beta_init → beta_final`，`progress = min(current_epoch/beta_anneal_epochs, 1)`（`:68-72`）。**若 K 恒 = 1 且 β 从 0 起退火，退火在数值上就只是"权重从 0 涨到 1"，τ 的"难负样本"作用无从体现**（STATUS 已指出，我复核认可）。
+- β 线性退火：`beta_init → beta_final`，`progress = min(current_epoch/beta_anneal_epochs, 1)`（`:68-72`）。**若 K 恒 = 1 且 β 从 0 起退火，β 不参与单负样本分支，调整 β 不改变该分支的损失**（STATUS 已指出，我复核认可）。
 
 **(d) K 的分桶日志**：train 侧按 `min(len(near),4)` 记 `train_n_samples_{0..4}near`（`:112-132`）；val 侧按 `n_near` 记 `val_pit_sisnr_{0..4}near`（`av_litmodule.py:104-121,150-159`）。因为 eval 的 `n_near` 只从 `_meta.json` 读，而 LRS2 没有 meta、RealSSA 的 meta 里没有 `type=="near"` 组件 ⇒ **所有 val 都落 bucket 0**，这些指标实际只有一个桶有值。
 
@@ -374,7 +376,7 @@ $ stat -c "%i %h" .../falcon_realssa_sim/tt/mouths/00001_00_10182.pt ...ch0/...
 | 格式 | 16 kHz / mono / PCM_16 | 同 | 同 |
 | SNR(s1/s2) | [0,10] dB，中位 5.025 | 同（同一配方） | 同 |
 
-RealSSA-Sim tt：9169 条，**变长** 17280–97280 点（0.36–6.08 s；500 条抽样里 640 点整数倍全覆盖），`mouth.T == n_samples/640` 精确。
+RealSSA-Sim tt：9169 条，**变长** 17280–97280 点（1.08–6.08 s；500 条抽样里 640 点整数倍全覆盖），`mouth.T == n_samples/640` 精确。
 
 ### 3.4 config 里的 datamodule（6 个配置全表）
 
@@ -479,7 +481,7 @@ tr/cv/tt: frames_dist(400 sampled)={32000:400}  sr=16000 ch=1 fmt=PCM_16
 mix-(s1+s2): max|Δ| = 3.05176e-05 (×3 条)
 ```
 
-⇒ SNR 不是"任意范围"，而是 `[0,10] dB` 的对称配方；`s1` 恒为"更响的那路"。mix 严格等于两路之和（浮点噪声 1 LSB 以内），**near（=s2 原始波形）不携带 g2 增益**，所以 near 与 mixture 里的干扰分量相差 `|g2|` dB 的响度 —— 做 contrastive 时这是一个未声明的不一致（§5.6）。
+⇒ 文件名中的名义增益差为 `[0,10] dB`；发布 s1/s2 波形已含增益，抽查的 mix 与二者之和相差不超过 PCM16 一个量化级。源波形实际能量比并非逐条等于名义增益差。
 
 ### 4.5 T5 — mouth `.pt` 内部结构与 RealSSA 帧对齐
 
@@ -516,7 +518,7 @@ tt: mixtures=3000  unique_speakers=144  unique_utterances=267   avg_mix_per_utt=
 tr: mixtures per s1 utterance min/med/max = 1/1.0/2 ; utterances used once = 9546
 ```
 
-`cv` 只有 68 个说话人、476 条 utterance；`tt` 144 人 / 267 条，且 **s1 池 == s2 池**（unique_s1 = unique_s2 = 476 / 267）⇒ cv/tt 是"同一小池内部交叉配对"。这决定了 val/test 的置信区间远比 5000/3000 这个数字暗示的窄。
+`cv` 只有 68 个说话人、476 条 utterance；`tt` 144 人 / 267 条，且 **s1 池 == s2 池**（unique_s1 = unique_s2 = 476 / 267）⇒ cv/tt 是"同一小池内部交叉配对"。样本复用会产生相关性，置信区间需要按说话人或 utterance 依赖结构估计。
 
 ### 4.8 T8 — RealSSA `--channel` 语义验证（从原始 tar 反推）
 
@@ -561,10 +563,10 @@ target==near? 0        # 无一例自引用
 
 1. **`idx` 被丢弃**（`avspeech_dataset_near.py:154` / `avspeech_dataset.py:90`）。`shuffle=True` 完全不生效；`__len__` 是 `train_samples` 而不是数据集大小；同一 epoch 内会重复采到同一条。改 `train_samples` 就等于改"一个 epoch 走多少数据"，跟"数据量"无关。
 2. **"随机裁剪"在 LRS2 上是 no-op**：`n_samples == seg_len == 32000` ⇒ `randint(0,0)=0`（`:156`）。所以 LRS2 训练时音频窗口**恒为整条**，只有视频 crop/flip 在随机。要真正做 random crop，得让 `segment < 2.0`。
-3. **`mouth_start` 写死 16000**（`:168`、`avspeech_dataset.py:108`）。`sample_rate=8000` 时 `mouth_start` 会是正确值的 2 倍，音视频直接错位。当前 6 个 config 都是 16000，属于"潜伏 bug"。
+3. **`mouth_start` 写死 16000**（`:168`、`avspeech_dataset.py:108`）。`sample_rate=8000` 时 `mouth_start` 会是正确值的一半，音视频直接错位。当前 6 个 config 都是 16000，属于"潜伏 bug"。
 4. **没有 pad，只有 slice**（`:174`）。`T_mouth < fps_len` 时返回短张量，`bs>1` 的 `torch.stack` 直接崩。LRS2 靠"全部 50 帧"过关，不是靠代码保护。
 5. **mouth dtype 是 float64**（实测 §4.1）。`Normalize(0.,255.)` 在 uint8→float64 上做，`collate` 后整 batch 是 float64；模型 `mouth_in.type_as(mixtures)` 才降到 float32。数据侧因此多一倍内存/拷贝。
-6. **near ≠ mixture 里的干扰分量**：near 是 s2 **未乘 `10^(g2/20)`** 的原始波形（§2.4），响度差 `|g2|∈[0,5]` dB。对比损失把"干净的原干扰源"当负样本，而模型看到的是"被衰减过的干扰" ⇒ 负样本在能量域上与正样本分布不一致。任何用 near 的结论都要声明这一点。
+6. **near 使用已缩放的另一说话人源**：发布包中的 s1/s2 波形已按混音比例缩放；训练索引引用对应对侧波形。
 7. **`near_path == mix_path` 的哨兵是静默的**（`:190`）。fallback 数据不会崩、不会 warn，只会让 K=0、对比损失退化成"只有正项"。RealSSA 全量 9169 条都是这个状态，而训练日志只会打 `9169/9169 samples have near-speaker entries`（因为 `near.json` 确实每条都有 1 条 entry）——**这个日志看起来像"有负样本"，其实是"有哨兵"**。这是最容易误判的一处。
 8. **训练集索引顺序是反的**：`__init__` 从 `len-1` 往 0 遍历并 append（`:112-122`），所以 `self.mix` 是 `mix.json` 的逆序。训练无所谓（随机采样），但如果有人拿 `train_ds.mix[i]` 去对 `mix.json[i]` 就会错位。`AVSpeechEvalDataset` 是正序（`avspeech_dataset.py:162-165`）。
 9. **`AVSpeechDataModule`（非 near）是死路但留在 `__init__.py` 导出**：它的 train dataset 返回 **4 元组**，而 `AudioVisualLightningModuleNASSv2.training_step` 解包 **5 元组**（`av_litmodule_nass_v2.py:74`）⇒ 一旦有人 `from look2hear.datas import AVSpeechDataModule` 配 NASS 训练，会在第一个 batch 上 `ValueError: not enough values to unpack`。`audio_train.py:25` 绕开了 `__init__.py`，所以主路径没炸。

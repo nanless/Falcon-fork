@@ -1,5 +1,7 @@
 # R2 · 测试实跑与红绿归因
 
+> **2026-11-10 复核提示：**本页记录当时的对照实验、测试数和临时路径。本轮 CPU 结果为 166 passed / 2 skipped，条件和跳过原因见[复现状态](../../../STATUS.md)；历史 checkpoint 的用途和保留状态需逐项确认。
+
 - 机器：`dev_a800_2gpus`（A800×2，跑测试时 0% 占用）；仓库 `Falcon-fork`，HEAD `6c1d5b7`，工作区 25 改 + 2 未跟踪。
 - 解释器 `/root/miniforge3/envs/falcon/bin/python`（torch 2.8.0+cu128 / py3.11.17），`PYTHONPATH=<repo>`，`OMP_NUM_THREADS=4`。
 - 纯 HEAD 对照副本：`/tmp/r2_head`（`git clone` 自本仓，`git status` 干净，HEAD 同为 `6c1d5b7`）。
@@ -18,7 +20,7 @@
 | 6 | 4 个新实验脚本 `--help` | 4/4 rc=0（≤1.5s） | 文件为新增，无基线 | — |
 
 - **结论：本轮改动没有让任何原本绿的用例变红。** 全部红点都在纯 HEAD 副本上原样复现（同名同数量）。
-- 红点根因是**环境参数**而非代码：4 条指纹用例只在 `OMP_NUM_THREADS=4` 下红，用 torch 默认 64 线程时与基线**逐位相同**（见 §3 证据）。
+- 4 条指纹失败与线程设置有关：4 条指纹用例只在 `OMP_NUM_THREADS=4` 下红，用 torch 默认 64 线程时与基线**逐位相同**（见 §3 证据）。
 - **建议合并**（无新增红）；但 §5 第 1、2 条（线程固定、checkpoints 污染）建议合并前一并修掉，成本极低。
 
 ## 1 实测输出
@@ -90,14 +92,14 @@ lookahead_ab rc=0 / ln_variant rc=0 / streaming_consistency rc=0 / video_ablatio
 
 ## 3 新增红的归因
 
-**没有新增红，故无「新增失败→改动文件」映射。** 以下是 4 条既有红的完整归因（复现稳定、可解释）：
+以下记录 4 条既有指纹失败的线程对照实验：
 
 `eval_sha` 的计算方式：
 - `tools/repro/tests/test_phase1_regression.py:52-59` → `_tensor_sha(t) = sha256(t.numpy().tobytes())`，即 **float32、CPU、contiguous 原始字节**的 sha256（无量化、无舍入、无容差）。
 - 调用点：`:199 eval_sha`、`:202 train_est_sha`、`:204 sep_sha`、`:207 video_sha`；`video_sha` 通过 → 只音频前向受影响。
 - 对照侧：`docs/verification/phase1/baseline-fingerprint.json`；`test_phase2_pipeline.py:110` 只比 `eval_sha`。
 
-**漂移性质 = 纯数值（float32 末位），不是格式/新增字段**：参数数（537,697 / 11,186,688）、state_dict key 数（525 / 137）、输出 shape 全部与基线一致；只有字节级数值不同。标量证据：
+**漂移性质：所测输出的 float32 原始字节随线程数变化**：参数数（537,697 / 11,186,688）、state_dict key 数（525 / 137）、输出 shape 全部与基线一致；只有字节级数值不同。标量证据：
 
 | 线程数 | `eval_sha`(前 12) | `eval_sum` |
 |---|---|---|

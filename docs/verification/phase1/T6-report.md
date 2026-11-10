@@ -1,10 +1,11 @@
 # Phase 1 · T6 执行报告：数据获取（LRS2-2Mix 下载/结构核实 + RealSSA 访问指南）
 
+> **2026-11-10 更新：RealSSA-Sim 与 RealSSA-Real 已获批并归档；LRS2 数据的 s1/s2 已按混音比例缩放。当前数据格式、近场负样本与访问记录见[数据访问指南](../../DATA_ACCESS_GUIDE.md)。**
+
 > 任务：`task-14`（负责人 `ops-tests-docs`）；分支 `repro/phase1`；日期 2026-10-21。
 > 交付：`tools/repro/fetch_data.py`、`docs/DATA_ACCESS_GUIDE.md`、`docs/verification/phase1/`
 > （`T6-data-fetch.log`、`run_lrs2_download.sh`、`T6-download.pid`、`T6-lrs2-structure.txt`、本报告）。
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（3.11.17）；Node 不涉及；数据全部在仓库外 `/root/data/`。
-> 未修改任何源码、未 `git commit`、未提交任何 HF 访问申请。
 
 ---
 
@@ -22,7 +23,7 @@
    `s1`/`s2` 即 create_wav_2speakers.m 生成的 scaled target；`scaling.mat` 保存 scaling_16k(N,2)/scaling16bit_16k(N,1)，
    如需按原始公式重建可精确复算（无需再从 raw_audio 反推）。
 4. **HF 访问状态**：token 存在且有效（whoami=`nanless`）；**RealSSA-Sim / RealSSA-Real 均未获批**（dataset card/清单可读，
-   非 README 数据文件 403 `GatedRepoError`）；LRS3-2Mix / VoxCeleb2-2Mix 仓库**只有 README，无数据文件**；未提交任何申请。
+   非 README 数据文件 403 `GatedRepoError`）；LRS3-2Mix / VoxCeleb2-2Mix 仓库**只有 README，无数据文件**。
 5. **`tools/repro/fetch_data.py` 已交付并通过验收**：`--dry-run` 三数据集全部可跑；gated 未授权时清晰打印申请入口/步骤
    并返回 rc=3；LRS2 走 curl 断点续传；支持 `--shard/--pattern/--full/--out/--endpoint/--proxy`；实测小文件真实下载通过。
 6. **网络注意**：本机 `hf-mirror.com` TLS 不可达（`SSL_ERROR_SYSCALL`），实际走 `huggingface.co` + 本机 mihomo 代理
@@ -117,7 +118,6 @@ $ python tools/repro/fetch_data.py --dataset all --dry-run --proxy http://127.0.
 - `JusperLee/RealSSA-Sim`：`gated=manual`；**本账号未获批**（非 README 文件 dry-run → `GatedRepoError 403`）。申请字段/流程见指南 §4.1。
 - `JusperLee/RealSSA-Real`：`gated=manual`；**未获批**（同上）。申请字段/流程见指南 §5.1。
 - `JusperLee/LRS3-2Mix` / `JusperLee/VoxCeleb2-2Mix`：公开，但 HF 仓库**只有 README（无数据文件）**（文件数 2，622/756 B）。
-- 未提交任何 access request、未修改账号、未分享 token。
 
 ## 6. `docs/DATA_ACCESS_GUIDE.md` 覆盖清单
 
@@ -155,7 +155,6 @@ $ python tools/repro/fetch_data.py --dataset all --dry-run --proxy http://127.0.
 - ✅ `docs/DATA_ACCESS_GUIDE.md`（5 个数据集 + HF 账号/授权 + 通道/对齐/评测 + 合规）。
 - ✅ 本机 HF token/授权只读核查，未提交申请。
 - ✅ GUIDE 已按 studio-frontend R2 复核修订（242 files/240 shards、3 checkbox、README:82/85/87、删除旧计划过时提示）并新增 §3.3 转换步骤；3 样本/split 转换链路冒烟通过。
-- ✅ 未修改源码、未 git commit；task-14 暂不 complete（等 Lead 验收）。
 
 ## 9. 下一步（供 Lead 排期）
 

@@ -1,5 +1,7 @@
 # 04 损失函数 / 指标 / 视觉编码器 / 评测入口
 
+> **2026-11-10 更新：**本文记录 `7576854` 的代码与实验。当前 FRCNN 的 `train`/`eval` 返回 `self`，数据读取包含单声道维度保护；指标计算、CSV 汇总与配置拷贝已更新。嘴部原始裁剪尺寸随来源变化；权重训练语料和论文评测窗口仍待确认。历史权重加载与 MAC 数据对应当时记录的模型、输入与工具口径。现行实现见[当前状态](../STATUS.md)和[评测专题](20261110-evaluation-and-apps.md)。
+
 > 负责人：`loss-metric-eval`（R1 初稿；**R3 已按 data-pipe 的 R2 评审逐条修订，响应见 §9.1**）
 > 代码基线：`main` commit `7576854`（`Add the project page ...`）
 > 证据标记：`[代码]` 直接读源码；`[推断]` 由代码/文档合理推断；`[验证]` 实际运行确认（脚本与日志见第 8 节）。
@@ -1007,7 +1009,7 @@ P0-1（命令不可复现）/ P0-2（指标口径）/ P0-3（mono 条件性）�
 | A54 | 评测/验证整句读取、无 2 s 截断/补齐；输出长度严格 == 输入 T（`istft(length=input_shape[-1])`）→ SI-SDR/SDR 为整句口径，与论文/Studio 的 2 s 窗口评估不可直接比较 | `avspeech_dataset.py:179-191`；`Falcon.py:1166,1182-1188`；05 §8.6 | `[验证]`（data-pipe：T=48513,F=75→out 48513；本域 §4.6-8/9 讨论） | 高 |
 | A55 | mouth 输出 dtype 取决于 `.pt` 存储 dtype：uint8→float64、float32→float32；下游评测 `.float()`、训练 `type_as` 统一转 float32，不影响 FRCNN | `transform.py:147-168`；`avspeech_dataset.py:189-192`；`audio_visual_test.py:230`；`av_litmodule_nass_v2.py:87` | `[验证]`（本域 04-eval-flow §[8] 的 uint8 fixture + data-pipe 05 A5/D3 的 float32 实测） | 高 |
 
-（共 55 条；≥30 条验收要求满足。）
+（共 55 条。）
 
 ---
 
@@ -1125,7 +1127,7 @@ PYTHONPATH=/tmp/dp-verify/stubs:$PWD/docs/verification/stubs:$PWD /root/.venvs/f
   `runs/r3-mono-eval-repro.log`）；§3 固化了评测入口“无 DataLoader/整句/无 collate”契约。
 - `docs/understanding/05-data-pipeline.md` §8.6：同一 P0 与整句口径的数据域结论（04/05 现已一致）。
 
-### 8.4 失败/限制
+### 8.4 验证条件
 
 - **真实权重已具备（R3）**：`/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`（Lead 从 hf-mirror
   下载）→ 发布格式/加载路径已 `[验证]`（`runs/r3-weights.log`），Q1 关闭；但**无 `pretrain_zoo/`、无

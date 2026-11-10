@@ -1,0 +1,40 @@
+序号（log-catalog排序）	相对 docs/verification 路径	行数	SHA256	逐行阅读后的运行条件、终态与适用边界
+1	deepdive-20261110/Studio和Space测试.log	4	95a6efd675b1d13cf673b26d063803d936309d6b50beb0f9694dae75ffa515a9	CPU 非 slow：73 passed、2 deselected；设备/摄像头人工验收不在范围。
+2	deepdive-20261110/archive-metrics-check.log	10	f5e47c7e40d228ff9ef215ddaa3f36f8b93d683480ddf85cc96fc582fb9c787e	训练曲线归档重定向后断言通过；原正式测试仍 skipped，不能改计入 166 passed。
+3	deepdive-20261110/frontend-node-tests.log	103	9ffc32b74ad89a7699f11f75e4d4646ded86c321fee6fcf26a394f6ffd53bc00	多项 Node 控制逻辑测试通过；真实检测器、摄像头和会议仍需单独验证。
+4	deepdive-20261110/frontend-space-i18n.log	2	49a0c43abc53d0f6cda5266909ccaca0b5bf3e6d5b8c5a8d6d83718bafdefc58	Space 前端临时组装，226 条字符串翻译；非线上部署验收。
+5	deepdive-20261110/复现测试全集.log	106	f286dffc84eea20ebbcaefa949079dd57253f1570c1f1563ee9ecd62485546c3	复现套件 166 passed、2 skipped、38 warnings；警告多为弃用、worker 数、无 logger 的测试。
+6	deepdive-20261110/数据和指标测试.log	2	97156ce22f5dbd654c3eac133f117368ce0daccb42db786e3d747ccd76102251	数据/指标定向套件 29 passed；不等同全量 benchmark。
+7	deepdive-20261110/模型批次与裁剪检查.log	5	b86393dfd104d2a11a09812b26e2531c6b8f4a42244828b44c65d841d26fa141	固定权重批次差异与 paper_causal 张量长度差异；切换参数不是同权重质量验证。
+8	deepdive-20261110/评测ID集合核查.log	4	c4fb7f00396d3c71e899f36bd8d523a44eda5ed227b4754aee49824526f58cf3	四份 CSV 与当时当前索引的集合无缺漏重复；仅证身份集合而非波形标签正确。
+9	deepdive-20261110/跳过项核查.log	16	44ca4b5c425972781cb16bd80582dd347a14c07037431b40eb054dff38d2ecf3	两项正式 skip 原因是历史 /root/tmp 日志和训练目录缺失，测试计数仍为 skip。
+10	phase1/QA-regression.log	190	782b911644aa11c7d8f49c3afb2bb13826d36ca2911649c4193182d1f245bded	2026-10-21 阶段终检：82 passed；非现时 166 passed 的同一套收集范围。
+11	phase1/REVIEW-training-stack-checks.log	106	440a5fe7944ee0e278a0572349b391a4d28d1a6353da902918886df9eceb27fa	105 检查 0 fail 1 warn；旧代码快照、两卡 toy DDP，不能推断论文训练完成。
+12	phase1/T1-checks.log	71	1407e56d0b6463f4822191f0abcdfc6076fadbe1e3de9de9d8a6aea81c452d75	GPU 参数解析和假对象装配；阶段全套 1 failed 为白名单，后有 QA 终检 82 passed。
+13	phase1/T1-gpu-smoke.log	40	a7a0b150cc5ee1356779fe46352abbce91e412e8d548ffafe312617cdee337bf	单 GPU 4 step 训练冒烟和指纹一致；无模型质量或完整收敛结论。
+14	phase1/T1-pytest.log	28	4e57736e176615fa0a7f990b5306dae1234df53f352b0b8dd337b7a943b90891	分阶段 20 / 82 passed、Studio 35 passed 2 skipped；为当时版本快照。
+15	phase1/T2-combined-suite-note.log	8	8a437b8051a426092c9fbc7af289c8b335bf9358f3b675f335c9b2bde2b2834d	并发编辑中全套 5 failed 65 passed；不能当最终代码状态；后续终检有独立结果。
+16	phase1/T2-litmodule-check.log	32	a4a2e3754eab88dc729dc107954bfc31c4cc00c00a519554d6815e1a80b23bab	日志五项测试和 CPU 假模型两步通过；Logger 路径与列检查，不是完整训练。
+17	phase1/T2-studio-regression.log	3	e6a369973584c27c5bb9edad6bbc11a4ecbde1a294fb7aeb63d91c496c8c189d	旧 Studio 回归 35 passed 2 skipped；版本、skip 与现有组合测试不同。
+18	phase1/T3-combined-tests.log	21	41543c702d6e6acb3c75ce5d5f745d8632bc8a3ff2736679629f8f772ea7f1e1	阶段组合 20 passed，含 timm/distutils 弃用警告；测试范围由当时套件限定。
+19	phase1/T3-eval-entry-tests.log	21	5f68ed0b789e88074e5fc638b778aecd21b88cd52fafb7472b9769ec7671913e	评测入口 12 passed，5 warnings；不等同真实 benchmark。
+20	phase1/T3-eval-smoke.log	195	8c0a18c544d4eabbd48470316063e6dbad95b3acf67986d2b0b7b4062119d9e8	单样本评测和目录/权重配置错误的预期异常；末尾再次单样本成功，非质量实验。
+21	phase1/T3-import-check.log	3	6aad034b7a7dc6665075b59ea1760bfc1c5917238a65ed1236de681ffc725349	评测模块导入 OK；存在 timm 弃用警告，未作前向质量测评。
+22	phase1/T3-metrics-tests.log	2	92af58a63269a6a5ed4a54ae04aa5262f1d2ed884d0c9be3023cef85caa7b151	8 项指标测试通过；未覆盖所有真实声学异常。
+23	phase1/T4-data-check.log	183	209bacfd07279eeae31c92b0a07dbd81d3c80485bd626a842200f515083cae64	合成数据、伪 RealSSA 转换成功，阶段全套一度 3 failed；目标只含管道证据。
+24	phase1/T5-backbone-check.log	82	dc3c6cf46df3615694b6035d9aae73884e53dcb3e8306a40ccea6b47f827e56f	视频骨干导出、冻结和指纹通过；small 与 big 的 60/137 个视频张量不同。
+25	phase1/T6-data-fetch.log	26	40e0b8d18807660fbd5a75d7141e431b90b9e4e5f06e9c09a4748d966a283bff	LRS2 历史下载两次 curl 参数失败，修后校验大小与 SHA；路径/网络情况为历史。
+26	phase1/integration-smoke.log	127	b2c58a7c4522427ca315bd090babf45bf3e09f1672bfc4e285ad58abffc2778f	合成数据 1 epoch/4 step 和1–2条评测；训练、模型数值仅为接口冒烟。
+27	phase2/DNSMOS-realssa-real-mean-full4-20261031/P2E-realssa-real-full4.log	117	3cb7b012945a870a9b3ab32001c1b3a2965aaf7e44bf5ffa4cb399d76b469d6f	full4：CUDA、四通道均值、align_tail、54段、OVRL 2.7941/P808 3.3365，exit=0；仍非严格论文协议。
+28	phase2/LRS2-paper-2gpu-smoke.log	117	8f09cecdb9cf26055bccebf52376170c458562ffc3761f112736f82818a6fe5e	两卡 DDP、累积5、3 epoch/150 step 冒烟结束；不是8卡1000 epoch论文训练。
+29	phase2/P2A-anchor-first20.log	49	04ca42c2a8f62b362cdd73a3ecc00f0cdfc67138c63e07fb066a4a39110c8af5	首20条 P2A 基线 batch4；样本验证与历史锚点接近，但跨样本耦合限制因果解释。
+30	phase2/P2A-small-200.log	76	5755bea8a3a74a5fc936d036c0e1a8703950e7df17fe1f38dc5f5bb5d75fa2ee	随机200条、seed0 的14种P2A条件，多数batch4；不同批次耦合及时间偏移语义须限定，非逐项严格消融。
+31	phase2/P2B-analysis.log	22	8fbf8e8cd2d8ef0a6a996ec355963beebd6ab62f52839c9192556ebd7c7cdc03	P2B 300条，7种条件与配对差；只是子集且zero的预处理口径须追代码确认。
+32	phase2/P2C-convert.log	117	361510d0f1caa537689bbf0502275ec5960de3d21bd589cefe8ba387a83c7a6a	旧转换 s1 20k/5k/3k，首个全量检查异常后更正为28000文件存在；near fallback K=0。
+33	phase2/P2D-eval-epoch124-contrastive.log	38	006b4e5e645843fbde188117ce46e7da6450ebef1e4f90d9f21b85a4a136af8a	ep124 全3000单目标单卡CUDA评测成功，SI-SNRi 8.858192；损失效果不可单独归因。
+34	phase2/P2D-eval-epoch86-20261030.log	36	d675461c53820be9a8e7be733330457dbf20e34450887ed40f8dc3786aa2e8b0	ep86 重评3000条，8.617919/9.041506，日志无显式exit码但有完整汇总。
+35	phase2/P2D-eval-epoch86.log	37	ccc2b910f24a6b90cf821af92bce9b688f5f4c1c5dd5980ef944a14f18933e61	ep86 旧结果3000条，8.617919/9.041506，exit=0；不同输出路径。
+36	phase2/P2D-eval-epoch99-cols-20261031.log	48	734c88d1ceea4deed3e878c624b5e3255a80a193e30826160792d16e6036c331	ep99 3000条含新计数列全部3000，8.726148/9.121848，exit=0。
+37	phase2/P2D-eval-epoch99.log	36	33bd2935a417cf1ee1bd2322e25501a260ed43048b3b8e6158f2fce2734862a5	ep99 3000条，8.726148/9.121848，有完整汇总但无显式exit码。
+38	phase2/P2D-eval-epoch_0.log	35	494fb2595e274ef731c097023b614e24427d5d714d60ac2d854c7b786fc325a9	ep0 限300条，1.516857/1.829785；不能当3000全量结果。
+39	phase2/P2D-eval-falcon-crosscorpus-phase1.log	37	8ed1288bcc4aa7ad815476d487c809db12a2d5d5d039615d0ec9b56ea8882662	公开权重在当时LRS2测试索引整句3000条，7.029101/7.712925；权重训练语料未独立确定。

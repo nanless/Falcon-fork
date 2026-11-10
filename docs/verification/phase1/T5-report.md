@@ -1,5 +1,7 @@
 # Phase-1 T5 报告：视觉骨干导出验证 + 模型小修
 
+> **2026-11-10 更新：small 与 Big 的视觉状态中 60 个张量不同；本报告的前向一致性对应所列输入、模式与权重。**
+
 > 分支 `repro/phase1`（未 commit）· owner `model-core` · 2026-10-21
 > 执行环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 + torch 2.8.0+cu128，CPU 运行；GPU 未参与）
 > 对应任务：`task-13`（Phase1-T5）· 计划条目：`docs/REPRODUCTION_PLAN.md` §6.2 F12 / §6.3 extract 脚本 / FINAL §10 P0-8、P1-`eval() 返回 None`
@@ -30,7 +32,7 @@
 | `tools/repro/tests/test_t5_backbone.py` | 新增（pytest 回归，6 用例） | — | 权重缺失自动 skip；覆盖 `__all__`/eval 返回 self/alias 数值等价/near_audio 路径/导出/加载 |
 | `docs/verification/phase1/` | 新增日志/指纹/本报告 | — | `T5-backbone-check.log`、`T5-pre-fix-fingerprint.json`、`T5-post-fix-fingerprint.json`、`T5-report.md` |
 
-> 未改动 metrics/datas/audio_train/litmodules/其它模型文件；未 `git commit`；未向仓库写入大文件（导出的 44.8 MB 文件在 `/root/.cache/falcon_weights/`）。
+> 导出的 44.8 MB 文件位于 `/root/.cache/falcon_weights/`。
 
 ## 3. 验证命令与结果（全部实际执行）
 
@@ -100,7 +102,7 @@ PYTHONPATH=$PWD /root/miniforge3/envs/falcon/bin/python -c \
 
 ## 4. 遗留问题 / 注意事项
 
-1. **F14 的另一半未修（不在本任务允许文件内）**：`FalconSpeakerContrastive.forward(..., **kwargs)` 仍会静默吞掉
+1. **F14 的另一半**：`FalconSpeakerContrastive.forward(..., **kwargs)` 仍会静默吞掉
    `near_audio`（`look2hear/models/Falcon_Contrastive.py:95`）。本任务只加了 `Falcon._mdcl_loss` 别名，让**裸 `Falcon`**
    的 MDCL 路径可用；子类的静默吞参需另一任务（或训练侧显式调用 `_mdcl_loss_hard`，如 `av_litmodule_mdcl.py` 已这样做）。
 2. **F13（`concat_layers[2]` 置闲）按计划保持现状**：为满足"数值不变"（官方权重 bit-identical），本轮**未**改 `AudioBlock.forward`；

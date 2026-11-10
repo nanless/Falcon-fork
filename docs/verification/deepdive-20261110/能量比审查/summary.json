@@ -1,0 +1,30 @@
+{
+  "repo_head": "6e5c1b5e1d717a071046d4b66174e30d593b1a7f",
+  "input_indexes": {
+    "mix": {
+      "path": "/root/data/falcon_lrs2_2mix_paper/tr/mix.json",
+      "sha256": "187c69c159689798de5da238372c4edd5a621db0d4f575c4730419c16d7d1600",
+      "entries": 40000
+    },
+    "target": {
+      "path": "/root/data/falcon_lrs2_2mix_paper/tr/target.json",
+      "sha256": "1a1bcc9a4584a93e5a5d8150a88f0136ef52c8ac1e4872950dad1ce2aa0ede50",
+      "entries": 40000
+    },
+    "near": {
+      "path": "/root/data/falcon_lrs2_2mix_paper/tr/near.json",
+      "sha256": "d745217a97b705f1117f15606420b028ab2614e7730da64aaebe1c7468a36112",
+      "entries": 40000
+    }
+  },
+  "selection": "zero-based index range(0, len(mix.json), 40); alternating paper directions make these s1-target entries; no random sampling",
+  "waveform_measurement": "10*log10(sum(s1_pcm_float64**2)/sum(s2_pcm_float64**2)), no mean removal; files decoded PCM as float32 then promoted float64",
+  "count": 1000,
+  "min_db": -1.9522511682111703,
+  "max_db": 11.453591652361201,
+  "outside_0_10": 48,
+  "s1_energy_less_than_s2": 26,
+  "max_abs_difference_db": 5.690484751315341,
+  "samples_csv_sha256": "9388db53260753cecbfe5d82ee3234d1e864e74e8af97652215517fa7b71e580",
+  "script_sha256": "ae5d7d6ed602593a08ade1aed63b0c95f8d94ffdfc00ab4404676e3071f5ff37"
+}

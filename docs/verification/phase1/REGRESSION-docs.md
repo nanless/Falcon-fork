@@ -1,8 +1,10 @@
 # Phase-1 回归 + 文档一致性核对（task-17 · `studio-frontend`）
 
-> **终检快照：2026-10-21T17:30Z（第二轮，全绿）** · 分支 `repro/phase1`（HEAD `689555c`，未 commit、未切分支）
+> **2026-11-10 更新：下文记录当时的数据和测试状态。RealSSA 已获批并评测，LRS2 数据包包含嘴部；当前数据和指标见[数据指南](../../DATA_ACCESS_GUIDE.md)。**
+
+> **终检快照：2026-10-21T17:30Z（第二轮，全绿）** · 分支 `repro/phase1`（HEAD `689555c`）
 > 环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17 / torch 2.8.0+cu128 / CUDA 2×A800）+ 系统 `node v22`
-> 写入范围：仅本目录（`docs/verification/phase1/`）：本文件 + `REGRESSION-docs-evidence.json`；**未改源码/他人文档**。
+> 记录文件：本报告与 `docs/verification/phase1/REGRESSION-docs-evidence.json`。
 > 状态：**终检完成（FINAL，第五轮 17:42Z sha 复核）**。最新文档 sha：`DATA_ACCESS_GUIDE.md`=`1683e943…`、
 > `REPRODUCTION_PLAN.md`=`933077be…`、`T6-report.md`=`2c56a2d0…`、`REPRODUCTION_PHASE1_REPORT.md`=`92c64d58…`、
 > `phase1/README.md`=`0a003dff…`、`T5-report.md`=`ed270313…`；**回归全部通过（tools/repro 82 passed）**；
@@ -202,7 +204,7 @@ tar tzf /root/data/lrs2_2mix/lrs2.tar.gz > /root/tmp/lrs2-full-list.txt   # 249,
 
 证据附件：`docs/verification/phase1/REGRESSION-docs-evidence.json`（HF API 数字、split 字节、5 份 card sha256、
 完整 tar 统计/抽样、baseline/T5 指纹、最新文档 sha256、终检回归结果与失败项）。
-本轮只新增本目录两个文件；未改源码（`git status` 中源码改动均来自其他 T 任务）。
+本报告及其 evidence JSON 保存当时的复核结果。
 
 ---
 

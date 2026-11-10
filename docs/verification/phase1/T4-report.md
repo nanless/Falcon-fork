@@ -1,7 +1,9 @@
 # Phase 1 · T4 报告：数据层修复 + 数据工具（合成数据 / RealSSA 转换器）
 
+> **2026-11-10 更新：RealSSA-Sim 已取得并完成 test 转换；K=0 时 NASS 仍可能保留正项，论文实验采用第一通道。当前数据与训练口径见[数据训练说明](../../understanding/20261110-data-and-training.md)。**
+
 - 负责人：`data-pipe`
-- 分支：`repro/phase1`（基线 `689555c`；**未 git commit / 未切换分支**）
+- 分支：`repro/phase1`（基线 `689555c`）
 - 运行环境：`/root/miniforge3/envs/falcon/bin/python`（Python 3.11.17，torch 2.8.0+cu128，torchvision/opencv/soundfile 齐全）
 - 验收依据：`docs/REPRODUCTION_PLAN.md` §5.1 / §6.1 F5 / §6.3；`docs/understanding/FINAL_PROJECT_UNDERSTANDING.md` §6
 - 日志（完整命令与输出）：`docs/verification/phase1/T4-data-check.log`
@@ -13,7 +15,7 @@
 1. **F5 已修**：`AVSpeechEvalDataset` 的 mono `mean(-1)` 加 `ndim` 守卫（训练集/诊断副本同步），单声道 eval 音频由 **0 维**恢复为 **1-D 全长**；stereo 仍按通道取均值。已用合成 mono 数据 + 回归测试验证。
 2. **`tools/repro/make_synthetic_data.py` 已交付并验证**：一条命令生成 DataModule 可直接读取的 `{tr,cv,tt}/{mix,target,mouths,near}` + `mix/target/near.json`（JSON 由仓库自己的 `DataPreProcess` 代码生成），mono 16 kHz、`mouths.pt` 为 `uint8 RGB [T,96,96,3]`、meta 带可用 near 负样本（K=1，可冒烟 NASS 对比分支）。**T1/T3 可直接使用**。
 3. **`tools/repro/realssa_to_falcon.py` 已交付并验证**：流式读 WebDataset TAR（`tarfile`，无 webdataset 依赖）→ 仓库 folder 格式；4ch→mono（`--channel mean|0|1|2|3`）；帧对齐 `frames=min(mouth, mix//640, target//640)`；`--limit-shards/--limit-samples/--dry-run`；自动生成精简 `_meta.json` 并调用 `DataPreProcess` 生成三份 JSON。**用伪 tar 端到端跑通**（真实 gated shard 未下载）。
-4. 回归：T4 测试 **10 passed**；`pytest studio/tests -q` = **35 passed, 2 skipped**。`tools/repro/tests` 全量快照中 `test_eval_entry.py` 有 3 个失败属**其它任务的在编测试**（非 T4 文件、非本次改动引起，见 §5）。
+4. 回归：T4 测试 **10 passed**；`pytest studio/tests -q` = **35 passed, 2 skipped**。`tools/repro/tests` 全量快照中 `test_eval_entry.py` 有 `test_eval_entry.py` 中有 3 个失败，详见 §5。
 
 ---
 
@@ -143,7 +145,7 @@ eval item : mix (48000,) ndim 1 | src (48000,) | mouth (75, 88, 88) | n_near 1
 
 ---
 
-## 6. 变更文件清单（仅允许范围；未 git commit）
+## 6. 变更文件清单
 
 | 文件 | 状态 | sha256 |
 |---|---|---|
@@ -156,7 +158,7 @@ eval item : mix (48000,) ndim 1 | src (48000,) | mouth (75, 88, 88) | n_near 1
 | `docs/verification/phase1/T4-data-check.log` | 新增（验证日志） | —（见文件） |
 | `docs/verification/phase1/T4-report.md` | 新增（本报告） | — |
 
-> `git status` 中 `audio_train.py`/`audio_visual_test.py`/`look2hear/metrics/*`/`look2hear/models/*`/`look2hear/system/*` 的修改属于其它并行任务，**非 T4 改动**；T4 只写了上表文件。
+> 上表列出 T4 的改动文件；并行任务涉及训练入口、评测入口、指标、模型和训练模块。
 
 ---
 

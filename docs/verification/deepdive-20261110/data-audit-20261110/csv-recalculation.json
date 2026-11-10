@@ -1,0 +1,873 @@
+{
+  "csv": [
+    {
+      "path": "deepdive-20261110/能量比审查/samples.csv",
+      "sample_rows": 1000,
+      "summary_rows": 0,
+      "metrics": {},
+      "duplicate_id": null
+    },
+    {
+      "path": "phase1/T3-eval-smoke-metrics.csv",
+      "sample_rows": 1,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 1,
+          "mean": -5.905245273662104,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 1,
+          "mean": -4.019492837318712,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 1,
+          "mean": -11.477926021543592,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 1,
+          "mean": -9.427217748956592,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 1,
+          "mean": 1.0460782051086426,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "sample_rows": 54,
+      "summary_rows": 0,
+      "metrics": {
+        "sig_mos": {
+          "n": 54,
+          "mean": 3.220940740740741,
+          "excluded": 0
+        },
+        "bak_mos": {
+          "n": 54,
+          "mean": 3.6921055555555555,
+          "excluded": 0
+        },
+        "ovrl_mos": {
+          "n": 54,
+          "mean": 2.790061111111111,
+          "excluded": 0
+        },
+        "p808_mos": {
+          "n": 54,
+          "mean": 3.3285407407407406,
+          "excluded": 0
+        },
+        "mix_sig_mos": {
+          "n": 54,
+          "mean": 2.417574074074074,
+          "excluded": 0
+        },
+        "mix_bak_mos": {
+          "n": 54,
+          "mean": 1.790824074074074,
+          "excluded": 0
+        },
+        "mix_ovrl_mos": {
+          "n": 54,
+          "mean": 1.7599481481481483,
+          "excluded": 0
+        },
+        "mix_p808_mos": {
+          "n": 54,
+          "mean": 2.676487037037037,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "sample_rows": 54,
+      "summary_rows": 0,
+      "metrics": {
+        "sig_mos": {
+          "n": 54,
+          "mean": 3.222596296296296,
+          "excluded": 0
+        },
+        "bak_mos": {
+          "n": 54,
+          "mean": 3.6981055555555558,
+          "excluded": 0
+        },
+        "ovrl_mos": {
+          "n": 54,
+          "mean": 2.794051851851852,
+          "excluded": 0
+        },
+        "p808_mos": {
+          "n": 54,
+          "mean": 3.336485185185185,
+          "excluded": 0
+        },
+        "mix_sig_mos": {
+          "n": 54,
+          "mean": 2.417574074074074,
+          "excluded": 0
+        },
+        "mix_bak_mos": {
+          "n": 54,
+          "mean": 1.790824074074074,
+          "excluded": 0
+        },
+        "mix_ovrl_mos": {
+          "n": 54,
+          "mean": 1.7599481481481483,
+          "excluded": 0
+        },
+        "mix_p808_mos": {
+          "n": 54,
+          "mean": 2.676487037037037,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/P2B-b300-big-whole-real.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 13.444672111437908,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 8.403339464045285,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 12.826770752184844,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 7.887182896137574,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 2.503023101091385,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-big-whole-zero.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 9.308686909827466,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 4.267354262434843,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 8.45195023634486,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 3.5123623802975894,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 1.9998760052522024,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-big-windowed-real.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 11.311477078504236,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 6.270144431111612,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 10.508270868167912,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 5.568683012120643,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 2.0928529210885367,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-small-whole-real.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 12.532947118198672,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 7.491614470806049,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 11.85582787538801,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 6.916240019340742,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 2.276269017457962,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-small-whole-shuffle.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 1.684730307340576,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": -3.3566023400520475,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": -1.0378794283258175,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": -5.977467284373088,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 1.362608026266098,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-small-whole-zero.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": -0.062007958650667085,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": -5.10334060604329,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": -3.233079637438287,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": -8.172667493485557,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 1.354686775604884,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2B-b300-small-windowed-real.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 10.803739281015568,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 5.762406633622944,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 9.943795376122695,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 5.004207520075426,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 1.9488195526599883,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-epoch124-contrastive.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 14.37003689575715,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 9.269574165939565,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 13.851911879796189,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 8.858191910560924,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.576085976322492,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-epoch86.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 14.141968515657947,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 9.04150578584036,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 13.611638551292094,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 8.617918582056829,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.5466230816841127,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-epoch99-cols-20261031.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 14.222311143504411,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 9.121848413686827,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 13.71986817589554,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 8.726148206660277,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.5779708066383997,
+          "excluded": 0
+        },
+        "si-snr_mix": {
+          "n": 3000,
+          "mean": 4.993719969235264,
+          "excluded": 0
+        },
+        "sdr_mix": {
+          "n": 3000,
+          "mean": 5.100462729817584,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-epoch99.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 14.222311141321246,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 9.121848411503661,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 13.719868173755183,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 8.726148204519918,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.5779705159664155,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-epoch_0.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 6.8711175528274335,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 1.8297849054348103,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 6.456445318743554,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 1.5168574626962839,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 1.4320878660678864,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-falcon-full-cols-20261031.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 12.813387424376327,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 7.712924694558741,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 12.02282140834362,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 7.029101439108356,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.1956342878341677,
+          "excluded": 0
+        },
+        "si-snr_mix": {
+          "n": 3000,
+          "mean": 4.993719969235264,
+          "excluded": 0
+        },
+        "sdr_mix": {
+          "n": 3000,
+          "mean": 5.100462729817584,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-falcon-full.csv",
+      "sample_rows": 3000,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 3000,
+          "mean": 12.813387424010969,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 3000,
+          "mean": 7.712924694193385,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 3000,
+          "mean": 12.022821408007598,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 3000,
+          "mean": 7.029101438772334,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 3000,
+          "mean": 2.1956340864102044,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-eval-falcon.pt.csv",
+      "sample_rows": 300,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 300,
+          "mean": 12.532947116769401,
+          "excluded": 0
+        },
+        "sdr_i": {
+          "n": 300,
+          "mean": 7.491614469376778,
+          "excluded": 0
+        },
+        "si-snr": {
+          "n": 300,
+          "mean": 11.855827874892913,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 300,
+          "mean": 6.916240018845643,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 300,
+          "mean": 2.276269407272339,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2D-near-train-metrics.csv",
+      "sample_rows": 1560,
+      "summary_rows": 0,
+      "metrics": {
+        "test_pit_sisnr": {
+          "n": 3,
+          "mean": 13.663765589396158,
+          "excluded": 1557
+        },
+        "val_pit_sisnr": {
+          "n": 30,
+          "mean": 13.212935479482015,
+          "excluded": 1530
+        },
+        "val_pit_sisnr_0near": {
+          "n": 30,
+          "mean": 13.212935479482015,
+          "excluded": 1530
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/P2D-train-metrics-1gpu.csv",
+      "sample_rows": 5200,
+      "summary_rows": 0,
+      "metrics": {
+        "test_pit_sisnr": {
+          "n": 10,
+          "mean": 11.930039119720458,
+          "excluded": 5190
+        },
+        "val_pit_sisnr": {
+          "n": 100,
+          "mean": 11.863078541755677,
+          "excluded": 5100
+        },
+        "val_pit_sisnr_0near": {
+          "n": 100,
+          "mean": 11.863078541755677,
+          "excluded": 5100
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/P2E-dnsmos-lrs2-smoke.csv",
+      "sample_rows": 2,
+      "summary_rows": 0,
+      "metrics": {
+        "sig_mos": {
+          "n": 2,
+          "mean": 2.7171000000000003,
+          "excluded": 0
+        },
+        "bak_mos": {
+          "n": 2,
+          "mean": 1.5506,
+          "excluded": 0
+        },
+        "ovrl_mos": {
+          "n": 2,
+          "mean": 1.53525,
+          "excluded": 0
+        },
+        "p808_mos": {
+          "n": 2,
+          "mean": 2.65775,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/P2E-realssa-sim-ch0-metrics_combined-20261030.csv",
+      "sample_rows": 9169,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 9166,
+          "mean": 10.111059682193691,
+          "excluded": 3
+        },
+        "sdr_i": {
+          "n": 9166,
+          "mean": 8.452396234052525,
+          "excluded": 3
+        },
+        "si-snr": {
+          "n": 9169,
+          "mean": 9.319855617598995,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 9169,
+          "mean": 7.97670949800856,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 9166,
+          "mean": 2.00406441171175,
+          "excluded": 3
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2E-realssa-sim-metrics_combined.csv",
+      "sample_rows": 9169,
+      "summary_rows": 2,
+      "metrics": {
+        "sdr": {
+          "n": 9166,
+          "mean": 10.644734252788137,
+          "excluded": 3
+        },
+        "sdr_i": {
+          "n": 9166,
+          "mean": 8.479394557369416,
+          "excluded": 3
+        },
+        "si-snr": {
+          "n": 9169,
+          "mean": 9.980200293998173,
+          "excluded": 0
+        },
+        "si-snr_i": {
+          "n": 9169,
+          "mean": 7.774307312097188,
+          "excluded": 0
+        },
+        "pesq": {
+          "n": 9166,
+          "mean": 2.0937701121782233,
+          "excluded": 3
+        }
+      },
+      "duplicate_id": 0
+    },
+    {
+      "path": "phase2/P2E-smoke-realssa-real-per-segment.csv",
+      "sample_rows": 2,
+      "summary_rows": 0,
+      "metrics": {
+        "sig_mos": {
+          "n": 2,
+          "mean": 3.17475,
+          "excluded": 0
+        },
+        "bak_mos": {
+          "n": 2,
+          "mean": 2.6642,
+          "excluded": 0
+        },
+        "ovrl_mos": {
+          "n": 2,
+          "mean": 2.24595,
+          "excluded": 0
+        },
+        "p808_mos": {
+          "n": 2,
+          "mean": 3.1468,
+          "excluded": 0
+        },
+        "mix_sig_mos": {
+          "n": 2,
+          "mean": 2.7171000000000003,
+          "excluded": 0
+        },
+        "mix_bak_mos": {
+          "n": 2,
+          "mean": 1.5506,
+          "excluded": 0
+        },
+        "mix_ovrl_mos": {
+          "n": 2,
+          "mean": 1.53525,
+          "excluded": 0
+        },
+        "mix_p808_mos": {
+          "n": 2,
+          "mean": 2.65775,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": null
+    },
+    {
+      "path": "phase2/P2E-smoke-synthetic-per-segment.csv",
+      "sample_rows": 1,
+      "summary_rows": 0,
+      "metrics": {
+        "sig_mos": {
+          "n": 1,
+          "mean": 1.9708,
+          "excluded": 0
+        },
+        "bak_mos": {
+          "n": 1,
+          "mean": 2.829,
+          "excluded": 0
+        },
+        "ovrl_mos": {
+          "n": 1,
+          "mean": 1.6463,
+          "excluded": 0
+        },
+        "p808_mos": {
+          "n": 1,
+          "mean": 2.2125,
+          "excluded": 0
+        }
+      },
+      "duplicate_id": null
+    }
+  ],
+  "avg_mismatch": [],
+  "strict_invalid_json": []
+}

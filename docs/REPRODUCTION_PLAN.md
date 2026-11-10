@@ -1,5 +1,7 @@
 # Falcon 复现计划（Reproduction Plan）
 
+> **2026-11-10 结果更新：**发布 checkpoint 的训练谱系与论文对应权重的身份尚待确认；RealSSA-Sim 本地结果使用四通道均值，论文所述实验使用第一通道。训练侧与 Studio 的逐位比较使用了指定输入。论文配方记录为 8×RTX 3090（见[论文对照记录 Table 16](understanding/deepdive-20261108/11-paper-alignment.md)）；§8 的 10 卡表述是早期推断。当前结果见[复现状态](STATUS.md)，下文保留原计划。
+
 > 编写时间：2026-10-21（仓库已同步上游 `689555c`）。配套：`docs/understanding/FINAL_PROJECT_UNDERSTANDING.md`（理解结论）、
 > `AGENTS.md`（运行环境强制 conda `falcon`）、`docs/verification/`（已有验证脚本/日志）。
 > 本文回答三件事：**复现什么、已经有什么、还差什么、按什么顺序做。**

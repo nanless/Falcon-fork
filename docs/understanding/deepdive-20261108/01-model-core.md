@@ -1,5 +1,7 @@
 # 01 模型主干：`look2hear/models/Falcon.py` 逐层深挖
 
+> **2026-11-10 校正：** 本文的历史探针需限定：small 与 big 视觉 state_dict 有 60 个 BN buffer 不同，并非逐张量相同；attention 四级均执行，不只最深级；ReLU 作用于可学习特征对；最终 STFT 相位还取决于解码器。解码器 256 采样来自特定隔离探针；重训或改变 hop 的效果需另行测试；`paper_causal` stride=2 有过裁。当前详见[模型与流式说明](../20261110-model-and-streaming.md)及[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 > 子代理 W1-01｜范围：`look2hear/models/{Falcon.py, Falcon_Contrastive.py, base_model.py, __init__.py}`
 > 远端仓库 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork` @ `6c1d5b7`（只读）
 > 环境 `/root/miniforge3/envs/falcon/bin/python`（torch 2.8.0+cu128），**全部实测在 CPU（`CUDA_VISIBLE_DEVICES=`）**
@@ -10,10 +12,10 @@
 
 ## 0. 结论速览
 
-1. **架构不是「cross-attention 视听融合」，而是「加性偏置注入」**：视频只经 `Conv1d(512→112,g=16)` + `nearest` 上采样成 `[B,112,T_a]`，`unsqueeze(-1)` 后**逐帧加**到音频特征上（`Falcon.py:241-267`）。全模型**没有任何跨模态注意力**；唯一的注意力在音频主干内部（`MultiHeadSelfAttention2D`，自注意力，只在最深一层）。
+1. **架构不是「cross-attention 视听融合」，而是「加性偏置注入」**：视频只经 `Conv1d(512→112,g=16)` + `nearest` 上采样成 `[B,112,T_a]`，`unsqueeze(-1)` 后**逐帧加**到音频特征上（`Falcon.py:241-267`）。全模型**没有任何跨模态注意力**；唯一的注意力在音频主干内部（`MultiHeadSelfAttention2D`，自注意力，四级均执行）。
 2. **模型不是 2 源分离，是目标说话人提取（TSE）**：所有 6 份 config 都是 `n_src: 1`；数据集只有 `target.json`（`look2hear/datas/avspeech_dataset.py:47-49`）。而且 **`n_src≥2` 在代码上是坏的**：实测 `n_src=2` 前向直接 `RuntimeError: shape '[2, 224, 251, 129]' is invalid`（`Falcon.py:1345` 的 `in_chan=encoder_out_chan*n_src` 与 `MaskGenerator` 输出的每源通道数不一致）。所以不是"支持但没训"，是"结构上跑不通"。
-3. **参数量 537,697（全部 requires_grad）+ 65 个持久化 BN buffer = state_dict 537,762**；其中 **5,568（1.04%）是死参数**：`concat_layers[2]` 从未被调用——实测「同权重下把它清零，输出 **bit-identical**」；对照组 `concat_layers[1]`/`fusion_layers[2]` 清零分别改变输出 0.441/0.223。
-4. **音频 10.6109 GMAC，与论文 10.6 G 同尺**：ptflops 返回值，与 README/STATUS 的 10.611 G 逐位一致，本轮独立复算。
+3. **参数量 537,697（全部 requires_grad）+ 65 个持久化 BN buffer = state_dict 元素总数 537,762**；其中 **5,568（1.04%）是死参数**：`concat_layers[2]` 从未被调用——实测「同权重下把它清零，输出 **bit-identical**」；对照组 `concat_layers[1]`/`fusion_layers[2]` 清零分别改变输出 0.441/0.223。
+4. **音频 10.6109 GMAC，论文报告为 10.6 G，计数方法尚未确认**：ptflops 返回值，与 README/STATUS 的 10.611 G 逐位一致，本轮独立复算。
    它**含 LSTM、不含 FRCNN**。整窗（含 88×88×50 帧视觉前端 15.897 GMAC）是 **26.51 GMAC、视觉占 60.0%**。
    同模型换 `torch.utils.flop_counter` 只有 **5.382 GMAC**（不记 `aten::lstm`），那是另一把尺子。
    2026-11-08 Lead 复核更正：此前"FRCNN 7.7693 G + 音频 10.6109 G = 18.380 G"是 **FRCNN @64×64** 的老口径，
@@ -89,7 +91,7 @@ A0     = Conv2d(1×1)(cLNhw(ReLU(E)))                    # [B,112,251,129]
 V      = Identity(FRCNN(x_video))                       # [B,512,50]   (0 参数)
 A1     = AudioBlock(A0)                                 # 第 1 遍（融合用）
 V1     = VideoBlock(V)                                  # [B,512,50]
-A2     = A0 + W_v(V1)↑251                               # ← 视听融合=逐帧加性偏置
+A2     = A1 + W_v(V1)↑251                               # ← 视听融合=逐帧加性偏置
 A3     = AudioBlock(A2 + A0)                            # 第 2 遍（RTFS，不再看视频）
 M      = ReLU(Conv2d(1×1)(refined))                     # [B,112,251,129]
 Z      = complex_mul(M, E)                              # 每源 [B,112,251,129]
@@ -206,7 +208,7 @@ RI_split=True:
 
 - **不是实数 mask 直接乘**：`RI_split=true` 时是 2×2 复数乘法（`Falcon.py:1263-1267`）；`RI_split=false` 分支才是逐元素实数乘（`:1269-1271`）。发布权重用 `RI_split=true`。
 - **关键陷阱**：`in_chan=112` 被**硬切成 0:56 / 56:112 当作实部/虚部**，但编码器输出是 `Conv2d(3→112)` 的自由混合通道，**没有物理约束保证 0:56 是实部**。也就是说这是一个"在任意 56 维子空间上定义复数代数"的结构——网络必须自己学着把前 56 维当实部用。解码器最后 `ConvTranspose2d(112→2)` 才把实/虚读回物理量。所以"复数域掩码"在本实现里是**学出来的复数结构，不是 STFT 的自然复数结构**。
-- 掩码是 `ReLU` 输出 ⇒ 非负，只能衰减/保持相位方向（不能翻转）。
+- 掩码由 `ReLU` 输出，特征对中的实部与虚部非负；最终 STFT 相位还取决于解码器。
 - 实测（真实权重 + 白噪声输入）：掩码 **98.9% 元素为 0**，`mean=0.00161`、`p99=0.0151`、`max=1.740`；`|Z|/|E| = 0.0388`。
 
 ### 2.7 `STFTDecoder`（`Falcon.py:1130-1199`）
@@ -360,7 +362,7 @@ pass2 (RTFS): audio = AudioBlock(audio + audio_residual)   # :1052-1057，audio_
 **small vs big 结构差异（逐 key 实测）**：
 1. 宽度：`encoder/audio_bottleneck/mask/decoder` 112→256；`hid_chan` 64→96；`layer_1.hid` 24→48；`layer_2.hid` 72→96；`video hid` 32→64；`spk_embed_dim` 64→128。
 2. **唯一"少 key"的差异**：big **没有** `process_f_layers.*.out_proj.weight` / `process_t_layers.*.out_proj.weight` 共 **8 个** key。原因：`DualPathRNN` 只在 `rnn_out_chan != in_chan` 时建 `Linear`（`Falcon.py:379-383`）。big 里 `48×2 = 96 = in_chan`、`96 = 96` ⇒ `out_proj = Identity`。small 里 `24×2=48≠64`、`72≠64` ⇒ 需要投影。
-3. `video_model.*`（137 key）**两者完全同名同形**，且**权重值逐张量 bit-equal**（实测 `all(torch.equal(...))`=True）⇒ 视频前端是同一个冻结 FRCNN。
+3. `video_model.*`（137 key）**两者完全同名同形**，且参数值相同，但 60 个 BatchNorm buffer 不同；详见文首后续校正。
 4. 交叉装载**都失败**（big ckpt→small 模型 / small ckpt→big 模型），报 shape mismatch，符合预期。
 
 ---
@@ -506,7 +508,7 @@ encoder 5.0 ms / audio_bottleneck 41.7 / separator 985.6 / mask 26.5 / decoder 1
 
 | # | 旧说法 | 实际（本轮实测/行号） | 处置 |
 |---|---|---|---|
-| 1 | （任务书/口头）"cross-attention 视听融合，Q/K/V 来自音频与视频" | **不存在**。融合是 `audio + v_proj(video)↑unsqueeze(-1)` 的加性偏置（`Falcon.py:250-267`）。全模型只有音频内部的**自**注意力（`MultiHeadSelfAttention2D`），且只在 level 3 | 更正；以后描述为"additive visual bias injection" |
+| 1 | （任务书/口头）"cross-attention 视听融合，Q/K/V 来自音频与视频" | **不存在**。融合是 `audio + v_proj(video)↑unsqueeze(-1)` 的加性偏置（`Falcon.py:250-267`）。全模型只有音频内部的**自**注意力（`MultiHeadSelfAttention2D`），四级均执行 | 更正；以后描述为"additive visual bias injection" |
 | 2 | `docs/STATUS.md:33` "音频 537,697（生效 532,129；扣对比头 523,113）" | 537,697 ✅、532,129 ✅（= 537,697 − 5,568 死参数）。但 **523,113 的基准错了**：`523,113 = 537,697 − 14,584`（从**总参数**扣对比头），而不是 `532,129 − 14,584 = 517,545`（从**生效参数**扣）。三个数各自都有来源，但"生效→扣对比头"这一步的基准不一致 | 澄清：生效 532,129 → 扣对比头应为 **517,545**；523,113 是"总参数 − 对比头" |
 | 3 | `docs/STATUS.md:33` "MACs 10.611 G" | ✅ 逐位复现（10,610,934,096），口径是 ptflops、含 LSTM、仅音频主干。含 88×88×50 帧视觉的整窗为 **26.51 GMAC**（视觉 15.897 G） | 已补口径；18.380 G 作废（64×64 老口径混算） |
 | 4 | `docs/reviews/round1/01:83-93`、`round2/01:53-63` "`concat_layers[2]` 从未被调用，5,568 参数闲置" | ✅ **成立**，本轮独立复现并升级为"同权重清零 → 输出 bit-identical"的强证明 | 确认 |

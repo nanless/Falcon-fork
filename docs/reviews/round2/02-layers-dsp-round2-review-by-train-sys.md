@@ -10,7 +10,6 @@
 > `verify_train_r4_params.py`；日志 `docs/verification/runs/train-sys-r4-layers-causal.log`、
 > `docs/verification/runs/train-sys-r4-crosscheck.log`。环境 `/root/.venvs/falcon/bin/python`
 > （3.10.18 + torch 2.8.0+cu128，CPU/随机权重，未加载真实权重）；stubs 注入 `timm.DropPath`/`typeguard`。
-> **未修改任何源码与被评审文档**。
 
 ## 1. 结论
 
@@ -166,4 +165,3 @@ MPS 设备实测（沙箱无 Apple GPU，Studio bridge 只做静态核对）；�
   脚本 `docs/verification/scripts/verify_train_r4_layers_causal.py`、`verify_train_r4_chain_causal.py`、
   `verify_train_r4_params.py`；日志 `docs/verification/runs/train-sys-r4-layers-causal.log`、
   `docs/verification/runs/train-sys-r4-crosscheck.log`。
-- 未修改任何源码、未修改 02 文档。

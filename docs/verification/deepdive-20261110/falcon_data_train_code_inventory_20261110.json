@@ -1,0 +1,170 @@
+[
+  {
+    "path": "DataPreProcess/generate_near_json.py",
+    "lines": 105,
+    "sha256": "e8e61162001d571d4a2d56791e36ac02b85e6404345da2ea1fe6a3f8c33549bd",
+    "status": "full_read",
+    "note": "从 mix 旁 meta 建 near 索引；空项写 mix sentinel；空列表统计会失败"
+  },
+  {
+    "path": "DataPreProcess/process_lrs23.py",
+    "lines": 121,
+    "sha256": "fb0d2ff32c2f386591b96232727a85133fac1e4bf1fbefc17f06770b06e11571",
+    "status": "full_read",
+    "note": "分别排序构建 mix/target 索引及 near，未核 stem 一致"
+  },
+  {
+    "path": "look2hear/datas/__init__.py",
+    "lines": 5,
+    "sha256": "aada4191998a206ed57438945d4b47fc298d440a5901c0ab80c597246d4bf4ef",
+    "status": "full_read",
+    "note": "导出标准数据模块，训练入口另直接导入 near"
+  },
+  {
+    "path": "look2hear/datas/avspeech_dataset.py",
+    "lines": 500,
+    "sha256": "257a9c3bd33c47e76e034f2423588a00d3426e72f2f624e441d9ebcbc47657bb",
+    "status": "full_read",
+    "note": "标准训练及验证整段数据集/数据模块"
+  },
+  {
+    "path": "look2hear/datas/avspeech_dataset_near.py",
+    "lines": 418,
+    "sha256": "17d77dc6a3bec1fb44be459cbb73a7d978a93c6fcb6e20c1994f51c18f2726de",
+    "status": "full_read",
+    "note": "默认训练 near 采样、哨兵跳过、变量 K 批处理"
+  },
+  {
+    "path": "look2hear/datas/check_avspeech_dataset.py",
+    "lines": 349,
+    "sha256": "1fb76fbe0e8359cd327ba5093cb67eeaedb6069fa972d2533adf7731eb8f26ce",
+    "status": "full_read",
+    "note": "独立旧副本和保存样本脚本；直接运行会写源码目录"
+  },
+  {
+    "path": "look2hear/datas/transform.py",
+    "lines": 188,
+    "sha256": "7e1de8cde119897669716c3e5f2018e072628838f8ce51d86501fb0cf0f338fe",
+    "status": "full_read",
+    "note": "训练随机裁剪翻转，验证中心裁剪与归一化"
+  },
+  {
+    "path": "look2hear/losses/__init__.py",
+    "lines": 44,
+    "sha256": "63911d5360dfb4f53f670b80c8f0184cbde8bdecac27c882f7bcc7649bbf98c8",
+    "status": "full_read",
+    "note": "导出 PIT/SDR/NASS 与备用 MixIT"
+  },
+  {
+    "path": "look2hear/losses/matrix.py",
+    "lines": 383,
+    "sha256": "c06962f6cc7ba48f82488b746d924f76e1100b81ade96a855bfc9c99368e2062",
+    "status": "full_read",
+    "note": "PairwiseNegSDR 为主 PIT 基础；另含备用多阶段/频谱损失"
+  },
+  {
+    "path": "look2hear/losses/mixit.py",
+    "lines": 309,
+    "sha256": "66972064e7fd87a1f2d451e5a98677ad7b179bb626ecfd08e8885fa1707ee866",
+    "status": "full_read",
+    "note": "备用 MixIT 分组最优重混合；generalized 不含空组"
+  },
+  {
+    "path": "look2hear/losses/nass_contrastive_loss.py",
+    "lines": 81,
+    "sha256": "431d953ea1c143fa8165bc2105c299042656fbbacd510caf54733c15c209a45a",
+    "status": "full_read",
+    "note": "对比正负项及 K>1 β softmax"
+  },
+  {
+    "path": "look2hear/losses/pit_wrapper.py",
+    "lines": 368,
+    "sha256": "09f010228774e8c301fc9f8a348ca73c50894ce44305e685fb1f95d8cfe17a5b",
+    "status": "full_read",
+    "note": "主 PIT 枚举/匈牙利与阈值；另有不同语义 new_PIT 包装"
+  },
+  {
+    "path": "look2hear/losses/sisnri.py",
+    "lines": 60,
+    "sha256": "d91ddfa7207bcef9bba1702eefae49b767142afd781201b872642ffbebab778c",
+    "status": "full_read",
+    "note": "备用 SI-SNRi PIT，零参考可能非有限"
+  },
+  {
+    "path": "look2hear/metrics/__init__.py",
+    "lines": 27,
+    "sha256": "b9cfffdc74dc7e58742a8bd42ccc47930a99ec57269058ab8d8df5519ffa6b53",
+    "status": "full_read",
+    "note": "导出逐条/分组/全部指标与 core"
+  },
+  {
+    "path": "look2hear/metrics/allwrapper.py",
+    "lines": 198,
+    "sha256": "538405d5f14b20f4b2e3f4e933d506734f7477038d4393eb8a7397b92dfa2aae",
+    "status": "full_read",
+    "note": "主评测逐条 CSV 和均值、标准差与有效计数"
+  },
+  {
+    "path": "look2hear/metrics/core.py",
+    "lines": 229,
+    "sha256": "c78a5bebca4fb2952ba871468476fad8e3f290cc1fea0aa24079a2c708447a65",
+    "status": "full_read",
+    "note": "CPU SI-SDR、BSS SDR、PESQ/STOI 主定义"
+  },
+  {
+    "path": "look2hear/metrics/splitwrapper.py",
+    "lines": 115,
+    "sha256": "6a7bf16f25b6dc47a210e945f00aa3ae2ab57c905ec2289c47a9fa221d592fcb",
+    "status": "full_read",
+    "note": "备用三源一/二分组 SNR/SI-SNR"
+  },
+  {
+    "path": "look2hear/metrics/wrapper.py",
+    "lines": 103,
+    "sha256": "3913386cbfaabd82d84cf7528a42188a401391705e51ad2060a36a29d321fa09",
+    "status": "full_read",
+    "note": "备用指标包装，统一 core"
+  },
+  {
+    "path": "look2hear/system/__init__.py",
+    "lines": 11,
+    "sha256": "14f60c90b81f51078b87e1eca3d7210da74a9a3f6774b692a7e48f204e11256d",
+    "status": "full_read",
+    "note": "导出原系统与 NASSv2，非 MDCL"
+  },
+  {
+    "path": "look2hear/system/av_litmodule.py",
+    "lines": 248,
+    "sha256": "35d76d3f1188863944c11b3dc6eeb01fc896ed14df3a23b6a83c3522b18558e3",
+    "status": "full_read",
+    "note": "公共训练/验证与固定 K 桶 DDP 汇总；默认 NASSv2 继承"
+  },
+  {
+    "path": "look2hear/system/av_litmodule_mdcl.py",
+    "lines": 173,
+    "sha256": "48d7ce729f04eadc5239d0a89979a4b9d7f69b989c8ca1395a6a8db2fdfe0d57",
+    "status": "full_read",
+    "note": "备用基于谱幅相似度的负例排斥训练，非默认分派"
+  },
+  {
+    "path": "look2hear/system/av_litmodule_nass_v2.py",
+    "lines": 185,
+    "sha256": "5623e759fed612d5a80ecbf8b4a613c227140534d97255b05a6505dd21cf9e8e",
+    "status": "full_read",
+    "note": "默认训练步：分离 PIT + 同空间对比，正负 detach，按样本 K 统计"
+  },
+  {
+    "path": "look2hear/system/optimizers.py",
+    "lines": 106,
+    "sha256": "28a159b417b89550100d8a792d6b169deef3b06cabc066c5ba72f0571c4ab88e",
+    "status": "full_read",
+    "note": "注册 torch/torch_optimizer 优化器"
+  },
+  {
+    "path": "look2hear/system/schedulers.py",
+    "lines": 112,
+    "sha256": "39a886cf2de8b69cc67583725bfb70426b50a307b5869116038457ab189fb8e4",
+    "status": "full_read",
+    "note": "DPTNet 自定义 warmup/衰减，非默认 plateau"
+  }
+]

@@ -2,11 +2,11 @@
 
 > 分支：`repro/phase2`（HEAD `af74cca`，基于 main `ac91800`）· 开始：2026-10-22 · 维护：`studio-frontend`（task-25）
 > 目标：收口 Phase 2 并行任务（P2-A…G）的产出索引/状态/复跑命令，并做文档一致性 + Studio/Space/tools 回归。
-> 约束：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128）；不改源码、不 commit；本目录为本任务写作用域。
+> 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128）。
 > 回归与一致性明细：`REGRESSION-docs.md`（v0 2026-10-21T19:10Z）；状态快照见 §1 表。
 
-> **状态更新（2026-10-31）**：本索引的表格是 Phase 2 期间快照；**当前结论/证据/待办以 `docs/STATUS.md` 为唯一事实源**（2026-10-30 三轮 review 详见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`）。
-> 历史快照（2026-10-24，HEAD `2beec38`）：：本索引的“RealSSA 403 / 训练进行中”已过期——RealSSA 已获批、下载并归档
+> **状态更新（2026-10-31）**：本索引的表格是 Phase 2 期间快照；**当前结论/证据/待办以 `docs/STATUS.md` 汇总当前状态**（2026-10-30 三轮 review 详见 `docs/understanding/THREE_ROUND_REVIEW_20261030.md`）。
+> 历史快照（2026-10-24，HEAD `2beec38`）：本索引的“RealSSA 403 / 训练进行中”已过期——RealSSA 已获批、下载并归档
 > （Sim 521.5 GB、Real 12.84 GB），RealSSA-Sim test 9,169 条评测 **7.774/8.479**；P2-D 训练已于 2026-10-22 19:54 结束
 > （100 epoch，最佳 val ep99 13.201），contrastive 微调 ep124 **8.858/9.270**。新增入库证据：
 > `P2E-realssa-sim-eval-official.log`、`P2E-realssa-sim-metrics_combined.csv`、
@@ -28,7 +28,7 @@
 | **P2-C** | LRS2-2Mix 全量 → `/root/data/falcon_lrs2_2mix` + JSON/near | data-pipe | `P2C-report.md`、`P2C-convert.log`、`tools/repro/lrs2_2mix_to_falcon.py`（QA 侧测试为 `tools/repro/tests/test_phase2_data.py`） | ✅ 报告落盘（[P2C-report.md](P2C-report.md)）：**全量 28000 条（tr 20000 / cv 5000 / tt 3000）转换完成，23.36 GiB**；三表等长、mouth `[50,96,96,3]` uint8、脚本/测试 sha256 已核、`test_lrs2_convert.py` **7 passed**（2026-11-08 校正：P0 后为 10 passed）；near=fallback→**K=0**（训练结果须声明无对比负项） |
 | **P2-D** | LRS2-2Mix 训练复现（配置/冒烟/训练/评测） | train-sys | `P2D-report.md`、`P2D-*.csv/log`、`configs/LRS2_2Mix*.yml` | ✅ **终态**：单卡 100 epoch 于 2026-10-22 19:54 结束（best val ep99 13.2014），contrastive ep124 13.3909；tt 3000：官方跨语料 7.029/7.713、ep86 8.618/9.042、ep99 8.726/9.122、ep124 8.858/9.270（论文 14.1/14.7 未复现，需 8 卡论文配方）。详见 [P2D-report.md](P2D-report.md) §8 |
 | **P2-E** | RealSSA 评测（DNSMOS + Sim + Real 管线） | ops-tests-docs | `P2E-report.md`、`P2E-*.{log,json,csv}` | ✅ **终态**：RealSSA-Sim test 9,169 条 **7.774/8.479**（mean；SDRi/PESQ 分母 **9,166**）、ch0 **7.977/8.452**；RealSSA-Real 54 段 DNSMOS 用 **full4 OVRL 2.7941 / P808 3.3365**（full3 的 2.7901/3.3285 因窗口起点 bug 作废，见 `P2E-report.md` §10）；论文 3.276 属 P.835 + RealSSA-trained ckpt、不可直接比 |
-| **P2-F** | LRS2-2Mix 指标/协议第三方独立验证 | studio-backend | `P2F-report.md`、`tools/repro/phase2/protocol_check.py`、日志 | ✅ 报告落盘（[P2F-report.md](P2F-report.md)）：独立对拍 **4.8e-8/1.8e-7 dB**、baseline 4.994、target=s1 Δ+24.5、PIT 0、lag 0、无削波；**关键归因：发布 `falcon.pt` 训练集 = LRS3_complex_nonmoving（`conf.yml:99-102`）→ 7.03/7.71 属跨语料结果，不是论文 LRS2 列（14.1/14.7）的复现**；P5 基线 P3 已修（7.911） |
+| **P2-F** | LRS2-2Mix 指标/协议第三方独立验证 | studio-backend | `P2F-report.md`、`tools/repro/phase2/protocol_check.py`、日志 | ✅ 报告落盘（[P2F-report.md](P2F-report.md)）：独立对拍 **4.8e-8/1.8e-7 dB**、baseline 4.994、target=s1 Δ+24.5、PIT 0、lag 0、无削波；**配置快照指向 LRS3_complex_nonmoving；发布权重训练来源尚未确认，7.03/7.71 低于论文 LRS2 列的 14.1/14.7**；P5 基线 P3 已修（7.911） |
 | **P2-G** | Phase 2 独立 QA + 回归 | layers-dsp | `QA-report.md`、`QA-regression.log` | ✅ 历史值 111/1（2026-10-21 收集 112 条时）；**当前收集 168 条**，实测数字见 §3.5 校正（不再固定为 111/1 或 166） |
 | **P2-H** | 本索引 + 文档一致性 | studio-frontend | `README.md`、`REGRESSION-docs.md` | ✅ 历史快照（19:45Z 回归 96/6）；**当前状态以 `docs/STATUS.md` 为准** |
 
@@ -36,10 +36,7 @@
 
 ### 1.1 Phase 2 结论摘要（终检 19:45Z）
 
-1. **7 dB 差距已定位（P2-A/B/F 三方一致）**：评测协议/指标/对齐/target/PIT/缩放全部排除（合计 ≤0.4 dB；
-   big 仅 +0.97 dB；窗口化 −1.9~−2.3 dB 反而更差）；**主因是发布 `falcon.pt` 为 LRS3 派生数据训练**
-   （`Experiments/checkpoint/Falcon/conf.yml:99-102` + `PROVENANCE.md:37-38`）→ 7.03/7.71 是**跨语料**结果。
-   要复现论文 LRS2-2Mix 14.1/14.7，需 **LRS2-trained ckpt**（P2-D 训练中）或作者提供 benchmark-specific ckpt。
+1. **7 dB 差距的原因仍待确认**：所测指标和输入变体的结果见 P2-A/B/F。配置快照指向 LRS3 数据，但不能证明发布权重由该运行导出；官方权重训练来源未知。
 2. **数据/训练链路已就绪**：LRS2-2Mix 全量 28000 条转换完成（23.36 GiB，JSON/near 齐全）；P2-D 正式训练
    19:26:41Z 已启动（单卡 bs4，PID 4002894）；评测脚本（`audio_visual_test.py` / `eval_p2d.sh`）可用。
 3. ~~**RealSSA 仍待审批**（Sim/Real 403）~~（2026-11-08 校正：2026-10-22 已获批；本 Phase 当时不产出 RealSSA 指标，
@@ -74,6 +71,8 @@
 > 所有命令在仓库根执行；`ENV=/root/miniforge3/envs/falcon/bin/python`；数据在 `/root/...`，不写仓库。
 
 ### 3.1 数据获取 / 转换（P2-C、T6）
+
+以下转换命令会重建目标目录的索引；现有 s2 near 索引及其训练来源见 [near 来源记录](P2C-near-mode-provenance.md)。
 
 ```bash
 # LRS2-2Mix 若未下载（已下载可跳过；默认断点续传）
@@ -135,7 +134,7 @@ PYTHONPATH=$PWD $ENV -c "import look2hear.models, look2hear.layers, look2hear.sy
 
 | 检查项 | 方法 | 结果（v1 2026-10-21T19:45Z） |
 |---|---|---|
-| P2-A…G 报告 vs `DATA_ACCESS_GUIDE.md` / `REPRODUCTION_PHASE1_REPORT.md` / `REPRODUCTION_PLAN.md` 数字与结论 | 逐项比对（LRS2 统计、7.03/7.71、14.1/14.7、target=s1、数据大小/许可） | ✅ 6 份报告逐项核对（`REGRESSION-docs.md` §2.4）：数字 ↔ CSV/JSON/log 一致；7.03/7.71 与 Phase 1 一致；P2-F 跨语料归因与 conf/README/PROVENANCE 证据链一致 |
+| P2-A…G 报告 vs `DATA_ACCESS_GUIDE.md` / `REPRODUCTION_PHASE1_REPORT.md` / `REPRODUCTION_PLAN.md` 数字与结论 | 逐项比对（LRS2 统计、7.03/7.71、14.1/14.7、target=s1、数据大小/许可） | ✅ 6 份报告逐项核对（`REGRESSION-docs.md` §2.4）：数字 ↔ CSV/JSON/log 一致；7.03/7.71 与 Phase 1 一致；P2-F 关于权重训练来源的历史推断尚未证实 |
 | 数据集大小/许可/格式 vs HF 事实 | `docs/verification/phase1/dataset-cards/` + HF API（phase1 evidence JSON 已固化） | ✅ 2026-10-21T19:09Z 经代理复核 5 个数据集：LRS2 16,470,508,590 B / Sim 521,532,631,040 B·242 files / Real 12,842,268,608 B·422 files / LRS3·Vox 0 B，与 GUIDE 全部一致 |
 | docs 相对链接 0 404 | 脚本扫描 `docs/**/*.md` + 反引号路径 | ✅ Markdown **62 文件/38 条相对链接 0 真 404**（4 条 `[...](...)` 字面量占位）；反引号 910 条 61 unresolved 已分类（55 示意/复合、1 P3 PLAN:138、2 未来产物、1 已解决、2 已处理）；P2 报告新增 128 条 19 unresolved 均复合/相对简写；外链 LRS3 深链 404 已改入口页 |
 | Phase 2 新增脚本/报告链接 | 本 README §1 表格逐项核对存在性 | ✅ P2-A…F 报告 + QA 报告全部存在（§1 表格链接可点）；`tools/repro/phase2/` 脚本全部存在且 `--help` 通过；`P2D-train.log`/`P2D-train.pid`/`P2D-eval-epoch_0.csv` 已核对 |

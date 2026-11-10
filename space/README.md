@@ -29,16 +29,18 @@ ZeroGPU attaches a GPU for each call and counts it against a daily quota, so the
 
 ## How it works
 
-1. The browser captures audio at 16 kHz and tracks the mouth with MediaPipe Face Landmarker, as in Falcon Studio. Tracking runs in the browser; video frames are not uploaded.
+1. The browser captures audio at 16 kHz and tracks the mouth with MediaPipe Face Landmarker, as in Falcon Studio. Tracking runs in the browser; full camera frames are not uploaded, but mouth crops are sent after recording.
 2. A recording is up to 60 s. When it stops, the audio and the 96×96 grayscale mouth crops, each with its capture time, are sent to the Space. The start and end of the recording without any mouth crop are trimmed.
-3. The server cuts the clip into the windows Falcon Studio sends live: 2 s of audio and 50 mouth slots, a 0.5 s hop, the 0.5 s chunk 80 ms before each window end, 20 ms crossfades, zero history before the clip and zero padding after it. Each slot takes the crop nearest in time, as Studio does. All windows run in batches inside one GPU call. With the same crops, the output equals the live Studio when it skips no window; where Studio would pause for stale video, the Space holds the nearest crop.
+3. The server creates 2 s windows at 0.5 s intervals, chooses the closest mouth crop for each slot, emits the 0.5 s block ending 80 ms before each window end and crossfades adjacent blocks over 20 ms. Audio is zero-padded at the boundaries and boundary video holds the first or last crop. One request runs windows in batches of up to 32. The geometry resembles Studio, but the current model interprets the batch axis as an LSTM sequence, so later windows can depend on earlier windows’ video; Studio processes each window separately. A real-audio, real-mouth example differed between batch 1 and batch 4; the overall quality effect needs measurement across more samples.
 4. The page shows the GPU time, and you can play, compare with the mixture and export both as WAV.
+
+Tracking follows position rather than identity. After face loss the page may hold the last crop, so verify the target if another person enters that region. Space can also select a distant nearest frame across a capture gap. In the source repository, `docs/understanding/20261110-evaluation-and-apps.md` explains the window protocol and evidence, and `docs/STATUS.md` records reproduction status.
 
 Both models load when the Space starts: [`JusperLee/Falcon`](https://huggingface.co/JusperLee/Falcon) (the paper model) and [`JusperLee/Falcon-Big`](https://huggingface.co/JusperLee/Falcon-Big).
 
 ## Privacy and quota
 
-Only the 16 kHz audio and the 96×96 grayscale mouth crops leave the browser; the full camera frames are never uploaded. The server code (`space/app.py`, `space/clip.py`) has no write path — no temporary files, no saved request, nothing written to disk — so a recording is held in memory for the separation only, and the result stays in your browser. The one thing the page persists is the interface language, in `localStorage['falcon.language']`. Opened from the Space page, a separation counts against your own ZeroGPU quota. Anonymous visitors get the smallest quota and can be refused ("ZeroGPU runs limit"); signing in to Hugging Face gives more quota and a higher queue priority. A separation takes about 0.2–2.5 s of GPU time (8 s Small to 60 s Big, measured), plus upload and queueing.
+Only the 16 kHz audio and the 96×96 grayscale mouth crops leave the browser; the full camera frames are never uploaded. The server code (`space/app.py`, `space/clip.py`) has no write path — no temporary files, no saved request, nothing written to disk — so a recording is held in memory for the separation only, and the result stays in your browser. The one thing the page persists is the interface language, in `localStorage['falcon.language']`. Opened from the Space page, a separation counts against your own ZeroGPU quota. Anonymous visitors get the smallest quota and can be refused ("ZeroGPU runs limit"); signing in to Hugging Face gives more quota and a higher queue priority. The source contains historical GPU timing examples without per-run measurement files; actual waiting time also includes upload and queueing and depends on hardware and load.
 
 ## Development
 
@@ -66,8 +68,9 @@ From the GitHub repository root, with Python 3.12:
 
 ```bash
 pip install -r space/requirements.txt gradio==6.29.1
-python space/build.py --out /tmp/falcon-space    # 54 files, 39.87 MB; copies studio/ runtime and space/web
-cd /tmp/falcon-space && python app.py            # http://127.0.0.1:7860, CPU unless FALCON_DEVICE is set
+python space/build.py --out /tmp/falcon-space    # copies studio/ runtime and space/web
+(cd /tmp/falcon-space && python app.py)          # returns to the repository root after stopping
+# Publishing deletes existing target Space files not present in the new build:
 python space/build.py --push JusperLee/Falcon-Studio
 ```
 

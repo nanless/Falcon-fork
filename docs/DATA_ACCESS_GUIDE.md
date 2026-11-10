@@ -1,5 +1,7 @@
 # Falcon 数据获取与访问指南（Phase 1 · T6）
 
+> **2026-11-10 阅读入口**：本文保留历史获取记录，访问权限、网络和容量须在实际运行时重新核对。[数据与训练详解](understanding/20261110-data-and-training.md)说明当前代码、混音能量审计及采样/损失边界；[评测应用](understanding/20261110-evaluation-and-apps.md)说明完整评测口径。以下提供下载、转换和训练的操作示例。
+
 > 适用分支：`repro/phase1`（commit 基线见 `docs/REPRODUCTION_PLAN.md`）。
 > 目标：把“复现需要哪些数据、从哪拿、能不能拿、拿到后怎么变成仓库可用格式、评测协议是什么”一次讲清，避免
 > Phase 1 的其他任务在数据上重复踩坑。配套：`docs/REPRODUCTION_PLAN.md` §5/§11（方案与资产核实）、
@@ -11,8 +13,8 @@
 > **状态更新（2026-10-24）**：本文的“RealSSA 403/待审批”等结论停留在 2026-10-21。实际进展：RealSSA-Sim / RealSSA-Real
 > **已于 2026-10-22 获批并下载**（Sim 521,532,645,652 B / 242 文件；Real 12.84 GB），已 rsync 归档到 TOS
 > `/aispeech-cfs/voiceprint/data/multimodal/`；RealSSA-Sim test 9,169 条已转换并评测（**SI-SNRi 7.774 / SDRi 8.479**），
-> RealSSA-Real 54 段 DNSMOS 已完成（旧 run：P808 3.3285 / P.835 OVRL 2.7901；论文 3.276 属 RealSSA-trained ckpt、P.835，**不可直接比**；窗口起点 bug 修复后 full4：P808 3.3365 / OVRL 2.7941，见 P2E-report §10）。证据见
-> `docs/verification/phase2/P2E-report.md` §9、`P2E-realssa-sim-*.{log,csv}`、`DNSMOS-realssa-real-mean-full3/`。
+> RealSSA-Real 54 段 DNSMOS 已完成（full3 因窗口起点错误作废；修复后 full4：P808 3.3365 / P.835 OVRL 2.7941）。[论文 §6.1 和表 6](https://arxiv.org/html/2610.32749)将 RealSSA-Real 上 3.276 对应到 RealSSA-Sim 训练模型；本地发布权重是否就是该 checkpoint 尚未确认。论文引用 DNSMOS P.835 文献；模型文件等打分细节仍待核对。证据见
+> `docs/verification/phase2/P2E-report.md` §9、`P2E-realssa-sim-*.{log,csv}`、`DNSMOS-realssa-real-mean-full4/`（full3 有窗口起点错误，不能作为有效结果）。
 >
 > **2026-11-08 校正（按 `docs/understanding/deepdive-20261108/`，最后更新 2026-11-08）**：正文里“RealSSA 403 待批”的现状
 > 一律改为“**2026-10-22 已获批/已下载/已归档**”，2026-10-21 的 403 探测结果作为历史保留；DNSMOS 采用 full4
@@ -22,7 +24,7 @@
 
 ## 0. TL;DR
 
-| 数据集 | HF 仓库 | gated | 本机可下载？ | 体积 | 含什么 | 能支撑的复现 |
+| 数据集 | HF 仓库 | gated | 历史获取状态（非实时） | 体积 | 含什么 | 能支撑的复现 |
 |---|---|---|---|---|---|---|
 | **LRS2-2Mix** | `JusperLee/LRS2-2Mix` | ❌ 公开 | ✅ **是（已下载完成并核实）** | **16.47 GB 压缩 / 17.39 GB 解压**（单文件 `lrs2.tar.gz`） | **完整 2 s AV 重构包**：`mix/s1/s2`（16k+8k，tr 20000/cv 5000/tt 3000）+ `mouths` npz(50,96,96) + `faces` mp4 + `landmarks` + 混音脚本/清单 | L2 的 LRS2-2Mix 列（AV，完整）+ 训练数据转换；**无需 LRS2 原始视频** |
 | **RealSSA-Sim** | `JusperLee/RealSSA-Sim` | ✅ manual | ✅ **已获批并下载/归档（2026-10-22；见顶部状态横幅）** | **521.53 GB**（**242 files / 240 shards**：tr 202 + cv 19 + tt 19；tr 441.42 / cv 39.97 / tt 40.14 GB；另 2 个文件为 README/.gitattributes） | 4ch 16k mix/target、`mouths.pt`（uint8 RGB [T,96,96,3]）、scene JSON；**没有 near 源波形** | L2 RealSSA-Sim 评测 + L3 训练（需转换；对比损失负样本需替代方案） |
@@ -32,7 +34,7 @@
 
 **一句话**：LRS2-2Mix（**完整 2 s AV 数据**：音频 mix/s1/s2 + mouths + faces + landmarks，16.47 GB 压缩/17.39 GB 解压）已下载；
 RealSSA-Sim/Real **2026-10-22 已获批、下载、归档**（见 §1/§4/§5）；LRS3/Vox 的 2Mix
-发布仓库里没有数据。训练用的 **near 源波形官方未发布**，RealSSA-Real **不能算 SI-SDR**（无干净参考）。
+发布仓库里没有数据。RealSSA-Sim 的独立 **near 源波形未随 shard 发布**；LRS2-2Mix 的 s1/s2 则可提供另一说话人的波形，但它不等于官方近场源，RealSSA-Real **不能算 SI-SDR**（无干净参考）。
 
 ---
 
@@ -47,31 +49,32 @@ RealSSA-Sim/Real **2026-10-22 已获批、下载、归档**（见 §1/§4/§5）
 | gated 元数据可见性 | ✅ 可读：数据集卡/文件清单/大小对未获批账号可见（HF 设计）；未获批账号的数据文件不可下载（本机账号 2026-10-22 已获批，不受此限） | `HfApi().dataset_info(...)` 成功；获批前非 README 文件返回 403 |
 | LRS2-2Mix | ✅ 公开，可下载 | `--dataset lrs2-2mix --dry-run` 列出 `lrs2.tar.gz` 16.47 GB |
 | LRS3/VoxCeleb2-2Mix | ✅ 公开但只有 README（文件数 2） | `dataset_info` 文件清单 |
-| **未做** | 未修改账号、未分享 token（访问申请由用户于 2026-10-22 自行提交，见 §11） | 只读探测 |
+| 访问申请 | 用户于 2026-10-22 提交，见 §11 | Hugging Face 授权记录 |
 
-**网络（本机特殊点，重要）**：
+**网络（2026-10-21 探测记录）**：
 - `HF_ENDPOINT=https://hf-mirror.com` 在本沙箱 **TLS 握手失败**（`SSL_ERROR_SYSCALL`；TCP 443 可连但无 HTTP 响应），
-  `huggingface.co` 直连也超时；**必须走本机 mihomo 代理 `http://127.0.0.1:17897`**（`/root/.bashrc` 已配置，但非交互 shell 不自动生效）。
-- 因此本指南/脚本的统一姿势：
+  `huggingface.co` 直连也超时；当时使用了本机 mihomo 代理 `http://127.0.0.1:17897`，现在须按实际网络确认是否需要及是否可用（`/root/.bashrc` 已配置，但非交互 shell 不自动生效）。
+- 当时的代理配置示例（仅在确认代理运行且适用时使用）：
   ```bash
   export https_proxy=http://127.0.0.1:17897 http_proxy=http://127.0.0.1:17897
   # 或给脚本传 --proxy http://127.0.0.1:17897
   ```
   `tools/repro/fetch_data.py` 支持 `--proxy`、`--endpoint`、以及环境变量 `HF_ENDPOINT`/`http(s)_proxy`；
   若某天 hf-mirror 恢复，可直接 `--endpoint https://hf-mirror.com`（无需改代码）。
-- 磁盘：`/root`（vepfs，15 TB 可用）；LRS2 全量 + RealSSA-Sim 全量需预留 **≥600 GB**。
-- **容量口径（2026-11-08 实测，重要）**：4 个 Falcon 数据目录的 `mouths/` 互为硬链接（同一 inode），
-  `falcon_lrs2_2mix`、`falcon_lrs2_2mix_paper`、`falcon_realssa_sim`、`falcon_realssa_sim_ch0`。
-  `du -s --count-links` 逐目录相加是 **113,582,506 KiB（≈108 GiB，旧口径记 110 G）**，一次 `du -sc` 覆盖四个目录
-  去重后是 **64,035,241 KiB（≈61 GiB，旧口径记 62 G）**。容量规划/迁移按 **62 G** 算；按 110 G 会高估约 48 G。
-  （单看某一目录的 `du -sh` 也会低估：`_paper` 的 mouths 在目录内共享、`_ch0` 的 mouths 与 mean 共享。）
+- 历史磁盘记录：`/root` 当时为 vepfs，曾有 15 TB 可用；当前容量需重新检查。LRS2 全量 + RealSSA-Sim 全量需预留 **≥600 GB**。
+- **容量与共享文件（2026-11-08 记录）**：四个目录分成两组：`falcon_lrs2_2mix` 与
+  `falcon_lrs2_2mix_paper` 共享 LRS2 嘴部帧；`falcon_realssa_sim` 与 `falcon_realssa_sim_ch0` 共享 RealSSA
+  嘴部帧。2026-11-10 在两组测试集各抽查 5 对同名文件，均为同设备、同 inode；两组数据各自独立。
+  当时四目录 `du -s --count-links` 逐目录相加为 **113,582,506 KiB（≈108 GiB，旧记 110 G）**；
+  一次 `du -sc` 去重为 **64,035,241 KiB（≈61 GiB，旧记 62 G）**。这些是当时的容量记录，迁移前可按当前目录重新统计。
+  对共享文件直接改写内容会影响所有硬链接；生成替换文件时，可在目标目录先写临时文件，再用 `os.replace` 替换目录项。
 
 ---
 
 ## 2. 统一获取脚本 `tools/repro/fetch_data.py`
 
 ```bash
-# 查看计划（不写盘）：文件、大小、gated/授权状态、申请入口
+# 查看计划（会访问网络）：文件、大小、gated/授权状态、申请入口
 python tools/repro/fetch_data.py --dataset all --dry-run --proxy http://127.0.0.1:17897
 
 # LRS2-2Mix：公开大文件，断点续传下载到 /root/data/lrs2_2mix/lrs2.tar.gz
@@ -79,12 +82,12 @@ python tools/repro/fetch_data.py --dataset lrs2-2mix --proxy http://127.0.0.1:17
 # 中断后再执行同一命令即续传（内部 curl -C -）
 
 # RealSSA-Sim（获批后）：先取 1 个 test shard 验证管线（≈2.4 GB），再按需扩
-python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --proxy ...
-python tools/repro/fetch_data.py --dataset realssa-sim --pattern 'tt/*.tar' --proxy ...   # test 全量 ≈40.1 GB
-python tools/repro/fetch_data.py --dataset realssa-sim --full --proxy ...                # 全量 ≈521.5 GB
+python tools/repro/fetch_data.py --dataset realssa-sim --shard tt-000000 --proxy http://127.0.0.1:17897
+python tools/repro/fetch_data.py --dataset realssa-sim --pattern 'tt/*.tar' --proxy http://127.0.0.1:17897   # test 全量 ≈40.1 GB
+python tools/repro/fetch_data.py --dataset realssa-sim --full --proxy http://127.0.0.1:17897                # 全量 ≈521.5 GB
 
 # RealSSA-Real（获批后）：inference 评估所需完整 snapshot
-python tools/repro/fetch_data.py --dataset realssa-real --full --proxy ...
+python tools/repro/fetch_data.py --dataset realssa-real --full --proxy http://127.0.0.1:17897
 
 # 输出目录
 #   默认：/root/data/{lrs2_2mix,realssa_sim,realssa_real}
@@ -92,15 +95,15 @@ python tools/repro/fetch_data.py --dataset realssa-real --full --proxy ...
 ```
 
 脚本行为要点：
-- `--dry-run`：**不写盘**；列出匹配文件与大小；gated 数据集做只读授权探测并打印申请链接/步骤。
+- `--dry-run`：用于计划与授权探测：访问网络、列出匹配文件和大小，并为 gated 数据集打印申请链接与步骤。
 - `--shard`：RealSSA 简写 `tt`（整个 split）→ `tt/*.tar`；`tt-000000` → `tt/tt-000000.tar`；也可传 `tr/cv/tt`。
 - **gated 未获批时退出码 3**，并打印申请 URL、表单要求、`hf auth login` 步骤；**不会**替用户提交申请、不会绕过限制。
 - LRS2 大文件走 curl 断点续传；其余走 `snapshot_download(allow_patterns=...)` 并保留 HF 缓存/`.incomplete` 语义。
-- 所有下载默认写 `/root/data/`（仓库外），不会污染 git。
+- 所有下载默认写入仓库外的 `/root/data/`。
 
 ---
 
-## 3. LRS2-2Mix（公开，唯一可立即获取的数据）
+## 3. LRS2-2Mix（公开数据；可访问状态以实际核查为准）
 
 ### 3.1 URL / 状态 / 许可证
 
@@ -143,15 +146,18 @@ lrs2_rebuild/
   tr 使用 18,691 个 train ids、cv 用全部 476 个 val、tt 用全部 267 个 test → **无跨 split 泄漏**。
 - **每个样本恰好 2.000 s**：16k=32,000 样本、8k=16,000 样本，mono PCM16（随机 tr/cv 各 100 + tt 全部 3000 验证）。
 - **mix = s1 + s2**（20 个/组×3 split，max|Δ|=3.05e-5，纯 16-bit 量化）→ **`s1`/`s2` 已是精确的 scaled target 参考，无需再从 raw_audio 重建**。
-  若需重建/换 convention：按 `create_wav_2speakers.m` 的公式（activlev 归一化 + `10^(snr/20)` 加权 + min 长度 + 统一 `0.9/max_amp` 缩放）与 `scaling.mat` 可逐样本精确复算。
-- **命名**：`<id1>_<snr1>_<id2>_<snr2>.wav`，`snr2=-snr1`，`snr1∈(0,5]`（等价源间能量比 0~10 dB，逐样本）；mix/scp 列表一一对应。
+  原始语音重建还依赖生成时的活动语音电平、裁切与缩放等条件；不要仅凭文件名断言可精确复原。
+- **命名**：`<id1>_<snr1>_<id2>_<snr2>.wav`，`snr2=-snr1`，`snr1∈(0,5]`（是增益标签差，不等于每个输出波形的实测 RMS 能量比）；mix/scp 列表一一对应。
+- **能量实测**：在 1,000 条系统抽样中，48 条实际 RMS 比不在 0–10 dB，26 条为负；两路信号的相对响度随样本变化。[抽样条件、原文件哈希和结果](verification/deepdive-20261110/能量比审查/summary.json)。
 - **视觉**：`mouths` 为 `(50,96,96)` uint8（2 s@25 fps，**正好是 Falcon 2 s 窗口的嘴部输入**）；faces 为 224×224/25fps/50 帧；landmarks 为逐帧 (68,2)。
 - **文本清单**：`create_mix/mix_2_spk_{tr,cv,tt}.scp` = 20,000/5,000/3,000 行（`wav1 snr1 wav2 snr2`，相对 `../raw_audio/{train,val,test}`）；
   `audio_process/mix_2_spk_tr.txt` 是 50,000 行旧版绝对路径清单（与 scp 20,000 对不重合，**勿用**）；
   `train.txt` 20,779 / `retrain.txt` 19,649 / `dev.txt` 492 / `retest.txt` 267 / `redev.txt` 476 / `test.txt` 296 / `video_path.txt` 20,469 / `filename_input.csv` 20,392。
 - **计划口径**：LRS2-2Mix 的正确结构与构建方式见 `docs/REPRODUCTION_PLAN.md` §5.2（已修订）；本节与 `docs/verification/phase1/T6-lrs2-structure.txt` 为 2026-10-21 实测证据（188,392 个 wav + 20,392 mouths/faces/landmarks 的完整 AV 包）。
 
-### 3.3 如何转成 Falcon 训练/评测格式（可直接执行；target=s1、mouths→.pt 补 3 通道）
+### 3.3 如何转成 Falcon 训练/评测格式（示意；target=s1、mouths→.pt 补 3 通道）
+
+下面示例会创建和覆盖文件；先复制到全新、隔离的输出目录，检查已有数据和可用空间。不要直接对已有目录重复执行。
 
 目标目录（`DATA` 与 `INDEX` 均在仓库外；不要放进 git）：
 ```text
@@ -190,7 +196,7 @@ for split in ("tr", "cv", "tt"):
 > 说明：3 通道是训练 `.pt` 的约定格式（RealSSA-Sim 的 mouths 也是 `[T,96,96,3]`）；`Grayscale(num_output_channels=1)`
 > 在 3 通道输入上会正确转回单通道（已在本机 falcon 环境实测），之后 `squeeze(1)` 得 `(T,96,96)`，再 center/random crop 88。
 
-**步骤 C：生成 mix/target 索引 JSON（near.json 只可能是 fallback，训练需 `use_near=false`）**
+**步骤 C：生成 mix/target 索引 JSON（示例产生 fallback near）**
 ```bash
 cd /root/code/github_repos/Falcon-fork
 /root/miniforge3/envs/falcon/bin/python DataPreProcess/process_lrs23.py \
@@ -198,10 +204,9 @@ cd /root/code/github_repos/Falcon-fork
   --out_dir      /root/data/lrs2_2mix/index
 # 产出 index/{tr,cv,tt}/{mix,target,near}.json
 ```
-- `process_lrs23.py` 用 `target` 路径替换出 `mouths/<mid>.pt`，与本目录布局一致；`mix.json` 的条目为 `(wav_path, n_samples)`。
+- `process_lrs23.py` 独立排序 mix 与 target，不能证明同名配对；须逐条核对 stem、说话人和 mouth。它对完整路径做 `target`→`mouths` 文本替换，父目录也含 `target` 时可能指错位置；`mix.json` 条目为 `(wav_path, n_samples)`。
 - 注：`process_lrs23.py` 要求三个 split 的 `mix/target` 目录都存在（空 split 会触发 `min()` 报错；本数据集三 split 均非空）。
-- 本数据包**没有 near 源波形**：`near.json` 会被写成 `[[mix_path, n]]` 的 fallback（Dataset 在 `use_near=true` 时会跳过 fallback → K=0）；
-  训练时请用 `use_near=false`（或自行构造替代负样本并在报告标注“非官方负样本”），**不要把 fallback 当合法近场源**。
+- 本示例的 `near.json` 写成 `[[mix_path, n]]` 自引用哨兵；Dataset 会跳过它，得到 K=0。LRS2 的另一说话人 s1/s2 可作为非官方替代负样本。`use_near=false` 仅去掉负样本，K=0 时 NASS 正项仍存在；要关闭整个对比损失需另行核实实际损失配置，不能把哨兵当近场源。
 
 **步骤 D：快速自检（可选但推荐）**
 ```python
@@ -218,7 +223,7 @@ print(mix.shape, src.shape, mouth.shape, name)   # 期望 (32000,), (32000,), (5
 `mix(32000,) / src(32000,) / mouth(50,88,88)`（`samples=10000`；dtype 为 float64，训练 litmodule 会 `type_as(mixtures)` 统一为 float32）。
 注意：clip 恰好 2.000 s（=segment），`rand_start` 恒为 0；若扩展为长片段需同步调整 `segment/fps_len`。
 已知小坑：`process_lrs23.py` 在某个 split 为空时会因 `min(empty)` 报错（LRS2-2Mix 三个 split 均非空，不受影响）；
-也可用 `look2hear/datas/check_avspeech_dataset.py` 对整个索引做一致性检查。
+`look2hear/datas/check_avspeech_dataset.py` 不是完整索引验证器，且会在源目录附近写出文件，不应作为全量一致性证明。
 
 **步骤 E：评测口径**
 tt 3,000 组、每组 2 s → 模型 2 s 窗口正好覆盖整段，可按 clip 计算 SI-SNRi/SDRi（target=s1，固定声明；也可 s1/s2 双目标平均）；
@@ -273,9 +278,9 @@ WebDataset tar shards `{tr,cv,tt}/{tr,cv,tt}-NNNNNN.tar`，每个例 `<id>` 为�
 ### 4.4 转换与评测要点
 
 - tar 布局**不能**直接喂当前 folder-based loader；需转换为 `<DATA>/{tr,cv,tt}/{mix,target,mouths}/` 并在报告写清转换规则
-  （`T_visual = min(mouth_frames, floor(audio_samples/640))`；`640`=16 kHz×40 ms=音频 STFT hop）。
-- **通道策略必须做实验并报告**：RealSSA-Sim 是 4 通道；README/card 未声明论文用哪个通道/如何下混。
-  建议至少准备 `ch0` 与 `mean`（4 通道平均）两版，评测时按 card 要求报告 “channel selection”。
+  （`T_visual = min(mouth_frames, floor(audio_samples/640))`；640 个 16 kHz 样本对应 40 ms，即一帧 25 fps 视频；模型 STFT hop 是 128 样本，即 8 ms）。
+- **通道策略必须做实验并报告**：本地 RealSSA-Sim 数据卡记录 4 通道；[论文附录 A.2](https://arxiv.org/html/2610.32749)称主文实验使用阵列第一个通道，并将释放波形描述为该通道流。这与本地数据卡的 4 通道描述存在差异，不能只凭文字判断它们是否是同一数据版本。
+  对本地四通道文件，建议至少准备 `ch0`（零基索引第一通道）与 `mean`（四通道平均）两版，并报告选择与数据版本；第一通道的编号对应不单独证明文件和论文实验输入逐字节一致。
 - 评测协议：`SI-SNRi / SDRi = 估计 vs 同通道、对齐时长的 target`；test split；整句 vs 2 s 窗口口径要在报告注明。
 - near 缺失对训练的影响：见 §4.2 与 §9；**不要**把对比损失当已复现。
 
@@ -310,7 +315,7 @@ scripts/                    load_inference.py 等 loader
 ```
 - 官方 loader：`load_sample(root, index, align_tail=True, channel='mean')` → `audio float32 16k`、`mouth uint8 [T,96,96]`、
   `landmarks`、`speaker_reference`；`T=min(mouth frames, landmark frames, face frames, floor(audio_samples/640))`，
-  最多丢弃 ≤70 ms 音频；`align_tail=False` 保留原生长度（见 card “Time alignment and channel policy”）。
+  `align_tail=False` 保留原生长度（见 card “Time alignment and channel policy”）。这个操作统一尾部长度；音视频起点需要另行核验。
 - 评估协议（card）：**WER**（把同一逻辑录音的 segment 预测按 `part_order` 拼起来，再与整段 GT 比；40 条 GT 是
   whole-logical-recording，不是 54 条独立句）；**speaker similarity**（用 10 条独立 enrollment 参考）；
   DNSMOS 可另算。**没有干净参考波形 → 不能算 SI-SDR**（card 明确 “clean-target SI-SDR is not supported”）。
@@ -320,7 +325,7 @@ scripts/                    load_inference.py 等 loader
 
 - 当前（2026-11-08 校正）：**已获批、已下载并归档**（2026-10-22）；本地 `/root/data/RealSSA-Real` 12 G，
   TOS `/aispeech-cfs/voiceprint/data/multimodal/realssa_real`（422 文件 / 12.84 GB），已跑完 54 段 DNSMOS。
-  历史：2026-10-21 未获批时数据文件返回 403。
+  历史：2026-10-21 未获批时数据文件返回 403。2026-11-10 目录检查为 423 文件 / 12,843,107,273 B；与旧记录的 422 文件 / 12,843,582,409 B 不同，两次记录的差异原因尚待核对。
 - 获批后的操作（已执行，保留作复跑参考）：
   ```bash
   hf auth login
@@ -361,10 +366,9 @@ scripts/                    load_inference.py 等 loader
 | LRS3-2Mix | —（无数据） | — | — | — | 若自建：同 LRS2 口径 | ❌ |
 | VoxCeleb2-2Mix | —（无数据） | — | — | — | 若自建：同 LRS2 口径 | ❌ |
 
-**与仓库 loader 的通道差异（README 已明确提示）**：`README.md:82`/`:85` 说明 RealSSA-Sim 是 **4-channel 16 kHz mixtures**、
-RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 shard 需要适配本仓库的 mono, folder-based training loader”。
+**与仓库 loader 的通道差异**：[RealSSA-Sim 数据卡快照](verification/phase1/dataset-cards/RealSSA-Sim-README.md)描述 **4-channel 16 kHz mixtures**，[RealSSA-Real 数据卡快照](verification/phase1/dataset-cards/RealSSA-Real-README.md)描述真实录音；本地 inference 音频的双通道输入见上表。仓库的文件夹式训练 loader 需要适配多通道数据。
 因此复现时必须做**通道选择/下混**（如 `mean`、`ch0`、`ch1`），并在报告中声明；不要默认 `mono` 复现多通道数据集。
-另：模型输入是 **2 s 窗口**（Studio/训练），而仓库 eval Dataset 是 **整句**（无 2 s 截断/补齐）；两者指标不可直接横向比较，
+另：Studio/训练常用 **2 s 窗口**，folder eval Dataset 按整句读取；RealSSA-Real 专用评测又采用 2 s 窗口、0.5 s 步长。窗口和拼接方式不同，结果不可直接横向比较，
 须在报告中同时写明 “model window” 与 “metric window”。
 
 ---
@@ -375,8 +379,8 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
 |---|---|
 | ✅ LRS2-2Mix：下载+解压 → 完整 2 s AV（mix/s1/s2 + mouths + faces + landmarks）→ 转 Falcon 数据并跑通 LRS2-2Mix **AV** 评测/训练数据构建（无需 LRS2 原始视频） | ✅ RealSSA-Sim：1 shard 验证 → test 全量 → 训练全量；L2 评测 + L3 训练（需转换/负样本方案） |
 | ✅ 读 RealSSA-Sim/Real 的 dataset card、文件清单、大小、loader 协议（HF 元数据公开） | ✅ RealSSA-Real：DNSMOS/WER/speaker-similarity；报告 channel/align 策略 |
-| ✅ 用合成数据/伪 ckpt 跑通评测代码与指标实现（见 `tools/repro/make_synthetic_data.py` 等） | ✅ 与论文数字对齐（受通道、整句口径、SDR 实现 bug 影响，需同时修 F7/F8 等 P0/P1） |
-| ✅ 修训练/评测代码 P0（Comet logger、conf.yml 类名、mono→0 维、PL 2.x 接口等，见 REPRODUCTION_PLAN §6） | ⚠️ 训练：near 源缺失 → 必须替代负样本或关对比损失，并显式标注“非官方配方” |
+| ✅ 用合成数据/伪 ckpt 跑通评测代码与指标实现（见 `tools/repro/make_synthetic_data.py` 等） | ⚠️ 与论文比较前核对权重、数据、通道及窗口，不能预设数值可对齐 |
+| ✅ 修训练/评测代码 P0（Comet logger、conf.yml 类名、mono→0 维、PL 2.x 接口等，见 REPRODUCTION_PLAN §6） | ⚠️ 训练：near 源缺失 → 需注明替代负样本方案；关闭负样本不等于关闭整个对比损失，并显式标注“非官方配方” |
 | ✅ 做 L1 推理复现（真实权重，已完成） | ❌ LRS3-2Mix / VoxCeleb2-2Mix：HF 无数据，仍需联系作者或自建 |
 | ❌ ~~不能下载/使用 RealSSA-Sim/Real 数据文件（403）~~（2026-10-22 已获批、已下载）；仍不能提交他人名义申请 | ❌ 仍不能转发/再分发 RealSSA 与 LRS 派生数据 |
 
@@ -429,3 +433,9 @@ RealSSA-Real 是 **stereo 16 kHz inputs**；`README.md:87` 明确 “多声道 s
     （逐目录 `--count-links` 相加 113,582,506 KiB vs 一次 `du -sc` 去重 64,035,241 KiB，即旧口径 110 G vs 62 G）；
     顶栏 DNSMOS 改为 full4 2.7941/3.3365（full3 作废）。依据：`deepdive-20261108/06` §3.1（硬链接实测）、
     `07` §4.4（full3→full4）、`10` §4；TOS `realssa_sim/_MANIFEST.json`（242 文件 / 521,532,645,652 B）。
+
+### 2026-11-10 补充检查与运行边界
+
+- 单向构建器在已有输出目录切换 s1/s2 时可能保留旧 target 却更新 mouth 索引；已有文件会被复用，音频身份需单独核验。请使用全新目录，完成后核对文件内容及目标身份；`--limit` 用于隔离的有界样本；全量验收需要完整样本。
+- `download_realssa_shared` 的归档阶段使用 `rsync --remove-source-files`，`--only` 不是归档范围的保证；退出状态与仅按大小检查也不能代替逐文件哈希。先审阅源码、源和目的路径及迁移影响。
+- RealSSA-Real full4 是 54 段评测：P.835 OVRL 2.7941、P808 3.3365；full3 因窗口起点错误作废，历史文件继续保留。专用评测首窗嘴部零填充，Studio/Space 首帧填充，拼接和前后文差异见[评测详解](understanding/20261110-evaluation-and-apps.md)。

@@ -1,9 +1,11 @@
 # 00 总纲 · Falcon-fork 全景深挖（2026-11-08）
 
+> **2026-11-10 校正：** 本文为历史总纲，部分结论已由后续实测修正：发布权重训练谱系尚未确认；VideoBlock 在批次大于 1 时会跨样本递推；near s2 文件已按混音比例缩放；有放回抽样覆盖 22.12% 是目标方向条目，唯一混合约 39.35%（数学期望）；`early_min=-240 dB` 是区间最小值，区间最大值为 −75.2895 dB。因果开关存在过裁，端到端前视仍受全窗统计影响。阅读[复现状态](../../STATUS.md)和[本轮审查](../../verification/deepdive-20261110/审查记录.md)。
+
 > 本轮：1 名 Lead + 8 个持久队友 + 4 个子代理，10 个 Wave-1 域深挖（01–10）+ 2 个 Wave-2 攻坚（11 论文对齐 / 12 因果性）。
 > 目标仓库：`dev_a800_2gpus:/root/code/github_repos/Falcon-fork`，HEAD `6c1d5b7`（tag `repro-freeze-20261031`）。
 > 环境：`/root/miniforge3/envs/falcon`（Py3.11.17 / torch 2.8.0+cu128 / 2×A800-80G）。
-> **全部结论都回到源码/实测**；与 `docs/` 既有文档冲突处单列（§6）。仓库全程只读，git 状态未动。
+> 与既有文档的冲突记录在 §6。
 
 ---
 
@@ -41,7 +43,7 @@
    ③ margin=0.5 **失效**（真实 run cos_neg≈0.9845 ⇒ `relu(sim−0.5)` 恒正）。
 10. **复现状态**：L1 结构/权重/参数 ✅（strict 加载、bit-identical、数字逐位复现）；
     RealSSA-Sim **7.774/8.479**（9,169 条，ckpt mean）、ch0 **7.977/8.452**：数值吻合（论文 7.7/8.2），
-    但 ckpt（LRS3 训练）与通道（mean）两轴不同，不构成严格复现；
+    但 权重训练来源未知，通道使用 mean，不构成严格复现；
     LRS2 跨语料 7.029/7.713、自训 ep124 8.858/9.270；**论文 LRS2 14.1 未复现**（缺 LRS2-trained ckpt / 8 卡）；
     LRS3-2Mix / VoxCeleb2-2Mix **数据未发布**。
 11. **证据质量**：数字可复算到 **5.3e-8 dB**（SI-SNRi）、跨 7 天两次全量 run 差 3.3e-7 dB；
@@ -80,7 +82,7 @@
             └─ video_bottleneck: kernel_size=-1 ⇒ nn.Identity()      # 0 参数
                  └─ VideoBlock: PReLU-BN conv + LSTM(布局错误) → (112, 50)
 
-融合（每级 AudioBlock 内）:
+融合（第一遍 AudioBlock 之后）:
   video (112,50) --nearest--> (112,251) --unsqueeze(-1)--> (112,251,1)
   audio (112,251,129) + 上式  → (112,251,129)         # 加性偏置，频率维广播
 
@@ -134,7 +136,7 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 | 扣死参数（= 生效参数） | 532,129 | 537,697 − 5,568；`concat_layers[2]` 从未被调用，清零后 bit-identical | 01 §4（max\|Δ\|=0） |
 | 扣对比头 | 523,113 | 537,697 − 14,584；`spk_pool_proj` 只在训练侧单独调用，不在 forward 里 | 05 §3.1 |
 | 两者都扣（分离前向） | 517,545 | 532,129 − 14,584 = 537,697 − 5,568 − 14,584 | 01 §4、05 §3.1 |
-| state_dict 条目 | 537,762 | +65 个持久化 BN buffer | 01 |
+| state_dict 元素数 | 537,762 | 比参数总数多 65 个持久化 BN buffer 元素 | 01 |
 | 视频前端 | 11,186,688 | 冻结、不进 optimizer | 03 §4 |
 | 端到端参数 | 11,724,385 | 537,697 + 11,186,688 | 01/05/09 一致 |
 | Big 变体 | 1,158,617 / 12,345,305 | 音频 / 端到端；`SpeakerContrastiveV2` **只存在于 studio** | 01 §4、08 §4.4 |
@@ -151,12 +153,12 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 | RealSSA-Sim | **7.774 / 8.479** | 9,169 条整段，ckpt mean，falcon.pt | 07 §3 |
 | RealSSA-Sim ch0 | **7.977 / 8.452** | 同上，channel-1 | 07 §3 |
 | RealSSA-Real DNSMOS | **OVRL 2.7941 / P808 3.3365** | full4（窗口起点已修）；**与论文 3.276 不可比** | 07 §3 |
-| LRS2 跨语料 | 7.029 / 7.713 | tt 3,000，官方 falcon.pt（LRS3 训练，ep714） | 07 §3 |
+| LRS2 跨语料 | 7.029 / 7.713 | tt 3,000，官方 falcon.pt（训练来源未知，epoch 714） | 07 §3 |
 | LRS2 自训 ep99 / ep124 | 8.726/9.122 / **8.858/9.270** | 单卡 100/130 epoch，旧配方（−SNR） | 07 §3 |
 | mix 基线 | 4.9937 dB | tt 3,000 的 SI-SDR(mix, s1) 均值 | 07 §3 |
 | LRS2-2Mix SNR | **∈[0,10] dB，中位 5.025** | `g1∈[0,5], g2=−g1`，PCM16 舍入（max\|Δ\|=3.05e-5） | 06 §4.4 |
 | 训练吞吐 | 46.9 样本/s ≈ 11.7 it/s | nw=8 / bs=4 / paper-tr | 06 §4.6 |
-| 1 epoch 覆盖 | ≈22–25% 唯一 mix | `train_samples=10000` vs 池 40000 | 06 §4.5、04 §5 |
+| 1 epoch 覆盖 | ≈22.12% 方向条目；唯一 mix 数量期望约 39.35% | `train_samples=10000` vs 池 40000 | 06 §4.5、04 §5 |
 | 测试 | 168 passed（约 147 s） | 无 GPU **同样 168 passed**（约 170 s）；修前为 166 passed / 2 failed，已修 | 10 §4 |
 | Studio 测试 | 51+2（有 CUDA）/ 53+0（无） | pytest studio/tests | 08 §4 |
 | Node 测试 | 8/8（≈4 s） | studio/tests/*.mjs | 08 §4 |
@@ -181,12 +183,12 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 
 **数据**
 11. `idx` 被丢弃 ⇒ `shuffle` 无效、**有放回采样**、epoch 长度与数据量解耦（`avspeech_dataset_near.py:154`）。
-12. LRS2 每条恰好 2.000 s ⇒ `rand_start=randint(0,0)=0`，**训练没有随机裁剪**（06 §4.1）。
+12. LRS2 每条恰好 2.000 s ⇒ `rand_start=randint(0,0)=0`，**音频起点不随机；视频增强仍可能随机**（06 §4.1）。
 13. Dataset 输出 **float64**（`transform.py:73` 的 numpy 除法），靠 litmodule `type_as` 救（08/03）。
 14. `mouth_start = int(rand_start/16000*25)` 把采样率与 fps **写死**（06 §4.2）。
 15. 缺帧**没有 pad**，只有 slice；换非 2 s 数据集会在 `collate` 的 `stack` 处崩。
 16. `.pt` 存的是 3 通道复制灰度（`lrs2_2mix_to_falcon.py:224`），tr 多占 ≈13 GB（03 §5）。
-17. near = 同 mixture 的 s2 **原始波形且未乘 g2**（06 §4.2）；RealSSA 侧 100% fallback ⇒ K=0。
+17. near = 同 mixture 的 s2 **已按混音比例缩放的波形**（06 §4.2）；RealSSA 侧 100% fallback ⇒ K=0。
 18. `mouths/` 在 `falcon_lrs2_2mix`↔`_paper`、`realssa_sim`↔`_ch0` 之间是**硬链接**：
     逐目录 `du` 相加 110 G，真实并集 **62 G**（06 §4.3）。
 
@@ -256,7 +258,7 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 2. **论文 tt 到底是 3,000 还是 6,000**：`falcon_lrs2_2mix_paper/tt` 索引 6000 行 = 3000 唯一 mix × {s1,s2}；
    历史 CSV 全是 3000（单向）。**所有"tt 3000"的分母都需要重核**。
 3. **τ/margin 的真实作用**：K≡1 使 τ 退火无效、`relu(sim−0.5)` 恒正；要复现论文的对比学习收益，
-   要复现论文的对比学习收益，就得按 App A.2 重建 K≥2 的 near 负样本（LibriSpeech + RIR）；本地 `rir/` 与
+   就得按 App A.2 重建 K≥2 的 near 负样本（LibriSpeech + RIR）；本地 `rir/` 与
    `speech/` 已有素材。
 4. **8 卡真实 DDP**：`find_unused_parameters=True` 的必需性已由 grad=None 证明，但条件化 all_gather /
    `sync_dist` / CSVLogger version 冲突只在单进程验过。
@@ -283,7 +285,7 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 | 03 | `03-video-frontends.md` | 88×88 灰度（非 128×512）、FRCNN 11.19 M 冻结、视觉 15.9 GMAC、±80 ms 感受野 |
 | 04 | `04-training-system.md` | 入口可跑；τ 空转、margin 失效；epoch 覆盖 22%；DDP find_unused 必需 |
 | 05 | `05-losses-metrics.md` | −SNR vs −SI-SDR；threshold 丢好样本；MACs 含 LSTM 口径；tt 6000 疑问 |
-| 06 | `06-data-pipeline.md` | mix 离线、SNR∈[0,10]、near=s2、idx 丢弃、硬链接 62 G、46.9 样本/s |
+| 06 | `06-data-pipeline.md` | mix 离线、名义增益差∈[0,10]、near=s2、idx 丢弃、硬链接 62 G、46.9 样本/s |
 | 07 | `07-eval-benchmark.md` | 整段不切窗、TSE 口径、13 行数字逐条证据、5.3e-8 dB 复现、full3 作废 |
 | 08 | `08-studio.md` | 单进程 FastAPI、无 pydantic、分块几何、guard 真义、51+2/8/8 |
 | 09 | `09-space-project-page.md` | Space 复用 Studio 运行时、媒体 pipe 98.8%、i18n 226、CI 可过性 |
@@ -313,7 +315,7 @@ STFTDecoder: ConvTranspose2d(112→2, k3, s1) → complex → transpose → istf
 | "single encoder–decoder pass" | 摘要卖点 | `Separator` 类是 `repeats` 循环，`repeats:2/shared:true` ⇒ 同一 AudioBlock 跑两遍（融合前/后） | **2× MACs**，但论文 §4.1 也描述两次调用 → 措辞问题 |
 | 视觉 future frames | 「3 future frames = 120 ms」 | `Conv3d(k=(5,7,7),pad=(2,3,3))` ⇒ ±2 帧 = 80 ms；系统级视觉 lookahead 实测 +13 视频帧=520 ms | 论文多算 1 帧 |
 | 消融 | Table 7/8/9/18/19/21 六组 | 本地只做过 big/small 与 mouth（N=20），**TFRB/GCI/NASS/stages 一个都没做** | **消融 0/6** |
-| near 负样本 | 1–5 近场干扰 | LRS2 用 s2（K=1，未乘 g2）；RealSSA 全 fallback（K=0） | 论文的对比学习收益无法复现 |
+| near 负样本 | 1–5 近场干扰 | LRS2 用已缩放 s2（K=1）；RealSSA 全 fallback（K=0） | 论文的对比学习收益无法复现 |
 
 ---
 

@@ -1,8 +1,7 @@
 # P2D 报告：LRS2-2Mix 训练复现（Phase 2-D，task-21）
 
-> 分支：`repro/phase2`（未 commit）。环境：`/root/miniforge3/envs/falcon/bin/python`
+> 分支：`repro/phase2`。环境：`/root/miniforge3/envs/falcon/bin/python`
 > （Python 3.11.17 / torch 2.8.0+cu128 / pytorch-lightning 2.6.6 / 2×A800 共享机）。
-> 写作用域：`configs/LRS2_2Mix.yml`、`tools/repro/phase2/`、`docs/verification/phase2/`。
 > **状态：已结束（2026-10-22 19:54）** —— 配置 + 2-GPU 冒烟已完成；单卡 100 epoch 训练已跑完，
 > best val ep99 13.2014；评测见 §8。原“进行中/等待数据与 GPU”的描述已过期，正文 §1/§4 保留为当时的快照。
 >
@@ -12,7 +11,7 @@
 > “9,169 条”这一分母问题属 `P2E-report.md`/`STATUS.md`（SDRi/PESQ 实为 **9,166**），不在本文件；
 > ④ §8.3 原写“论文训练配方（数据混合 / lr schedule / 轮数）未公开”，与已公开论文（arXiv:2610.32749，2026-10-23）
 > 不符：lr / epoch / batch / 硬件见 Table 16；论文没写的是 LRS2-2Mix 的 SNR 采样范围与 near 负样本生成脚本
-> （`deepdive-20261108/11` §7 G1/G9）。冻结证据未改。
+> （`deepdive-20261108/11` §7 G1/G9）。
 > **2026-11-09 复核（W1）**：§8.3 第 3 条的硬件与批口径按论文 Table 16 固定为 **8×3090、bs 4/GPU（global 32）**；旧稿写的“10 卡 / global 40”为误记，本文件其余处同按 Table 16 记。
 
 ## 1. 结论（阶段）
@@ -138,7 +137,7 @@ GPU0/GPU1 已被其它 Phase2 评测进程占用（分别约 57/73 GB in use，�
 | STOI | 0.804 | 0.908 | −0.10 |
 
 结论（阶段性）：1 epoch/2500 step 后 val SI-SDR 已到 6.73 dB，但相对官方权重仍有 ~5.4 dB 差距（符合“远未训完”的预期；
-官方权重是在 LRS2-2Mix 上用完整配方训练的结果）。**1–2 h 只能覆盖 4–7 epoch，远达不到 100 epoch 配方**；
+官方权重训练数据和配方未确认）。**1–2 h 只能覆盖 4–7 epoch，远达不到 100 epoch 配方**；
 是否需要长跑（单卡约 28 h/100 epoch）由 Lead/用户决定。全量 3000 条评测将在训练 1–2 h 后做（保证与 P2-A/B
 的官方基线同协议同子集可比）。
 
@@ -210,7 +209,7 @@ bash /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_p2d.sh <ckpt> /
 
 | 权重 | SI-SNR | **SI-SNRi** | SDR | **SDRi** | PESQ | STOI | 证据（逐句 CSV / 日志） |
 |---|---:|---:|---:|---:|---:|---:|---|
-| 官方 `falcon.pt`（跨语料：LRS3 训练） | 12.023 | **7.029** | 12.813 | **7.713** | 2.196 | 0.916 | `P2D-eval-falcon-full.csv/.log`（3000 句，本次补跑） |
+| 官方 `falcon.pt`（训练数据来源未确认） | 12.023 | **7.029** | 12.813 | **7.713** | 2.196 | 0.916 | `P2D-eval-falcon-full.csv/.log`（3000 句，本次补跑） |
 | 自训 ep86（无 near） | 13.612 | **8.618** | 14.142 | **9.042** | 2.547 | 0.941 | `P2D-eval-epoch86.log`（历史日志；逐句 CSV 于 2026-10-30 重跑恢复为 `P2D-eval-epoch86.csv`，3,003 行） |
 | 自训 **ep99（best val，本次补测）** | 13.720 | **8.726** | 14.222 | **9.122** | 2.578 | 0.944 | `P2D-eval-epoch99.csv/.log`（3000 句） |
 | 自训 ep124（contrastive 微调） | 13.852 | **8.858** | 14.370 | **9.270** | 2.576 | 0.943 | `P2D-eval-epoch124-contrastive.csv/.log`（3000 句） |
@@ -233,11 +232,11 @@ bash /root/code/github_repos/Falcon-fork/tools/repro/phase2/eval_p2d.sh <ckpt> /
 2. **官方权重跨语料基线复跑确认：7.029 / 7.713**，与 Phase-1 的 LRS2 全量评测数字一致（同一脚本、同一 3000 条），
    说明该基线可复现，不是一次性波动。
 3. 自训 ckpt 比官方跨语料权重高 **+1.697 SI-SNRi / +1.409 SDRi**（同数据同协议），符合"已在 LRS2 上训练"的预期；
-   但距论文 14.1 / 14.7 仍差 **−5.374 / −5.578 dB**，归因不变：单卡 bs4（全局 batch 4）、
+   但距论文 14.1 / 14.7 仍差 **−5.374 / −5.578 dB**，可能相关的条件包括单卡 bs4（全局 batch 4）、
    100（+30）epoch、LRS2 无 near 导致负项失效或只能近似，以及论文没写 LRS2-2Mix 的 SNR 采样范围与
    near 负样本生成脚本（`deepdive-20261108/11` §7 G1/G9；lr / epoch / batch / 硬件见 Table 16，已对齐）。
    **校正（2026-11-08）**：原文写“论文 10 卡、全局 batch 40”，与论文 Table 16/§4 不符——论文是 **8×RTX 3090、
-   bs 4/GPU、全局 32**（`deepdive-20261108/11` §3）。因此本机等效 batch 比论文小 8×，这是差距的可量化因素之一；
+   bs 4/GPU、全局 32**（`deepdive-20261108/11` §3）。因此本机等效 batch 比论文小 8×，这是可量化的训练条件差异；
    “10 卡/40”来自早期复现计划，没有论文依据，属误记（2026-11-09 复核）。
 4. 证据完整性：ep86 已于 2026-10-30 补跑（`P2D-eval-epoch86.csv`），**官方 / ep86 / ep99 / ep124 四份均有 3000 句逐句 CSV**；
    两条训练曲线已入库（`P2D-train-metrics-1gpu.csv` 5200 行 / `P2D-near-train-metrics.csv` 1560 行）。

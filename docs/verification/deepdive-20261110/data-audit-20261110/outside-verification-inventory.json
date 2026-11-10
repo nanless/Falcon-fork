@@ -1,0 +1,308 @@
+[
+  {
+    "path": "Experiments/checkpoint/Falcon/best_k_models.json",
+    "bytes": 276,
+    "sha256": "58f42832eb8bd792b041dfdf4d6b2328c63c4637316a7c40e24160e3c94536fe",
+    "type": "json",
+    "root_type": "dict",
+    "entries": 5
+  },
+  {
+    "path": "Experiments/checkpoint/Falcon/results/metrics_combined.csv",
+    "bytes": 1178733,
+    "sha256": "fc621a169ad6d52f8d8abb8dd16bcf69091f56c3d6f200703fc980ae2cc6a978",
+    "type": "csv",
+    "rows_including_summary": 9171,
+    "columns": [
+      "snt_id",
+      "sdr",
+      "sdr_i",
+      "si-snr",
+      "si-snr_i",
+      "pesq",
+      "stoi"
+    ],
+    "rows_excluding_summary": 9169,
+    "summary_rows": [
+      "avg",
+      "std"
+    ],
+    "metrics": {
+      "sdr": {
+        "finite_count": 9166,
+        "mean": 10.644734252788153
+      },
+      "sdr_i": {
+        "finite_count": 9166,
+        "mean": 8.479394557369428
+      },
+      "si-snr": {
+        "finite_count": 9169,
+        "mean": 9.980200293998166
+      },
+      "si-snr_i": {
+        "finite_count": 9169,
+        "mean": 7.774307312097166
+      },
+      "pesq": {
+        "finite_count": 9166,
+        "mean": 2.0937701121782233
+      },
+      "stoi": {
+        "finite_count": 9169,
+        "mean": 0.8172897394987925
+      }
+    }
+  },
+  {
+    "path": "Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv",
+    "bytes": 546290,
+    "sha256": "c9dbf7803f088501e8ccb1cd51876f0d888dbe87b734da5c033b47a7e1f7c701",
+    "type": "csv",
+    "rows_including_summary": 3002,
+    "columns": [
+      "snt_id",
+      "sdr",
+      "sdr_i",
+      "si-snr",
+      "si-snr_i",
+      "pesq",
+      "stoi"
+    ],
+    "rows_excluding_summary": 3000,
+    "summary_rows": [
+      "avg",
+      "std"
+    ],
+    "metrics": {
+      "sdr": {
+        "finite_count": 3000,
+        "mean": 14.37003689575713
+      },
+      "sdr_i": {
+        "finite_count": 3000,
+        "mean": 9.269574165939577
+      },
+      "si-snr": {
+        "finite_count": 3000,
+        "mean": 13.851911879796132
+      },
+      "si-snr_i": {
+        "finite_count": 3000,
+        "mean": 8.858191910560938
+      },
+      "pesq": {
+        "finite_count": 3000,
+        "mean": 2.576085976322492
+      },
+      "stoi": {
+        "finite_count": 3000,
+        "mean": 0.9427958074473983
+      }
+    }
+  },
+  {
+    "path": "Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/best_k_models.json",
+    "bytes": 371,
+    "sha256": "4fac2cc436b1ca8d4178c47ad3f30a8d10a9812b392206a207301dd2db67247a",
+    "type": "json",
+    "root_type": "dict",
+    "entries": 3
+  },
+  {
+    "path": "Experiments/checkpoint/LRS2_2Mix_Paper_2gpu_smoke/version_0/metrics.csv",
+    "bytes": 2334,
+    "sha256": "7f87be4f0d72d1e77faa1cef21718a210668f0b7fc25c7925e87d4cf16da50ae",
+    "type": "csv",
+    "rows_including_summary": 9,
+    "columns": [
+      "epoch",
+      "learning_rate",
+      "lr",
+      "step",
+      "test_loss/dataloader_idx_1",
+      "test_pit_sisnr",
+      "train_beta_epoch",
+      "train_beta_step",
+      "train_cos_sim_neg_avg_epoch",
+      "train_cos_sim_neg_avg_step",
+      "train_cos_sim_neg_max_epoch",
+      "train_cos_sim_neg_max_step",
+      "train_cos_sim_pos_epoch",
+      "train_cos_sim_pos_step",
+      "train_loss_epoch",
+      "train_loss_step",
+      "train_n_samples_0near_epoch",
+      "train_n_samples_0near_step",
+      "train_n_samples_1near_epoch",
+      "train_n_samples_1near_step",
+      "train_n_samples_2near_epoch",
+      "train_n_samples_2near_step",
+      "train_n_samples_3near_epoch",
+      "train_n_samples_3near_step",
+      "train_n_samples_4plus_near_epoch",
+      "train_n_samples_4plus_near_step",
+      "train_neg_active_ratio_epoch",
+      "train_neg_active_ratio_step",
+      "train_pit_loss_epoch",
+      "train_pit_loss_step",
+      "train_spk_contrast_loss_epoch",
+      "train_spk_contrast_loss_step",
+      "val_loss/dataloader_idx_0",
+      "val_pit_sisnr",
+      "val_pit_sisnr_0near"
+    ],
+    "rows_excluding_summary": 9,
+    "summary_rows": [],
+    "metrics": {
+      "epoch": {
+        "finite_count": 9,
+        "mean": 1.0
+      },
+      "learning_rate": {
+        "finite_count": 3,
+        "mean": 0.0010000000474974513
+      },
+      "lr": {
+        "finite_count": 3,
+        "mean": 0.0010000000474974513
+      },
+      "step": {
+        "finite_count": 9,
+        "mean": 99.0
+      },
+      "test_loss/dataloader_idx_1": {
+        "finite_count": 1,
+        "mean": 0.7092636227607727
+      },
+      "test_pit_sisnr": {
+        "finite_count": 1,
+        "mean": -0.7092628479003906
+      },
+      "train_beta_epoch": {
+        "finite_count": 3,
+        "mean": 0.004999996162950993
+      },
+      "train_beta_step": {
+        "finite_count": 3,
+        "mean": 0.004999999888241291
+      },
+      "train_cos_sim_neg_avg_epoch": {
+        "finite_count": 3,
+        "mean": 0.9716293613115946
+      },
+      "train_cos_sim_neg_avg_step": {
+        "finite_count": 3,
+        "mean": 0.9606838623682658
+      },
+      "train_cos_sim_neg_max_epoch": {
+        "finite_count": 3,
+        "mean": 0.9716293613115946
+      },
+      "train_cos_sim_neg_max_step": {
+        "finite_count": 3,
+        "mean": 0.9606838623682658
+      },
+      "train_cos_sim_pos_epoch": {
+        "finite_count": 3,
+        "mean": 0.9733686447143555
+      },
+      "train_cos_sim_pos_step": {
+        "finite_count": 3,
+        "mean": 0.9478983879089355
+      },
+      "train_loss_epoch": {
+        "finite_count": 3,
+        "mean": -1.3705329100290935
+      },
+      "train_loss_step": {
+        "finite_count": 3,
+        "mean": -0.9770389397939047
+      },
+      "train_n_samples_0near_epoch": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_0near_step": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_1near_epoch": {
+        "finite_count": 3,
+        "mean": 4.0
+      },
+      "train_n_samples_1near_step": {
+        "finite_count": 3,
+        "mean": 4.0
+      },
+      "train_n_samples_2near_epoch": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_2near_step": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_3near_epoch": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_3near_step": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_4plus_near_epoch": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_n_samples_4plus_near_step": {
+        "finite_count": 3,
+        "mean": 0.0
+      },
+      "train_neg_active_ratio_epoch": {
+        "finite_count": 3,
+        "mean": 1.0
+      },
+      "train_neg_active_ratio_step": {
+        "finite_count": 3,
+        "mean": 1.0
+      },
+      "train_pit_loss_epoch": {
+        "finite_count": 3,
+        "mean": -1.868793527285258
+      },
+      "train_pit_loss_step": {
+        "finite_count": 3,
+        "mean": -1.4898244341214497
+      },
+      "train_spk_contrast_loss_epoch": {
+        "finite_count": 3,
+        "mean": 0.49826082587242126
+      },
+      "train_spk_contrast_loss_step": {
+        "finite_count": 3,
+        "mean": 0.5127854446570078
+      },
+      "val_loss/dataloader_idx_0": {
+        "finite_count": 3,
+        "mean": 0.24726138015588126
+      },
+      "val_pit_sisnr": {
+        "finite_count": 3,
+        "mean": -0.24726144472757974
+      },
+      "val_pit_sisnr_0near": {
+        "finite_count": 3,
+        "mean": -0.24726144472757974
+      }
+    }
+  },
+  {
+    "path": "studio/web/vendor/mediapipe/manifest.json",
+    "bytes": 1441,
+    "sha256": "361d4a2c92c8cb1fb65ff592ba40f6746ade048eaf2aa436c985a5ad9ccbe355",
+    "type": "json",
+    "root_type": "dict",
+    "entries": 6
+  }
+]

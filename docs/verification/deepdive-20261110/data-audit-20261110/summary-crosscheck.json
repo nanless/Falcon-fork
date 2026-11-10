@@ -1,0 +1,495 @@
+{
+  "checks": [
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "si_snr",
+      "difference": -4.440892098500626e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "si_snr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "sdr",
+      "difference": 6.938893903907228e-18,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "sdr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "pesq",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-zero.csv",
+      "metric": "stoi",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "si_snr",
+      "difference": 2.220446049250313e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "si_snr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "sdr",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "sdr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "pesq",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-small.json",
+      "csv": "P2B-b300-small-whole-shuffle.csv",
+      "metric": "stoi",
+      "difference": 1.1102230246251565e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "si_snr",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "si_snr_i",
+      "difference": -4.440892098500626e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "sdr",
+      "difference": 1.7763568394002505e-15,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "sdr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "pesq",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300-big.json",
+      "csv": "P2B-b300-big-whole-zero.csv",
+      "metric": "stoi",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "si_snr",
+      "difference": -1.7763568394002505e-15,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "si_snr_i",
+      "difference": -8.881784197001252e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "sdr",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "sdr_i",
+      "difference": 1.7763568394002505e-15,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "pesq",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-whole-real.csv",
+      "metric": "stoi",
+      "difference": 1.1102230246251565e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "si_snr",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "si_snr_i",
+      "difference": 8.881784197001252e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "sdr",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "sdr_i",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "pesq",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2B-summary-b300.json",
+      "csv": "P2B-b300-small-windowed-real.csv",
+      "metric": "stoi",
+      "difference": -1.1102230246251565e-16,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "sig_mos",
+      "difference": 4.074074074100764e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "bak_mos",
+      "difference": 5.555555555591951e-06,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "ovrl_mos",
+      "difference": -3.888888888869957e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "p808_mos",
+      "difference": 4.074074074056355e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "mix_sig_mos",
+      "difference": -2.5925925926095772e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "mix_bak_mos",
+      "difference": 2.4074074074009744e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "mix_ovrl_mos",
+      "difference": 4.814814814824153e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full3/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full3/per_segment.csv",
+      "metric": "mix_p808_mos",
+      "difference": -1.2962962963047886e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "sig_mos",
+      "difference": -3.7037037037279674e-06,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "bak_mos",
+      "difference": 5.555555555591951e-06,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "ovrl_mos",
+      "difference": -4.814814814801949e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "p808_mos",
+      "difference": -1.481481481491187e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "mix_sig_mos",
+      "difference": -2.5925925926095772e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "mix_bak_mos",
+      "difference": 2.4074074074009744e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "mix_ovrl_mos",
+      "difference": 4.814814814824153e-05,
+      "n_equal": true
+    },
+    {
+      "source": "DNSMOS-realssa-real-mean-full4-20261031/summary.json",
+      "csv": "DNSMOS-realssa-real-mean-full4-20261031/realssa_real_dnsmos_per_segment.csv",
+      "metric": "mix_p808_mos",
+      "difference": -1.2962962963047886e-05,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "sig_mos",
+      "difference": 4.999999999988347e-05,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "bak_mos",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "ovrl_mos",
+      "difference": -4.999999999988347e-05,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "p808_mos",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "mix_sig_mos",
+      "difference": 4.440892098500626e-16,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "mix_bak_mos",
+      "difference": 0.0,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "mix_ovrl_mos",
+      "difference": -5.0000000000105516e-05,
+      "n_equal": true
+    },
+    {
+      "source": "P2E-smoke-realssa-real-summary.json",
+      "csv": "P2E-smoke-realssa-real-per-segment.csv",
+      "metric": "mix_p808_mos",
+      "difference": -4.999999999988347e-05,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "sdr",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "sdr_i",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "si-snr",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "si-snr_i",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "pesq",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "stoi",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "si-snr_mix",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-falcon-full-cols-20261031.counts.json",
+      "csv": "P2D-eval-falcon-full-cols-20261031.csv",
+      "metric": "sdr_mix",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "sdr",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "sdr_i",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "si-snr",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "si-snr_i",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "pesq",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "stoi",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "si-snr_mix",
+      "difference": 0,
+      "n_equal": true
+    },
+    {
+      "source": "P2D-eval-epoch99-cols-20261031.counts.json",
+      "csv": "P2D-eval-epoch99-cols-20261031.csv",
+      "metric": "sdr_mix",
+      "difference": 0,
+      "n_equal": true
+    }
+  ],
+  "failed": []
+}

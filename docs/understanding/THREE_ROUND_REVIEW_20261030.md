@@ -1,5 +1,7 @@
 # Falcon 项目三轮详细 Review（2026-10-30）
 
+> **2026-11-10 更新：**本篇保存 10 月 30 日问题清单与 10 月 31 日修复记录。captured JSON 保存 43 条闭环条目；原汇报中的 150 条候选、124 条 open 需结合其他记录核对。当前模型、实验与修复状态见[复现状态](../STATUS.md)。
+
 > **历史快照（2026-10-30）；现状以 [`docs/STATUS.md`](../STATUS.md) 为准。**
 > 本文是当时的问题清单与修复建议，不是当前状态准绳；文中「还没有 STATUS / 建议建 STATUS」是 10-30 的建议，STATUS 已于 2026-10-31 建立。
 
@@ -11,7 +13,7 @@
 
 ## 0. 方法与总体结论
 
-三轮共产出 **150 条候选问题**，闭环核实后 **124 条 real_open / 17 条 already_done**。第一轮大 workflow 的返回结果被工具输出上限截断（66 KB 上限，丢约 120 KB），因此补跑一轮 **10 agent 压缩复核**，按 10 个子域各取 ≤5 条最高优先级问题，得到可执行结论。完整 captured JSON 见 `docs/verification/phase2/three-round-review-20261030-captured.json`。
+历史汇报记录了 **150 条候选问题**及 **124 条 real_open / 17 条 already_done**；所链接 captured JSON 保存其中 43 条闭环条目。第一轮大 workflow 的返回结果被工具输出上限截断（66 KB 上限，丢约 120 KB），因此补跑一轮 **10 agent 压缩复核**，按 10 个子域各取 ≤5 条最高优先级问题，得到可执行结论。完整 captured JSON 见 `docs/verification/phase2/three-round-review-20261030-captured.json`。
 
 **总体判断：模型数值与核心复现结论没有新的 P0；真正阻塞交付的是三类问题——**
 
@@ -35,7 +37,7 @@
 |---|---|---|---|
 | A4-1 | **RealSSA-Real 窗口化评测首块起点错**：`endpoint = LEFT + HOP` 应为 `HOP + GUARD`，每条估计前 21,440 样本（1.34 s）永不写入 → 前段恒静音；已发布的 SIG 3.2209 / OVRL 2.7901 建立在该输出上 | `tools/repro/phase2/eval_realssa_real.py:405,424`；对照 Studio 首窗 `app.js:624`/`server.py:266`；模拟 1 s 段输出 100% 为 0 | 改初值为 `HOP+GUARD`，对输出覆盖率加断言（filled 必须 100%），`--save-estimates` 留证后重跑 54 段 DNSMOS（约 20 min），更新 summary/对齐表 |
 | A1-1 | 模型构造原地 `pop` 污染 config，且污染已固化进真实 `.ckpt` 的 hparams/training_config：由 ckpt 的 hyper_parameters 重建得 **49,081 参数**（原 537,697），audio_net 为空 ModuleList；conf.yml 反而干净 | `Falcon.py:991-996`；`av_litmodule.py:227`；实测 `last.ckpt` 缺 4 个 `repeats/shared` 键 | Falcon/Separator 入口 deepcopy 子配置；`audio_train.py` 建模前 deepcopy 给 system；补回归“由 ckpt hparams 重建=537,697” |
-| A2-1 / A9-1 | **论文称因果、音频 ≤15 帧（120 ms），代码实测 456 ms（57 帧）且 AudioBlock 两遍**；README 仍写 causal/实时。端到端单点扰动可波及全部更早输出（first_changed=1，过去段 max\|Δ\|=1.6e-3） | 论文 §4.2/§6.4/App E；`Falcon.py:765,801,814` `causal=False`；`02-layers-dsp.md:482`；`README.md:43` | 文档统一为“窗口级因果、单遍 456 ms、无有限 lookahead”，撤回 120 ms/≤15 帧；真流式另建左侧 padding 分支并重训，不与发布权重结论混写 |
+| A2-1 / A9-1 | **论文称因果、音频 ≤15 帧（120 ms），代码实测 456 ms（57 帧）且 AudioBlock 两遍**；README 仍写 causal/实时。端到端单点扰动可波及全部更早输出（first_changed=1，过去段 max\|Δ\|=1.6e-3） | 论文 §4.2/§6.4/App E；`Falcon.py:765,801,814` `causal=False`；`02-layers-dsp.md:482`；`README.md:43` | 文档说明窗口内全窗统计依赖，并将归一化替换实验中的单遍 456 ms 标明条件，撤回 120 ms/≤15 帧；真流式另建左侧 padding 分支并重训，不与发布权重结论混写 |
 | A3-01 / A9-2 / A10-1 | **训练配方仍是 SNR + β/200**（论文 −SI-SNR + τ/1000 + 8×3090 bs4 seed42）：`Falcon.yml`、4 个 LRS2 配置、Paper_8gpu 全部一致；runbook 还写“β/200、seed 未给、论文未公开” | `configs/LRS2_2Mix_Paper_8gpu.yml:100,105,146`；`Falcon.yml:117,110`；`PHASE2_VOLCANO_LRS2_TRAINING.md:12,18,22,121` | 8 卡配置改 `pairwise_neg_sisdr` + β1000 + bs4（global 32）+ seed42；runbook 对照表逐行标注“论文/仓库/判定”；旧配置标 legacy |
 | A3-02 | RealSSA-Sim **无训练配置**，且 near.json 9169/9169 自引用 → K=0，NASS 负项恒 0、β 退火空转，与论文 Eq.8-10 不等价 | `ls configs/*.yml` 无 RealSSA；`/root/data/falcon_realssa_sim/tt/near.json` 实测全 fallback；`avspeech_dataset_near.py:190-191`；`nass_contrastive_loss.py:73-74` | 开训前按论文 App A.2 重建 near（LibriSpeech+RIR）或同 batch 他说话人近似，并新建 RealSSA 配置；短期无法重建则标注“正项-only 近似”，不用于对照 Table 3/6 |
 | A5-2 | near 审计把 fallback 哨兵计为“有 near”（打印 “Near file access OK”），实际 K=0；生成端静默写哨兵且 exit 0；唯一独立校验器 `check_avspeech_dataset.py` 仍写死 `${DATA_ROOT}` 不可运行 | `avspeech_dataset_near.py:126-132,190-191`；`generate_near_json.py:64-65,89`；`check_avspeech_dataset.py:319` | near.json 记 `{mode,sample_rate,生成命令}`；Dataset 按哨兵真计数并打印 K 分布、fallback>0 时 warn；`--strict` 模式；修好或新增 `audit_data.py` |
@@ -59,7 +61,7 @@
 | 评测 | CSV 静默 nanmeans 且无有效计数（A4-3）；丢弃 `si-snr_mix/sdr_mix` 使 SI-SNRi 不可离线复核（A4-4）；`metrics_combined.csv` 固定路径静默覆盖、shards 删除无 provenance（S4-06）；eval 工具零单测（R2-S3-123） | 增 `n_*` 列与 mix 基线列；写 `run_provenance.json`，已存在默认拒绝覆盖；补 eval 工具测试 |
 | 数据 | paper 构建非原子写、静默丢条、失败仍 exit 0（A5-4）；Dataset 三份 JSON 长度无断言（S5-04）；RealSSA 归档在世界可写挂载且派生目录无 NOTICE（A5-5） | 复用 `_atomic_json_dump` + 最小 .pt 校验；长度断言；0700 目录 + NOTICE + 交付检查 |
 | Studio/前端 | `available` 恒真、无本地 `models/` 回退（A6-4）；权重未 pin revision/hash（A6-3）；i18n 5 条 runtime 英文异常漏译（A7-03）；Space 测试被 `slow` 整模块挡住且无 CI（A7-02）；`doctor.sh` 在版本检查处中止（R2-S5-131）；项目页缺 OG/canonical/description（A7-04） | 三态权重探测 + local 回退；pin revision + sha256 校验；补 i18n 用例并接入 CI；doctor `--check-only`；补 meta |
-| 证据 | freeze tag 落后 HEAD 9 个提交（缺 ch0/ep86 证据）（A8-2）；自训 ckpt 无 sha256 且只在 `/tmp`（A8-3）；lock 无 cu128 源说明（A8-4）；入库 2 个失效 pid + 1 个 0 字节 CSV（A8-5）；phase2/README 的 P2-D/P2-E 状态行仍是 10-21（R2-S9-143） | 重打 `repro-freeze-20261030` 并 push；ckpt sha+归档；lock 顶部加两步重建命令；清理 pid/0 字节；更新状态行 |
+| 证据 | freeze tag 落后 HEAD 9 个提交（缺 ch0/ep86 证据）（A8-2）；自训 ckpt 无 sha256 且只在 `/tmp`（A8-3）；lock 无 cu128 源说明（A8-4）；入库 2 个失效 pid + 1 个 0 字节 CSV（A8-5）；phase2/README 的 P2-D/P2-E 状态行仍是 10-21（R2-S9-143） | 记录并核对 2026-10-30 证据快照；ckpt sha+归档；lock 顶部加两步重建命令；清理 pid/0 字节；更新状态行 |
 | 论文/规划 | README 用单 ckpt 宣称 paper results（A9-3）；消融缺 stage/τ/mask/overlap 配置（A9-5）；P3/P4 依赖不存在的 near 波形却计划 K≥2 β 消融（A10-5）；无 pytest/Node CI、基线 35/2、109/6、108/7 互相矛盾（A10-4） | README 标注 ckpt 训练集与跨语料；补最小消融开关；P3/P4 降级声明；加最小 CI 并统一基线 |
 
 ---
@@ -92,7 +94,7 @@
 
 ## 6. 已确认完成 / 不需要重做的（17 条 already_done 摘要）
 
-参数四口径与 MACs（537,697 / 11,724,385 / 10.611 G）；官方权重 strict 加载与 train↔Studio bit-identical；RealSSA-Sim mean 7.774/8.479 与 ch0 7.977/8.452（两通道均 ±0.3）；LRS2 官方跨语料 7.029/7.713；ep86/99/124 三份逐句 CSV；near-mode other-speaker 与 5 条逐条一致验证；CSV 空串回归修复；conda lock 去 `file://`；P0 证据 141 文件入库；upstream 439cbe9 合并与冲突解决；Studio tests 38/2、Node 8/8；git 分支收口为 main 并推送。
+参数四口径与 MACs（537,697 / 11,724,385 / 10.611 G）；官方权重 strict 加载与 train↔Studio bit-identical；RealSSA-Sim mean 7.774/8.479 与 ch0 7.977/8.452（两通道均 ±0.3）；LRS2 发布权重 7.029/7.713（训练语料待确认）；ep86/99/124 三份逐句 CSV；near-mode other-speaker 与 5 条逐条一致验证；CSV 空串回归修复；conda lock 去 `file://`；P0 证据 141 文件入库；upstream 439cbe9 合并与冲突解决；Studio tests 38/2、Node 8/8；git 分支收口为 main 并推送。
 
 ---
 

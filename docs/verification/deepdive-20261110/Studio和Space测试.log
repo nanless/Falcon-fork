@@ -1,0 +1,4 @@
+command: PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 /root/miniforge3/envs/falcon/bin/python -m pytest studio/tests space/tests/test_clip.py -q -m "not slow" -p no:cacheprovider --basetemp=/tmp/falcon_runtime_review_repeat_20261110
+........................................................................ [ 98%]
+.                                                                        [100%]
+73 passed, 2 deselected in 42.04s

@@ -1,11 +1,13 @@
 # LRS2-2Mix 论文配方训练（8 卡 / 火山引擎）Runbook
 
+> **2026-11-10 说明**：本手册介绍候选训练方案。先读[数据与训练详解](understanding/20261110-data-and-training.md)和[数据访问指南](DATA_ACCESS_GUIDE.md)；真实机器、可见 GPU、目标路径与训练授权须在启动前核对。
+
 > 目标：复现论文 LRS2-2Mix 列 **SI-SNRi 14.1 / SDRi 14.7**。
-> 背景：官方发布权重是 LRS3 训练的（`LRS3_complex_nonmoving`，epoch 714），在 LRS2-2Mix 上 7.03/7.71 属跨语料；
-> 论文表格 “under our training protocol” 按 benchmark 分别训练，需要 LRS2 专属 ckpt（已向作者提 issue：
+> 背景：历史配置名含 `LRS3_complex_nonmoving`、epoch 714，但已发布权重的完整训练谱系尚待作者或原始训练记录确认；在 LRS2-2Mix 上的 7.03/7.71 是历史评测结果；
+> 论文表格的训练和目标口径仍需与作者确认，若希望复现 LRS2 专属训练则需要相应 checkpoint（已向作者提 issue：
 > <https://github.com/JusperLee/Falcon/issues/1>）。
 > **2026-10-30 校正**：论文 arXiv:2610.32749 已公开，App D Table 16 给出训练配方（我们此前只能从 config 推断）。
-> 本 runbook 已切到 **v2 = Table 16 配方**（`configs/LRS2_2Mix_Paper_v2.yml`）；旧
+> 本 runbook 已切到 **v2：参考 Table 16 的候选配方**（`configs/LRS2_2Mix_Paper_v2.yml`）；旧
 > `configs/LRS2_2Mix_Paper_8gpu.yml`（bs5 / −SNR / τ200）保留并标记 **LEGACY**，只用于复跑旧实验。
 > 论文原文要点见 `docs/understanding/PAPER_ALIGNMENT_20261030.md` §2.1。
 
@@ -24,26 +26,28 @@
 | epochs / early stop | 1000 / patience 30 | `epochs: 1000`、`early_stop.patience: 30` | 同 |
 | seed | 42 | `training.seed: 42` → `audio_train.set_seed()` → `pl.seed_everything(seed, workers=True)`，启动日志打印 | 未设置 |
 | train_samples | 未说明（沿用） | 10,000 /epoch | 同 |
-| 数据 | LRS2-2Mix `tr` + 双向 target | 见 §2（`falcon_lrs2_2mix_paper`，40k） | 同 |
+| 数据 | 目标方向采样未明确 | 见 §2（`falcon_lrs2_2mix_paper`，40k） | 同 |
 | 视觉骨干 | FRCNN 冻结 | 从 `falcon.pt` 导出 | 同 |
 
 **v2 vs LEGACY 的三个实质差异**：① 训练损失 −SI-SNR（v2）vs −SNR（legacy）；② τ（β）退火 **1000 epoch**（v2）
 vs 200（legacy）；③ bs **4/GPU ⇒ global 32**（v2，与论文一致）vs bs5 ⇒ global 40（legacy，为凑旧推断的 10×4=40）。
 `exp_name` 已区分（`LRS2_2Mix_Paper_v2` / `LRS2_2Mix_Paper_8gpu`），**两套结果不可混用**。
 
-**双向 target（沿用旧方案，论文未说明其 target 采样）**：LRS2-2Mix 中 s1 恒为较响说话人（snr1>0），若只训练
-target=s1，模型可走“选更响”捷径。我们的数据构建对每条 mixture 生成两条样本：
+**双向 target（沿用旧方案，论文未说明其 target 采样）**：文件名中的正增益不保证 s1 的实际 RMS 恒高于 s2；[1,000 条能量抽样](verification/deepdive-20261110/能量比审查/summary.json)中有 26 条为负。仅用 s1 仍可能产生选择偏差，双向设计可供比较。我们的数据构建对每条 mixture 生成两条样本：
 `(target=s1, mouth=s1, near=s2)` 与 `(target=s2, mouth=s2, near=s1)`，训练样本 40,000 条。
 
 **near 负样本**：该数据集没有 near-field 泄漏源；用**另一说话人（干扰源）**作为 NASS 对比损失的负样本，
-这是可用的近似（论文若用 near-field 模拟，指标可能更高）。注意 K=1 时 softmax 权重恒为 1 → **τ 退火在 LRS2 上
-实际不生效**；论文的 τ 消融只能在 RealSSA-Sim（K≥2）上复现。报告中必须声明该差异。
+这是与原配方不同的近似，其指标需要通过实验测量。注意 K=1 时 softmax 权重恒为 1 → **τ 退火在 LRS2 上
+实际不生效**；只有存在至少两个有效负样本时，才可能检验权重随温度变化的效果。报告中必须声明该差异。
 
 ## 2. 数据准备（在火山引擎节点上执行）
 
-LRS2-2Mix 是公开数据（HF `JusperLee/LRS2-2Mix`，`lrs2.tar.gz` 16.47 GB）：
+LRS2-2Mix 是公开数据（HF `JusperLee/LRS2-2Mix`，`lrs2.tar.gz` 16.47 GB）。以下代码块按同一 shell 会话顺序展示；`/data` 和源码目录是示例路径，运行前替换为平台实际路径。先将 `PYTHON_BIN` 设置为平台中已配置好的 Falcon Python 解释器；以下值只适用于本开发服务器，火山引擎节点应使用其实际环境路径：
 
 ```bash
+export PYTHON_BIN=/root/miniforge3/envs/falcon/bin/python
+
+# 下面下载、解压和构建会写盘，须先检查目标目录、空间和数据使用条件。
 # 1) 下载并解压（16.5GB → 17.4GB 成员）
 #    有镜像用镜像；没有则 HF 直连/proxy
 curl -L -o lrs2.tar.gz "https://huggingface.co/datasets/JusperLee/LRS2-2Mix/resolve/main/lrs2.tar.gz"
@@ -59,9 +63,9 @@ $PYTHON_BIN tools/repro/phase2/build_lrs2_paper_data.py \
 # near 非自引用覆盖 100%），任何不符打印细节并 exit 2。
 ```
 
-**自包含数据（`--copy-wavs`，跨机迁移/火山引擎节点推荐）**：加 `--copy-wavs` 后每个 mixture 复制
+**复制音频（`--copy-wavs`）**：加 `--copy-wavs` 后每个 mixture 复制
 **5 份 wav**（mix 1 + target 2 + near 2），不再是 1 份；磁盘增量 **约 +9 GB**（旧文档的 +7 GB 已作废）。
-布局（review A5-1 修复：s1/s2 分名，避免同名文件互相覆盖/静默错配）：
+JSON 中记录的是构建时的绝对路径，因此文件集中复制并不保证换机器或换目录后索引仍可用；应在目标节点重建索引，或在隔离副本上明确改写路径并逐条验证。布局（review A5-1 修复：s1/s2 分名，避免同名文件互相覆盖/静默错配）：
 
 ```
 <out>/<split>/mix/<stem>.wav
@@ -72,29 +76,25 @@ $PYTHON_BIN tools/repro/phase2/build_lrs2_paper_data.py \
 ```
 
 即 **near 永远指向“另一说话人”**（target=s1 → near=s2；target=s2 → near=s1），K=1，near 非自引用；
-target wav 与 mouth `.pt` 的说话人一致。构建后必须过两道闸门：
+target wav 与 mouth `.pt` 的说话人一致。构建脚本末尾运行内置验证；随后可单独运行审计。不要在已有输出上再次执行构建：`--copy-wavs` 会复用已存在文件，而路径/计数检查不能证明波形身份。核对目标、嘴部和音频内容后再用于训练：
 
 ```bash
-# 闸门 1：构建脚本内置 validate_build（exit 2 = 标签/计数/覆盖不自洽，禁止拿去训练）
-$PYTHON_BIN tools/repro/phase2/build_lrs2_paper_data.py \
-  --src /data/lrs2_2mix/lrs2_rebuild --out /data/falcon_lrs2_2mix_paper \
-  --jobs 32 --copy-wavs
-
+# 构建阶段已运行 validate_build，不重复执行构建
 # 闸门 2：独立审计（要求每 split coverage=100.00%、fallback=0、exit 0）
 $PYTHON_BIN tools/repro/audit_data.py /data/falcon_lrs2_2mix_paper --full
 # 参数是位置参数 data_root；需要机器可读结果时追加 --json <path>
 ```
 
 > 我们的本地构建：`/root/data/falcon_lrs2_2mix_paper`（26GB，默认不复制音频、JSON 引用
-> `/root/data/lrs2_2mix/lrs2_rebuild` 的音频）。跨节点复现请用 `--copy-wavs`（+9GB）。
+> `/root/data/lrs2_2mix/lrs2_rebuild` 的音频）。跨节点迁移需要同时处理 JSON 绝对路径；`--copy-wavs` 会增加约 9 GB，单独使用不能保证可移植。
 
 ## 3. 环境
 
 与仓库 `AGENTS.md` §5 一致：Python 3.11、torch 2.8.0+cu128、pytorch-lightning 2.6.6、typeguard<3、timm、fast-bss-eval、
-soundfile、pypesq（pesq shim）等。**本文所有命令统一用 conda `falcon` 解释器**（禁止系统 `python3`）：
+soundfile、pypesq（pesq shim）等。**本开发服务器示例使用 conda `falcon` 解释器**；其他平台请设置该平台的实际解释器，不能照搬本机绝对路径：
 
 ```bash
-PYTHON_BIN=/root/miniforge3/envs/falcon/bin/python
+export PYTHON_BIN=/root/miniforge3/envs/falcon/bin/python
 $PYTHON_BIN -m pip install -r docs/verification/conda-env-lock.txt   # 先装好匹配 CUDA 的 torch
 # 自检
 $PYTHON_BIN -c "import torch; print(torch.__version__, torch.cuda.device_count())"   # 期望 8
@@ -104,10 +104,10 @@ $PYTHON_BIN -c "import torch; print(torch.__version__, torch.cuda.device_count()
 
 ```bash
 $PYTHON_BIN tools/repro/extract_video_backbone.py \
-  --ckpt /root/.cache/falcon_weights/falcon.pt \
-  --out  /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
+  --src /root/.cache/falcon_weights/falcon.pt \
+  --dst  /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
 ```
-（`falcon.pt` 从 HF `JusperLee/Falcon` 下载；config 里 `videonet.videonet_config.pretrain` 指向该文件。）
+（`falcon.pt` 从 HF `JusperLee/Falcon` 下载；config 里 `videonet.videonet_config.pretrain` 指向该文件。） 启动脚本缺骨干时打印的旧提示仍写 `--ckpt/--out`；工具实际只接受这里的 `--src/--dst`。
 
 ## 5. 启动训练（8 卡，v2）
 
@@ -129,7 +129,7 @@ bash tools/repro/phase2/run_lrs2_paper_volcano_8gpu.sh
 5. 后台启动 `audio_train.py --conf_dir <rendered>`，日志/PID/渲染后 conf 路径落盘
    （`LRS2-paper.log`、`LRS2-paper.pid`、`LRS2-paper.confpath`）。
 
-**先在节点上做一次不启动自检（推荐）**：
+**节点上的不启动训练自检**：仍会检查 GPU 数量、创建目录并渲染临时配置；并非无副作用。脚本按 NPROC 重设 CUDA_VISIBLE_DEVICES，须先核对调度器的设备映射。当前双卡服务器不能通过 NPROC=8 的检查：
 
 ```bash
 DRY_RUN=1 DATA_ROOT=/data/falcon_lrs2_2mix_paper NPROC=8 \
@@ -144,12 +144,12 @@ PYTHONPATH=$PWD CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 $PYTHON_BIN audio_train.py 
   --conf_dir <rendered_conf.yml>
 ```
 
-（PL 2.x 在 `gpus: -1` + 8 可见卡时自动 DDP；`training.seed: 42` 会在启动日志打印 `seed = 42`。）
+（8 卡时需核对 Lightning 实际设备和分布式策略；`training.seed: 42` 会在启动日志打印。脚本给出的 global batch 是 batch_size × NPROC，未将梯度累积计算在内。）
 
 ## 6. 监控 / 续训 / 导出
 
 ```bash
-# 监控（val SI-SNR、最佳 epoch；按 glob version_* 取最新，续训后的 version_1/2 也能读到）
+# 监控（val SI-SNR、最佳 epoch；按搜索结果的 version 数字选取；跨根目录不保证时间上最新）
 $PYTHON_BIN tools/repro/phase2/monitor_lrs2_paper.py --exp LRS2_2Mix_Paper_v2 --watch 300
 
 # 续训（中断后从 last.ckpt 恢复）——路径不存在会直接 SystemExit，不再静默从头训练
@@ -162,37 +162,35 @@ PYTHONPATH=$PWD $PYTHON_BIN audio_visual_test.py --conf_dir configs/LRS2_2Mix.ym
 ```
 
 > 注意 1：训练数据用 `falcon_lrs2_2mix_paper`（双向 target，40k 条）；**评测**仍用 `falcon_lrs2_2mix/tt`
-> （3000 条，target=s1，与 benchmark 约定一致；目标约定已由 s1/s2 对照确证）。
-> 注意 2：续训时 CSVLogger 会新建 `version_<N+1>`，monitor 已按 `version_*` 取最新；
+> （3000 条，target=s1 是本地约定；s1/s2 对照不能证明论文测试目标方向）。
+> 注意 2：续训时 CSVLogger 会新建 `version_<N+1>`，monitor 按 `version_*` 数字选择，跨实验根目录不能保证是时间上最新；
 > 若 checkpoint 根目录不在默认的 `/root/tmp/*/Experiments/checkpoint` 与 `./Experiments/checkpoint`
 > 下，用 `--root <dir>`（可重复）追加搜索根。`--ckpt_path` 缺失会被
 > `audio_train.resolve_resume_checkpoint()` 拦成 `SystemExit`（A3-04）——
 > 这是为了防止“以为在续训、实际从零训练”的长时间误跑。
 
-## 7. 时间估算（修正版，2026-10-30）
+## 7. 时间和资源估算的边界
 
-| 方案 | 每 epoch（含 cv+tt 验证） | 100 epoch | 1000 epoch（上限） | 依据 |
-|---|---|---|---|---|
-| 单卡 A800 bs4 | ≈14.7 min（2500 step + cv5000/tt3000） | **≈24.5 h** | ≈245 h（≈10 天，不可行） | P2-D 实测 metrics.csv |
-| 2 卡 A800 bs4 | ≈7–10 min | ≈12–17 h | **≈120 h**（≈5 天） | 2 卡 smoke 2.97 it/s 外推 |
-| 8 卡（v2：bs4 ⇒ global 32） | ≈2–3 min | ≈3–5 h | **≈33–50 h** | 8 卡吞吐外推 |
-
-- EarlyStopping(patience 30) 通常 150–300 epoch 收敛 ⇒ 8 卡 **约 5–15 h**，2 卡 **约 18–50 h**。
-- 结论：**只有 8 卡节点现实**；单卡 1000 epoch ≈10 天、2 卡 ≈5 天，仅适合做趋势/冒烟。
-- 旧版“8 卡 33–50 h”不变；旧版“2 卡≈1/4 吞吐”的模糊表述改为上表口径（2 卡约 120 h / 1000 ep）。
+历史记录曾依据单卡 metrics 和双卡 smoke 外推 8 卡每 epoch 2–3 分钟、1000 epoch 33–50 小时；这是历史外推；目标节点的 8 卡耗时和早停时间需要实测。磁盘、数据加载、验证、通信、GPU 型号及调度都会改变耗时。规划时先在获授权的目标节点做有界实测，记录实际吞吐与验证耗时，再决定资源。
 
 ## 8. 风险与差异声明
 
-1. **配方版本**：v2 = 论文 Table 16（−SI-SNR、τ/1000、bs4/GPU ⇒ global 32、seed 42）；LEGACY = 旧 8 卡方案
+1. **配方版本**：v2 参考论文 Table 16（−SI-SNR、τ/1000、bs4/GPU ⇒ global 32、seed 42）；LEGACY = 旧 8 卡方案
    （−SNR、τ/200、bs5/GPU ⇒ global 40）。`exp_name` 已区分（`LRS2_2Mix_Paper_v2` vs `LRS2_2Mix_Paper_8gpu`），
    **两套结果不可混用**，报告必须写明用的哪份配置。
-2. **硬件差异**：论文 8×RTX3090（24 GB），我们 8×A800（80 GB）。同 batch/同超参下数值预期等价，但 cuDNN/cuBLAS
-   实现与吞吐不同；论文未声明确定性设置。
+2. **硬件差异**：论文使用 8×RTX3090；目标环境是否有 8 卡必须实际核对。不同 GPU、分布式和数值实现可能改变结果，不能预设数值等价。
 3. **LRS2-2Mix 无 near-field 源** ⇒ 用另一说话人作 NASS 负样本（非论文原始 near 模拟）；K=1 时 softmax 权重恒为 1，
-   **τ 退火在 LRS2 上实际不生效**（论文 τ 消融只能在 RealSSA-Sim K≥2 上复现）。
-4. **target 约定**：训练双向（s1/s2），评测按 benchmark 约定 target=s1；论文未说明训练侧 target 采样方式。
+   **τ 退火在 LRS2 上实际不生效**（温度效应需至少两个有效负样本；RealSSA-Sim 发布分片未提供独立 near 波形）。
+4. **target 约定**：训练双向（s1/s2），本地评测按 target=s1；论文未说明训练侧 target 采样方式。
 5. **seed 42**：论文 §5.2 给出，但完整确定性设置（cuDNN、数据顺序、worker seed）未给；单 seed 有方差，
    正式结论建议 3 seed（42/43/44）并报告均值±std。
 6. **数据混合**：论文 LRS2 配方引用 prior work [6,17]，**未给 Falcon 自己的 LRS2 数据混合脚本**；我们的 40k
    双向 target 是推断，须在结果中声明。
 7. 若作者回复 issue 提供 LRS2 ckpt/配置，优先用官方 ckpt 评测，再用本方案对照。
+
+### 2026-11-10 补充：实际训练前需要理解的代码行为
+
+- 每 epoch `train_samples=10000` 是有放回随机抽取，40,000 个方向样本的单 epoch 期望覆盖约 22.12%；20,000 个混音至少被抽到一个方向的期望覆盖约 39.35%。不是顺序遍历完整训练集。
+- K=1 时温度权重恒为 1；小样本梯度实验与源码均表明该设置下 β 不改变结果。K=0 时仍有正项，关闭 near 不等于关闭 NASS。
+- 当前 `video_lstm_batch_first=False` 在 batch 大于 1 时存在跨样本交互；改成 True 会改变计算及权重行为，不能作为无影响的推理开关。`paper_causal=True` 存在 stride 2 过裁和 kernel 1 空输出风险，不能仅凭开关认定实现了论文时延。
+- DDP 下条件性 `all_gather` 有不同步风险，训练后多 rank 导出可能竞态；这是源码层面风险，不能当作已发生或已通过真实多卡验证。请先检查[数据与训练详解](understanding/20261110-data-and-training.md)。

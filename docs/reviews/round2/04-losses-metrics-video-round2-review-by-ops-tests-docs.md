@@ -2,14 +2,14 @@
 
 > 复核对象：`docs/understanding/04-losses-metrics-video.md` **R3 v2**（1,191 行，55 条断言，2026-10-21 落盘）。
 > **sha256（复核开始）**：`4bfb41b7d692ab0af9c6e26a1743e377c610871e8a8702b97178b58065ccbda9`
-> **sha256（复核结束复校验）**：`4bfb41b7d692ab0af9c6e26a1743e377c610871e8a8702b97178b58065ccbda9`（**未变化**；本轮未修改 04 文档与任何源码）。
+> **sha256（复核结束复校验）**：`4bfb41b7d692ab0af9c6e26a1743e377c610871e8a8702b97178b58065ccbda9`（评审前后版本一致）。
 > R2 评审：`docs/reviews/round1/04-losses-metrics-video-review-by-data-pipe.md`（P0=0 / P1=6 / P2=8 / ❓3）。
 > 本轮职责（00-round-plan R4 表）：**第二评审人（执行级验证）**。指定动作 = 用真实权重
 > `/root/.cache/falcon_weights/falcon.pt` 与 `audio_visual_test._load_models_from_ckpt` 复核 04 的“ckpt 格式可行”结论；
 > 复跑 `docs/verification/scripts/verify_*_04.py` ≥2 个；核对 MACs 10.611 G vs README 10.6 G；
 > 并逐条核对 R2 的 P1×6 / P2×8 / 3 条 ❓ 是否闭合。
 > 方法：读 04 v2 全文 + 对照源码；独立执行 5 个 04 验证脚本 + 2 个新执行级检查（§6）；核对全部被修正行号；
-> 扫描 v2 新增 §8.2-6/7、Q13、A51-A55 是否引入新错误。未修改任何源码（`git status` 仍只有 `docs/` 未跟踪）。
+> 检查 v2 新增 §8.2-6/7、Q13、A51-A55。
 
 ## 1. 结论
 
@@ -127,7 +127,7 @@ v2 的 R3 mono 复跑命令为 `PYTHONPATH=/tmp/dp-verify/stubs:... python /tmp/
 
 ## 6. 执行级验证结论（R4 要求）
 
-环境：`/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0）；`PYTHONPATH=$PWD/docs/verification/stubs:$PWD`；真实权重 `/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`；Node v22.23.3。全部命令在仓库根执行，未联网下载、未改源码。
+环境：`/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0）；`PYTHONPATH=$PWD/docs/verification/stubs:$PWD`；真实权重 `/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`；Node v22.23.3。全部命令在仓库根执行。
 
 | # | 验证 | 命令/证据 | 结果（与 04 结论对比） |
 |---|---|---|---|
@@ -162,5 +162,4 @@ v2 的 R3 mono 复跑命令为 `PYTHONPATH=/tmp/dp-verify/stubs:... python /tmp/
   sha256 开始/结束均为 `4bfb41b7d692ab0af9c6e26a1743e377c610871e8a8702b97178b58065ccbda9`（未变化）。
 - 执行活动：5 个 04 脚本（weights/macs/video/eval_flow/metrics）全部实跑成功（输出另存 `/tmp/r4-*.log`，与 04 `runs/r3-*.log` 一致）；
   另做 2 项新验证（E6 外部包 sdist 合同、E7 pickle/脚本位置检查）；读源码核对 40+ 处 `file:line`。
-- 未修改源码、04 文档或任何他人文档；`git status` 仅 `docs/` 未跟踪（本文件为新增）。
 - 结论：**建议通过（Minor 修订）**。执行级证据足以支撑 04 的核心结论（ckpt 格式可行、MACs 10.6 G、mono 条件性 P0-3、整句口径、指标 P0-2）；R5 前修 P1-1 + P2-1/P2-2/P2-3 即可。

@@ -1,0 +1,122 @@
+[
+  {
+    "path": "studio/falcon_model/PROVENANCE.md",
+    "lines": 42,
+    "sha256": "5beace055698a1240134d665582347889631e04b7b16a261fcd3f86c7e892dd3",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/__init__.py",
+    "lines": 1,
+    "sha256": "3692156372247367cae56b0fe6b9be8be55983006fe7c3f08b3acfe6fedbcf30",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/drop_path.py",
+    "lines": 16,
+    "sha256": "6cd0ed95e415598178fe68681dff4ca613ef5c86fe86ae7316291052f7be0195",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/layers/__init__.py",
+    "lines": 1,
+    "sha256": "3692156372247367cae56b0fe6b9be8be55983006fe7c3f08b3acfe6fedbcf30",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/layers/activations.py",
+    "lines": 67,
+    "sha256": "f2952eb31ed2a4382fe0bddcf36d300bd314640afe3d480cc2c8420cd3902256",
+    "status": "full_read",
+    "note": "全文阅读；与训练侧逐字节一致",
+    "compare_to": "look2hear/layers/activations.py",
+    "match": true
+  },
+  {
+    "path": "studio/falcon_model/layers/normalizations.py",
+    "lines": 245,
+    "sha256": "d3285324f421f6f5dbbbebd6db12e26347ebf4df201c6aeabbb30b32a0db3df1",
+    "status": "full_read",
+    "note": "全文阅读；另对照训练侧差异"
+  },
+  {
+    "path": "studio/falcon_model/models/Falcon.py",
+    "lines": 1554,
+    "sha256": "c1da6f5ec302c1372e369ec51f69e2c5df379e67ca499724a349df6eceb6604e",
+    "status": "full_read",
+    "note": "全文阅读；另对照训练侧差异"
+  },
+  {
+    "path": "studio/falcon_model/models/Falcon_Contrastive.py",
+    "lines": 129,
+    "sha256": "0698180abb7d04e0768c12b8aed337ba0598adf10d55c196ea3ee3524bc049c7",
+    "status": "full_read",
+    "note": "全文阅读；与训练侧逐字节一致",
+    "compare_to": "look2hear/models/Falcon_Contrastive.py",
+    "match": true
+  },
+  {
+    "path": "studio/falcon_model/models/SISNRRepel.py",
+    "lines": 1553,
+    "sha256": "a059aab2cc50db0927bb4f3f8cd814792a5d9ce9de74937a8c05fddb714c77de",
+    "status": "full_read",
+    "note": "全文阅读；另对照训练侧差异"
+  },
+  {
+    "path": "studio/falcon_model/models/Speaker_Contrastive_v2.py",
+    "lines": 147,
+    "sha256": "452bd7d46366f496b0e0e422ac39a9332ce896d7b425fc04577213794c923239",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/models/__init__.py",
+    "lines": 1,
+    "sha256": "3692156372247367cae56b0fe6b9be8be55983006fe7c3f08b3acfe6fedbcf30",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/models/base_model.py",
+    "lines": 12,
+    "sha256": "b96f2e77e8eccdd7e7f712cb1f14153ce735178f542ceda27ab549310fd68733",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/videomodels/__init__.py",
+    "lines": 1,
+    "sha256": "3692156372247367cae56b0fe6b9be8be55983006fe7c3f08b3acfe6fedbcf30",
+    "status": "full_read",
+    "note": "全文阅读"
+  },
+  {
+    "path": "studio/falcon_model/videomodels/frcnn_videomodel.py",
+    "lines": 198,
+    "sha256": "acb5e073dd584d940ff9d0ae88ef6b2502d60560d133973baae9b858447f40c6",
+    "status": "full_read",
+    "note": "全文阅读；另对照训练侧差异"
+  },
+  {
+    "path": "studio/falcon_model/videomodels/resnet.py",
+    "lines": 140,
+    "sha256": "3beafc033e900a2f1eb629e7871ba201c0be9a8c6bf866ac6f4b52fc1b2f11b9",
+    "status": "full_read",
+    "note": "全文阅读；与训练侧逐字节一致",
+    "compare_to": "look2hear/videomodels/resnet.py",
+    "match": true
+  },
+  {
+    "path": "studio/falcon_model/videomodels/shufflenetv2.py",
+    "lines": 173,
+    "sha256": "3395cd0599dbbfea1b660cc68b8742f41673b81c89a51bf706035fcc5ede891b",
+    "status": "full_read",
+    "note": "全文阅读；与训练侧逐字节一致",
+    "compare_to": "look2hear/videomodels/shufflenetv2.py",
+    "match": true
+  }
+]

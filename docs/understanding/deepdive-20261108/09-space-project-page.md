@@ -1,13 +1,15 @@
 # 09 Space / 项目页 / CI
 
+> **历史记录更正（2026-11-10）**：此文保存 11 月 8 日的代码和测试快照；现状以[当前状态](../../STATUS.md)和[评测与应用专题](../20261110-evaluation-and-apps.md)为准。§3.5 将发布权重训练来源称作 LRS3 互证，当前身份仍待作者或原始训练记录确认；该文 164/166 与 168/166 测试计数、54 与原始输出 57 文件数分别对应不同时间和计数口径。§2.2 提到 `/api/status`，因此“只有一个动态端点”只能指分离调用，不包括状态接口。
+
 > 子代理 W1-09 · 2026-11-08 · 目标仓库 `dev_a800_2gpus:/root/code/github_repos/Falcon-fork` · HEAD `6c1d5b7`（2026-10-31 06:57 +0000）
 > 范围：`space/**`、`project_page/**`、`.github/**`、`assets/`、根 `README.md` / `README_zh.md`
 > 仓库只读；唯一写入 = `/tmp/falcon-space-w109`（构建产物）+ 本报告。
 
 ## 0. 结论速览（≤15 行）
 
-1. **1 个动态端点**：`space/app.py` 用 `gr.Server`（Gradio 6 Server 模式）+ `@server.api`，只暴露 `POST /gradio_api/call/separate`；前端是手写的 Studio 静态页，静态资源挂 `/static`（`space/app.py:60,63,92,97`）。不是 Gradio Blocks，也不是纯 FastAPI。
-2. **0 行服务侧复用、字节级模型侧复用**：`studio/server.py`（FastAPI + WebSocket，419 行）没有拷进 Space，所以 Space 没有实时/WS 能力，只有「录完→整段→一次 GPU 调用」。`build.py` 直接拷 `studio/falcon_runtime.py`、`falcon_model/`、`configs/`、`web/`，`test_static.py:40-41` 断言 `falcon_runtime.py` 与 `Falcon.yml` 和 studio 版字节相同。
+1. **1 个分离端点及 1 个状态端点**：`space/app.py` 用 `gr.Server`（Gradio 6 Server 模式）+ `@server.api`，提供 `POST /gradio_api/call/separate` 与 `GET /api/status`；前端是手写的 Studio 静态页，静态资源挂 `/static`（`space/app.py:60,63,92,97`）。不是 Gradio Blocks，也不是纯 FastAPI。
+2. **0 行服务侧复用、字节级模型侧复用**：`studio/server.py`（FastAPI + WebSocket，419 行）没有拷进 Space，所以 Space 没有实时/WS 能力，采用录完上传、服务端按最多 32 窗一批推理的方式。`build.py` 直接拷 `studio/falcon_runtime.py`、`falcon_model/`、`configs/`、`web/`，`test_static.py:40-41` 断言 `falcon_runtime.py` 与 `Falcon.yml` 和 studio 版字节相同。
 3. **54 个文件 / 约 39.87 MB**：其中 `web/vendor/mediapipe` 独占 39.38 MB（98.8%），3 个 `.wasm` 合计 34.47 MB；`build.py` 0.19 s 完成，无警告。旧记 57 个文件 / 39,869,169 B 把 `falcon_model/`、`configs/`、`web/` 三个目录也计成了文件。
 4. **226 = 122 + 93 + 10 + 1**：`node space/tests/check_i18n.mjs` 报 `i18n: 226 Chinese strings translated`，与 STATUS 的 226 逐字一致；来源是 `web/app.js` 122 + `web/index.html` 93 + `clip.py` 10 + `app.py` 1。合并后总表 442 条（studio 368 + space 74），两套 checker 覆盖不相交。
 5. **3 passed in 0.15s**：`pytest space/tests/test_static.py -q` 与 STATUS 一致；`test_clip.py -m "not slow"` 20 passed / 2 deselected；`test_space.py` 在 `falcon` 环境 4 errors（缺 `gradio`/`spaces`），属预期内。
@@ -15,7 +17,7 @@
 7. **0 处落盘**：`space/app.py` / `space/clip.py` 无 `open(...w)`/`save`/`tempfile`；整帧视频不上传，只上传 96×96 嘴部裁剪。i18n 会把语言偏好写 `localStorage['falcon.language']`（`studio/web/i18n.js:7,110`）。
 8. **164 与 166 两个数**：CI 只跑 164 个 repro 测试（`-k "not diff_scope"`，`tests.yml:111-112`），STATUS 记的 166 是全量收集数。其余等价命令本地全绿：8/8 node、3 passed、20 passed/2 deselected、imports OK、lock 门槛达标。
 9. **10.611 G 与 26.51 G**：README 的 537,697 / 11,724,385（11.72 M）/ 10.611 G 全部复现。10.611 G 是 ptflops 音频侧、含 LSTM、不含视觉；视觉 88² 输入 15.897 GMAC，整窗合计 **26.51 GMAC、视觉 60.0%**（W2-11 §2.4）。Big 总参 12,345,305、音频 MACs 24.202 G。
-10. **1 条命令必坏**：`evaluated_mac_params.py:48,77-78` 硬编码 `.cuda()`，README:193 却把它列在无 GPU 前提的命令块里 → 无卡机器直接 `RuntimeError: No CUDA GPUs are available`（实测）。
+10. **历史 CPU 命令失败**：`evaluated_mac_params.py:48,77-78` 硬编码 `.cuda()`，README:193 却把它列在无 GPU 前提的命令块里 → 无卡机器直接 `RuntimeError: No CUDA GPUs are available`（实测）。
 11. **0 个 Space/Studio 入口**：项目页（817 行，内联 JS 111 行，`node --check` 通过）与 README 主表数字同源，但既没有 Space/Studio 链接，也没有 README:45 的 lookahead 更正注记。
 12. **1 个零引用资产**：`assets/logo-source.png`（463 KB，1254²）零引用；`project_page/figures/*.pdf.png` 与 `assets/*.png` 同名不同源（尺寸/哈希都不同）。
 13. **4 个 ERROR 而不是 skip**：`pytest space/tests`（space/README.md:59 的命令）在 `falcon` 环境 3.69 s 全红——`test_space.py:19` 只打了 `slow` 标记，没有「缺 gradio 就 skip」的保护。
@@ -82,7 +84,7 @@ web/                     38M      ← studio/web（build.py:33）后被 space/we
 - `app.py:10` **第一行** `import spaces`（注释：必须早于 torch，ZeroGPU 要求）；`app.py:18-23` 再 import gradio / fastapi / `clip` / `falcon_runtime`。
 - `app.py:60` `server = gr.Server(docs_url=None, redoc_url=None, openapi_url=None)` — 关掉 OpenAPI 文档面。
 - 路由表：`POST /gradio_api/call/separate`（`app.py:63-80` 的 `@server.api(name="separate")`，由 gradio 生成），`GET /api/status`（`:83-89`），`GET /`（`:92-94`），`mount /static`（`:97`）。
-- **静态 vs 动态界线**：页面、JS、wasm、模型权重文件全是静态文件；唯一动态端点是 `separate`。`index.html:57` `<script type="module" src="/static/app.js">`。
+- **静态 vs 动态界线**：页面、JS、wasm、模型权重文件全是静态文件；动态端点包括 `separate` 和状态接口。`index.html:57` `<script type="module" src="/static/app.js">`。
 - **安全头**：`app.py:104-128` 自定义 ASGI 中间件，逐响应改写 `cache-control`（`/static/vendor/` 才给 86400，其余 `no-cache`，`:118`），加 `nosniff`/`no-referrer`/`permissions-policy: camera=(self), microphone=(self)`/CSP。CSP 见 `app.py:99-101`：`script-src 'self' 'wasm-unsafe-eval'`（放行 wasm 编译）、`worker-src 'self' blob:`、`frame-ancestors 'self' https://huggingface.co`（**与 Studio 唯一的实质差异**：`studio/server.py:269` 是 `frame-ancestors 'none'`，且 `connect-src` 多放行 `ws://127.0.0.1:*`）。
 - `app.py:130-133` 本地 `server.launch(...)`：`ssr_mode=False`、`mcp_server=False`、`run_history=False`、`footer_links=[]`——即关掉 gradio 6 的服务端渲染/聊天历史/MCP，伺候纯手写前端。
 
@@ -256,8 +258,8 @@ CSP 兼容性核对：wasm 编译需 `'wasm-unsafe-eval'` ✓（`app.py:99`）�
 | 8 | 视觉编码器冻结、11.2 M（`:125`） | ✓ 11,186,688 | 实测 |
 | 9 | 每次加载会 HEAD `config.yaml` 计入下载量，`HF_HUB_DISABLE_TELEMETRY=1` 可关（`:127`） | ✓ `falcon_runtime.py:39-40,100-113`（后台线程、best-effort） | — |
 | 10 | 权重只含 `audio_model.*`/`video_model.*`（`:129`） | 未复核（属模型轮范围） | GAP |
-| 11 | `falcon.pt` 来自 `LRS3_complex_nonmoving`、epoch 714（`:232`） | ✓ 仓库内多处互证：`P2F-report.md:36`、`Experiments/checkpoint/Falcon/conf.yml:99-102`、`STATUS:23` | 但**不在** `checkpoints/` 里有可执行证据链 → GAP |
-| 12 | 跨语料 LRS2 7.03/7.71、RealSSA-Sim 7.774/8.479（`:232`） | ✓ 与 `STATUS:35,38` 一致。7.03 是 LRS3 训练权重在 LRS2 上的跨语料基线，不是论文 14.1 的复现；RealSSA-Sim 的 7.774 用 channel mean、SDRi 分母 9,166（W1-07 §3.4） | — |
+| 11 | `falcon.pt` 来自 `LRS3_complex_nonmoving`、epoch 714（`:232`） | 配置快照指向 LRS3，发布权重与该次训练的身份关系尚未确认 | 但**不在** `checkpoints/` 里有可执行证据链 → GAP |
+| 12 | 跨语料 LRS2 7.03/7.71、RealSSA-Sim 7.774/8.479（`:232`） | ✓ 与 `STATUS:35,38` 一致。7.03 是训练来源未知的发布权重在 LRS2 上的基线，不是论文 14.1 的复现；RealSSA-Sim 的 7.774 用 channel mean、SDRi 分母 9,166（W1-07 §3.4） | — |
 | 13 | RealSSA-Sim 100,826/9,133/9,169、240 shards（`:84,87`） | ✓ `DATA_ACCESS_GUIDE.md:227,226` | — |
 | 14 | RealSSA-Real 54 段/40 录音/10 spk/8 场景/83.99 min、original view 34 录音（`:85`） | ✓ `DATA_ACCESS_GUIDE.md:282` | — |
 | 15 | 效率表 91.9% / 20.2× / 11.1×（`:61`） | ✓ 算术自洽：1−0.5/6.2=91.9%；213.8/10.6=20.2；567.8/51.3=11.07 | 同行表格 |
@@ -384,7 +386,7 @@ project_page inline JS: syntax OK   (111 行)
 7. **`build.py` 用 `delete_patterns="*"` 上传**（`build.py:53`）：Space 侧任何手工热修都会被下次 push 抹掉；同时 `--push` 不校验 front matter 的 `sdk_version` 与 `requirements.txt` 是否自洽。
 8. **设备判定只靠一个环境变量**：`SPACES_ZERO_GPU`（`app.py:27`）不在 `∈{1,true}` 里就落到 CPU，而 `@spaces.GPU` 装饰器照样生效 → 表现为“GPU 申请到了但推理慢 100 倍”，日志里只有 `device:"cpu"`（`app.py:79`）。GAP：该变量名是否由 HF 运行时真实注入，无法离线证实。
 9. **`pytest space/tests` 在仓库默认环境是红的**（§4.6），而 `space/README.md:59` 正是这么写的；按依赖拆开跑才对：`test_static.py`（py+node）/ `test_clip.py -m "not slow"`（falcon 环境）/ `test_space.py`（Space 依赖）。
-10. **`evaluated_mac_params.py` 写死 `.cuda()`**（`:48`），README:193 却把它和纯 CPU 命令并列 → 新人第一条命令就炸（§4.9）。
+10. **历史 `evaluated_mac_params.py` 写死 `.cuda()`**（`:48`），README:193 却把它和纯 CPU 命令并列 → 新人第一条命令就炸（§4.9）。
 11. **项目页的 Live demo 是临时隧道**（`:298` `u464727-dmja-7896a455.bjb3.seetacloud.com:8443`），README:21 也链它；这类域名通常随实例回收而过期，是外审最容易点名的死链风险。
 12. **项目页对外说 “Causal”，却缺 README 的自我更正**：`index.html:12,18,314,392,422` 只用“causal / causal constraints”，而 README:45 写“实测 lookahead 57 帧≈456 ms，不是论文的 120 ms”。那 120 ms 是**论文声明**（视觉 3 帧前瞻），代码实测三档为：单遍几何 57 帧/456 ms、整链几何 113 帧/904 ms、as-shipped 因 30 处 `cLNhw` 依赖到窗尾（2 s 窗时 ≤2000 ms，W2-12）。公开页面比仓库文档更“硬”。
 13. **项目页不链 Space，也不链 Studio**：只有 Paper/Code/🤗 Models/Live demo（`:295-298`）。README:22-23 链了 Space 和 studio/README，两边入口不对齐。

@@ -1,11 +1,10 @@
 # 00 · 项目全景图（Lead 初版，v0，待各子系统文档校正）
 
-> 本文件是 Lead 在 R1 前的快速侦察结论，作为全员导航。**请把它当作假设而非事实**：
-> 各子系统 owner 在 R1 文档中要核实/纠正本文件中与你负责区域相关的内容，并在 R2 评审中提出修订。
+> 本文件记录 R1 前对 `7576854` 的初步项目地图。后续代码核查与实测见[当前状态](../STATUS.md)、[模型与窗口专题](20261110-model-and-streaming.md)、[数据与训练专题](20261110-data-and-training.md)及[评测与应用专题](20261110-evaluation-and-apps.md)。
 
 ## 1. 一句话
 
-Falcon = 因果（causal）音视频目标说话人提取（AVTSE）模型 + 完整训练/评测工程 + 可实时运行的浏览器 Demo（Falcon Studio）。
+Falcon 是音视频目标说话人提取（AVTSE）模型，仓库包括训练评测工程与浏览器应用 Falcon Studio。原模型存在窗口范围的归一化统计依赖，窗口与因果性分析见[模型专题](20261110-model-and-streaming.md)。
 论文 NeurIPS 2026，仓库含两条相互独立但共享模型定义的产品线。
 
 ## 2. 两条产品线与目录归属
@@ -93,7 +92,7 @@ LRS2/LRS3/VoxCeleb2 数据（tr/cv/tt：mix/*.wav + target/*.wav + mouth 帧）
 
 ```
 audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml [--ckpt_path hf://JusperLee/Falcon/falcon.pt]
-  → _find_best_ckpt → _load_models_from_ckpt → process_worker（单/多卡）→ DataLoader(test_dir)
+  → process_worker（单/多卡）→ 数据集逐条读取 → _find_best_ckpt → _load_models_from_ckpt
   → 前向 → SI-SDR/SDR（metrics/wrapper 等）→ Experiments/checkpoint/Falcon/results/metrics_combined.csv
 ```
 
@@ -143,6 +142,5 @@ audio_visual_test.py --conf_dir Experiments/checkpoint/Falcon/conf.yml [--ckpt_p
 
 ## 8. 环境限制（影响“完全理解”的验证边界）
 
-- 无 torch 的系统 Python；无真实权重、无 `pretrain_zoo/`、无 LRS2/LRS3 数据 → **端到端训练/评测不可复现**，
-  只能做“代码级 + 可运行的最小验证（JS 单测 / AST / 参数量与前向形状用外部 3.10+torch 环境）”。
+- 侦察阶段尚未取得真实权重和数据；后续真实权重、LRS2-2Mix 与 RealSSA 的记录见[复现状态](../STATUS.md)。
 - 结论中必须诚实区分 `[代码] / [推断] / [验证]`。

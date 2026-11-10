@@ -1,9 +1,11 @@
 # 08 验证资产 / 环境 / 运维（深挖版）
 
+> **2026-11-10 校正：** 本页描述的是旧工作区证据状态；后续已有日志、逐句 CSV 和 full4 记录，full3 已因窗口错误作废。下文“无 CI”、缺失结果、锁文件路径及测试数量都是当时快照；当前依据见[验证记录入口](../../verification/README.md)和[复现状态](../../STATUS.md)。历史操作建议记录了当时的工作流程。
+
 > 组员：`verify-ops` · 任务：共享任务 `task-8` · 分支 `repro/phase2`（HEAD `2beec38`，1 个未提交改动）· 2026-10-24
 > 环境：**只用** `/root/miniforge3/envs/falcon/bin/python`（conda `falcon`，Python 3.11.17，torch 2.8.0+cu128，2×A800）
 > 范围：`docs/verification/**`（scripts / runs / phase1 / phase2 的报告·日志·JSON·CSV）、`AGENTS.md`、`conda-env-lock.txt|yml`、
-> `tools/repro/tests`、`.github/**`、git 状态与历史。只读分析；唯一写入 = 本文件。
+> `tools/repro/tests`、`.github/**`、git 状态与历史。
 > 证据标记：`[代码]` 直接读源码/文件；`[验证]` 本轮实际运行命令确认；`[推断]` 由证据推断；`[文档]` 仅文档转述。
 > 参考旧文档：`docs/understanding/08-ops-tests-docs.md`（768 行，R3 v2，分析对象 commit `7576854`）。
 
@@ -124,7 +126,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 （torch/torchaudio/torchvision/pytorch-lightning + 14 个 nvidia-* CUDA 库）。在**新机器**上直接
 `pip install -r conda-env-lock.txt` 会因 `/root/wheelhouse` 不存在而失败；`conda-env.yml` 的 pip 段虽写
 `torch==2.8.0+cu128`，但该本地版本不在 PyPI，仍需先加 `--index-url https://download.pytorch.org/whl/cu128`。
-即：**lock 文件只是"本机快照"，不是可移植锁**；`AGENTS.md §5` 只提示"需先装好 torch cu128 轮子"，
+该 lock 文件记录的是**本机环境快照**；`AGENTS.md §5` 只提示"需先装好 torch cu128 轮子"，
 未提示 18 个 `file://` 绝对路径与 `pypesq` shim 缺失。`[代码+验证]`
 
 ---
@@ -137,8 +139,8 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 | # | 结论 / 数字 | 一手证据（文件:行） | 证据类型 | 本轮复算 |
 |---|---|---|---|---|
 | N1 | **RealSSA-Sim 全量 9169 条：SI-SNRi 7.774 / SDRi 8.479**（论文 7.7/8.2） | `Experiments/checkpoint/Falcon/results/metrics_combined.csv:9171`（avg 行：`sdr 10.644734 / sdr_i 8.479395 / si-snr 9.980200 / si-snr_i 7.774307`）；`/root/tmp/realssa_sim_eval_official.log`（`Final metrics ... exit=0`） | 本机实测 | ✅ avg=逐句均值；SDR 类 n=9166（3 条空值），SI-SNR 类 n=9169；去掉 3 个 0 值后 si-snr_i=7.7769（+0.003，不影响结论） |
-| N2 | **RealSSA-Real DNSMOS（54/54 段）：SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285**；mix 基线 2.4176/1.7908/1.7599/2.6765 | `docs/verification/phase2/P2E-realssa-real-full3.log`（`N=54 SIG=3.2209 ... exit=0`，且逐段 54 行）；`/root/data/falcon_eval/realssa_real_mean_full3/summary.json`（`segments_ok: 54`） | 本机实测 | ✅ 日志均值与 summary.json 一致；前两次尝试 `P2E-realssa-real-full{,2}.log` 以 `exit=1` 失败，最终数字来自第 3 次 |
-| N3 | **LRS2-2Mix 官方权重全量 3000：SI-SNRi 7.029 / SDRi 7.713**（跨语料） | `/root/tmp/lrs2_eval_tt_full.log`（`Final metrics si-snr_i 7.029101 / sdr_i 7.712925`）；`docs/REPRODUCTION_PHASE1_REPORT.md` §3.5 | 本机实测 | ⚠️ 数字可对日志，但**对应 CSV 已被 N1 的 RealSSA 评测覆盖**（同路径 `Experiments/checkpoint/Falcon/results/metrics_combined.csv`） |
+| N2 | **RealSSA-Real DNSMOS 历史 full3（54/54 段，窗口起点错误，已作废）：SIG 3.2209 / BAK 3.6921 / OVRL 2.7901 / P808 3.3285**；mix 基线 2.4176/1.7908/1.7599/2.6765 | `docs/verification/phase2/P2E-realssa-real-full3.log`（`N=54 SIG=3.2209 ... exit=0`，且逐段 54 行）；`/root/data/falcon_eval/realssa_real_mean_full3/summary.json`（`segments_ok: 54`） | 本机实测 | 日志均值与 summary.json 一致；full3 后经检查因窗口起点错误作废。前两次尝试 `P2E-realssa-real-full{,2}.log` 以 `exit=1` 失败，最终数字来自第 3 次 |
+| N3 | **LRS2-2Mix 官方权重全量 3000：SI-SNRi 7.029 / SDRi 7.713**（发布权重训练语料待确认） | `/root/tmp/lrs2_eval_tt_full.log`（`Final metrics si-snr_i 7.029101 / sdr_i 7.712925`）；`docs/REPRODUCTION_PHASE1_REPORT.md` §3.5 | 本机实测 | ⚠️ 数字可对日志，但**对应 CSV 已被 N1 的 RealSSA 评测覆盖**（同路径 `Experiments/checkpoint/Falcon/results/metrics_combined.csv`） |
 | N4 | **LRS2-2Mix 300 条子集：small 6.916 / 7.492**（P2-D eval 文件即此） | `docs/verification/phase2/P2D-eval-falcon.pt.csv:302`（avg `sdr_i 7.491614 / si-snr_i 6.916240`）；`P2B-summary-b300.json` 同值 | 本机实测（已入库） | ✅ 注意：**`P2D-eval-falcon.pt.csv` 支撑的是 6.916/7.492（300 条），不是 7.03/7.71（3000 条）**——任务书里"7.03/7.71 = §3.5 + 该 CSV"的对应关系需修正 |
 | N5 | **自训 LRS2（无 near，ep86）：SI-SNRi 8.618 / SDRi 9.042** | `/root/tmp/p2d_eval_epoch86_full.log`（`Final metrics 8.617919 / 9.041506`，3000 条，`exit=0`） | 本机实测 | ⚠️ 对应 CSV 已被 N6 覆盖，仅存日志（且日志在仓库外） |
 | N6 | **contrastive 微调（ep124）：SI-SNRi 8.858 / SDRi 9.270**（PESQ 2.576 / STOI 0.943） | `Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv:3002`（avg `8.858191910560924 / 9.269574165939565`）；`/root/tmp/p2d_eval_contrastive_epoch124.log` | 本机实测 | ✅ 日志 final 与 CSV avg 完全一致；3000 条、整句（limit=all） |
@@ -178,7 +180,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 | P2-A 14 变体 ≤0.34 dB | `P2A-small-200.json`、`P2A-anchor-first20.json`（均入库）+ 脚本 `gap_analysis.py` | 本机实测 | **L1** | ✅ 足够（需 LRS2 eval 数据，见 R8） |
 | P2-B small/big/窗口化/视觉消融 | `P2B-b300-*.csv`、`P2B-summary-b300*.json`（均入库） | 本机实测 | **L1** | ✅ 足够（同上需数据） |
 | RealSSA-Sim 7.774/8.479（9169 条） | CSV 在 `Experiments/…/metrics_combined.csv`（**gitignore**）、日志 `/root/tmp/…`（**仓库外**） | 本机实测 | **L2** | ❌ 不足：repo 内只有报告数字；复跑需 40.1 GB tt 原始 shard（本机在 `/root/data/RealSSA-Sim/tt`）或从 TOS 冷端恢复 |
-| RealSSA-Real DNSMOS 3.3285 等 | `P2E-realssa-real-full3.log`（**未入库**）、`/root/data/falcon_eval/…/summary.json`（**仓库外**） | 本机实测 | **L2** | ❌ 不足：报告表格无入库一手件；复跑需 RealSSA-Real 数据（本机 `/root/data/RealSSA-Real` 仍在） |
+| RealSSA-Real 历史 full3 DNSMOS 3.3285 等（已作废） | `P2E-realssa-real-full3.log`（**未入库**）、`/root/data/falcon_eval/…/summary.json`（**仓库外**） | 本机实测 | **L2** | ❌ 不足：报告表格无入库一手件；复跑需 RealSSA-Real 数据（本机 `/root/data/RealSSA-Real` 仍在） |
 | 官方权重 LRS2 全量 7.03/7.71 | Phase-1 报告 §3.5 + `/root/tmp/lrs2_eval_tt_full.log`（**仓库外**）；原 CSV **已被覆盖** | 本机实测 | **L2（偏弱）** | ❌ 不足：无逐句 CSV，仅报告与一条仓库外日志 |
 | 自训 8.618/9.042（ep86） | `/root/tmp/p2d_eval_epoch86_full.log`（**仓库外**）；CSV 已被覆盖 | 本机实测 | **L2（偏弱）** | ❌ 不足 |
 | contrastive 8.858/9.270（ep124） | `Experiments/checkpoint/LRS2_2Mix/results/metrics_combined.csv`（**gitignore**）+ `/root/tmp/…` 日志 | 本机实测 | **L2** | ❌ 不足（但 CSV 仍在磁盘，可人工取出） |
@@ -253,7 +255,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
   N1 与论文 7.7/8.2 的"+0.07/+0.28"接近就**可能是协议差异抵消后的巧合**，不能直接写成"复现论文主结果"。
 - 建议：报告必须声明"整段（非流式）协议"，并补一个窗口化对照（同一 9169 条、2 s 窗/0.5 s hop）后才能说"同协议复现"。
 - 另：RealSSA-Real 的 DNSMOS 因整段 OOM 改用了"Studio 等价 2 s 窗/0.5 s hop"（`REPRODUCTION_PHASE2_REPORT.md §5.1`），
-  与 Sim 的协议又不同；P808 3.3285 vs 论文 3.276（+0.05）的对比同样缺"论文口径"证据。
+  与 Sim 的协议又不同；历史 full3 因窗口起点错误作废；论文采用 P.835，full4 结果见页首链接。
 
 ### R5（P1，状态过期）**"训练进行中/GPU 被外部占用"已不成立**
 
@@ -264,7 +266,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 - 报告 §4.1/§6.2 的"训练继续中""GPU0 55.6 GB 被外部占用、无法双卡"均为历史状态；现在若要补跑双卡/8 卡实验，
   资源已具备（但仍只有 2 卡）。
 
-### R6（P1，环境可重建性）lock 不可移植 + pypesq shim 不在锁文件
+### R6（P1，环境重建）lock 文件与 pypesq shim
 
 - 18 个 `@ file:///root/wheelhouse/...whl`（torch/PL/14 个 nvidia-*）；`pypesq.py` shim 在 site-packages、lock 里只有 `pesq==0.0.4`。
 - `requirements.txt`（根）**无 `huggingface_hub`**（`grep -ci hugging = 0`）→ 按 README 装训练环境后 `hf://` 评测命令失败（旧文档 D3 仍成立）。
@@ -303,7 +305,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 - `docs/verification/phase2/P2B-full-big-whole-real.csv` = 0 字节但已入库（报告 §6 已说明"可忽略"）。
 - `P2D-train.pid`（stale）已入库；`*.pid` 后来才加进 `.gitignore`（现 40 行，旧文档记 35 行）。
 - `.gitignore` 现新增 `Experiments/checkpoint/LRS2_*/`、`Experiments/checkpoint/Falcon/results/`、`*.pid`——
-  这解释了为什么 8.858 与 7.774 的 CSV 不入库，但**也意味着这两个核心结论永远不会有逐句证据进仓库**。
+  这解释了为什么 8.858 与 7.774 的 CSV 不入库，但**也意味着当时的默认忽略规则使这两个结果的逐句证据未被跟踪；后续已另行保全**。
 
 ### R11（P2，口径/归属）本机 vs 火山引擎 vs 外部
 
@@ -318,7 +320,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 
 - RealSSA-Sim/Real 为 CC BY-NC-ND/研究授权，**不可转发**；派生转换物（`/root/data/falcon_realssa_sim`）同样受限。
 - 因此"把数据/CSV 放进仓库"本身不可行——这解释了 R1/R2 的一部分，但**不能解释日志不入库**（日志不含数据本体）。
-  报告应把"证据不可入库"与"许可限制"分开陈述，避免用许可为缺失日志开脱。
+  报告分别说明数据许可、日志和摘要的保存状态。
 
 ---
 
@@ -365,9 +367,8 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
    全量证据目前只有 `/root/tmp/lrs2_eval_tt_full.log`（未入库）。
 7. **声明 8 卡/火山引擎"未执行"**：§5.3 标题加"（方案，未执行）"，并写明"本报告所有实测均在本机 2×A800"。
 8. **补"证据保全"承诺**：后续评测必须用唯一输出目录（避免 R2 覆盖），并把最终 metrics 段另存 `*.txt`（可入库）。
-9. **提交未提交内容**：§5.4（当前工作区唯一未提交改动）应 commit；`origin/repro/phase2` 落后 2 个提交
-   （`29e19c7`、`2beec38`），虽然 `origin/main` 已含这两个提交，但分支 ref 应同步。
-10. **明确"不可入库"与"未入库"的区别**：RealSSA 数据受 CC BY-NC-ND 不可分发（合理），但**日志/摘要 JSON 不受此限**，
+9. **历史工作区状态**：当时 §5.4 尚未提交，`origin/repro/phase2` 相对 HEAD 落后两个提交；这是 2026-10-24 的记录。
+10. **明确"不可入库"与"未入库"的区别**：RealSSA 数据受 CC BY-NC-ND 不可分发（合理），但日志和摘要 JSON 需分别检查是否含受限内容，
     不应以许可为由让日志缺失（R12）。
 
 ---
@@ -381,8 +382,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 - **Q3** RealSSA-Real 423 vs 422 文件差在哪一个文件？是否 HF 仓库在 Phase 1 之后新增/改动了文件？
 - **Q4** `metrics_combined.csv` 的 3 条空 SDR 是否应记为 `-inf`/`nan` 而非空串？评测脚本（`ALLMetricsTracker`）的
   CSV 写出逻辑对 nan 的处理未定义，导致回归测试崩溃——是否需要修 `audio_visual_test.py` 或测试？
-- **Q5** 训练完成后 best ckpt 是 ep99（val 13.201），但评测用了 ep86（val 13.118）。为何不评 ep99/best_model？
-  8.858 与"ep99 评测"的差是否会改变"contrastive +0.24 dB"的结论？
+- **Q5** ep99 后续补测为 8.726/9.122；ep86 与 ep124 同时改变训练时长和损失设置，差值不能单独归因于对比损失。
 - **Q6** `/root/.cache/falcon_weights` 改为 symlink 到 group-shared 后，若该挂载掉线，多少测试/脚本会失败？
   是否需要把权重复制回本地（47 MB + 49 MB + 90 MB，代价很小）？
 - **Q7** 8 卡/火山引擎方案是否有任何后续执行计划？当前本机 GPU 已空，双卡复跑 paper 配方（`LRS2_2Mix_Paper_2gpu_smoke.yml`）
@@ -432,9 +432,7 @@ $ wc -l docs/verification/conda-env-lock.txt docs/verification/conda-env.yml
 | V34 | 读旧文档 `08-ops-tests-docs.md`（768 行） | 完成 §5 的 18 条逐条对照（确认 8 / 修正 5 / 部分 3 / 推翻 1 / 新增 1） |
 | V35 | `grep -rln "火山\|volcano\|8gpu" docs/verification/` | 0 命中 → 火山/8 卡无任何执行证据 |
 
-> 说明：本轮**未**修改任何源码/配置/他人文档，未 `pip install`，未联网，未启动训练/下载，未做 git 写操作；
-> 唯一写入是本文件（`docs/understanding/deepdive-20261024/08-verification-ops-env.md`）。
-> 对 521 GB 的 TOS 目录只做 `os.walk` 元数据统计（未 `du` 全量内容），单条命令均 <5 min。
+> 521 GB 的 TOS 目录采用 `os.walk` 统计元数据；单条命令耗时均小于 5 分钟。
 
 ## 8. 2026-10-24 执行更新（P0 收口，Lead 复核）
 

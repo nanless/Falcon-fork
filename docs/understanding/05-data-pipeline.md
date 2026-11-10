@@ -1,9 +1,10 @@
 # 05 · 数据管线（datas / DataPreProcess / transform / JSON 索引）
 
+> **历史专题更正（2026-11-10）**：本文以旧版代码和当时实验为锚点，现状阅读[数据与训练专题](20261110-data-and-training.md)及[当前状态](../STATUS.md)。§3.6 的“90°随机增广”为笔误：该训练管线使用随机裁剪和水平翻转，不含 90° 旋转。无近场负样本（K=0）时，NASS 损失的负项为零，但正样本项仍存在；本文个别“对比损失不生效”的笼统表述应按此理解。
+
 > 负责人：`data-pipe`（R1 初版，R3 修订）。范围：`look2hear/datas/{avspeech_dataset.py, avspeech_dataset_near.py, check_avspeech_dataset.py, transform.py, __init__.py}`、`DataPreProcess/{process_lrs23.py, generate_near_json.py}`、README 数据准备章节。
 > 约定：`[代码]`=源码直接确认；`[推断]`=由源码/文档合理推断；`[验证]`=实际运行确认（命令与日志见 §8）。行号以 `main@7576854` 为准。
-> 版本锚定：R1 初版 `f1c90fa3…`（777 行）→ R2-prep/评审锚点 `fde1ed6a…`（797 行）→ 评审后补 dtype 说明 `dcd32572…`（799 行）→ **R3 修订版（本文件，900 行）**。R3 定稿 sha256 记录在 `docs/verification/runs/data_pipe/05-data-pipeline-r3.sha256`（由复核人 `sha256sum` 复核）；评审锚点见 `docs/reviews/round1/05-data-pipeline-review-by-train-sys.md`；本版在 §9.1 逐条响应评审意见。
-> 本文件之外未修改任何源码。
+> 版本锚定：R1 初版 `f1c90fa3…`（777 行）→ R2-prep/评审锚点 `fde1ed6a…`（797 行）→ 评审后补 dtype 说明 `dcd32572…`（799 行）→ **R3 修订版（本文件，900 行）**。当时的 R3 定稿 sha256 记录在 `docs/verification/runs/data_pipe/05-data-pipeline-r3.sha256`（由复核人 `sha256sum` 复核）；评审锚点见 `docs/reviews/round1/05-data-pipeline-review-by-train-sys.md`；本版在 §9.1 逐条响应评审意见。
 
 ---
 
@@ -63,14 +64,14 @@ $DATA/{tr,cv,tt}/
 
 ### 1.3 对 `00-project-map.md` 假设的校正
 
-- 宏观链路（project map §4.1）方向正确：`tr/cv/tt → JSON → AVSpeechDataModuleWithNear(segment=2.0, 16kHz) → NASSv2`。但 **mouth 张量不是 `[B,F,T,96,96]`**：实际为 `[B,50,88,88]`（96×96 存储帧在 Dataset 中裁剪为 88×88），见 §5.4。`[代码]`+`[验证]`
+- 宏观链路（project map §4.1）方向正确：`tr/cv/tt → JSON → AVSpeechDataModuleWithNear(segment=2.0, 16kHz) → NASSv2`。但 **mouth 张量不是 `[B,F,T,96,96]`**：实际为 `[B,50,88,88]`（示例中的 96×96 存储帧在 Dataset 中裁剪为 88×88），见 §5.4。`[代码]`+`[验证]`
 - project map 说 “near.json（对比学习负样本索引）” 正确；但 **“分桶”不在 Dataset 内**，而在 Lightning 模块里仅用于日志分组（`min(K,4)`），不影响采样。`[代码]`（av_litmodule_nass_v2.py:19,113-118）
 - project map §3 的 `datas/` 行数正确（327/337/347/187）；但 **`datas/__init__.py` 只导出旧模块**，当前训练/评测都用完整路径 import near 模块。`[代码]`
 - 数据准备只需**一个**脚本即可产出三份 JSON（`process_lrs23.py` 已内嵌 near 生成）；README 却列出两条命令，第二条是幂等冗余。`[代码]`+`[验证]`
 
 ### 1.4 关键结论（R3 升格）：`_meta.json` 是 NASS 对比损失的必要输入，而 README 流程不生成它
 
-**结论（本文档最重要的可复现性发现）**：按 `README.md:148-158` 的数据准备流程复现时，**每个训练样本的近场负样本数 K=0**，NASS 说话人对比损失退化为**只有正项**（负项恒 0）、MDCL 日志/损失恒 0、验证指标全部分进 `0near` 桶——即论文贡献之一的“近场干扰人负样本对比学习”在不报错的情况下**静默失效**。`[代码]`+[验证]
+**结论（本文档最重要的可复现性发现）**：按 `README.md:148-158` 的数据准备流程且没有外部 `_meta.json` 时，**每个训练样本的近场负样本数 K=0**，NASS 说话人对比损失退化为**只有正项**（负项恒 0）、MDCL 日志/损失恒 0、验证指标全部分进 `0near` 桶——即论文贡献之一的“近场干扰人负样本对比学习”在不报错的情况下**静默失效**。`[代码]`+[验证]
 
 完整证据链（每一环均已核对源码，并由 §8.2 的 fixture 实测支撑）：
 
@@ -81,7 +82,7 @@ $DATA/{tr,cv,tt}/
 5. MDCL 分支同样 `if n_near == 0: continue` → `mdcl_total` 恒 0（`av_litmodule_mdcl.py:114-126`）。
 6. 验证侧：`n_near` 也来自 meta（`avspeech_dataset.py:201-211`）→ 全为 0 → 所有样本只进 `val_pit_sisnr_0near`（`av_litmodule.py:161-169`）。
 
-→ 影响：**用本仓库 + README 数据流程训练，NASS 对比损失实际不生效**，train/val 日志中的 `train_spk_contrast_loss`、`*_near` 分桶指标会给出误导性的“正常”数值。该资产需要由 RealSSA/数据生成端提供（仓库未开源）；见 Q3/Q6（R3 已把“文档层后果”结案，仅剩“原始训练数据是否另有 meta 生成器”需数据侧确认）。
+→ 影响：**未提供外部 `_meta.json` 的数据流程会使 NASS 对比损失的负样本项为零，正样本项仍保留**，train/val 日志中的 `train_spk_contrast_loss`、`*_near` 分桶指标会给出误导性的“正常”数值。该资产需要由 RealSSA/数据生成端提供（仓库未开源）；见 Q3/Q6（R3 已把“文档层后果”结案，仅剩“原始训练数据是否另有 meta 生成器”需数据侧确认）。
 
 ---
 
@@ -374,7 +375,7 @@ audio_visual_test.py:231      est_sources = model(mix[None], mouth_emb)
 | 3. 读 mix/target | `sf.read(..., start, stop, dtype="float32")`（near.py:160-165） | 整段（:182-187） |
 | 4. 通道归约 | `ndim>1 → mean(-1)`，mono 保持 1-D（near.py:176-177） | `mean(-1)` **无守卫**（:193-194） |
 | 5. 嘴部帧窗口 | `mouth_start=int(rand_start/16000*25)`；切片 `[mouth_start:mouth_start+50]`（near.py:168-174） | 整段帧（:189-191） |
-| 6. 嘴部预处理 | `permute(0,3,1,2)`→Grayscale→squeeze→numpy→**train** 管线（90°随机增广） | 同样→**val** 管线（中心裁剪，无增广） |
+| 6. 嘴部预处理 | `permute(0,3,1,2)`→Grayscale→squeeze→numpy→**train** 管线（随机裁剪与水平翻转） | 同样→**val** 管线（中心裁剪，无增广） |
 | 7. 归一化 | 可选，`normalize_audio`（默认 false）（near.py:179-182） | 可选，同函数（:196-199） |
 | 8. 近场负样本 | 读 `near[mix_index]`（near.py:184-220） | 只数 `_meta.json` 里 near 数量（:201-210） |
 | 9. 返回 | `(mix[32000], src[32000], mouth[50,88,88], basename, near_list)` | `(mix[T], src[T], mouth[F,88,88], basename, n_near)` |
@@ -416,7 +417,7 @@ _meta.json(外部) --type=="near"--> near.json 内层列表
 ## 4. 关键实现细节与设计动机
 
 ### 4.1 为什么是 2.0 s / 32000 点 / 50 帧
-`segment=2.0`（configs/Falcon.yml:162）→ `seg_len=32000`、`fps_len=50`；与论文/Studio 的 2 s 窗口、16 kHz、25 fps、50 帧完全一致（studio/falcon_runtime.py:24-27）。训练随机取 2 s 段，是为了让模型只见过“窗口内”分布，与流式推理窗口匹配；评测则整句推理。`[代码]`+`[推断]`
+`segment=2.0`（configs/Falcon.yml:162）→ `seg_len=32000`、`fps_len=50`；与 Studio 的 2 s 窗口、16 kHz、25 fps、50 帧一致；论文评测窗口尚待确认（studio/falcon_runtime.py:24-27）。训练随机取 2 s 段，是为了让模型只见过“窗口内”分布，与流式推理窗口匹配；评测则整句推理。`[代码]`+`[推断]`
 
 ### 4.2 “伪 epoch”：`__getitem__` 忽略 idx + `__len__=train_samples`
 `AVSpeechTrainDatasetWithNear.__getitem__` 内部重新 `random.randint` 选样本（near.py:154），`__len__` 返回 `samples`（train_samples，默认 10000，:147-150）。于是：
@@ -453,7 +454,7 @@ NASS 风格同空间说话人对比：query=分离出的目标嵌入（带梯度
 | P1-3 | `train_samples` 不在 YAML 中，默认 10000 决定 epoch 大小；README 无说明 | `avspeech_dataset_near.py:147-150,250`；configs/Falcon.yml:156-168 | 复现者以为 epoch=数据集大小 |
 | P1-4 | 嘴部 `.pt` 帧数不足/超过音频时长时无校验：短 → collate `RuntimeError`；长 → 静默截断到 50 帧 | `avspeech_dataset_near.py:168-174`；实测 H3 | 数据抽取参数不一致时训练中断 |
 | P1-5 | `mouth_start`/fps 硬编码 `16000`/`25`，与 `sample_rate` 参数脱钩；改采样率即错位 | `avspeech_dataset_near.py:168`；`avspeech_dataset.py:108`；实测 H4 | 配置自由度陷阱 |
-| **P1-6（R3 升格为主结论，见 §1.4）** | `_meta.json` 缺失不是“可选边角”：按 README 数据流程无任何脚本生成它 → near.json 全部 fallback → Dataset 静默跳过哨兵 → **K=0** → NASS 负项恒 0（只剩正项）、MDCL 恒 0、val 分桶全进 `0near`；且 `samples_with_near` 统计把 fallback 计入，日志“7/7 samples have near-speaker entries”具有误导性 | `process_lrs23.py:69-71`；`generate_near_json.py:62-65`；`avspeech_dataset_near.py:188-191,130-132`；`av_litmodule_nass_v2.py:115-122`；`nass_contrastive_loss.py:73-74`；实测 G3 | 论文贡献之一静默失效（训练不报错、日志看似正常） |
+| **P1-6（R3 升格为主结论，见 §1.4）** | `_meta.json` 缺失不是“可选边角”：README 数据流程无脚本生成它；若输入未另行提供 meta → near.json 全部 fallback → Dataset 静默跳过哨兵 → **K=0** → NASS 负项恒 0（只剩正项）、MDCL 恒 0、val 分桶全进 `0near`；且 `samples_with_near` 统计把 fallback 计入，日志“7/7 samples have near-speaker entries”具有误导性 | `process_lrs23.py:69-71`；`generate_near_json.py:62-65`；`avspeech_dataset_near.py:188-191,130-132`；`av_litmodule_nass_v2.py:115-122`；`nass_contrastive_loss.py:73-74`；实测 G3 | 论文贡献之一静默失效（训练不报错、日志看似正常） |
 | P1-7 | **near 源 wav 采样率未纳入契约**：near.json 只存 `[path, frames]`（不存 sample_rate），Dataset 直接按 16 kHz 解释 frames/seg_len 并 `sf.read(start,stop)`，**不做重采样、不校验**；若 near wav 是 48 kHz，帧数比较与时间轴都会错位（有效片段只有 1/3） | `process_lrs23.py:61-67`；`generate_near_json.py:54-60`；`avspeech_dataset_near.py:193,198-203` | 近场负样本内容错位（弱标签），且无告警 |
 | P2-1 | 空 split 目录：JSON 写 `[]` 后统计 `min([])` 抛错，脚本非 0 退出 | `generate_near_json.py:73-78`；实测 #10 | 空集场景不可用 |
 | P2-2 | `check_avspeech_dataset.py` 是不可运行的旧拷贝（写死 `${DATA_ROOT}`，与主实现漂移），且无 CI 引用 | :312-347,317；实测 #17 | 易误导、不可复用 |
@@ -481,7 +482,7 @@ NASS 风格同空间说话人对比：query=分离出的目标嵌入（带梯度
 | `<split>/mix/<stem>.wav` | ✅ | 16 kHz wav（通道数见 Q1） | 混合音频；长度 ≥ 2 s 才会参与训练（评测不过滤） |
 | `<split>/target/<stem>.wav` | ✅ | 16 kHz wav，与 mix 同 stem | 目标 clean 音频 |
 | `<split>/mouths/<stem>.pt` | ✅ | torch tensor，4-D channel-last（`[T,96,96,C]`，**C=3 最可信**；C=1 的可用性依赖真实 torchvision，未验证，见 P1-2） | 25 fps 嘴部帧；仓库内**不生产**；存储 dtype 决定输出 dtype（§5.4） |
-| `<split>/mix/<stem>_meta.json` | **✅（NASS 对比学习/val 分桶必需）** | `{"components":[{"type":..., "path":...}, ...]}` | 仓库**不生成**；缺失 → near.json 全 fallback → K=0 → 对比损失静默失效（§1.4/Q6） |
+| `<split>/mix/<stem>_meta.json` | **✅（NASS 对比学习/val 分桶必需）** | `{"components":[{"type":..., "path":...}, ...]}` | 仓库**不生成**；缺失 → near.json 全 fallback → K=0 → 负样本项为零、正样本项保留（§1.4/Q6） |
 | near 源 wav（由 meta 指定） | 可选（必需 meta 时配套） | **16 kHz wav**（Dataset 不重采样，只按 16 kHz 解释 frames），建议与 mix 等长 | <2 s 的会被 Dataset 跳过；采样率错误会错位（P1-7） |
 
 ### 5.2 JSON schema 契约（形式化）
@@ -604,7 +605,7 @@ YAML 键（`configs/Falcon.yml:156-168`，共 12 个）逐个核对（[验证]�
 | 采样率 | 16000 Hz（配置与 backbone/Studio 一致） | configs/Falcon.yml:161；studio/falcon_runtime.py:24 |
 | 视频帧率 | 25 fps；每帧 640 采样点（40 ms） | near.py:78,168；studio/falcon_runtime.py:25 |
 | 训练段长 | 2.0 s = 32000 采样点 = 50 帧 | near.py:77-78；[验证] C3 |
-| 存储嘴部帧 | 96×96（README:132 推断）；Dataset 裁剪到 88×88 | near.py:169-174；transform.py:147-169 |
+| 存储嘴部帧 | README:132 的推理示例为 96×96；Dataset 裁剪到 88×88，训练源帧尺寸待确认 | near.py:169-174；transform.py:147-169 |
 | 音频 dtype | `float32`（`sf.read(dtype="float32")`） | near.py:160-165 |
 | 嘴部 dtype | **条件化**：`.pt` float32 存储 → numpy/tensor float32；uint8 存储 → float64；下游 `.float()`/`type_as` 统一 f32 | near.py:169-174；§5.4；[验证] D3 + §8.7 |
 | near 源 wav 采样率 | **必须 16 kHz**（Dataset 不重采样；near.json 只存 frames，按 16 kHz 解释；代码不校验） | `avspeech_dataset_near.py:193,198-203`；`generate_near_json.py:54-60` |
@@ -617,7 +618,7 @@ YAML 键（`configs/Falcon.yml:156-168`，共 12 个）逐个核对（[验证]�
 |---|---|---|
 | `tr/cv/tt`，各含 `mix/`、`target/` wav（16 kHz）与目标说话人嘴部裁剪（README:148） | 实际还需要 `<split>/mouths/<stem>.pt`（4-D channel-last）；**README 未提目录名/格式，也未提 `_meta.json`** | ❌ 文档缺口（P2-3/P2-14，且 meta 缺失已升格 P1-6） |
 | 先 `process_lrs23.py` 再 `generate_near_json.py`（README:154-155） | `process_lrs23.py` 已内嵌生成 near.json（:96-105）；第二条命令只做幂等重写 | ⚠ 冗余步骤（P2-3） |
-| `near.json` 索引近场干扰人，作为说话人对比损失负样本（README:158） | 语义正确；但“near”由外部 `_meta.json` 定义，far-field 被排除；**README 流程不生成 meta → 全 fallback → 负样本实际为空** | ❌ 按 README 复现时对比损失静默失效（§1.4/P1-6） |
+| `near.json` 索引近场干扰人，作为说话人对比损失负样本（README:158） | 语义正确；但“near”由外部 `_meta.json` 定义，far-field 被排除；**README 流程不生成 meta → 全 fallback → 负样本实际为空** | ❌ 无外部 meta 时负样本项为零，正样本项保留（§1.4/P1-6） |
 | 编辑 config 的 3 个 dir，脚本不展开环境变量（README:158） | `process_*` 不做变量展开；`audio_visual_test.py` 直接 `yaml.safe_load`（无 expandvars）；`parser_utils.py` 中也无展开逻辑 | ✅ |
 | 评测从 `conf.yml` 读数据路径（README:174） | 正确；但 `Experiments/checkpoint/Falcon/conf.yml:100` 是 `${DATA_ROOT}` 占位符，必须手工改 | ✅（README 已提示编辑） |
 | 推理 `mouth.npy` 为 `(T,96,96)` 25 fps“与训练数据相同格式”（README:132） | Studio 预处理与训练 val 管线**逐元素一致**（[验证]）；但训练 `.pt` 是 4-D channel-last，而推理是 3-D uint8 | ⚠ 表述不完全一致（J5/Q8） |
@@ -733,7 +734,7 @@ YAML 键（`configs/Falcon.yml:156-168`，共 12 个）逐个核对（[验证]�
 
 - 解释器：`/root/.venvs/falcon/bin/python`（Python 3.10.18，torch 2.8.0+cu128，numpy 2.2.6，soundfile 0.13.1，pandas 2.3.3，tqdm 4.67.1，pyyaml，pytorch_lightning 2.6.6；**缺 torchvision/cv2/matplotlib**）。
 - 仓库 `docs/verification/stubs/` 只有 `timm`/`typeguard` 两个 stub（见 `docs/understanding/VERIFY-ENV.md:17-34`），不足以 import `look2hear/datas/*`（需要 `torchvision.transforms`、`cv2`、`matplotlib`）。
-- 因此**新建了 /tmp/dp-verify/stubs/**（不写入仓库、不修改源码）：
+- 因此**新建了 /tmp/dp-verify/stubs/**：
   - `torchvision/transforms.py`：`Grayscale`（按 torchvision `rgb_to_grayscale` 的 ITU-R 601-2 亮度权重实现，支持 `(...,C,H,W)`）、`Compose/Normalize/RandomCrop/CenterCrop`；
   - `cv2.py`：`cvtColor`/`flip` 最小实现（数据路径实际只用 `Grayscale`，`RgbToGray` 不被调用）；
   - `matplotlib`：空壳 + `axes/figure/colors/pyplot`（仅为满足 `avspeech_dataset.py:15` 的 import 及 torchmetrics 的探测）。
@@ -802,12 +803,12 @@ YAML 键（`configs/Falcon.yml:156-168`，共 12 个）逐个核对（[验证]�
 
 ### 8.5 未能验证 / 验证边界
 
-- **没有真实 LRS2/LRS3/RealSSA 数据、没有 `_meta.json` 样例、没有真实训练 mouth `.pt` 资产**：`.pt` 的准确通道数/帧率/抽取方式/存储 dtype 仍是**从 `permute(0,3,1,2)` 与 README 反推**（Q2）。**A18 的“1 通道 .pt 可用”仅在自写 torchvision stub 下成立（其 `Grayscale` 显式 `if img.shape[-3]==1: return img`）**，真实 torchvision 行为未验证 → R3/R3.1 已把该断言降级为 **[代码]+[推断]**（§6 A18 置信度列已同步），3 通道→1 通道路径最可信。
+- **本轮使用合成数据；真实训练 mouth `.pt` 资产与 `_meta.json` 样例尚待核对**：`.pt` 的准确通道数/帧率/抽取方式/存储 dtype 仍是**从 `permute(0,3,1,2)` 与 README 反推**（Q2）。**A18 的“1 通道 .pt 可用”仅在自写 torchvision stub 下成立（其 `Grayscale` 显式 `if img.shape[-3]==1: return img`）**，真实 torchvision 行为未验证 → R3/R3.1 已把该断言降级为 **[代码]+[推断]**（§6 A18 置信度列已同步），3 通道→1 通道路径最可信。
 - **真实权重已可用（R3 新增）**：`/root/.cache/falcon_weights/falcon.pt`（47 MB）与 `falcon-big.pt` 已落盘（非本仓库资产）；本轮用它完成了**加载 + 整句评测前向形状**验证（§8.7），但**仍未做端到端训练/完整评测**（缺数据与指标依赖）。
 - **未用真实 `num_workers=8 + persistent_workers=true`**：本轮用 `num_workers=0, persistent_workers=False`（否则 torch 直接报 `persistent_workers option needs num_workers > 0`）。config 组合本身合法（config:165-167），但多 worker 行为（尤其 near 列表序列化/warnings）未测（Q10）。
 - **评测入口未真正运行完整流程**：`audio_visual_test.py` 依赖 `pystoi/pypesq/ptflops` 等与完整数据目录；本轮复刻其数据构造 7 行（J1-J3）+ 用真实权重跑逐条前向（§8.7），未跑 CSV/metrics 全流程。
 - **`Normalize(0.0,255.0)` 的 dtype 细节**：实测 numpy 2.2 下 uint8→float64、float32→float32；旧版 numpy 的标量提升规则不同，但 numpy≥1.20 下结论一致（[推断]）。
-- **未修改任何源码**；验证脚本/日志已按 VERIFY-ENV §4 补交到仓库（P2-9）：`docs/verification/scripts/data_pipe/`、`docs/verification/runs/data_pipe/`、`docs/verification/stubs/data_pipe/`（原 `/tmp/dp-verify/` 保留）。
+- 验证脚本/日志已按 VERIFY-ENV §4 补交到仓库（P2-9）：`docs/verification/scripts/data_pipe/`、`docs/verification/runs/data_pipe/`、`docs/verification/stubs/data_pipe/`（原 `/tmp/dp-verify/` 保留）。
 
 ### 8.6 R2-prep 补充验证：mono-eval P0 复现 + 评测入口数据路径契约（2026-10-21）
 
@@ -854,7 +855,7 @@ state_dict size : 662  (audio_model.*: 525, video_model.*: 137, 其他: 0)
 | `seg2s` | 32000 | 50 | `mix(32000,) f32`、`mouth(50,88,88) float64` | `audio (1,112,251,129) ← video (1,512,50)` | `est (1,1,32000) f32`，`len==T`，finite |
 | `odd` | 48513 | 75 | `mix(48513,) f32`、`mouth(75,88,88) float64` | `audio (1,112,380,129) ← video (1,512,75)` | `est (1,1,48513) f32`，`len==T`，finite |
 
-→ 结论：**真实权重下，评测整句语义成立**：T 任意、F 任意；视频帧在 `NeuroSCNetFusion` 内被 nearest 插值到音频时间步（`Falcon.py:257-258`），解码器 `istft(length=input_shape[-1])` 精确还原输入长度（`Falcon.py:1166,1182-1188`）；`T'/F ≈ 380/75 ≈ 5.07`（≈640/128 个音频步/视频帧）。同时实测 uint8 `.pt` → Dataset mouth **float64**（下游 `.float()` 转 f32），坐实 §5.4 的 dtype 条件化结论。
+→ 结论：**真实权重下，两个所测长度的整句前向均成立**；视频帧在 `NeuroSCNetFusion` 内被 nearest 插值到音频时间步（`Falcon.py:257-258`），解码器 `istft(length=input_shape[-1])` 精确还原输入长度（`Falcon.py:1166,1182-1188`）；`T'/F ≈ 380/75 ≈ 5.07`（≈640/128 个音频步/视频帧）。同时实测 uint8 `.pt` → Dataset mouth **float64**（下游 `.float()` 转 f32），坐实 §5.4 的 dtype 条件化结论。
 
 ---
 

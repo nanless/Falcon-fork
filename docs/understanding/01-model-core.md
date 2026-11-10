@@ -1,9 +1,11 @@
 # 01 核心模型架构（Falcon 音视频目标说话人提取网络）
 
+> **2026-11-10 后续复核：这是 commit `7576854` 的历史分析，行号对应当时源码。** 默认 VideoBlock 实际将批次轴送入 LSTM 的序列维，旧文的“沿视频帧递归”对应预期的时间轴；现行 `Separator` 已深拷贝配置，旧的重复构造污染实验不再代表该实现；裸 `Falcon` 已提供 `_mdcl_loss` 别名，FRCNN 的 `train()` 已返回 `self`。严格与窗口因果、单输入等价及探针数字的实验条件见[当前模型说明](20261110-model-and-streaming.md)与[复现状态](../STATUS.md)。
+
 > 状态：R1 初版 2026-10-21 → **R3 修订版 2026-10-21**（逐条响应 R2 `layers-dsp` + R4 `studio-backend` 两份评审，见 §9.1）。
 > owner：`model-core` · 证据基线：commit `7576854` · 真实权重：`/root/.cache/falcon_weights/{falcon.pt,falcon-big.pt}`（sha256 见 §8.4）。
 > 证据标注：`[代码]` 直接读源码；`[验证]` 本机动态运行（脚本/日志见 §8）；`[推断]` 合理推断但未被代码直接证明。
-> 行号均为当前 `main` 上的实际行号；跨文件证据给多条。
+> 行号对应 commit `7576854`；跨文件内容列出相应来源。
 > **因果性统一措辞：窗口级因果（window-causal）**（定义见 §4.6-⑦，与 02 §4.2、06 §4.1/§5.5 一致）；R3 版 sha256 因文档自指不可内嵌，记录于 `docs/verification/model-core.md` 与汇报。
 
 ---
@@ -180,12 +182,12 @@
 
 ### 2.3 `VideoBlock`（`Falcon.py:898-974`，42,850 参数）
 
-**职责**：把冻结 FRCNN 的帧级 512 维特征做时间建模（单向 LSTM）并压到 32 维再还原 512 维，供融合层使用。
+**职责**：处理冻结 FRCNN 的帧级 512 维特征：先压到 32 维，再经单向 LSTM 和投影还原到 512 维，供融合层使用。默认实现将批次轴解释为 LSTM 序列轴，详见[当前模型说明](20261110-model-and-streaming.md#4-默认-videoblock-的批次维问题)。
 **结构**：`gateway`（dwconv512 k1 + PReLU，1,025）→ `projection`（512→32 k1 + BatchNorm1d(32) + PReLU，16,481）→
 `nn.LSTM(32,32,bidirectional=False)`（8,448）→ `residual_conv`（32→512 k1，16,896）→ `+ residual`（`Falcon.py:931-972`）。
 **形状**：输入 `mouth_embedding [B,512,50]`（`frameworks: studio/falcon_runtime.py:24-27,157`；[验证] FRCNN 输出 `(1,512,50)`），
 输出 `[B,512,50]`；LSTM 前 `transpose(1,2)` 成 `[B,50,32]`（`Falcon.py:968-970`）。
-**因果性**：单向 LSTM ⇒ eval 下时间严格因果（[验证] 前缀 Δ=0）；但 `BatchNorm1d` 在 **train 模式**用批内（含未来帧）统计 ⇒
+**时间依赖**：默认 LSTM 沿批次轴递归，单条样本的视频帧之间没有预期的时间递归。[验证] eval 前缀 Δ=0；`BatchNorm1d` 在 **train 模式**用批内（含未来帧）统计 ⇒
 训练期非因果（[验证] train 前缀 Δ=4.4e-2）。`layers`/`num_heads`/`head_dim`/`expand_v`/`use_*` 形参**全部未使用**（`Falcon.py:907-917,926-929`），
 配置里的 `video_params.layers.layer_1`（n_head=8, norm=cLN, dropout=0.1）是**死配置**。
 
@@ -605,7 +607,7 @@ eval 为 0（§8-[P]）。Studio 的 `OutputSlicer` 保留 **80 ms 右上下文*
 | FRCNNVideoModel（冻结） | ResNet18 trunk + frontend3D | 11,186,688 |
 | **总计（参数总量）** | 537,697 + 11,186,688 | **11,724,385** |
 
-**与论文/README 口径的差异（诚实说明）**：
+**与论文及 README 的参数口径**：
 - README `README.md:34`/`README.md:206` 写 "**0.5 M** trainable"，实测 **537,697 = 0.538 M**；四舍五入到 1 位有效数字即 0.5，属陈述性取整 `[推断]`。
   若把**仅训练期使用**的对比头 `spk_pool_proj`（14,584）排除，则为 **523,113 = 0.523 M**（更接近 0.5）。
 - README `README.md:100` 写 "Total params 11.72 M"，实测 **11,724,385 = 11.72 M** ✓（10,000 份一致）。
@@ -877,11 +879,11 @@ PYTHONPATH=$PY /root/.venvs/falcon/bin/python docs/verification/scripts/model_co
 | 改后半段音频，前缀仍有 ~1e-4~1e-3 泄漏（cLNhw 全局统计） | 2.97e-4 | 1.13e-4（0–0.5 s 段；0–0.12 s 仅 5.1e-7） | 同量级 ✓ |
 | `_mdcl_loss` 缺失 → AttributeError | ✓ | ✓（裸 `Falcon`；子类被 `**kwargs` 吞掉，见 §4.9-②） | ✓ 且补充了子类行为 |
 
-### 8.3 失败/作废记录（诚实标注）
+### 8.3 失败和作废记录
 
 1. **`model_core_verify2.py` 在 [I] 崩溃**：`FRCNNVideoModel(pretrain=None).eval()` 返回 `None`——
    因为 `frcnn_videomodel.py:90-96` 的 `train(self, mode=True)` 重写没有 `return self`，而 `nn.Module.eval()` 实现是
-   `return self.train(False)`。这不是我的脚本 bug，而是**真实代码缺陷**（04 域）；改成分语句调用后验证通过。
+   `return self.train(False)`。当时的实现存在这一缺陷；改成分语句调用后验证通过。
 2. **`model_core_verify2.py` 的 [H] 作废**：`lookahead()` 把"输出索引"与"输入分界"放在不同单位空间相减（如 16000 样本 vs 251 帧），
    得到无意义的负数；已在 `verify4-[O]` 用统一单位重做。
 3. **`model_core_verify4.py` 的 [Q] 作废**：两次构造共享同一份嵌套 config dict，第一次 `Separator` 的 `pop` 污染了第二次，

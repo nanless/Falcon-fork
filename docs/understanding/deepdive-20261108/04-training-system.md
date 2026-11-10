@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 本文为历史运行与代码快照：near s2 已按混音比例缩放；40,000 个方向条目的约 22% 与按 20,000 个唯一混音计算的约 39.35% 使用不同分母。冒烟阶段观察到负项恒激活；margin 在后续训练中的行为与真实多卡运行还需分别观察。条件化集合通信风险与未用参数是两个独立问题。详见[数据与评测专题](../20261110-data-and-training.md)和[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 # 04 训练系统与配置（audio_train.py / litmodules / configs / 论文 Table 16 对齐）
 
 > 子代理 `w1-train-system`（共享任务 `task-4`）· 2026-11-08 · 仓库 `/root/code/github_repos/Falcon-fork`
@@ -29,7 +31,7 @@
 6. **global batch**：v2 + 8 卡 = 4×8×1 = **32** ✓ 对齐论文；但派生的 `_2gpu` 用 accum 5 → **40**
    （`run_lrs2_paper_2gpu_smoke.sh:2` 自称「与论文对齐」是错的，要 32 得 accum 4）；本机 2 卡跑 v2 只有 8。
 7. **epoch 语义**：`train_samples=10000` = 「10000 个随机 2 s 窗口」，池子 40000 → 1 epoch 只覆盖
-   ≈22% 的唯一 mix；而**验证每 epoch 跑满 cv 10000 条（bs=1）**，FLOPs 与训练同量级（§5-P1-γ）。
+   约 22.12% 的方向条目；按 20000 个唯一 mix 计算期望覆盖约 39.35%；而**验证每 epoch 跑满 cv 10000 条（bs=1）**，FLOPs 与训练同量级（§5-P1-γ）。
 8. **实测正确性**：`ReduceLROnPlateau` 收到的是**当 epoch** 的 val_loss（实测 `[36.90, 34.83]`），
    与 Lightning 组合**没有滞后坑**；`optimizer.step()` 计数 4/4 与 `accumulate_grad_batches=2` 相符。
 9. **坑**：`config_to_hparams` 把 list 转 `torch.Tensor` → 真实 `hparams.yaml` 含 5 处 `!!python` 标签，
@@ -259,7 +261,7 @@ threshold=1e-4, cooldown=0, min_lr=0)`（其余取 torch 默认）。
 | 组件 | 位置 | 语义 |
 |---|---|---|
 | `PITLossWrapper(loss_func, pit_from="pw_mtx", threshold_byloss=…)` | `pit_wrapper.py:152-324` | 先算 `[B,n_src,n_src]` 成对矩阵（`:171`），再 `find_best_perm`（`:205`），`threshold_byloss=True` 时**丢掉 loss<-30 的样本**（`:227-230`），最后 `mean` |
-| `n_src=1` 的后果 | — | 排列只有 1 种 → PIT **退化为普通 SI-SNR 均值**，PIT 机制在这里是空壳 |
+| `n_src=1` 的后果 | — | 排列只有 1 种 → PIT 排列退化为恒等，底层可配置为 −SNR 或 −SI-SNR，PIT 机制在这里是空壳 |
 | `PairwiseNegSDR("sisdr")` | `matrix.py:188-235`，别名 `:372` | `e_noise = s_est − proj`（投影残差）→ 真 SI-SDR；`zero_mean=True`；**无上/下界** |
 | `PairwiseNegSDR("snr")` | 别名 `:374` | `e_noise = s_est − s_target` → 尺度敏感的 −SNR |
 | `NASSContrastiveLoss` | `nass_contrastive_loss.py:18-81` | `L = α₊(1−cos(q,p)) + α₋·Σ_k q_β(k)·relu(cos(q,n_k)−m)`；`K==1` 时 `l_neg = α₋·relu(sim−m)`（**无 β**）；**K==0 时仍保留 `l_pos`**（`:73-77` `n_valid` 无条件 +1）→ 实测 K=0 且随机初始化时 `cl=0.5369`（≠0） |
@@ -425,7 +427,7 @@ for bucket, name in _bucket_names.items():
 | τ 之后固定 1 | 1 | 需 epoch≥1000 才到 1.0，而 `epochs:1000`（epoch∈[0,999]）→ 最大 β=0.999 | ⚠️ 差 1 个 epoch | `nass_v2:69` `min(epoch/1000,1)`；`v2.yml:137` |
 | 硬件 8×RTX3090 | 8×3090 | 只有 2×A800；`gpus:-1` 在 2 卡机上 → 2 卡 | ❌ **无法表达**（硬件不可得） | §1 环境 |
 | batch 4/GPU、global 32 | 4×8=32 | `batch_size:4` + `gpus:-1` + `accum:1`；真 8 卡 → 32 | ✅ 配方正确；本机只有 8 | `v2.yml:165,135,144` |
-| epoch 语义 | 未披露 | 1 epoch = 10000 个**随机 2 s 窗口**（池 40000，覆盖≈22%） | ❓ **无法对齐**（论文未给 epoch 定义） | `avspeech_dataset_near.py:147-157`；§1.3 |
+| epoch 语义 | 未披露 | 1 epoch = 10000 个**随机 2 s 窗口**（池 40000，方向条目期望覆盖≈22%；唯一混音期望覆盖≈39.35%） | ❓ **无法对齐**（论文未给 epoch 定义） | `avspeech_dataset_near.py:147-157`；§1.3 |
 | seed 42 | 42 | `training.seed: 42` → `pl.seed_everything(42, workers=True)` | ✅ | `v2.yml:145`；`audio_train.py:265` |
 | AdamW lr 1e-3 / wd 0.01 | — | ✅ | ✅ | `v2.yml:147-149` |
 | ReduceLROnPlateau(15, 0.5) | — | ✅（factor 0.5 / patience 15） | ✅ | `v2.yml:151-154` |
@@ -600,7 +602,7 @@ accum>1 时高估 5 倍；② 顺手暴露 `_2gpu.yml` 其实是 **legacy 配方
 **对梯度零影响**。论文 Table 16 的 τ 调度在 LRS2-2Mix 上不可复现；只有在 RealSSA-Sim（near 1–5 个）才可能有意义。
 → 任何"我们复现了 τ 调度"的表述都不成立。
 
-**P0-β｜margin 0.5 语义失效**
+**P0-β｜冒烟运行中的 margin 激活情况**
 实测 `cos_sim_neg_avg≈0.95–0.98`、`neg_active_ratio=1.0`（§4.5）→ `relu(sim−0.5)` 恒正，
 负项等价于 `α₋·(cos(q,n)−0.5)`，margin 完全没有"门槛"作用，只是给 loss 加了一个常数偏移。
 真正控制排斥强度的是 `loss_weight=1.0` 与 embedding 的几何。
@@ -618,7 +620,7 @@ bs=1 时这两次**完全等价**（多余 1 倍 loss 计算 + 1 倍显存驻留
 
 **P1-γ｜`train_samples` 决定的 epoch ≠ 遍历数据集**
 `__len__` 返回 `samples`（`:147-150`），`__getitem__` **忽略 idx** 用 `random.randint` 取随机 mix 与随机起点
-（`:154-156`）→ 1 epoch = 10000 次有放回随机抽样；池子 40000 ⇒ 期望唯一 mix ≈ 40000(1−e^{−0.25}) ≈ **8844（22%）**。
+（`:154-156`）→ 1 epoch = 10000 次有放回随机抽样；池子 40000 ⇒ 期望唯一方向条目约 8848（22.12%）；折合 20000 个唯一 mix 时，期望覆盖约 39.35%。
 ⇒ `epochs:1000` 总曝光 ≈ 10⁷ 窗口，但**没有"第 N 轮看完全部数据"的语义**；`patience=15`（epoch 级）
 实际等价于"15×10⁴ 个窗口没进步"。分布式下 `idx` 被忽略还意味着 DistributedSampler 的分片**只控数量不控内容**。
 
@@ -635,7 +637,7 @@ bs=1 时这两次**完全等价**（多余 1 倍 loss 计算 + 1 倍显存驻留
 写成 `{"scheduler": ...}` 就崩。
 
 **P1-ζ｜DDP 条件化 `all_gather`**
-见 §2.6。补充：这也是 `find_unused_parameters=True` 需要保留的原因（§4.2 的 15 个 grad=None 张量）；
+见 §2.6。补充：另有独立的未使用参数问题：§4.2 记录了 15 个 grad=None 张量，
 把它"优化"掉，多卡会在第一次 backward 报 unused-parameter 错误。
 
 **P2-α｜`Falcon.yml` 是"能解析不能跑"的模板**
@@ -652,7 +654,7 @@ global batch 从 40 变 8 而**训练不会失败**。同理 `gpus: -1` 的"8 �
 DDP 子进程 re-exec 时也会跑一遍。无功能问题，但在"多 rank 同时 import"时是多余的 CUDA 上下文触碰。
 
 **P2-δ｜`PIT` 在 `n_src=1` 时是空壳**
-`pit_wrapper.py:205` 对 1 个源做"最优排列" = 恒等 → `PITLossWrapper` 实际就是 `mean(-SI-SDR)`。
+`pit_wrapper.py:205` 对 1 个源做"最优排列" = 恒等 → `PITLossWrapper` 对单源直接聚合所配置的 −SNR 或 −SI-SNR。
 配置里写 `PITLossWrapper` 会让人误以为做了 2 源排列。
 
 ---

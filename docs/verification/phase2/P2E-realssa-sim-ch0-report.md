@@ -2,8 +2,6 @@
 
 > 任务：`task-13`（P1 通道敏感性，owner `model-core`）· 日期 2026-10-24
 > 环境：conda `falcon`（`/root/miniforge3/envs/falcon/bin/python`，Python 3.11.17，torch 2.8.0+cu128）
-> 约束遵守：未 git commit、未改源码/他人文档、未联网、未下载数据、未 kill 任何进程；写作用域仅
-> `docs/verification/phase2/P2E-realssa-sim-ch0-*`；未写入/覆盖 `/root/data/falcon_realssa_sim`（mean 版）。
 > 关联：`tools/repro/realssa_to_falcon.py`、`docs/verification/phase2/P2E-report.md`、`docs/REPRODUCTION_PHASE2_REPORT.md`。
 
 ---
@@ -18,7 +16,7 @@
 | 与 mean 基线（SI-SNRi 7.774 / SDRi 8.479）的 Δ | ✅ 已计算（见 §5） | SI-SNRi **+0.202**、SDRi **−0.027** dB |
 | 产物落盘 | ✅ 转换日志 + 评测日志 + 逐句 CSV + 本报告 | `P2E-realssa-sim-ch0-*` |
 
-一句话：**ch0 全量评测已完成——SI-SNRi 7.977 / SDRi 8.452，对论文 7.7/8.2 为 +0.28/+0.25 dB；与 mean 差 +0.20/−0.03 dB。通道选择影响 <0.3 dB，不能解释我们相对论文的残余偏差。**
+一句话：**ch0 全量评测已完成——SI-SNRi 7.977 / SDRi 8.452，对论文 7.7/8.2 为 +0.28/+0.25 dB；与 mean 差 +0.20/−0.03 dB。两种通道策略的 SI-SNRi 与 SDRi 均值差分别为 +0.202 和 −0.027 dB。**
 
 ---
 
@@ -161,10 +159,10 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 | PESQ | 2.093770 | 2.004064 | −0.089706 |
 | STOI | 0.817290 | 0.815009 | −0.002281 |
 
-**判定**：`|Δ SI-SNRi| = 0.202 < 0.3`、`|Δ SDRi| = 0.027 < 0.3` → **通道选择对“提升量”的影响可忽略**
+**判定**：`|Δ SI-SNRi| = 0.202 < 0.3`、`|Δ SDRi| = 0.027 < 0.3` → **本次两种通道策略的提升量差小于 0.3 dB**
 （但绝对量 SI-SNR/SDR 分别低 0.66/0.53 dB，说明通道改变同时改变了 mixture 基线；报告时不能只给绝对量）。
 对论文 7.7/8.2：ch0 为 **+0.28/+0.25 dB**，与 mean 的 +0.07/+0.28 dB 同处 ±0.3 容差内 ⇒
-**论文 channel-1 不是我们残余偏差的来源，也不改变“RealSSA-Sim 主结果已复现”的结论。**
+**本次比较中两种策略的提升量接近论文结果。**
 
 > mean 基线取自 `P2E-realssa-sim-metrics_combined.csv` 的 `avg` 行，本轮已独立重算（逐条均值 si-snr_i=7.773784、
 > sdr_i=8.478822，与 `avg` 行 7.774307/8.479395 的差异仅来自 `avg` 行按列均值 vs 逐条均值，量级 <1e-3 dB）。
@@ -173,7 +171,7 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 
 ---
 
-## 6. 产物清单（写作用域内）
+## 6. 产物清单
 
 | 文件 | 内容 |
 |---|---|
@@ -196,10 +194,3 @@ PYTHONPATH=/root/code/github_repos/Falcon-fork \
 3. ch0 与 mean 的 near.json 都是 mixture fallback（K=0），两者评测语义一致，不存在 near 差异混杂。
 
 ---
-
-## 8. 未做 / 约束遵守记录
-
-- 转换与自检由 `model-core` 完成；**2026-10-30 的全量评测由 Lead 在独立 cwd 执行**（避免与其它评测同名结果覆盖），
-  产物与日志已落到本任务前缀文件；未改 mean 数据目录、未删除历史 DEFERRED 日志。
-- 未改源码/配置/他人文档；`P2E-realssa-sim-ch0-*` 之外无写入。
-- 结果可复核：CSV 9,171 行 + 日志 `Final metrics` 段；mean 基线来自 `P2E-realssa-sim-metrics_combined.csv`。

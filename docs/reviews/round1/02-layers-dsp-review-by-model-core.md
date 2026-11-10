@@ -3,7 +3,7 @@
 > 被评审版本：`sha256 = ae01042f95cef3e95961027b308b5e610a60f2b97b17dce0a7fad279a31bbd2f`（757 行，R1 初稿）。
 > 评审口径：`00-CONVENTIONS.md` §5 模板 + `00-round-plan.md` §"评审口径"（逐条断言核对、P0/P1/P2 定义、必须读源码）。
 > 复核环境：`/root/.venvs/falcon/bin/python`（3.10.18 + torch 2.8.0，CPU）+ stub
-> `PYTHONPATH=$PWD/docs/verification/stubs:$PWD`；无源码改动、无权重重算（MACs/精度不在本评审范围）。
+> `PYTHONPATH=$PWD/docs/verification/stubs:$PWD`；MACs 和精度按当时记录引用。
 > 我的复核脚本：`docs/verification/scripts/verify_r2_causality_conditions.py`；日志：`docs/verification/runs/r2-causality-conditions.log`。
 > 我的 R1 文档：`docs/understanding/01-model-core.md`（下称"01"）。
 

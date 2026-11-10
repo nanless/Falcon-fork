@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史实验更新：复掩码实虚部非负，最终 STFT 相位还取决于解码器；VideoBlock 在批量大于 1 时会跨样本递推；局部探针、FLOP、整模型时延及论文统计分别采用各自口径。`early_min` 并非所有时间帧全零，部分参数分项和备用层的失败范围也应以实测条件为准。详见[模型与流式专题](../20261110-model-and-streaming.md)和[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 # 02 layers + DSP 算子族（W1-02）
 
 > 范围：`look2hear/layers/*`（8 文件 3644 L）+ `look2hear/utils/{stft,complex_utils,attn,inversible_interface,separator,nets_utils,torch_utils,get_layer_from_string}.py`。
@@ -24,7 +26,7 @@
 11. **`rsync layers` 里两个真 bug（死代码，不影响 Falcon）**：`DPRNNLinear.forward` 的 `output.transpose(1, 1)`(:882) 是 no-op，导致 `nn.Linear` 维度错，**任何输入都崩**；`Bottomup_Concat_Topdown_TCN` 缺 interpolate，`cat` 维度不匹配，**构造即坏**。
 12. **`VideoBlock` 的 LSTM 布局错误**：`x_enc.transpose(1,2)` 得到 `(B,T,C)` 喂给 `batch_first=False` 的 LSTM(:952) → 序列长度被解释成 1、batch=50，**时间建模完全失效**（脉冲响应实测只有 1/50 帧变化）。
 13. **规模核验**：`LRS2_2Mix_Paper_v2` 配方实例化 **537,697 参数**（与 `Falcon.py:990` 注释一致）。MACs 要分两把尺子：
-   ptflops 口径 **10.611 GMAC**（含 LSTM、不含视觉，与论文 10.6 G 同尺）；`torch.utils.flop_counter` 口径
+   ptflops 口径 **10.611 GMAC**（含 LSTM、不含视觉，论文报告为 10.6 G，计数方法待确认）；`torch.utils.flop_counter` 口径
    **5.382 GMAC / 10.763 GFLOPs**，因为它不记 `aten::lstm`。两个数各自成立，不能并列——2026-11-08 Lead 复核更正：
    此前"5.382 G 是真 MACs、论文把 FLOPs 写成 MACs"的判断错误，ptflops 的 conv hook 每个乘加记 1，返回值就是 MACs。
 
@@ -248,7 +250,7 @@ wav (B,1,32000)
       │   ├─ projection: Conv2d(112→64,k=1) + cLNhw + PReLU
       │   ├─ downsample[0]: dw k=3 s=1  → (B,64,251,129)
       │   │  downsample[1..3]: dw k=5 s=2 → (126,65) → (63,33) → (32,17)
-      │   ├─ 只在最深 level 跑 process_f(沿F 双向LSTM) → process_t(沿T 单向LSTM) → attn(causal tril)
+      │   ├─ 四级均执行 process_f（沿 F 双向 LSTM）、process_t（沿 T 单向 LSTM）和 causal tril attention
       │   └─ top-down: InjectionMultiSum ×4 + 上采样回到 251×129
       ├─ VideoBlock ×1 : (B,512,62) → (B,512,62)（LSTM 布局错误，见 §5-5）
       └─ NeuroSCNetFusion: Conv1d(512→112, k=1, groups=16) → unsqueeze(-1) → 广播加 (B,112,251,129)
@@ -463,7 +465,7 @@ LSTM 参数量手算校验：`4h(in+h) + 8h` 每方向。`h=24,in=64` → `4·24
 | 项 | 值 | 口径/来源 |
 |---|---|---|
 | 模型总参数 | **537,697** | `LRS2_2Mix_Paper_v2`，全部可训练（§4 E5b） |
-| 2 s 窗 MACs（ptflops，含 LSTM） | **10.611 G** | 与论文 10.6 同尺；不含视觉（05 §3.2 逐位复算） |
+| 2 s 窗 MACs（ptflops，含 LSTM） | **10.611 G** | 论文计数方法待确认；不含视觉（05 §3.2 逐位复算） |
 | 2 s 窗 MACs（`FlopCounterMode`，另一把尺子） | **5.382 G** | 不记 `aten::lstm`，不可与 10.6 并列（§4 E10/E15） |
 | 2 s 窗 FLOPs（`FlopCounterMode`） | **10.763 G** | 同上 |
 | 4 s 窗 MACs | 13.696 G | 同上（近似线性） |
@@ -611,7 +613,7 @@ params 原始=537697 cLN4D版=533761
 解读：
 - `cLNhw`：**任意 T 都全窗耦合**（`lookback` = `lookahead` = 半窗，即全覆盖）。
 - `cLN4D`：`lookback ≈ 54–59 帧`（卷积感受野，随 T 增大略降，因为下采样层数固定而窗变长）；`lookahead` 到窗尾是**累积归一化的正向传播**，不构成因果违规。
-- **输出帧 `j` 只依赖输入帧 `[j−57, j]`** ⇒ 换成因果归一化后，"窗口级因果"才成立，**单遍** lookahead ≤ 57 帧 × 8 ms = **456 ms**（与 `docs/STATUS.md:50` 的 57 帧≈456 ms 数字吻合，本轮独立复现）。整链还要加编码器阶梯与第二遍，共 **113 帧 / 904 ms**；含 `cLNhw` 的 as-shipped 是窗尾 ≤2000 ms。
+- 探针显示未来输入可影响更早输出；因此 换成因果归一化后，"窗口级因果"才成立，**单遍** lookahead ≤ 57 帧 × 8 ms = **456 ms**（与 `docs/STATUS.md:50` 的 57 帧≈456 ms 数字吻合，本轮独立复现）。整链还要加编码器阶梯与第二遍，共 **113 帧 / 904 ms**；含 `cLNhw` 的 as-shipped 是窗尾 ≤2000 ms。
 - `VideoBlock` 的 1/50 是 §5-5 的 LSTM 布局 bug 造成的（不是设计意图）。
 
 ### E9 `typeguard` 与 import 链（exp4.py）
@@ -693,14 +695,14 @@ Bottomup_Concat_Topdown_TCN → RuntimeError Sizes of tensors must match except 
 2. **`layers/stft.py` 的 `STFT`/`iSTFT` 各自把 131,328 个元素塞进 `nn.Parameter(requires_grad=False)`**（:650-651）。它们进 `state_dict`、进 `sum(p.numel())`，但不可训练。若有人按 "params 应为 0.5M" 做校验，一旦误接这套层就会凭空多 262k 参数。
 3. **`layers/stft.py:10` `from distutils.version import LooseVersion`**，Python 3.12 起标准库移除 `distutils` → 该文件在 3.12 上 import 即崩。当前 env 是 3.11.17 才没事。这是"环境钉死"的第二颗钉子（第一颗是 `typeguard<3`）。
 4. **`Falcon.py:1125` 的三通道特征量纲不一致**：`[real, imag, mag]` 中 `mag` 是 `sqrt(re²+im²+eps)`，与 `real/imag` 同量纲，但三者**没有做方差归一化**就直接进 `Conv2d(3→112)`。紧跟其后的 `ConvNormAct` 只有 `norm_type=None`（`audio_bn_params` 没给 `norm_type`），真正的归一化发生在 `pre_norm_type: cLNhw` —— 而 `pre_norm` 作用在**整个 (C,T,F) 上**，对"三通道尺度差"只是一次全局缩放，不能逐通道校正。
-5. **`VideoBlock` 的 LSTM 时间建模完全失效**：`Falcon.py:970` `x_enc.transpose(1,2)` 得 `(B,T,C)`，但 `:952` 的 `nn.LSTM` 用默认 `batch_first=False`，于是被解释成 `seq_len=B`、`batch=T`。实测脉冲响应只有 `1/50` 帧变化（`[25,25]`），即 **LSTM 在时间维上是逐帧独立的前馈变换**。720 个"时间建模"参数（8,448）名存实亡。
+5. **`VideoBlock` 的 LSTM 轴顺序错误**：`Falcon.py:970` `x_enc.transpose(1,2)` 得 `(B,T,C)`，但 `:952` 的 `nn.LSTM` 用默认 `batch_first=False`，于是被解释成 `seq_len=B`、`batch=T`。实测脉冲响应只有 `1/50` 帧变化（`[25,25]`），即该 B=1 探针在时间维上逐帧独立；B>1 时出现跨样本递推。720 个"时间建模"参数（8,448）名存实亡。
 6. **`rnnlayers.py:882` `output.transpose(1, 1)`**：`DRPNNLinear` 里把 `(B,C,T)` 送进 `nn.Linear(C,out)` 之前写了个恒等转置，实测 `RuntimeError: mat1 and mat2 shapes cannot be multiplied (512x50 and 128x128)`。即便改成 `(1,2)`，随后的 `* self.net_gate(output)` 又是 `(B,out,T) * (B,C,T)` 广播不匹配——两处都错。
 7. **`Bottomup_Concat_Topdown_TCN`(`cnnlayers.py:659-680`) 缺上采样**：`bottomup[i-1]`（长度 50）与 `bottomup[i]`（长度 25）直接 `cat` → `RuntimeError: Sizes of tensors must match except in dimension 1`。对照 `Bottomup_Concat_Topdown:576-586` 有 `F.interpolate`，可知是复制粘贴时漏了。
 8. **`CumulateLN`(3D, `normalizations.py:51-61`) 的累积轴写错**：`step_sum = x.sum(1, keepdim=True)` 得到 `(B,1,T)`，然后 `torch.cumsum(..., dim=1)` 在**长度为 1 的轴上**累积 → 等于没累积。所幸它是死代码（`cLN` 别名指向 3D 版 `CumulateLN`，而 Falcon 只用 `cLNhw`）。真正能用的 3D 版是 `:91-132` 的第二个 `CumulateLN`（同名类，后者覆盖前者）。
 9. **`normalizations.get` 会回退到 `torch.nn`**（`:236-239`）：`hasattr(nn, identifier)` 优先，所以 `norm_type: BatchNorm1d`（`configs/LRS2_2Mix_Paper_v2.yml:89`）拿到的是 `torch.nn.BatchNorm1d`，**不是**本文件的 `bN`。同理 `act_type: "ReLU"` 走 `nn.ReLU`（`activations.py:54`），而 `"prelu"` 走本文件的 `prelu()`。大小写敏感。
 10. **`cLNhw` 只接受 4D**：3D 输入在 `CumulateLN4D:179` `B,C,H,W = input.size()` 处 `ValueError`。而 `AudioBlock` 里所有 `ConvNormAct` 都传 `is2d=True`，所以现状没炸；一旦有人把 `is2d` 关掉，`norm_type: cLNhw` 立刻崩。
 11. **`VideoBlock` 实际是"帧内"算子但配置里写了 `causal: true`**（`:100`），加上 E8 的 1/50 实测，说明"视频支路因果"这个说法在 as-built 上没有意义（它压根不跨帧）。
-12. **`evaluated_mac_params.py` 的 MAC 口径**：脚本用 `ptflops.get_model_complexity_info`（`:88-96`），输入 `a=(1,32000)`、`v` 由视频模型产生（脚本习惯 `v=(1,1,50,64,64)` → 50 帧，因此它测的是 64×64 视觉口径）。本机无 GPU 权限跑它，本轮改用 CPU 复刻：ptflops 得到 **10.611 GMAC**（含 `aten.bmm`/LSTM 的乘加），`FlopCounterMode` 得到 5.382 GMAC（不记 `aten::lstm`）。两者差 5.23 G 全部来自 LSTM，2026-11-08 已定案，不再是 GAP。
+12. **`evaluated_mac_params.py` 的 MAC 口径**：脚本用 `ptflops.get_model_complexity_info`（`:88-96`），输入 `a=(1,32000)`、`v` 由视频模型产生（脚本习惯 `v=(1,1,50,64,64)` → 50 帧，因此它测的是 64×64 视觉口径）。本机无 GPU 权限跑它，本轮改用 CPU 复刻：ptflops 得到 **10.611 GMAC**（含 `aten.bmm`/LSTM 的乘加），`FlopCounterMode` 得到 5.382 GMAC（不记 `aten::lstm`）。两者使用不同算子统计规则，不能仅凭差值确定所有差异的来源。
 13. **`utils/separator.py:57` 的能量重标定**：`out_wavs *= wav.abs().sum() / out_wavs.abs().sum()` —— 用 L1 总量做逐 utterance 增益校正。这段代码**全仓无调用**，但如果有人接上去做评测，会掩盖整体的幅度误差并污染 SI-SDR。
 14. **`einops` 与手工 `permute` 混用**：范围内**没有 einops**（全仓 0 命中），全部是手工 `reshape/permute/transpose`。因此 §5-5、§5-6 这类布局 bug 没有形状断言兜底。`DualPathRNN:394` 的 `view(B*F_, C, T)` 依赖 `permute(...).contiguous()`，是这一族里唯一写对的（§4 已用 E8 的形状隐式验证）。
 15. **in-place 操作**：`stft_tfgn.py:182` `output.masked_fill_(...)`（in-place，作用在 `transpose` 之后的非连续视图上——PyTorch 允许，但会打断 autograd 图，只在推理路径安全）；`_forward_stft:265-266` `frames[:, 1:] = ...`（in-place 覆盖 unfold 结果）；`dtype` 提升方面：`normalizations.py:117` `torch.from_numpy(entry_cnt).type(input.type())` 是唯一显式跟 dtype 对齐的地方，`fp64` 输入能正常工作（E2c 的 fp64 往返误差 0.0）。
@@ -714,7 +716,7 @@ Bottomup_Concat_Topdown_TCN → RuntimeError Sizes of tensors must match except 
 | C2 | 同上 §1.1："`utils/stft.py` 与 `layers/stft.py` **逐字节同源**" | **不成立**。md5 不同（`533c481a…` vs `796ceb06…`），行数都是 785 但内容有差异。只能称"高度同源"。 |
 | C3 | `docs/STATUS.md:50`："`cLNhw` 全窗 GN + AudioBlock 对称卷积，单遍 lookahead 实测 **57 帧≈456 ms**" | 数字对（我复现出 lookback 57 帧），但**归因不完整**：57 帧是"把 `cLNhw` 换成因果归一化后、一遍 AudioBlock"的单遍几何值。**as-built 含 `cLNhw` 时 lookback = lookahead = 全窗**（T=251 时 251/251 帧），不存在 57 帧这个界；整链几何是 113 帧 / 904 ms。`docs/understanding/01-model-core.md:99` 已经修正过一次（"as-built 是全局 (0,250)"），STATUS.md 未同步。**2026-11-08 Lead 复核：三档已写进 00–06；STATUS.md 本轮由 Lead 重写，旧 `:50` 的表述随之废止。** |
 | C4 | `docs/understanding/01-model-core.md:32`："audio_bottleneck：cLNhw + Conv2d(112→112,k=1)" | 顺序需更正为 **pre_norm 在前**（`Falcon.py:99-101`：`pre_norm → pre_act → conv`）。`cLNhw` 归一化的是**编码器输出**，不是 conv 输出。这不是文字顺序问题：它决定了"全窗统计发生在 112 通道线性混合之前"。 |
-| C5 | 论文/README："10.6G MACs" | **2026-11-08 Lead 复核更正**：ptflops 同输入返回 10.611 GMAC（含 LSTM、不含视觉），与论文数值逐位同尺，此处原判断"论文把 FLOPs 写成 MACs"作废。`FlopCounterMode` 的 5.382 GMAC 是另一把尺子（不记 `aten::lstm`），不可与 10.6 并列。整窗口径 26.51 GMAC。 |
+| C5 | 论文/README："10.6G MACs" | **2026-11-08 Lead 复核更正**：ptflops 同输入返回 10.611 GMAC（含 LSTM、不含视觉），与论文数字接近，论文计数方法待确认，此处原判断"论文把 FLOPs 写成 MACs"作废。`FlopCounterMode` 的 5.382 GMAC 是另一把尺子（不记 `aten::lstm`），不可与 10.6 并列。整窗口径 26.51 GMAC。 |
 | C6 | `docs/reviews/round1/02-layers-dsp-review-by-model-core.md:302`："实测 `sys.modules` 含 librosa/torch_complex/typeguard…" | 一致（我复核了这 6 个依赖都可用），并**补齐了链路**：`Falcon.py:9` → `layers/__init__.py:20` → `stft_tfgn.py:8`。 |
 | C7 | 旧文未提 | **新增**：`cLNhw` 的 `GlobalLayerNorm` 在初始化态是数学空操作（`3.576e-07`），净增量只有 2×C 仿射参数。 |
 | C8 | 旧文未提 | **新增**：`mask_act=ReLU` 使复数掩码实部/虚部同时非负 → 相位限死 [0°,90°]（实测 min 0.0000）。 |
@@ -724,7 +726,7 @@ Bottomup_Concat_Topdown_TCN → RuntimeError Sizes of tensors must match except 
 ## 7. GAP LIST
 
 1. **（已结案）论文 "10.6G MACs" 的口径**：2026-11-08 Lead 复核后定案——ptflops 含 LSTM、不含 FRCNN，返回 10.611 GMAC，
-   与论文 10.6 同尺；`FlopCounterMode` 的 5.382 GMAC 因不记 `aten::lstm` 而是另一把尺子。剩余未验项只有
+   论文计数方法待确认；`FlopCounterMode` 的 5.382 GMAC 因不记 `aten::lstm` 而是另一把尺子。剩余未验项只有
    "论文是否也把即 88×88 视觉计入"（11 §3 判断为否）。
 2. **`typeguard>=3` 的硬证据**：本轮只证明 2.13.3 可用且真在校验；"3.x 移除 `check_argument_types`" 依赖上游 changelog 与仓库内 stub 注释，**未在本机装 typeguard 3 复现**。需要一次隔离 venv 的复现实验（不改 `falcon` env）。
 3. **`cLNhw` 在真实训练后的行为**：我只证明了"初始化态 GN 是空操作、affine 随机化后不是"。需要一个已训练 checkpoint（`/root/.cache/falcon_weights/falcon.pt`）来测 `|cLNhw(x) − cLN4D(x)|` 的真实值，判断训练是否让 GLN 段"活过来"。

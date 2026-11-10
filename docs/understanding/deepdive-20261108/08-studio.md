@@ -1,3 +1,5 @@
+> **2026-11-10 复核提示：** 历史测试更新：逐位一致及边界能量来自单例和少数合成输入，guard 的设计原因仍待确认；视频帧按时间戳最近邻选择，12 帧偏移实验和半帧取整实验采用不同偏移。CPU 延迟、测试结果及 `checkpoints/` 数量均依环境和时间而变（文内 79 与 88 的统计口径不一致）；人脸跟踪负责位置，身份仍需核实。`docs_url=None` 关闭文档 UI；OpenAPI 地址由单独的配置控制。详见[评测与应用专题](../20261110-evaluation-and-apps.md)和[审查记录](../../verification/deepdive-20261110/审查记录.md)。
+
 # 08 Studio 应用（backend / frontend / 分块推理 / 部署）
 
 > 子代理 W1-08。范围 `studio/**` + `checkpoints/`。仓库 HEAD `6c1d5b7`，`git status` 干净。
@@ -23,10 +25,10 @@
 
 **十条可执行判断**：
 
-1. **0 个 pydantic 模型**：`studio/server.py` 全文不含 `pydantic`/`BaseModel`，请求体是手写字典校验（`decode_request` server.py:65-97），响应是裸 dict，`docs_url=None`（server.py:253）→ 没有 OpenAPI 契约可读，契约只有本文 §2.4 那张表。
+1. **0 个 pydantic 模型**：`studio/server.py` 全文不含 `pydantic`/`BaseModel`，请求体是手写字典校验（`decode_request` server.py:65-97），响应是裸 dict，`docs_url=None`（server.py:253）→ 交互式文档 UI 关闭；请求校验见本文 §2.4。
 2. **32000 样本的窗、8000 样本的 hop**：2 s 窗 = 50 帧；hop 0.5 s = **12.5 帧**（非整数，见 §5.3）；guard 80 ms = 1280 样本（server.py:28-29）。服务端输出块 = 窗内 `[22720, 30720)`（server.py:110），第 k 块正好是浏览器采集的第 k 个 0.5 s（§3.3 实测）。
 3. **首块要等 0.58 s 真实音频**：浏览器左侧补 1.42 s 静音（`LEFT_CONTEXT=22720`，app.js:10），首块输出正是采集的第 0–0.5 s，开头不丢（app.js:621-624，与 README 一致）。§3.3 的 tiling 实测用的是「每窗都有完整 2 s 真实音频」的流（epoch=0、end 从 32000 起），验的是分块映射本身；「左补 1.42 s 静音」是 app.js:631-635 的浏览器行为，本轮未在真浏览器里实测。
-4. **80 ms 是发射几何，不是感受野**：改动任意一个输入样本，32000 个输出样本几乎全部改变（§4.2(5)）——窗内是全局耦合（cLN/GlobalLayerNorm + 全局注意力）。guard 真正丢掉的是窗尾 OLA/边界瞬态：末 320 样本能量是窗中位数的 5.4 倍（§4.2(4)）。
+4. **80 ms 是发射几何，不是感受野**：改动任意一个输入样本，32000 个输出样本几乎全部改变（§4.2(5)）——窗内是全局耦合（cLN/GlobalLayerNorm + 全局注意力）。guard 留出窗尾 80 ms；该次单窗探针观察到边界能量抬升：末 320 样本能量是窗中位数的 5.4 倍（§4.2(4)）。
 5. **0 个跨窗模型状态**：模型无状态（falcon_runtime.py:3-5 写 "not a stateful streaming architecture"），没有 hidden state / 音频 cache 跨窗保留；唯一跨窗状态是 `OutputSlicer.future` + `last_endpoint`（server.py:100-119）。
 6. **max|Δ| = 0.0**：`studio/falcon_model` 与训练侧同权重同输入，CPU 下 `torch.equal=True`、输出 sha256 相同，audio 525 key / video 137 key / 11,724,385 参数两侧相同（§4.1）。差异只有 MPS 分支与注释翻译，不影响 CPU/CUDA 数值。
 7. **88 个 5,269 B 的假 ckpt**：`checkpoints/` 里没有真权重，`epoch=0-step=2*.ckpt` 共 88 个（2026-11-08 实测；每跑一次全量测试 +1），合计 640 KB，mtime 跨 10-21(43)/10-24(8)/10-30(28)/11-08(9) 四批，`state_dict` 只有一个标量 `audio_model.w`；已被 `.gitignore:24 *.ckpt` 忽略，`git ls-files checkpoints` = 0。
@@ -193,7 +195,7 @@ return torch.from_numpy(np.ascontiguousarray(x))[None, None]   # [1,1,50,88,88]
 
 ### 2.4 API 契约（**没有 pydantic 模型**，下表由源码手写校验推出并经实测）
 
-`app = FastAPI(title="Falcon Studio", docs_url=None, redoc_url=None, ...)`（server.py:253）→ **无 `/docs`、无 `/openapi.json`**。全仓库 `studio/server.py` 不含 `pydantic`/`BaseModel`（grep 为空）。请求体靠 `decode_request` 手写校验，响应是 Python dict 交给 FastAPI 序列化。
+`app = FastAPI(title="Falcon Studio", docs_url=None, redoc_url=None, ...)`（server.py:253）→ **无 `/docs` 界面**；OpenAPI 路径由独立配置控制。全仓库 `studio/server.py` 不含 `pydantic`/`BaseModel`（grep 为空）。请求体靠 `decode_request` 手写校验，响应是 Python dict 交给 FastAPI 序列化。
 
 | # | Method | Path | 请求 | 成功响应 | 错误 | 证据 |
 |---|---|---|---|---|---|---|
@@ -614,7 +616,7 @@ overall                       1.500    0.00437               0.00425     103%
 
 ```
 帧移 12 帧（≈0.5 s）：rms(diff)=0.00068  rel=16%
-帧移 6 帧（≈0.25 s，"半帧对齐差"）：rms(diff)=0.00047  rel=11%
+帧移 6 帧（≈0.25 s）：rms(diff)=0.00047  rel=11%
 ```
 
 即**视频时间的抖动影响远小于音频窗对齐的影响（16% vs 103%）**，但也不为零——见 §5.3 的 12.5 帧问题。
@@ -635,7 +637,7 @@ overall                       1.500    0.00437               0.00425     103%
   31680     0.01714      5.39     ← 窗尾最后一个 20 ms
 ```
 
-**这就是 GUARD 的真正理由**：窗尾（最后 ~700–900 样本）出现明显能量抬升（3.4–5.4× 中位数），是 iSTFT 重叠相加/因果卷积边界造成的瞬态；`GUARD=1280` 把这段整段丢掉，只留 80 ms 余量。**但注意它挡不住窗首的瞬态**（块 0 也是 5.75×）——之所以没事，是因为被发射区从 22720 开始，离窗首很远。
+**单窗边界观察**：窗尾（最后 ~700–900 样本）出现明显能量抬升（3.4–5.4× 中位数），可能与边界处理有关，具体原因尚需对照实验；`GUARD=1280` 把这段整段丢掉，只留 80 ms 余量。**但注意它挡不住窗首的瞬态**（块 0 也是 5.75×）——之所以没事，是因为被发射区从 22720 开始，离窗首很远。
 
 **(5) 感受野 / lookahead（扰动实验）**（`/tmp/w1studio_08/receptive.py`）：把某个输入样本 `+0.5`，看哪些输出样本变化 >1e-7：
 
@@ -715,10 +717,10 @@ offline hf:// miss -> FileNotFoundError: Could not download x.pt from Hugging Fa
 
 ## 5. 坑与反直觉点
 
-1. **没有 pydantic、没有 OpenAPI** —— `docs_url=None, redoc_url=None`（server.py:253），`server.py` 全文无 `pydantic`。任何"看 `/docs` 拿契约"的做法都会失败；契约只能读 `decode_request`（server.py:65-97）。**校验错误信息是中文散文**，机器不可解析（只有 WS 的 `type:"error"` 是结构化的）。
+1. **没有自定义 pydantic 请求模型，文档界面关闭** —— `docs_url=None, redoc_url=None`（server.py:253），`server.py` 全文无 `pydantic`。任何"看 `/docs` 拿契约"的做法都会失败；契约只能读 `decode_request`（server.py:65-97）。**校验错误信息是中文散文**，机器不可解析（只有 WS 的 `type:"error"` 是结构化的）。
 2. **`/api/load` 是异步的、立即返回**（server.py:204-205 起线程），但它返回的是**加载开始前/刚开始时**的 status，`ready` 还是 `false`。前端因此要轮询 `/api/status` 最多 180 s（app.js:666）。`test_checkpoint_cli.py:110-112` 靠 `load_thread.join(5)` 才拿到最终状态。
 3. **0.5 s hop = 12.5 帧，永远对不齐**。`HOP=8000` 样本、`1 帧 = 640` 样本 → 12.5。前端用"最近邻 + ±0.16 s 容差"取整（app.js:587-593），因此**相邻窗的视频时间轴相差半帧（20 ms），取整方向固定不变**（`findIndex`/`while` 单调推进），实测视频偏移 12 帧造成 rel=16% 的输出变化（§4.2(3)）。任何"音频视频严格同期"的假设在这里不成立。
-4. **CPU 上必然跳窗**。4.1 的 `rtf` 是 `inference_ms/500`，本机 CPU 实测 1.64–5.18（server.py:326）。跳过时前端置 `reset=True`（app.js:637），于是**没有 crossfade**、块首要 5 ms 淡入（app.js:813-817），并提示"已跳过 N 个旧窗口"（app.js:640）。所以 CPU 上听到的是断续的、带淡入的拼接——不是 bug，是设计。
+4. **该次 CPU 测试的推理耗时超过 hop 预算**。4.1 的 `rtf` 是 `inference_ms/500`，本机 CPU 实测 1.64–5.18（server.py:326）。跳过时前端置 `reset=True`（app.js:637），于是**没有 crossfade**、块首要 5 ms 淡入（app.js:813-817），并提示"已跳过 N 个旧窗口"（app.js:640）。所以 CPU 上听到的是断续的、带淡入的拼接——不是 bug，是设计。
 5. **GIL 不是瓶颈，锁才是**。推理跑在 `asyncio.to_thread`（server.py:322），torch 算子大量释放 GIL；真正的串行化来自 `Engine.infer` 的非阻塞锁（server.py:222-223）+ `engine.busy`（server.py:320）。**两个标签页会互相抢锁**，后到的那个每次都被拒（收到 error 帧），不会排队也不会崩。
 6. **`OutputSlicer` 是"每 WS 连接一份"**（server.py:302），不是全局。所以两个标签页各自 crossfade、各自 `last_endpoint`；`engine.busy` 只保证不并行算。**换成多 worker 部署会直接破坏这一点**（每个 worker 有自己的 slicer、自己的模型、4×内存）——这也解释了为什么代码里写死单进程。
 7. **`models/` 不存在**。`server.py:195` 的文案 `尚未安装 {name} 权重：models/{checkpoint}` 指向一个**从未存在**的目录；实际权重只来自 HF cache 或 `--checkpoint`。排查"权重没装"时别去找 `studio/models/`。
@@ -830,5 +832,3 @@ ssh dev_a800_2gpus 'cd /tmp/w1studio_08 && CUDA_VISIBLE_DEVICES= \
 ssh dev_a800_2gpus 'cd /root/code/github_repos/Falcon-fork && diff -rq studio/falcon_model look2hear | grep -v __pycache__'
 ssh dev_a800_2gpus 'cd /root/code/github_repos/Falcon-fork && ls checkpoints | wc -l && md5sum checkpoints/*.ckpt | awk "{print \$1}" | sort -u | wc -l'
 ```
-
-**只读性声明**：本轮未修改、移动、删除远端仓库任何文件，未执行 `git commit/checkout/stash/clean`。`pytest` 与 `node` 运行可能刷新了既有 `__pycache__`/无 `.pytest_cache`（已用 `-p no:cacheprovider`），源码 0 改动（`git status` 在跑测试后仍为空）。

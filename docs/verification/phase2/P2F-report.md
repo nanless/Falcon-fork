@@ -1,6 +1,8 @@
 # Phase-2 F 报告：LRS2-2Mix 指标/协议第三方独立验证（P2-F）
 
-> 分支 `repro/phase2`（HEAD `af74cca`，未 commit）· owner `studio-backend`（task-23）· 2026-10-21
+> **来源校正：**配置快照指向 LRS3 数据，尚不能证明发布权重由该训练运行导出；官方权重训练数据未知。下文有关 LRS3 训练及差距主因的判断是历史假设，不能作为确定结论。自训结果见 P2D 报告。
+
+> 分支 `repro/phase2`（HEAD `af74cca`）· owner `studio-backend`（task-23）· 2026-10-21
 > 环境：conda `falcon`（Python 3.11.17 / torch 2.8.0+cu128 / fast-bss-eval 0.1.4 / PL 2.6.6，2×A800）
 > 数据：`/root/tmp/lrs2_eval_tt_full/tt`（3000 条 LRS2-2Mix tt：mix/target=s1/mouth `.pt`，2 s/16 kHz）、
 > 原始包 `/root/data/lrs2_2mix/lrs2_rebuild`（audio/wav16k/min/tt/{mix,s1,s2}、mouths npz、create_mix 脚本、scaling.mat）
@@ -9,10 +11,8 @@
 > `docs/verification/phase2/P2F-protocol-check.log`、本报告。
 > 独立性声明：本任务的 SI-SDR/SI-SDRi/SDR 为**自写独立实现**（纯 NumPy + 直接调用 `fast_bss_eval`），
 > 不依赖 T3 的 `look2hear/metrics/core.py`；`core.py` 与 Phase-1 CSV 只作为**被验证对象**参与对拍。
-> GPU：本任务 GPU 实验（N=50 推理、N=20 mouth 消融）在 Lead 通知 GPU 协调前已完成并结束；
-> 之后全部改为 CPU 复算（`data/recheck/static` 阶段），当前无本任务 GPU 进程/显存占用（GPU 已释放）。
 >
-> **2026-11-08 校正（按 `deepdive-20261108`，最后更新 2026-11-08；冻结证据未改）**：论文于 2026-10-23 公开
+> **2026-11-08 校正（按 `deepdive-20261108`，最后更新 2026-11-08）**：论文于 2026-10-23 公开
 > （arXiv:2610.32749）。§5.2/§6 里“论文未公开”是当时的判断，现改为“当时无法核对、现已公开可核对”，协议核对见
 > [PAPER_ALIGNMENT_20261030.md](../../understanding/PAPER_ALIGNMENT_20261030.md) 与
 > [11-paper-alignment.md](../../understanding/deepdive-20261108/11-paper-alignment.md)（Table 15/16 的架构与训练配方
@@ -42,17 +42,17 @@
 4. **7.03/7.71 的定性：协议上可信的“跨语料（cross-corpus）”结果，但不是论文 LRS2-2Mix 列的协议复现。**
    证据链：发布 `falcon.pt` 的训练 run 快照 `Experiments/checkpoint/Falcon/conf.yml` 的 datamodule 指向
    **`LRS3_complex_nonmoving`**（`conf.yml:99-102`；epoch 714 与 `best_k_models.json`/`PROVENANCE.md:37-38` 一致）
-   ⇒ 官方权重是在 **LRS3 数据**上训练的；README 的 LRS2-2Mix 数字 14.1/14.7（`README.md:211`）标注为
+   ⇒ 该快照使用 **LRS3 数据**，与发布权重的对应关系尚未确认；README 的 LRS2-2Mix 数字 14.1/14.7（`README.md:211`）标注为
    “under our training protocol”（`README.md:228`），即论文按 benchmark 训练/评测。把 LRS3 模型直接拿到
    LRS2-2Mix 上评测，7 dB 左右的跨语料退化与“协议/指标/对齐全部正确”并不矛盾。
    量化排除项：指标/协议 ≤0.4 dB；模型规模（big−small）仅 **+0.97/+0.91 dB**（P2-B，300 条配对）；
    窗口化协议 small −1.91(SI-SNRi)/−1.73(SDRi)、big −2.32/−2.13 dB（Phase-1 全量评测用的是整句协议，未用窗口化）；
    视觉分支正常（换错说话人 −23.3 dB、置零 −14.4 dB ⇒ mouth 确实生效且目标正确）。
-   ⇒ **剩余 ~6 dB 主要来自训练数据/训练配方与论文 LRS2 列不匹配，而不是评测协议或指标实现。**
-5. **要达到论文 14.1/14.7，缺的是“LRS2-2Mix 训练出的 checkpoint”，不是评测修复。**
+   ⇒ **训练数据和配方差异是待验证的可能因素；目前无法确定剩余差距的主因。**
+5. **LRS2-2Mix 训练与作者提供的 checkpoint 可用于继续调查差距。**
    需要：P2-D 用 LRS2-2Mix tr（11 h）按论文配方训练（或向作者索取 LRS2 列对应 ckpt），再用本报告验证过的
    同一评测协议复测；可用 LRS3-2Mix 数据做交叉验证预测（发布权重应接近 16.4/16.7，但该数据仓库未提供，无法验证）。
-   若无法训练/取得 ckpt，FINAL 应把 7.03/7.71 明确标注为“**LRS3-trained 官方权重在 LRS2-2Mix 上的跨语料泛化结果**”，
+   若无法训练/取得 ckpt，FINAL 应把 7.03/7.71 明确标注为“**官方权重在 LRS2-2Mix 上的结果，训练来源未知**”，
    不得当作论文 LRS2 列的复现。
 
 ## 2. 方法：独立实现与对拍路径
@@ -117,14 +117,14 @@ zero-mean −0.02、target 能量/RMS 缩放 ±0.00、best-of-s1/s2 +0.02 ——
 
 ### 5.1 证据链
 
-1. **发布权重训练集 = LRS3 派生数据**：`Experiments/checkpoint/Falcon/conf.yml:99-102` 的 datamodule
+1. **配置快照指向 LRS3 派生数据**：`Experiments/checkpoint/Falcon/conf.yml:99-102` 的 datamodule
    train/valid/test 均为 `${DATA_ROOT}/small/DataPreProcess/**LRS3_complex_nonmoving**`；`:105` `exp_name: Falcon`；
    `best_k_models.json` 最优 ckpt = `epoch=714`，与 `PROVENANCE.md:37-38` 的“falcon.pt 由 epoch 714 导出”一致。
 2. **论文数字是“按 benchmark 训练协议”下的结果**：`README.md:228`：“Dolphin and AV-Mossformer2 were
    re-implemented as causal variants **under our training protocol**; the other baselines follow the values
    reported by Swift-Net.”；`README.md:211` 的 LRS2-2Mix 14.1/14.7 与 RealSSA/LRS3/VoxCeleb2 列并列，
    属同一“我们的训练协议”（即每个 benchmark 用自己的训练集训练/调参），而非一个跨语料模型。
-3. **本地评测用的是 LRS3-trained 权重在 LRS2-2Mix 上的跨语料评测**：本报告 P1–P10 已排除指标/协议/对齐/
+3. **本地评测使用发布权重与 LRS2-2Mix**：本报告 P1–P10 已排除指标/协议/对齐/
    target/PIT/缩放/分段等所有可量化因素（合计 ≤0.4 dB）；P2-B 独立测得 big 只 +0.97 dB、窗口化 −1.9 dB；
    P2-A 独立测得协议/指标变体 ≤0.4 dB、mouth 对齐敏感且当前已最优。⇒ 剩余 ~6 dB 指向训练数据/配方。
 
@@ -140,7 +140,7 @@ zero-mean −0.02、target 能量/RMS 缩放 ±0.00、best-of-s1/s2 +0.02 ——
 | 模型规模（small vs big） | big−small = +0.97/+0.91 dB（P2-B，300 条配对） | +1 dB | 🟡 次要 |
 | 窗口化推理 | small −1.91/−1.73、big −2.32/−2.13 dB（P2-B） | Phase-1 全量用整句，未用窗口化 | ❌ 不适用 |
 | 视觉分支未生效 | 置零 −14.4 dB、换说话人 −23.3 dB | 0（工作正常） | ❌ 排除 |
-| **训练语料/配方与论文 LRS2 列不匹配** | 发布 ckpt 训练集=LRS3_complex_nonmoving（conf 快照）；论文按 benchmark 训练 | **~6 dB 主因** | ✅ 主因（[推断] 强证据） |
+| **训练语料/配方与论文 LRS2 列不匹配** | conf 快照指向 LRS3_complex_nonmoving，但与发布权重的关系待确认 | 未知 | ❓ 待验证 |
 | 论文 LRS2 列有两处细节论文没写：SNR 采样范围、near 负样本生成脚本（`deepdive-20261108/11` §7 G1/G9；lr / epoch / batch / 硬件见 Table 16） | 仓库无 LRS2 训练配置/日志 | 未知残余 | ❓ 需作者给数据构建参数 |
 | LRS2-2Mix test 版本差异 | 数据卡：固定 1.5 h test split，3000 条 2 s clip；与本地一致 | 0 | ❌ 排除 |
 
@@ -149,12 +149,12 @@ zero-mean −0.02、target 能量/RMS 缩放 ±0.00、best-of-s1/s2 +0.02 ——
 1. **一个在 LRS2-2Mix tr 上训练的 checkpoint**（P2-D）：按论文训练协议（2 s、16 kHz、AV、NASS 对比损失、
    论文 batch/lr/epoch 等；见 `docs/REPRODUCTION_PLAN.md` Phase 4）训练，再用**本报告验证过的评测协议**
    （target=s1、整句 2 s、SI-SDR 标准定义、fast_bss_eval 512-tap SDR）复测。
-2. 或向作者索取/确认 **paper LRS2-2Mix 列对应的 benchmark-specific checkpoint**（发布 `falcon.pt` 显然不是它）。
+2. 或向作者索取/确认 **paper LRS2-2Mix 列对应的 benchmark-specific checkpoint**（发布权重的训练来源未知）。
 3. 交叉验证预测：若发布 `falcon.pt` 确为 LRS3 训练，则其在 **LRS3-2Mix** 上应接近 16.4/16.7；该数据仓库未提供
    （`docs/REPRODUCTION_PLAN.md` §9 R5），无法本地验证。
 4. 数据侧无需再修：本报告 P1–P10 已证明评测数据/协议与实现自洽；剩余不确定性是**训练侧配方**。
 
-## 6. 局限（诚实声明）
+## 6. 实验范围
 
 - N=50 只用于**指标/协议对拍**；全量数字（7.03/7.71）取自 Phase-1 3000 条 CSV（其 avg/std 已独立重算一致）。
 - mouth 偏移/换说话人消融在 GPU 交接前以 N=20 完成（数值见 §4-P5）；`protocol_check.py --stage variants`

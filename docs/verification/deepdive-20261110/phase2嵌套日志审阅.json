@@ -1,0 +1,89 @@
+{
+  "count": 6,
+  "files": {
+    "DNSMOS-realssa-real-mean-full4-20261031/P2E-realssa-real-full4.log": {
+      "condition": "mean CUDA 实录54，窗口修正后",
+      "result": "OVRL 2.7941 P808 3.3365 exit0",
+      "exception": "无报告异常",
+      "evidence_boundary": "有协议限制，不自动证明与论文同口径",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/DNSMOS-realssa-real-mean-full4-20261031/P2E-realssa-real-full4.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "3cb7b012945a870a9b3ab32001c1b3a2965aaf7e44bf5ffa4cb399d76b469d6f",
+      "bytes": 10227,
+      "lines": 117,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；RealSSA-Real 官方读取器；mean声道；speechmos 0.0.1.1/onnxruntime 1.31.0；align_tail=True",
+      "completeness": "54/54有逐条输出，汇总N=54，exit=0"
+    },
+    "logs/P2B-big-b300.log": {
+      "condition": "big CUDA 300 whole/window real",
+      "result": "7.887/5.569 SI-SNRi",
+      "exception": "未见错误",
+      "evidence_boundary": "仅300条",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/logs/P2B-big-b300.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "cff6f085ded9db3addcb36da66dcdb5e141ea16b8563f7da042c7c3ea3da8b25",
+      "bytes": 2135,
+      "lines": 28,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；LRS2 300条；falcon-big.pt epoch715；whole/windowed real",
+      "completeness": "两项300/300，含RESULT和summary；无单独exit码"
+    },
+    "logs/P2B-big-full.log": {
+      "condition": "big CUDA 全量计划3000",
+      "result": "只到100/3000",
+      "exception": "无完成或退出状态",
+      "evidence_boundary": "不能作为全量结果",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/logs/P2B-big-full.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "aa84efafcabb3bf4c949e0c88e21ad039c13015a0a6ba6510703ed6ef2691ff8",
+      "bytes": 545,
+      "lines": 12,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；LRS2 3000条计划；falcon-big.pt epoch715；whole real",
+      "completeness": "仅有100/3000进度，无RESULT、summary或exit码"
+    },
+    "logs/P2B-big-visual-b300.log": {
+      "condition": "big CUDA 300 whole zero",
+      "result": "SI-SNRi 3.512",
+      "exception": "未见错误",
+      "evidence_boundary": "仅该协议和样本",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/logs/P2B-big-visual-b300.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "882f1ce2f86c220b22979f8cfa0c8bc8a9eb615662091c3f5d42f16e24940590",
+      "bytes": 1329,
+      "lines": 20,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；LRS2 300条；falcon-big.pt epoch715；whole zero",
+      "completeness": "300/300，含RESULT和summary；无单独exit码"
+    },
+    "logs/P2B-small-b300.log": {
+      "condition": "small CUDA 300 whole/window real",
+      "result": "6.916/5.004 SI-SNRi",
+      "exception": "timm FutureWarning",
+      "evidence_boundary": "仅300条",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/logs/P2B-small-b300.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "1d219c077a5600588c525f39f5595c1eb60673895ce1b6bfc2475cf5c48b8159",
+      "bytes": 2455,
+      "lines": 30,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；LRS2 300条；falcon.pt epoch714；whole/windowed real",
+      "completeness": "两项300/300，含RESULT和summary；无单独exit码"
+    },
+    "logs/P2B-small-visual-b300.log": {
+      "condition": "small CUDA 300 whole zero/shuffle",
+      "result": "-8.173/-5.977 SI-SNRi",
+      "exception": "timm FutureWarning",
+      "evidence_boundary": "仅该协议和样本",
+      "path": "/root/code/github_repos/Falcon-fork/docs/verification/phase2/logs/P2B-small-visual-b300.log",
+      "read_status": "全文审阅；转换日志逐条进度作为重复进度处理",
+      "sha256": "1a59884564c67f620a1bde7c84bc2b9390dc03e94a05151c0644b37c623d8373",
+      "bytes": 2476,
+      "lines": 30,
+      "sha256_matches_prior_review": true,
+      "environment": "CUDA；LRS2 300条；falcon.pt epoch714；whole zero/shuffle",
+      "completeness": "两项300/300，含RESULT和summary；无单独exit码"
+    }
+  }
+}

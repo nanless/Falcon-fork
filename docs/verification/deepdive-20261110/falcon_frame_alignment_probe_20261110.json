@@ -1,0 +1,59 @@
+{
+  "repo_commit": "6e5c1b5e1d717a071046d4b66174e30d593b1a7f",
+  "torch": "2.8.0+cu128",
+  "cpu_threads": 4,
+  "seed": "no random input; existing dataset",
+  "checkpoint": {
+    "path": "/root/.cache/falcon_weights/falcon.pt",
+    "sha256": "a1888b5a3484a38a68c42d1a0e73334b1f2e7924c6e6444b2cfdd27becce928c"
+  },
+  "input_and_code_sha256": {
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.02351_6335305254315087182_00057_-0.02351.wav": "da6c3f92255382a36062d7b9a56d9811dd6602287ddfb136855083822a1b64e3",
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.0439_6341242617105082637_00110_-0.0439.wav": "9efc774e863d94fd8d89a61f135656073591108c086d609516493a68d6a5b778",
+    "/root/data/falcon_lrs2_2mix/tt/mix/6363283530274620169_00005_0.16836_6351037719520253414_00001_-0.16836.wav": "18a3e75f62c990562e1ac4e18ca1658f969c11564ca3229967365f0118222550",
+    "/root/data/falcon_lrs2_2mix/tt/target/6363283530274620169_00005_0.02351_6335305254315087182_00057_-0.02351.wav": "5e8dee8f95cc0a7a7b4fd869025bf83b949b5f12a4988b111e5a02d876f2feed",
+    "/root/data/falcon_lrs2_2mix/tt/target/6363283530274620169_00005_0.0439_6341242617105082637_00110_-0.0439.wav": "454140c611ae7082a45afda4f8795d30264f035061714027327ad41c0213b5a7",
+    "/root/data/falcon_lrs2_2mix/tt/target/6363283530274620169_00005_0.16836_6351037719520253414_00001_-0.16836.wav": "85392fdd4163813d513c8ba582fbfa50e4e69600983d882e1150b08e4a578e5a",
+    "/root/data/falcon_lrs2_2mix/tt/mouths/6363283530274620169_00005.pt": "ac6688ff43baa9e56fe6d51859c81eb5a42c79f7fb6688a8feecd30b6e4d9731",
+    "/root/code/github_repos/Falcon-fork/tools/repro/experiments/streaming_consistency.py": "f5deb27f9732ba24c42067bda05be34820b33538525dc78b2c6f9cd1c8890ab3",
+    "/root/code/github_repos/Falcon-fork/studio/falcon_runtime.py": "7c9f636d282908a90aa16f9a190149e61077464ec988f80cfaf44db66b4062d1",
+    "/root/code/github_repos/Falcon-fork/configs/Falcon.yml": "a0a8149c4ebcba688140cb9c0823f0192b28e3f833b4dae14407d2ce6a9f82f3",
+    "/root/code/github_repos/Falcon-fork/studio/configs/Falcon.yml": "0de67f8994cbf09abdf6004472f8b2f43c7eca9824718a8920d56d077b5782fd"
+  },
+  "script_sha256": "ab58b9229a6cba799c264d5b3776c09d2ce8aa3cfd96b9e6082bef46a177e6c5",
+  "source_id": "6363283530274620169_00005",
+  "windows": 9,
+  "range_samples": [
+    22720,
+    94720
+  ],
+  "guard_ms": 80,
+  "anchor": "grid",
+  "assumption": "Each source crop n has timestamp (n+0.5)*640; ties select earlier crop; clipping repeats boundary frames.",
+  "old_vs_whole": {
+    "si_snr": 18.201479545832978,
+    "pearson": 0.9925195522266198,
+    "max_dev_to_peak": 0.1882566511631012,
+    "rms_stream": 0.09346901625394821,
+    "rms_reference": 0.09453705698251724,
+    "seconds": 4.5
+  },
+  "corrected_vs_whole": {
+    "si_snr": 17.491817729732347,
+    "pearson": 0.9912091283743707,
+    "max_dev_to_peak": 0.20658612251281738,
+    "rms_stream": 0.09340866655111313,
+    "rms_reference": 0.09453705698251724,
+    "seconds": 4.5
+  },
+  "old_vs_corrected": {
+    "si_snr": 23.203398960861126,
+    "pearson": 0.9976172650631447,
+    "max_dev_to_peak": 0.17089921236038208,
+    "rms_stream": 0.09346901625394821,
+    "rms_reference": 0.09340866655111313,
+    "seconds": 4.5
+  },
+  "old_corrected_max_abs": 0.13050085306167603,
+  "command": "cd /root/code/github_repos/Falcon-fork && PYTHONDONTWRITEBYTECODE=1 PYTHONWARNINGS=ignore OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES= /root/miniforge3/envs/falcon/bin/python /tmp/falcon_frame_alignment_probe_20261110.py"
+}

@@ -12,6 +12,7 @@
 **English** | [中文](README_zh.md)
 
 > The real-time demo of the [Falcon](../README.md) repository. Paper: [arXiv:2610.32749](https://arxiv.org/abs/2610.32749). Training and evaluation code are described in the root README.
+> For the evaluation protocols, window timing and Space batching, see the [detailed guide](../docs/understanding/20261110-evaluation-and-apps.md) and [reproduction status](../docs/STATUS.md).
 
 > **🎙️ Try it online:** <https://u464727-dmja-7896a455.bjb3.seetacloud.com:8443/> (Chrome). It runs on a GPU server, so camera and microphone data are sent to that server. The rest of this guide covers the local install.
 >
@@ -29,7 +30,7 @@ Everything runs on your machine: the interface, fonts, scripts and the MediaPipe
 4. **Auto tracking** is the default. Face the camera with your mouth visible, wait for the green lip outline and the **AUTO** crop to follow you, then click **Start separation**.
 5. To hear the result, put on headphones first, then turn on **Headphone monitoring** (off by default).
 6. After stopping you can **Play** the recording or **Export WAV**. Switch between **Separated** and **Mixture** to hear or save the separated voice or the microphone input the model received, aligned to the same moments. The browser keeps up to 5 minutes of exportable audio; live separation and meeting output keep running after that limit.
-7. **Stop** first separates the last second of speech, then releases the devices (click again to stop at once). To quit the app, press **Control-C** in the terminal window.
+7. **Stop** attempts to process the tail before releasing devices; click again to stop at once. Draining times out after 8 seconds, so a slow run can leave the tail incomplete. To quit the app, press **Control-C** in the terminal window.
 
 The interface starts in English; switch between **English / 中文** at the top right at any time. Switching keeps the capture session, model and recording.
 
@@ -96,7 +97,9 @@ Chrome keeps capturing camera frames when you switch to the meeting window; othe
 | Joins | short crossfade between consecutive outputs; band-limited resampling to the device rate |
 | Overload | bounded queue; stale windows are skipped instead of building up latency |
 
-The first output needs about 0.58 s of valid input plus computation. Each fresh target starts with 1.42 s of silent left context and its first valid mouth frame, so the first output starts at the real capture boundary instead of dropping the opening words. The synthetic history is excluded from both recordings. Stopping also drains clips shorter than the first hop; the saved audio ends at the instant Stop was clicked. Initial separation quality can differ from a full real-context window. In steady state the designed delay is about 0.7–0.8 s (0.5 s hop + 80 ms guard band + inference + playback buffer). Every hop recomputes the full 2 s window from the captured history: no hidden state, no audio cache and no per-sample recursion is carried between windows, so this is **windowed streaming (2 s window, 0.5 s hop)**, not a causal or native streaming model.
+The first output needs about 0.58 s of valid input plus computation and playback time. A new target starts with 1.42 s of silent history and the first valid mouth frame; initial quality can differ from a window with complete real context. Stop attempts to drain the tail, but the 8 s timeout can leave the tail incomplete if processing is slow.
+
+Each hop recomputes a full 2 s window without carrying hidden state between windows. The 80 ms guard is the distance between the emitted block and window end. Window-wide normalization couples time positions within the window. Capture, queueing, inference and playback all affect the observed delay.
 
 Auto tracking produces a landmark-guided square mouth crop, not the full face alignment used to build the training data, so live input can differ from training conditions. Large head turns, occlusion and lighting changes can lower quality.
 
@@ -104,66 +107,31 @@ The input and output panels show scrolling spectrograms of the last ~8 s (0–8 
 
 ### Windowed streaming, measured
 
-The 80 ms guard band is the **end of the emission geometry, not a receptive field**: inside one 2 s window
-every output sample depends on the whole window (global feature normalisation plus attention), so no output
-sample sees only 80 ms of context. What the guard band removes is the window-tail transient of the inverse
-STFT and of the convolutions — on this checkpoint the last 20 ms of a window carries about 3–5x the median
-energy of the window. It is a real quality knob that costs 80 ms of latency, not bookkeeping.
+The 80 ms guard is the gap between the emitted block and the window end. Full-window normalization couples the output to the input window. A CPU or GPU forward time is only one part of the delay.
 
-`tools/repro/experiments/streaming_consistency.py` measures what windowing costs against the offline
-reference (the whole clip in one forward pass, `infer_file.extract`). One CPU run, 4 threads, 6 s of real
-`falcon_lrs2_2mix` test audio (3 items concatenated with 10 ms crossfades at the joins; every window is
-paired with the 50 mouth crops the browser would send for it). The cross-window rows below are the
-adjudicated numbers for the grid Studio actually runs, which opens its first window at t=0;
-`tools/repro/experiments/streaming_canonical.py` reproduces exactly these (about 90 s on 4 CPU threads).
-The older `streaming_consistency.py` evaluates a grid that starts at 1.42 s, so its own output is more
-optimistic than the values quoted here:
+A recorded experiment used three 2 s LRS2 mixtures with 10 ms joins and repeated mouth crops. On that *synthetic stream*, the historical canonical report gave 14.71 dB agreement between stitched and whole-stream output, and 16.72 dB after omitting the cold-start window. These agreement measurements use that input and checkpoint; speech quality and continuous-video behavior require separate evaluation.
 
-| Quantity | Measured |
-|---|---|
-| whole-clip pass, 6 s of audio | 2.0–3.8 s depending on machine load (2–3x realtime) |
-| one 2 s window | about 0.6 s (B=1, 2 s window, CPU; 4 threads measure 0.58–0.74 s), i.e. RTF 1.16–1.27 against the 0.5 s hop |
-| stitched stream vs whole-clip pass, 80 ms guard, Studio grid from t=0 | **+14.71 dB SI-SNR, r = 0.9835, max deviation 53.4% of the reference peak** |
-| same, steady state (cold-start first window dropped) | **+16.72 dB, r = 0.9895, max deviation 28.5%** |
-| stitched stream vs the clean target (in-repo script grid, from t=1.42 s) | +11.1 dB; the whole-clip pass reaches +11.5 dB, so stitching costs about 0.4 dB |
-| guard band sweep 80 / 160 / 320 / 456 / 640 ms, fixed absolute chunk (the chunk discards the window tail) | 14.51 / 15.19 / 15.01 / 16.71 / 15.57 dB vs whole-clip — non-monotonic, +2.2 dB at 456 ms |
-| one fixed 0.5 s chunk, 80 → 640 ms of extra right context inside the forward pass | 22.12 / 22.19 / 22.55 / 21.30 / 22.92 dB vs whole-clip — only +0.8 dB, saturated past 456 ms |
-| same audio, window grid shifted by ±250 ms | agreement with the whole-clip pass moves only across 15.9–18.0 dB (2.1 dB spread); two phases agree with each other at about 17 dB |
+The experimental scripts have different boundaries. `streaming_consistency.py` uses a frame-rounding expression that can duplicate or skip crops; on one 6 s constructed input, correcting only the crop selection changed agreement over the emitted 4.5 s from 18.201 to 17.492 dB. The canonical pairwise phase selector also includes one same-grid pair despite its stated exclusion; a 6 s rerun corrected the maximum from 105.66 to 20.82 dB while the minimum stayed 17.02 dB. The separate canonical experiment reported 14.71 dB on its own input. See the [evaluation and apps guide](../docs/understanding/20261110-evaluation-and-apps.md) for inputs, limitations and evidence.
 
-Those last rows answer two different questions and should not be mixed. The guard band is *where* the
-emitted chunk sits inside the window: moving it is free (the latency does not change), buys about 2 dB and
-is not monotonic. Right context is *how much audio the window contains after the chunk*: adding it costs
-latency one-for-one but is worth only about 0.8 dB, because the result is already saturated at 80 ms — the
-geometric shortfall against the 456–904 ms lookahead measured inside the model is a small quality term, not
-the main one. Neither knob dominates: on this one checkpoint any two 2 s windowing schemes differ by 13–19 dB
-SI-SNR, because the 30 window-wide `cLNhw` layers make the output depend on the window length itself.
-
-Two consequences. First, a CPU that measures an RTF above 1 cannot keep the 0.5 s cadence, so windows are
-skipped and the output is discontinuous by design (`--device cuda` or Metal is the real-time path). Second,
-the result depends on where the window grid falls and not only on the audio, because the model is recomputed
-per window: over ±250 ms of grid shift, agreement with the whole-clip pass moves only between 15.9 and
-18.0 dB, while two different phases agree with each other at about 17 dB SI-SNR, a residual of roughly 14%
-in amplitude. Nothing about the signal changed, only the window boundaries.
-
-Reproduce with:
+For a reproducible comparison, run from the repository root and write results to a new temporary path:
 
 ```bash
-# the adjudicated cross-window numbers: Studio grid from t=0, 6 s stream (~90 s on 4 CPU threads)
-CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py
-# the same on the 4 s stream
-CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py --seconds 4
-# Studio's geometry (2 s windows, 0.5 s hop, guard band = emission offset)
-CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py
-# how much right context does one 0.5 s chunk actually need
-CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --mode lookahead
-# a shorter sweep, and a custom clip
-CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --guards 80,456 --clips 2
+# Historical 6 s synthetic-stream protocol; uses the local LRS2 test data and cached weights.
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py 6 --json /tmp/falcon-canonical-new.json
+# The 4 s version; this is a different input duration.
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_canonical.py 4 --json /tmp/falcon-canonical-4s-new.json
 ```
 
-The per-window timings quoted elsewhere in this project (0.65 s on an Apple M5 Pro CPU, 47.1 ms for Falcon
-small on an A800) are reference values taken from earlier notes; this repository holds no measurement file
-for them, and this machine's CPU measures 0.58 s per window. The numbers above are the ones this checkout
-reproduces on demand.
+The other historical experiments remain available. Their frame-selection limitation applies to each result, and the corresponding code has not been changed here:
+
+```bash
+# Default stitched-window comparison.
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --json /tmp/falcon-consistency-new.json
+# Right-context experiment.
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --mode lookahead --json /tmp/falcon-lookahead-new.json
+# Shorter sweep over two clips.
+CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 python tools/repro/experiments/streaming_consistency.py --guards 80,456 --clips 2 --json /tmp/falcon-sweep-new.json
+```
 
 ## Command line
 
@@ -179,18 +147,18 @@ Run from `studio/`:
 ./scripts/doctor.sh --check-only                 # diagnose only: never bootstrap or install
 ```
 
-`auto` tries CUDA, then Metal, and falls back to the CPU if the GPU warm-up fails. On Linux, install a CUDA build of PyTorch (see pytorch.org) and the requirements, then run `python server.py --device cuda` and open the printed address in Chrome; the `.command` launchers and BlackHole are macOS only. The launcher reuses a working `.venv` in this folder, otherwise uses `~/Library/Caches/FalconStudio/venv` outside iCloud; installing missing packages always requires an explicit `./scripts/bootstrap.sh --yes`. It prefers the pinned `requirements-lock.txt`. Python 3.10–3.12 is supported (3.11 recommended); use `FALCON_PYTHON=/path/to/python3.11` to pick an interpreter, `FALCON_VENV=/path` for another environment, and `./scripts/bootstrap.sh` to install without starting.
+`auto` tries CUDA, then Metal, and falls back to the CPU if the GPU warm-up fails. On Linux, install a CUDA build of PyTorch (see pytorch.org) and the requirements, then run `python server.py --device cuda` and open the printed address in Chrome; the `.command` launchers and BlackHole are macOS only. The launcher reuses a working `.venv` in this folder, otherwise uses `~/Library/Caches/FalconStudio/venv` outside iCloud; installing missing packages always requires an explicit `./scripts/bootstrap.sh --yes`. It prefers the pinned `requirements-lock.txt`. Python 3.10–3.12 is supported (3.11 recommended); use `FALCON_PYTHON=/path/to/python3.11` to pick an interpreter, `FALCON_VENV=/path` for another environment, and `./scripts/bootstrap.sh --yes` to install without starting. Without `--yes`, it does not install packages, but may create an environment directory before stopping.
 
 `--checkpoint` works on `launch.sh`, `server.py` and `infer_file.py` (the file must match the selected small/big model), and the server also accepts `{"variant": "small", "checkpoint": "..."}` on `/api/load`; `/api/status` reports the loaded checkpoint filename and SHA-256. An interpreter that already imports torch, numpy and Pillow (`FALCON_PYTHON`, `FALCON_VENV`, or a `FALCON_MANAGED_ENV=1` run) is reused as-is and is never installed into; with `FALCON_MANAGED_ENV=1`, an interpreter that fails that check is rejected instead of being installed into. `bootstrap.sh` prints the packages it would install or change and only proceeds with `--yes`; `doctor.sh --check-only` skips bootstrap entirely and uses the supplied interpreter.
 
 ### Offline inference on a clip
 
 ```bash
-ffmpeg -i input.mp4 -ac 1 -ar 16000 mix.wav
+ffmpeg -i input.mp4 -ac 1 -ar 16000 -c:a pcm_s16le mix.wav
 python infer_file.py --audio mix.wav --mouth mouth.npy --out target.wav --model JusperLee/Falcon
 ```
 
-`mouth.npy` holds the target speaker's grayscale 96×96 mouth crops at 25 fps, shape `(T, 96, 96)` (`.npz` and `.pt` also work). `--checkpoint` takes a local weights file or `hf://<org>/<repo>/<file>` instead of the model's own weights (the same option exists on `server.py`).
+`mouth.npy` holds the target speaker's grayscale 96×96 mouth crops at 25 fps, shape `(T, 96, 96)` (`.npz` and `.pt` also work). Convert the project’s `(T,96,96,3)` LRS2 `.pt` crops to a new three-dimensional grayscale file and check their timing against the audio. Use **16 kHz mono 16-bit PCM WAV** with this implementation: 32-bit integer PCM is misread as float, while standard IEEE float WAV is rejected by Python 3.11 `wave` in the tested environment. `--checkpoint` accepts a matching local file or `hf://<org>/<repo>/<file>`.
 
 ### Python API
 
@@ -259,4 +227,4 @@ The tracking test with the real MediaPipe model runs in a browser: start `FALCON
 
 Startup shows its current stage and releases devices on preview/audio initialization timeouts so it can be retried. Device enumeration does not block Start. Runtime hints distinguish stalled microphone capture, near-silent input, missing mouth frames, alignment waits and slow inference responses.
 
-For troubleshooting, run `JSON.stringify(window.falconDiagnostics(), null, 2)` in the browser console and include the browser/device version. This exposes aggregate counters, input/output energy and state only, with no audio, images or cookies. It does not evaluate separation quality.
+For troubleshooting, run `JSON.stringify(window.falconDiagnostics(), null, 2)` in the browser console and include the browser/device version. This exposes aggregate counters, input/output energy and state only, with no audio, images or cookies. Evaluate separation quality using recorded audio.
