@@ -59,3 +59,11 @@ v9 在已训练的 v8 子带估计器旁增加一个局部时频分支，复用�
 64×4 的 200 步权重在 3 条真实官方 CV 整句样本上完成两项指标的有效配对。正式训练结束后，脚本会按完整验证损失选点，复测因果与 CPU 耗时，再对官方 TT 运行两个分片并核验覆盖后合并。论文目标是否达到取决于这份最终整句报告。
 
 产物位于服务器 `/root/group-shared/voiceprint/experiments/falcon_streaming_v9_capacity_20261112/`。短跑入口 `run_sweep.sh`，配对审计 `paired-sweep.json`，正式启动 `run_full.sh`，训练结束后的评估脚本 `post_train.sh`，局部梯度抽查 `probe-local-loss.json`，参数组证据 `lr-group-audit.log`，短跑新增分支消融 `probe-capacity-ablation.json`，整句评估冒烟位于 `utterance-eval-check/`。模型配置见 [RealSSAStreamingCapacity.yml](../../configs/RealSSAStreamingCapacity.yml)。
+
+## 每卡 1024 的正式配方
+
+[正式配方](../../configs/RealSSAStreamingCapacityBatch1024.yml)使用每卡 1,024 条、两卡全局 2,048 条。每个 batch 直接执行一次参数更新，配置值 `accum: 1`。原每卡 64 的结果保留用于容量筛选和实验对照。
+
+双卡真实试跑完成三次参数更新并保存检查点。AdamW 状态中的更新计数逐参数核验为 3，验证 64 条有效。与原任务并行的试跑期间，两卡设备显存采样峰值分别为 72,560 和 72,560 MiB，包含当时在跑的旧任务。证据位于实验根目录的 `batch1024-preflight/`。
+
+大 batch 配方每完整轮更新 39 次。主干学习率 6e-5，新增支路 1.8e-4，预热 8 步。验证下降学习率的等待期为 5，早停等待期为 25，训练上限为 200 轮。新任务从 v8 第 1 轮的已保存权重重新热启动，沿用同一 v9 模型、120 ms 接口和整句测试流程。正式启动脚本为 `run_full_batch1024.sh`，输出位于 `full-batch1024/`。
