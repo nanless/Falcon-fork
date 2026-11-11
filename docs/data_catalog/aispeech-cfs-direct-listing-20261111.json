@@ -1,0 +1,2750 @@
+{
+  "start": "2026-11-11T08:51:20.575230+08:00",
+  "end": "2026-11-11T08:51:21.078272+08:00",
+  "cold_root": "/aispeech-cfs/voiceprint/data/multimodal",
+  "scope": "Direct scandir/stat of each top level directory and its raw directory; at most 50 entries per scanned directory, no recursion or media decoding. Entry counts when truncated are lower bounds, not full dataset counts. Sensitive-looking names are omitted.",
+  "directories": [
+    {
+      "name": "_catalog",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/_catalog",
+        "entries": [
+          {
+            "name": "final_report.md",
+            "kind": "file",
+            "bytes": 2475
+          },
+          {
+            "name": "final_status.csv",
+            "kind": "file",
+            "bytes": 4638
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": null
+    },
+    {
+      "name": "_local_overflow_20261102",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/_local_overflow_20261102",
+        "entries": [
+          {
+            "name": "avspeech",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "codex_artifacts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "miniforge3_envs",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "multimodal",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": null
+    },
+    {
+      "name": "aspire",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/aspire",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 81
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 438
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw",
+        "entries": [
+          {
+            "name": "ASPIRE.zip",
+            "kind": "file",
+            "bytes": 12960167179
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "audioset_strong",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 394
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 661
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong/raw",
+        "entries": [
+          {
+            "name": "audioset_eval_strong.tsv",
+            "kind": "file",
+            "bytes": 5618305
+          },
+          {
+            "name": "audioset_eval_strong_framed_posneg.tsv",
+            "kind": "file",
+            "bytes": 32473054
+          },
+          {
+            "name": "audioset_train_strong.tsv",
+            "kind": "file",
+            "bytes": 37649104
+          },
+          {
+            "name": "mid_to_display_name.tsv",
+            "kind": "file",
+            "bytes": 10477
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "avcocktail",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 21902
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 645
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw",
+        "entries": [
+          {
+            "name": ".gitattributes",
+            "kind": "file",
+            "bytes": 2461
+          },
+          {
+            "name": "README.md",
+            "kind": "file",
+            "bytes": 26754
+          },
+          {
+            "name": "labels",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "videos",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "kind": "file",
+      "bytes": 1980009103360
+    },
+    {
+      "name": "avyt",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/avyt",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 132423
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 625
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/avyt/raw",
+        "entries": [
+          {
+            "name": ".gitattributes",
+            "kind": "file",
+            "bytes": 2461
+          },
+          {
+            "name": "README.md",
+            "kind": "file",
+            "bytes": 1427
+          },
+          {
+            "name": "avyt",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "dialog",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "lrs2",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "vox2",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "candor",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/candor",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 15438
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 631
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/candor/raw",
+        "entries": [
+          {
+            "name": "raw_media_part_001.zip",
+            "kind": "file",
+            "bytes": 5483301444
+          },
+          {
+            "name": "raw_media_part_002.zip",
+            "kind": "file",
+            "bytes": 6461471864
+          },
+          {
+            "name": "raw_media_part_003.zip",
+            "kind": "file",
+            "bytes": 6023446768
+          },
+          {
+            "name": "raw_media_part_004.zip",
+            "kind": "file",
+            "bytes": 5164170988
+          },
+          {
+            "name": "raw_media_part_005.zip",
+            "kind": "file",
+            "bytes": 5563953991
+          },
+          {
+            "name": "raw_media_part_006.zip",
+            "kind": "file",
+            "bytes": 5216218185
+          },
+          {
+            "name": "raw_media_part_007.zip",
+            "kind": "file",
+            "bytes": 5243027572
+          },
+          {
+            "name": "raw_media_part_008.zip",
+            "kind": "file",
+            "bytes": 6031709194
+          },
+          {
+            "name": "raw_media_part_009.zip",
+            "kind": "file",
+            "bytes": 5345406675
+          },
+          {
+            "name": "raw_media_part_010.zip",
+            "kind": "file",
+            "bytes": 5899759874
+          },
+          {
+            "name": "raw_media_part_011.zip",
+            "kind": "file",
+            "bytes": 4823227572
+          },
+          {
+            "name": "raw_media_part_012.zip",
+            "kind": "file",
+            "bytes": 5892626947
+          },
+          {
+            "name": "raw_media_part_013.zip",
+            "kind": "file",
+            "bytes": 5988426925
+          },
+          {
+            "name": "raw_media_part_014.zip",
+            "kind": "file",
+            "bytes": 6867961904
+          },
+          {
+            "name": "raw_media_part_015.zip",
+            "kind": "file",
+            "bytes": 5412956691
+          },
+          {
+            "name": "raw_media_part_016.zip",
+            "kind": "file",
+            "bytes": 5921568267
+          },
+          {
+            "name": "raw_media_part_017.zip",
+            "kind": "file",
+            "bytes": 4910127100
+          },
+          {
+            "name": "raw_media_part_018.zip",
+            "kind": "file",
+            "bytes": 5566016049
+          },
+          {
+            "name": "raw_media_part_019.zip",
+            "kind": "file",
+            "bytes": 5829402609
+          },
+          {
+            "name": "raw_media_part_020.zip",
+            "kind": "file",
+            "bytes": 5882266573
+          },
+          {
+            "name": "raw_media_part_021.zip",
+            "kind": "file",
+            "bytes": 4579448787
+          },
+          {
+            "name": "raw_media_part_022.zip",
+            "kind": "file",
+            "bytes": 4973131846
+          },
+          {
+            "name": "raw_media_part_023.zip",
+            "kind": "file",
+            "bytes": 5514271120
+          },
+          {
+            "name": "raw_media_part_024.zip",
+            "kind": "file",
+            "bytes": 5204412023
+          },
+          {
+            "name": "raw_media_part_025.zip",
+            "kind": "file",
+            "bytes": 5952771114
+          },
+          {
+            "name": "raw_media_part_026.zip",
+            "kind": "file",
+            "bytes": 6307999797
+          },
+          {
+            "name": "raw_media_part_027.zip",
+            "kind": "file",
+            "bytes": 5739578646
+          },
+          {
+            "name": "raw_media_part_028.zip",
+            "kind": "file",
+            "bytes": 4739918358
+          },
+          {
+            "name": "raw_media_part_029.zip",
+            "kind": "file",
+            "bytes": 5065719026
+          },
+          {
+            "name": "raw_media_part_030.zip",
+            "kind": "file",
+            "bytes": 5987055919
+          },
+          {
+            "name": "raw_media_part_031.zip",
+            "kind": "file",
+            "bytes": 5862274777
+          },
+          {
+            "name": "raw_media_part_032.zip",
+            "kind": "file",
+            "bytes": 6000815667
+          },
+          {
+            "name": "raw_media_part_033.zip",
+            "kind": "file",
+            "bytes": 4831892879
+          },
+          {
+            "name": "raw_media_part_034.zip",
+            "kind": "file",
+            "bytes": 5537163478
+          },
+          {
+            "name": "raw_media_part_035.zip",
+            "kind": "file",
+            "bytes": 7197510707
+          },
+          {
+            "name": "raw_media_part_036.zip",
+            "kind": "file",
+            "bytes": 5793006486
+          },
+          {
+            "name": "raw_media_part_037.zip",
+            "kind": "file",
+            "bytes": 5784492413
+          },
+          {
+            "name": "raw_media_part_038.zip",
+            "kind": "file",
+            "bytes": 6526580824
+          },
+          {
+            "name": "raw_media_part_039.zip",
+            "kind": "file",
+            "bytes": 5912729725
+          },
+          {
+            "name": "raw_media_part_040.zip",
+            "kind": "file",
+            "bytes": 5911024640
+          },
+          {
+            "name": "raw_media_part_041.zip",
+            "kind": "file",
+            "bytes": 5155778288
+          },
+          {
+            "name": "raw_media_part_042.zip",
+            "kind": "file",
+            "bytes": 5349071957
+          },
+          {
+            "name": "raw_media_part_043.zip",
+            "kind": "file",
+            "bytes": 5797235264
+          },
+          {
+            "name": "raw_media_part_044.zip",
+            "kind": "file",
+            "bytes": 6538714553
+          },
+          {
+            "name": "raw_media_part_045.zip",
+            "kind": "file",
+            "bytes": 5862308352
+          },
+          {
+            "name": "raw_media_part_046.zip",
+            "kind": "file",
+            "bytes": 5176974543
+          },
+          {
+            "name": "raw_media_part_047.zip",
+            "kind": "file",
+            "bytes": 4990698341
+          },
+          {
+            "name": "raw_media_part_048.zip",
+            "kind": "file",
+            "bytes": 5858386585
+          },
+          {
+            "name": "raw_media_part_049.zip",
+            "kind": "file",
+            "bytes": 5323442213
+          },
+          {
+            "name": "raw_media_part_050.zip",
+            "kind": "file",
+            "bytes": 6296227483
+          }
+        ],
+        "truncated": true,
+        "error": null
+      }
+    },
+    {
+      "name": "chinese_lips",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 1566
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 451
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw",
+        "entries": [
+          {
+            "name": "image.zip",
+            "kind": "file",
+            "bytes": 1233538234
+          },
+          {
+            "name": "meta_all.csv",
+            "kind": "file",
+            "bytes": 10460463
+          },
+          {
+            "name": "meta_test.csv",
+            "kind": "file",
+            "bytes": 1102537
+          },
+          {
+            "name": "meta_test.json",
+            "kind": "file",
+            "bytes": 5194579
+          },
+          {
+            "name": "meta_train.csv",
+            "kind": "file",
+            "bytes": 8766725
+          },
+          {
+            "name": "meta_valid.csv",
+            "kind": "file",
+            "bytes": 555046
+          },
+          {
+            "name": "processed_test.zip",
+            "kind": "file",
+            "bytes": 1044092064
+          },
+          {
+            "name": "processed_train.zip",
+            "kind": "file",
+            "bytes": 8730189641
+          },
+          {
+            "name": "processed_val.zip",
+            "kind": "file",
+            "bytes": 546449545
+          },
+          {
+            "name": "test.zip",
+            "kind": "file",
+            "bytes": 8445567915
+          },
+          {
+            "name": "train.z01",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z02",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z03",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z04",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z05",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z06",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z07",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "train.z08",
+            "kind": "file",
+            "bytes": 8589934592
+          },
+          {
+            "name": "val.zip",
+            "kind": "file",
+            "bytes": 4323838539
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "cuave_partial",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 94
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 450
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial/raw",
+        "entries": [
+          {
+            "name": "cuave-group-aligned.zip",
+            "kind": "file",
+            "bytes": 640156002
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "darknsu_lrs3",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 164
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 450
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3/raw",
+        "entries": [
+          {
+            "name": "video.tar.gz",
+            "kind": "file",
+            "bytes": 21683198609
+          },
+          {
+            "name": "wav.tar.gz",
+            "kind": "file",
+            "bytes": 41292758854
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "ellipsis_lrs3",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 3204
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 453
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3/raw",
+        "entries": [
+          {
+            "name": "shards",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "facestar",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/facestar",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 12280
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 444
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/facestar/raw",
+        "entries": [
+          {
+            "name": "female_speaker_testset",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "female_speaker_trainset",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "male_speaker_testset",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "male_speaker_trainset",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "paper_materials",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "grid",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/grid",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 2817
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 621
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/grid/raw",
+        "entries": [
+          {
+            "name": "alignments.zip",
+            "kind": "file",
+            "bytes": 20091485
+          },
+          {
+            "name": "audio_25k.zip",
+            "kind": "file",
+            "bytes": 2607605854
+          },
+          {
+            "name": "jasagrid.pdf",
+            "kind": "file",
+            "bytes": 73193
+          },
+          {
+            "name": "s1.zip",
+            "kind": "file",
+            "bytes": 423520514
+          },
+          {
+            "name": "s10.zip",
+            "kind": "file",
+            "bytes": 429472848
+          },
+          {
+            "name": "s11.zip",
+            "kind": "file",
+            "bytes": 400972361
+          },
+          {
+            "name": "s12.zip",
+            "kind": "file",
+            "bytes": 369958064
+          },
+          {
+            "name": "s13.zip",
+            "kind": "file",
+            "bytes": 407686627
+          },
+          {
+            "name": "s14.zip",
+            "kind": "file",
+            "bytes": 354617730
+          },
+          {
+            "name": "s15.zip",
+            "kind": "file",
+            "bytes": 480848767
+          },
+          {
+            "name": "s16.zip",
+            "kind": "file",
+            "bytes": 398038649
+          },
+          {
+            "name": "s17.zip",
+            "kind": "file",
+            "bytes": 385941774
+          },
+          {
+            "name": "s18.zip",
+            "kind": "file",
+            "bytes": 381117685
+          },
+          {
+            "name": "s19.zip",
+            "kind": "file",
+            "bytes": 421730533
+          },
+          {
+            "name": "s2.zip",
+            "kind": "file",
+            "bytes": 394644122
+          },
+          {
+            "name": "s20.zip",
+            "kind": "file",
+            "bytes": 408893396
+          },
+          {
+            "name": "s22.zip",
+            "kind": "file",
+            "bytes": 393659383
+          },
+          {
+            "name": "s23.zip",
+            "kind": "file",
+            "bytes": 416883805
+          },
+          {
+            "name": "s24.zip",
+            "kind": "file",
+            "bytes": 449740738
+          },
+          {
+            "name": "s25.zip",
+            "kind": "file",
+            "bytes": 440939778
+          },
+          {
+            "name": "s26.zip",
+            "kind": "file",
+            "bytes": 366983522
+          },
+          {
+            "name": "s27.zip",
+            "kind": "file",
+            "bytes": 425908152
+          },
+          {
+            "name": "s28.zip",
+            "kind": "file",
+            "bytes": 414102541
+          },
+          {
+            "name": "s29.zip",
+            "kind": "file",
+            "bytes": 445663540
+          },
+          {
+            "name": "s3.zip",
+            "kind": "file",
+            "bytes": 394112626
+          },
+          {
+            "name": "s30.zip",
+            "kind": "file",
+            "bytes": 381061085
+          },
+          {
+            "name": "s31.zip",
+            "kind": "file",
+            "bytes": 410328033
+          },
+          {
+            "name": "s32.zip",
+            "kind": "file",
+            "bytes": 387242110
+          },
+          {
+            "name": "s33.zip",
+            "kind": "file",
+            "bytes": 444661377
+          },
+          {
+            "name": "s34.zip",
+            "kind": "file",
+            "bytes": 445356476
+          },
+          {
+            "name": "s4.zip",
+            "kind": "file",
+            "bytes": 491885378
+          },
+          {
+            "name": "s5.zip",
+            "kind": "file",
+            "bytes": 407187378
+          },
+          {
+            "name": "s6.zip",
+            "kind": "file",
+            "bytes": 423334712
+          },
+          {
+            "name": "s7.zip",
+            "kind": "file",
+            "bytes": 384100404
+          },
+          {
+            "name": "s8.zip",
+            "kind": "file",
+            "bytes": 412948138
+          },
+          {
+            "name": "s9.zip",
+            "kind": "file",
+            "bytes": 390214804
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "lombard_grid",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 462
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 651
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/raw",
+        "entries": [
+          {
+            "name": "lombardgrid_alignment.zip",
+            "kind": "file",
+            "bytes": 2532345
+          },
+          {
+            "name": "lombardgrid_audio.zip",
+            "kind": "file",
+            "bytes": 652614041
+          },
+          {
+            "name": "lombardgrid_front.zip",
+            "kind": "file",
+            "bytes": 837239327
+          },
+          {
+            "name": "lombardgrid_json.zip",
+            "kind": "file",
+            "bytes": 64938
+          },
+          {
+            "name": "lombardgrid_side.zip",
+            "kind": "file",
+            "bytes": 992617582
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "mafi",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mafi",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 2523
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 620
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mafi/raw",
+        "entries": [
+          {
+            "name": "Analysis",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "Behavioural Data",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "Norms",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "Scripts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "Videos Folder",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "mandarin_avsr",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 754
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 452
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw",
+        "entries": [
+          {
+            "name": "cv.tar.gz",
+            "kind": "file",
+            "bytes": 4068518756
+          },
+          {
+            "name": "preview.tar.gz",
+            "kind": "file",
+            "bytes": 6108815
+          },
+          {
+            "name": "tr_1mix.tar.gz",
+            "kind": "file",
+            "bytes": 8444482161
+          },
+          {
+            "name": "tr_2mix.tar.gz",
+            "kind": "file",
+            "bytes": 8384385781
+          },
+          {
+            "name": "tr_3mix.tar.gz",
+            "kind": "file",
+            "bytes": 8301484275
+          },
+          {
+            "name": "tr_4mix.tar.gz",
+            "kind": "file",
+            "bytes": 8266543066
+          },
+          {
+            "name": "tr_5mix.tar.gz",
+            "kind": "file",
+            "bytes": 8198552486
+          },
+          {
+            "name": "tr_all.tar.gz",
+            "kind": "file",
+            "bytes": 549312
+          },
+          {
+            "name": "tt.tar.gz",
+            "kind": "file",
+            "bytes": 4306679368
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "mld_vc",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 408
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 437
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw",
+        "entries": [
+          {
+            "name": "audio.zip",
+            "kind": "file",
+            "bytes": 1774188067
+          },
+          {
+            "name": "landmarks.zip",
+            "kind": "file",
+            "bytes": 267627013
+          },
+          {
+            "name": "metadata.jsonl",
+            "kind": "file",
+            "bytes": 5865837
+          },
+          {
+            "name": "text.zip",
+            "kind": "file",
+            "bytes": 38057
+          },
+          {
+            "name": "video.zip",
+            "kind": "file",
+            "bytes": 7866823152
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "muavic",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 422300
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 1606
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic/raw",
+        "entries": [
+          {
+            "name": "source_videos",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "muavic_metadata",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 866
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 665
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata/raw",
+        "entries": [
+          {
+            "name": "20words_mean_face.npy",
+            "kind": "file",
+            "bytes": 1168
+          },
+          {
+            "name": "ar_metadata.tgz",
+            "kind": "file",
+            "bytes": 206687625
+          },
+          {
+            "name": "de_metadata.tgz",
+            "kind": "file",
+            "bytes": 166815948
+          },
+          {
+            "name": "el_metadata.tgz",
+            "kind": "file",
+            "bytes": 348837239
+          },
+          {
+            "name": "en_metadata.tgz",
+            "kind": "file",
+            "bytes": 6158791215
+          },
+          {
+            "name": "es_metadata.tgz",
+            "kind": "file",
+            "bytes": 2262364299
+          },
+          {
+            "name": "fr_metadata.tgz",
+            "kind": "file",
+            "bytes": 2278371333
+          },
+          {
+            "name": "it_metadata.tgz",
+            "kind": "file",
+            "bytes": 1212039010
+          },
+          {
+            "name": "pt_metadata.tgz",
+            "kind": "file",
+            "bytes": 1918617503
+          },
+          {
+            "name": "ru_metadata.tgz",
+            "kind": "file",
+            "bytes": 630201920
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "multivsr",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 7899100
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 449
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr/raw",
+        "entries": [
+          {
+            "name": "source_videos",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "multivsr_metadata",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 836
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 673
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata/raw",
+        "entries": [
+          {
+            "name": ".gitattributes",
+            "kind": "file",
+            "bytes": 2664
+          },
+          {
+            "name": "README.md",
+            "kind": "file",
+            "bytes": 1050
+          },
+          {
+            "name": "dataset_teaser.gif",
+            "kind": "file",
+            "bytes": 4605953
+          },
+          {
+            "name": "multivsr.tar",
+            "kind": "file",
+            "bytes": 42083102720
+          },
+          {
+            "name": "test.csv",
+            "kind": "file",
+            "bytes": 9758455
+          },
+          {
+            "name": "train_major.csv",
+            "kind": "file",
+            "bytes": 850381415
+          },
+          {
+            "name": "train_minor.csv",
+            "kind": "file",
+            "bytes": 21710125
+          },
+          {
+            "name": "val_major.csv",
+            "kind": "file",
+            "bytes": 13549611
+          },
+          {
+            "name": "val_minor.csv",
+            "kind": "file",
+            "bytes": 141983
+          },
+          {
+            "name": "ytids.txt",
+            "kind": "file",
+            "bytes": 1492992
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "ravdess",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/ravdess",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 4664
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 441
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/ravdess/raw",
+        "entries": [
+          {
+            "name": "Audio_Song_Actors_01-24.zip",
+            "kind": "file",
+            "bytes": 225505317
+          },
+          {
+            "name": "Audio_Speech_Actors_01-24.zip",
+            "kind": "file",
+            "bytes": 208468073
+          },
+          {
+            "name": "Video_Song_Actor_01.zip",
+            "kind": "file",
+            "bytes": 502513588
+          },
+          {
+            "name": "Video_Song_Actor_02.zip",
+            "kind": "file",
+            "bytes": 553420328
+          },
+          {
+            "name": "Video_Song_Actor_03.zip",
+            "kind": "file",
+            "bytes": 508655610
+          },
+          {
+            "name": "Video_Song_Actor_04.zip",
+            "kind": "file",
+            "bytes": 482238814
+          },
+          {
+            "name": "Video_Song_Actor_05.zip",
+            "kind": "file",
+            "bytes": 529815624
+          },
+          {
+            "name": "Video_Song_Actor_06.zip",
+            "kind": "file",
+            "bytes": 518137235
+          },
+          {
+            "name": "Video_Song_Actor_07.zip",
+            "kind": "file",
+            "bytes": 503620083
+          },
+          {
+            "name": "Video_Song_Actor_08.zip",
+            "kind": "file",
+            "bytes": 525763440
+          },
+          {
+            "name": "Video_Song_Actor_09.zip",
+            "kind": "file",
+            "bytes": 507373354
+          },
+          {
+            "name": "Video_Song_Actor_10.zip",
+            "kind": "file",
+            "bytes": 540441375
+          },
+          {
+            "name": "Video_Song_Actor_11.zip",
+            "kind": "file",
+            "bytes": 482139346
+          },
+          {
+            "name": "Video_Song_Actor_12.zip",
+            "kind": "file",
+            "bytes": 488609103
+          },
+          {
+            "name": "Video_Song_Actor_13.zip",
+            "kind": "file",
+            "bytes": 493246031
+          },
+          {
+            "name": "Video_Song_Actor_14.zip",
+            "kind": "file",
+            "bytes": 477100629
+          },
+          {
+            "name": "Video_Song_Actor_15.zip",
+            "kind": "file",
+            "bytes": 470442416
+          },
+          {
+            "name": "Video_Song_Actor_16.zip",
+            "kind": "file",
+            "bytes": 524511180
+          },
+          {
+            "name": "Video_Song_Actor_17.zip",
+            "kind": "file",
+            "bytes": 548703189
+          },
+          {
+            "name": "Video_Song_Actor_19.zip",
+            "kind": "file",
+            "bytes": 508687880
+          },
+          {
+            "name": "Video_Song_Actor_20.zip",
+            "kind": "file",
+            "bytes": 533526907
+          },
+          {
+            "name": "Video_Song_Actor_21.zip",
+            "kind": "file",
+            "bytes": 507300520
+          },
+          {
+            "name": "Video_Song_Actor_22.zip",
+            "kind": "file",
+            "bytes": 546858914
+          },
+          {
+            "name": "Video_Song_Actor_23.zip",
+            "kind": "file",
+            "bytes": 527193354
+          },
+          {
+            "name": "Video_Song_Actor_24.zip",
+            "kind": "file",
+            "bytes": 528597175
+          },
+          {
+            "name": "Video_Speech_Actor_01.zip",
+            "kind": "file",
+            "bytes": 552968353
+          },
+          {
+            "name": "Video_Speech_Actor_02.zip",
+            "kind": "file",
+            "bytes": 570673024
+          },
+          {
+            "name": "Video_Speech_Actor_03.zip",
+            "kind": "file",
+            "bytes": 567824665
+          },
+          {
+            "name": "Video_Speech_Actor_04.zip",
+            "kind": "file",
+            "bytes": 546560009
+          },
+          {
+            "name": "Video_Speech_Actor_05.zip",
+            "kind": "file",
+            "bytes": 562966425
+          },
+          {
+            "name": "Video_Speech_Actor_06.zip",
+            "kind": "file",
+            "bytes": 568517859
+          },
+          {
+            "name": "Video_Speech_Actor_07.zip",
+            "kind": "file",
+            "bytes": 565652404
+          },
+          {
+            "name": "Video_Speech_Actor_08.zip",
+            "kind": "file",
+            "bytes": 562573079
+          },
+          {
+            "name": "Video_Speech_Actor_09.zip",
+            "kind": "file",
+            "bytes": 523489249
+          },
+          {
+            "name": "Video_Speech_Actor_10.zip",
+            "kind": "file",
+            "bytes": 565580163
+          },
+          {
+            "name": "Video_Speech_Actor_11.zip",
+            "kind": "file",
+            "bytes": 518634370
+          },
+          {
+            "name": "Video_Speech_Actor_12.zip",
+            "kind": "file",
+            "bytes": 557928718
+          },
+          {
+            "name": "Video_Speech_Actor_13.zip",
+            "kind": "file",
+            "bytes": 501877549
+          },
+          {
+            "name": "Video_Speech_Actor_14.zip",
+            "kind": "file",
+            "bytes": 552484059
+          },
+          {
+            "name": "Video_Speech_Actor_15.zip",
+            "kind": "file",
+            "bytes": 525205576
+          },
+          {
+            "name": "Video_Speech_Actor_16.zip",
+            "kind": "file",
+            "bytes": 562416513
+          },
+          {
+            "name": "Video_Speech_Actor_17.zip",
+            "kind": "file",
+            "bytes": 551688845
+          },
+          {
+            "name": "Video_Speech_Actor_18.zip",
+            "kind": "file",
+            "bytes": 565655520
+          },
+          {
+            "name": "Video_Speech_Actor_19.zip",
+            "kind": "file",
+            "bytes": 581121687
+          },
+          {
+            "name": "Video_Speech_Actor_20.zip",
+            "kind": "file",
+            "bytes": 561349264
+          },
+          {
+            "name": "Video_Speech_Actor_21.zip",
+            "kind": "file",
+            "bytes": 590292896
+          },
+          {
+            "name": "Video_Speech_Actor_22.zip",
+            "kind": "file",
+            "bytes": 560907466
+          },
+          {
+            "name": "Video_Speech_Actor_23.zip",
+            "kind": "file",
+            "bytes": 545177865
+          },
+          {
+            "name": "Video_Speech_Actor_24.zip",
+            "kind": "file",
+            "bytes": 595799165
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "real_world_avse",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 355
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 455
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse/raw",
+        "entries": [
+          {
+            "name": "Testing_set_GT.zip",
+            "kind": "file",
+            "bytes": 6104759350
+          },
+          {
+            "name": "assets",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "track1_dev.zip",
+            "kind": "file",
+            "bytes": 1535347449
+          },
+          {
+            "name": "track2_dev.zip",
+            "kind": "file",
+            "bytes": 1710489019
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "realssa_real",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/realssa_real",
+        "entries": [
+          {
+            "name": ".gitattributes",
+            "kind": "file",
+            "bytes": 252
+          },
+          {
+            "name": "INFERENCE.md",
+            "kind": "file",
+            "bytes": 248
+          },
+          {
+            "name": "README.md",
+            "kind": "file",
+            "bytes": 21761
+          },
+          {
+            "name": "audio",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "faces",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "landmarks",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "metadata",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "metadata.jsonl",
+            "kind": "file",
+            "bytes": 118894
+          },
+          {
+            "name": "mouth",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "references",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "requirements.txt",
+            "kind": "file",
+            "bytes": 60
+          },
+          {
+            "name": "scripts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "transcripts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "views",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/realssa_real/raw",
+        "entries": [
+          {
+            "name": "reference_texts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "references",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "transcripts",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "transcripts_manifest.jsonl",
+            "kind": "file",
+            "bytes": 8466
+          },
+          {
+            "name": "videos",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "videos_manifest.jsonl",
+            "kind": "file",
+            "bytes": 11794
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "realssa_sim",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/realssa_sim",
+        "entries": [
+          {
+            "name": ".gitattributes",
+            "kind": "file",
+            "bytes": 2504
+          },
+          {
+            "name": "README.md",
+            "kind": "file",
+            "bytes": 12108
+          },
+          {
+            "name": "_MANIFEST.json",
+            "kind": "file",
+            "bytes": 195
+          },
+          {
+            "name": "cv",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "tr",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "tt",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": null
+    },
+    {
+      "name": "roomreader",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/roomreader",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 195219
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 648
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/roomreader/raw",
+        "entries": [
+          {
+            "name": "NON COMMERCIAL LICENCE AGREEMENT_RoomReaderDataset.pdf",
+            "kind": "file",
+            "bytes": 157030
+          },
+          {
+            "name": "README_RoomReader.txt",
+            "kind": "file",
+            "bytes": 8469
+          },
+          {
+            "name": "annotations",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "audio",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "documentation",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "features",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "metrics",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "video",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "talkvid_meta",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 138378
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 450
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta/raw",
+        "entries": [
+          {
+            "name": "TalkVid-bench",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "tcd_timit",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 14814
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 447
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit/raw",
+        "entries": [
+          {
+            "name": "Additional Resources",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "README.txt",
+            "kind": "file",
+            "bytes": 2594
+          },
+          {
+            "name": "lipspeaker_labelfiles.mlf",
+            "kind": "file",
+            "bytes": 951626
+          },
+          {
+            "name": "lipspeakers",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "sample_30_degree_video.mp4",
+            "kind": "file",
+            "bytes": 32035605
+          },
+          {
+            "name": "sample_30_straight_video.mp4",
+            "kind": "file",
+            "bytes": 30192762
+          },
+          {
+            "name": "volunteer_labelfiles.mlf",
+            "kind": "file",
+            "bytes": 4543413
+          },
+          {
+            "name": "volunteers",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "unitalk_asd",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 35850
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 450
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd/raw",
+        "entries": [
+          {
+            "name": "clips_audios",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "clips_videos",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "csv",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "videocc",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/videocc",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 90
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 630
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 406
+          },
+          {
+            "name": "incremental_receipt.json.bad.20261021T090452Z",
+            "kind": "file",
+            "bytes": 430
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/videocc/raw",
+        "entries": [
+          {
+            "name": "video_cc_public.csv",
+            "kind": "file",
+            "bytes": 203044884
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "visper",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/visper",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 1880
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 438
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/visper/raw",
+        "entries": [
+          {
+            "name": "arabic_test.tar.gz",
+            "kind": "file",
+            "bytes": 2532367
+          },
+          {
+            "name": "arabic_train.tar.gz",
+            "kind": "file",
+            "bytes": 2426354235
+          },
+          {
+            "name": "chinese_test.tar.gz",
+            "kind": "file",
+            "bytes": 6352120
+          },
+          {
+            "name": "chinese_train.tar.gz",
+            "kind": "file",
+            "bytes": 1383091786
+          },
+          {
+            "name": "french_test.tar.gz",
+            "kind": "file",
+            "bytes": 4638042
+          },
+          {
+            "name": "french_train.tar.gz",
+            "kind": "file",
+            "bytes": 1660581093
+          },
+          {
+            "name": "spanish_test.tar.gz",
+            "kind": "file",
+            "bytes": 3295663
+          },
+          {
+            "name": "spanish_train.tar.gz",
+            "kind": "file",
+            "bytes": 1483707915
+          },
+          {
+            "name": "videos_ids_tedx_test_ar.txt",
+            "kind": "file",
+            "bytes": 132
+          },
+          {
+            "name": "videos_ids_tedx_test_cz.txt",
+            "kind": "file",
+            "bytes": 1680
+          },
+          {
+            "name": "videos_ids_tedx_test_es.txt",
+            "kind": "file",
+            "bytes": 1356
+          },
+          {
+            "name": "videos_ids_tedx_test_fr.txt",
+            "kind": "file",
+            "bytes": 1212
+          },
+          {
+            "name": "videos_ids_train_ar.txt",
+            "kind": "file",
+            "bytes": 332100
+          },
+          {
+            "name": "videos_ids_train_cz.txt",
+            "kind": "file",
+            "bytes": 165024
+          },
+          {
+            "name": "videos_ids_train_es.txt",
+            "kind": "file",
+            "bytes": 178584
+          },
+          {
+            "name": "videos_ids_train_fr.txt",
+            "kind": "file",
+            "bytes": 200160
+          },
+          {
+            "name": "videos_ids_wild_test_ar.txt",
+            "kind": "file",
+            "bytes": 576
+          },
+          {
+            "name": "videos_ids_wild_test_cz.txt",
+            "kind": "file",
+            "bytes": 1188
+          },
+          {
+            "name": "videos_ids_wild_test_es.txt",
+            "kind": "file",
+            "bytes": 216
+          },
+          {
+            "name": "videos_ids_wild_test_fr.txt",
+            "kind": "file",
+            "bytes": 792
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "vlr",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/vlr",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 641
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 432
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/vlr/raw",
+        "entries": [
+          {
+            "name": "README.txt",
+            "kind": "file",
+            "bytes": 4355
+          },
+          {
+            "name": "part1.zip",
+            "kind": "file",
+            "bytes": 10408167163
+          },
+          {
+            "name": "part2.zip",
+            "kind": "file",
+            "bytes": 9653445227
+          },
+          {
+            "name": "part3.zip",
+            "kind": "file",
+            "bytes": 9908631591
+          },
+          {
+            "name": "part4.zip",
+            "kind": "file",
+            "bytes": 11009960342
+          },
+          {
+            "name": "part5.zip",
+            "kind": "file",
+            "bytes": 10927470574
+          },
+          {
+            "name": "part6.zip",
+            "kind": "file",
+            "bytes": 9662886706
+          },
+          {
+            "name": "part7.zip",
+            "kind": "file",
+            "bytes": 8883018721
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "voxceleb2_mix",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 1211
+          },
+          {
+            "name": "SHA256SUMS.bak.20261021T112851Z",
+            "kind": "file",
+            "bytes": 1211
+          },
+          {
+            "name": "incremental_receipt.json",
+            "kind": "file",
+            "bytes": 454
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/raw",
+        "entries": [
+          {
+            "name": ".write_test_avsr",
+            "kind": "file",
+            "bytes": 1048576
+          },
+          {
+            "name": "audio_clean_part_aa",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_ab",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_ac",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_ad",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_ae",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_af",
+            "kind": "file",
+            "bytes": 41943040000
+          },
+          {
+            "name": "audio_clean_part_ag",
+            "kind": "file",
+            "bytes": 31737968640
+          },
+          {
+            "name": "orig_part_aa",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_ab",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_ac",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_ad",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_ae",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_af",
+            "kind": "file",
+            "bytes": 42949672960
+          },
+          {
+            "name": "orig_part_ag",
+            "kind": "file",
+            "bytes": 22197207040
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "voxmm",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/voxmm",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 749
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 624
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/voxmm/raw",
+        "entries": [
+          {
+            "name": "lrs_voxmm",
+            "kind": "dir",
+            "bytes": null
+          },
+          {
+            "name": "voxmm",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    },
+    {
+      "name": "wildvsr",
+      "kind": "directory",
+      "top_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/wildvsr",
+        "entries": [
+          {
+            "name": "SHA256SUMS",
+            "kind": "file",
+            "bytes": 82
+          },
+          {
+            "name": "archive_receipt.json",
+            "kind": "file",
+            "bytes": 547
+          },
+          {
+            "name": "raw",
+            "kind": "dir",
+            "bytes": null
+          }
+        ],
+        "truncated": false,
+        "error": null
+      },
+      "raw_level": {
+        "path": "/aispeech-cfs/voiceprint/data/multimodal/wildvsr/raw",
+        "entries": [
+          {
+            "name": "WildVSR.zip",
+            "kind": "file",
+            "bytes": 91755398
+          }
+        ],
+        "truncated": false,
+        "error": null
+      }
+    }
+  ]
+}

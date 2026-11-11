@@ -1,0 +1,62 @@
+{
+  "captured_at": "2026-11-11T01:00:02.483186+08:00",
+  "scope": "All rows of the two compressed indexes; one preview sample; source archive bytes checked against cold SHA256SUMS; no full media extraction",
+  "cold_root": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr",
+  "archives": {
+    "raw/tr_all.tar.gz": {
+      "size_bytes": 549312,
+      "sha256": "1f230971b96145c5b74b023afcdb274ed86f2a91d3e96b019cb00933923cfc83",
+      "matches_cold_manifest": true
+    },
+    "raw/preview.tar.gz": {
+      "size_bytes": 6108815,
+      "sha256": "f8b5a9339b55e496dbf256b45df4dc305e2dd52e0de18063e70a40f65d4d5442",
+      "matches_cold_manifest": true
+    }
+  },
+  "train_index": {
+    "mix_rows": 40000,
+    "target_rows": 40000,
+    "mix_type_counts": {
+      "1mix": 8000,
+      "2mix": 8000,
+      "3mix": 8000,
+      "4mix": 8000,
+      "5mix": 8000
+    },
+    "name_mismatch": 0,
+    "length_mismatch": 0,
+    "target_mouth_suffix_counts": {
+      "npz": 40000
+    },
+    "samples_min": 32000,
+    "samples_median": 127360.0,
+    "samples_max": 260480,
+    "total_samples": 5355669760,
+    "hours_if_16000hz": 92.98037777777778
+  },
+  "preview_sample": {
+    "mix.wav": {
+      "channels": 1,
+      "sample_rate": 16000,
+      "samples": 170880,
+      "sample_width_bytes": 2
+    },
+    "label.wav": {
+      "channels": 1,
+      "sample_rate": 16000,
+      "samples": 170880,
+      "sample_width_bytes": 2
+    },
+    "video_streams": [
+      {
+        "codec_type": "video",
+        "width": 0,
+        "height": 0,
+        "r_frame_rate": "25/1"
+      }
+    ],
+    "num_speakers_k": 3,
+    "interferer_count": 2
+  }
+}

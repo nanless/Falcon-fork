@@ -14,6 +14,7 @@ The [Chinese README](README_zh.md) is the detailed starting point. The following
 - [160 ms incremental streaming model: training and inference](docs/FALCON_STREAMING_160MS.md) (Chinese)
 - [Datasets: what each open corpus contains and what is on this machine](docs/understanding/20261110-datasets.md) (Chinese)
 - [Data and training](docs/understanding/20261110-data-and-training.md)
+- [Dataset inventory and cold storage guide](docs/data_catalog/README.md) (Chinese)
 - [Evaluation, Studio, and Space](docs/understanding/20261110-evaluation-and-apps.md)
 - [Reproduction status](docs/STATUS.md) and [documentation index](docs/README.md)
 - [November 10 audit and experiment records](docs/verification/deepdive-20261110/README.md)

@@ -1,0 +1,4203 @@
+{
+  "date": "2026-11-11",
+  "scope": "All label tar first members and first sample headers of each video tar; no all-sample traversal or media decoding.",
+  "label_tar_count": 51,
+  "video_tar_count": 153,
+  "label_vtt_count": 51,
+  "video_tar_kinds": {
+    "asd": 51,
+    "fixed": 51,
+    "gold": 51
+  },
+  "label_cues_total": 1578,
+  "label_cue_count_min_max": [
+    3,
+    69
+  ],
+  "labels": [
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_0/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 5423,
+      "webvtt": true,
+      "cue_count": 69
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_1/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3624,
+      "webvtt": true,
+      "cue_count": 47
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_10/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 5203,
+      "webvtt": true,
+      "cue_count": 49
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_11/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 854,
+      "webvtt": true,
+      "cue_count": 14
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_12/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2318,
+      "webvtt": true,
+      "cue_count": 32
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_13/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4305,
+      "webvtt": true,
+      "cue_count": 36
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_14/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2461,
+      "webvtt": true,
+      "cue_count": 23
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_15/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2677,
+      "webvtt": true,
+      "cue_count": 25
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_16/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3701,
+      "webvtt": true,
+      "cue_count": 25
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_17/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4444,
+      "webvtt": true,
+      "cue_count": 27
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_18/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2659,
+      "webvtt": true,
+      "cue_count": 14
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_19/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 387,
+      "webvtt": true,
+      "cue_count": 3
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_2/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3893,
+      "webvtt": true,
+      "cue_count": 57
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_20/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3478,
+      "webvtt": true,
+      "cue_count": 21
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_21/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 7369,
+      "webvtt": true,
+      "cue_count": 54
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_22/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 5731,
+      "webvtt": true,
+      "cue_count": 48
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_23/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2630,
+      "webvtt": true,
+      "cue_count": 17
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_24/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4736,
+      "webvtt": true,
+      "cue_count": 33
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_25/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1789,
+      "webvtt": true,
+      "cue_count": 15
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_26/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1333,
+      "webvtt": true,
+      "cue_count": 11
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_27/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4340,
+      "webvtt": true,
+      "cue_count": 36
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_28/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1660,
+      "webvtt": true,
+      "cue_count": 12
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_29/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 391,
+      "webvtt": true,
+      "cue_count": 3
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_3/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3367,
+      "webvtt": true,
+      "cue_count": 44
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_30/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4635,
+      "webvtt": true,
+      "cue_count": 32
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_31/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 9061,
+      "webvtt": true,
+      "cue_count": 59
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_32/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1083,
+      "webvtt": true,
+      "cue_count": 10
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_33/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 5166,
+      "webvtt": true,
+      "cue_count": 36
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_34/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1017,
+      "webvtt": true,
+      "cue_count": 8
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_35/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 7308,
+      "webvtt": true,
+      "cue_count": 55
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_36/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2370,
+      "webvtt": true,
+      "cue_count": 18
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_37/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4470,
+      "webvtt": true,
+      "cue_count": 28
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_38/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1084,
+      "webvtt": true,
+      "cue_count": 8
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_39/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2577,
+      "webvtt": true,
+      "cue_count": 17
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_4/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4183,
+      "webvtt": true,
+      "cue_count": 65
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_40/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3631,
+      "webvtt": true,
+      "cue_count": 24
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_41/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2350,
+      "webvtt": true,
+      "cue_count": 16
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_42/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2382,
+      "webvtt": true,
+      "cue_count": 15
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_43/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 1272,
+      "webvtt": true,
+      "cue_count": 10
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_44/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3066,
+      "webvtt": true,
+      "cue_count": 21
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_45/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 6039,
+      "webvtt": true,
+      "cue_count": 51
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_46/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2638,
+      "webvtt": true,
+      "cue_count": 19
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_47/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 8560,
+      "webvtt": true,
+      "cue_count": 62
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_48/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 3103,
+      "webvtt": true,
+      "cue_count": 22
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_49/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4874,
+      "webvtt": true,
+      "cue_count": 38
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_5/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4554,
+      "webvtt": true,
+      "cue_count": 68
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_50/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2715,
+      "webvtt": true,
+      "cue_count": 20
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_6/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4690,
+      "webvtt": true,
+      "cue_count": 59
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_7/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 4569,
+      "webvtt": true,
+      "cue_count": 60
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_8/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 818,
+      "webvtt": true,
+      "cue_count": 10
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_9/label-eval-0.tar",
+      "member": "0000000000.label",
+      "bytes": 2878,
+      "webvtt": true,
+      "cue_count": 32
+    }
+  ],
+  "video_first_samples": [
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_0/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "28.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_344_712"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "13.76"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1515666
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_0/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1020051
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_0/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "6.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_117_151"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "4.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 123315
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_1/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "8.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 12,
+          "value": "seg-1_99_224"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "3.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 422370
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_1/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 803050
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_1/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.36"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_117_184"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "4.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 224158
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_10/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "15.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_239_399"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "9.56"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 702705
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_10/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1089862
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_10/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "16.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_260_401"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.4"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 611697
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_11/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "69.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-3_1398_1749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "55.92"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1336603
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_11/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "69.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-6_1500_1749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "60.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 946681
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_11/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "53.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_1281_1337"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "51.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 195157
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_12/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "27.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_608_698"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "24.32"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 350235
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_12/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 932513
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_12/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "20.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_407_501"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "16.28"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 364808
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_13/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "25.36"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_539_634"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "21.56"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 393337
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_13/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1038469
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_13/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "24.68"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_529_617"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "21.16"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 360739
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_14/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "32.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_598_801"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "23.92"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 899319
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_14/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1037560
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_14/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "27.28"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_571_682"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "22.84"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 483474
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_15/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "33.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_600_826"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "24.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 895731
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_15/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 985111
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_15/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "32.32"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_603_808"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "24.12"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 810868
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_16/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "38.68"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_679_967"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "27.16"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1201991
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_16/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1024841
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_16/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "34.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_687_851"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "27.48"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 699474
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_17/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "14.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_361"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1364478
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_17/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 944881
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_17/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_198"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 749543
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_18/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "29.6"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_367_740"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1486665
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_18/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1006432
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_18/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "28.36"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_369_709"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.76"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1364852
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_19/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_188"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 763390
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_19/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1026525
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_19/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "8.4"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_210"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 856591
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_2/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_393_486"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "15.72"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 385711
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_2/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 990355
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_2/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "8.32"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 12,
+          "value": "seg-0_96_208"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "3.84"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 450546
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_20/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_187"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 607414
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_20/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 805311
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_20/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_5_189"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.2"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 589914
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_21/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "22.72"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_373_568"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.92"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 758569
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_21/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 913275
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_21/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "21.24"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_374_531"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 625024
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_22/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "32.24"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_449_806"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "17.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1356679
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_22/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 956166
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_22/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "24.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_452_600"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "18.08"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 557990
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_23/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "9.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_225"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 826828
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_23/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 916987
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_23/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "8.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_213"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 781477
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_24/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "15.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_361_399"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.44"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 119561
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_24/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 794393
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_24/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "82.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_1919_2061"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "76.76"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 538916
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_25/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "14.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_350"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1314328
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_25/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 935105
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_25/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "4.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_114"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 413204
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_26/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "92.4"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_2120_2310"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "84.8"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 605361
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_26/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "99.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-9_2250_2499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "90.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 765530
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_26/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "91.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_2133_2286"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "85.32"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 490161
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_27/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "38.6"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_633_965"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "25.32"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1136588
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_27/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 898623
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_27/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "18.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_331_464"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "13.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 493714
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_28/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "12.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_300"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1051302
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_28/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 859432
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_28/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "6.08"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_152"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 522561
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_29/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "11.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_298"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1205913
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_29/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1013825
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_29/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1013825
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_3/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "14.88"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_322_372"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "12.88"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 190567
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_3/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 838878
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_3/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "14.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_327_362"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "13.08"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 132058
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_30/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "22.4"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_248_560"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "9.92"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 869360
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_30/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 695779
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_30/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "17.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_267_439"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "10.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 480271
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_31/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "48.08"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 14,
+          "value": "seg-1_865_1202"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "34.6"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1348200
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_31/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 976285
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_31/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "23.32"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_552_583"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "22.08"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 116772
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_32/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "12.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_312"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1220696
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_32/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 991879
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_32/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "6.84"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_171"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 704689
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_33/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "52.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-1_1000_1311"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "40.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1055857
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_33/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "49.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-4_1000_1249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "40.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 834762
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_33/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "49.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_1000_1248"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "40.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 831789
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_34/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "13.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_349"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1090835
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_34/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 757444
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_34/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "4.6"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_115"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 342686
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_35/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "26.08"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_371_652"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.84"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1066515
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_35/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 946739
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_35/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "21.24"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_356_531"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 656700
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_36/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "14.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_374"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1294363
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_36/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 851838
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_36/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "6.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_164"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 542036
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_37/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "14.2"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_355"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1719013
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_37/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1195146
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_37/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "8.12"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_203"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 965906
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_38/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "11.44"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_286"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1337535
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_38/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1163428
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_38/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "8.4"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_210"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 984511
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_39/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "46.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 14,
+          "value": "seg-1_810_1164"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "32.4"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1614984
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_39/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1095778
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_39/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "27.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_556_698"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "22.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 663855
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_4/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "30.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_526_751"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "21.04"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 838666
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_4/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 927429
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_4/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "16.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_326_413"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "13.04"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 334938
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_40/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "22.28"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_364_557"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.56"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 756901
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_40/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 971196
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_40/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "24.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_364_601"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.56"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 934271
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_41/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "8.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_200"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 677878
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_41/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 850715
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_41/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_7_226"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "0.28"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 743585
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_42/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 6,
+          "value": "156.32"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-4_3560_3908"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "142.4"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1283333
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_42/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 6,
+          "value": "139.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 16,
+          "value": "seg-13_3250_3499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "130.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 956787
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_42/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 6,
+          "value": "139.08"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_3247_3477"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 6,
+          "value": "129.88"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 890005
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_43/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "3.0"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_49_75"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "1.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 83878
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_43/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_250_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "10.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 920375
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_43/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 3,
+          "value": "2.8"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_29_70"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "1.16"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 140447
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_44/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "42.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 14,
+          "value": "seg-0_749_1051"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1169147
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_44/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "39.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-3_750_999"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "30.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 972947
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_44/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "31.6"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_741_790"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "29.64"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 193229
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_45/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "26.8"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_364_670"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.56"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1221584
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_45/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 985777
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_45/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "19.2"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_362_480"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "14.48"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 475097
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_46/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "10.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_263"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 865633
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_46/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 814227
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_46/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.48"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_6_237"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "0.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 753181
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_47/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "26.64"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-1_399_666"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "15.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1002184
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_47/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 912983
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_47/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "23.4"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_417_585"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "16.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 636166
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_48/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_199"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 649061
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_48/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 813501
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_48/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "6.92"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_6_173"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "0.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 553400
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_49/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "31.2"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_449_780"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "17.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1411268
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_49/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1050030
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_49/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "24.84"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_456_621"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "18.24"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 691502
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_5/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "15.04"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_298_376"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "11.92"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 279706
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_5/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 896858
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_5/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "15.12"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_296_378"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "11.84"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 297603
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_50/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "10.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_274"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 914736
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_50/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "9.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_249"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 832489
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_50/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "7.36"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 11,
+          "value": "seg-0_0_184"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 3,
+          "value": "0.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 624377
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_6/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 4,
+          "value": "53.8"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-1_1044_1345"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "41.76"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1112452
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_6/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "59.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-5_1250_1499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "50.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 891331
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_6/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "45.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 15,
+          "value": "seg-0_1050_1139"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "42.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 315414
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_7/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "21.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_413_538"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "16.52"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 523934
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_7/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 960645
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_7/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "21.36"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_417_534"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "16.68"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 487068
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_8/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_325_499"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "13.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 682627
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_8/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 870138
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_8/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "19.52"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_335_488"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "13.4"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 592114
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_9/asd-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "23.56"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_524_589"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "20.96"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 282451
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_9/fixed-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "29.96"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-2_500_749"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 4,
+          "value": "20.0"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 1075822
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_9/gold-chunk-eval-0.tar",
+      "sample_key": "0000000000",
+      "first_sample_entries": [
+        {
+          "member": "0000000000.end_time",
+          "bytes": 5,
+          "value": "27.28"
+        },
+        {
+          "member": "0000000000.sample_id",
+          "bytes": 13,
+          "value": "seg-0_522_682"
+        },
+        {
+          "member": "0000000000.start_time",
+          "bytes": 5,
+          "value": "20.88"
+        },
+        {
+          "member": "0000000000.video",
+          "bytes": 683192
+        }
+      ]
+    }
+  ]
+}

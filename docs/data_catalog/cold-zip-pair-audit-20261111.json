@@ -1,0 +1,237 @@
+{
+  "captured_at_utc": "2026-11-11T00:53:12.106279+00:00",
+  "scope": "ZIP central directory only; filename matching does not verify waveform, timestamp synchronization, speaker identity or media quality; no extraction or media hashes",
+  "archives": [
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw/ASPIRE.zip",
+      "archive_bytes": 12960167179,
+      "entry_count": 11880,
+      "extensions": {
+        ".wav": 5940,
+        ".mov": 5940
+      },
+      "examples": [
+        "ASPIRE/Clean/S1/Audio/129_001_lbiv2s.wav",
+        "ASPIRE/Clean/S1/Audio/132_001_pwwr4p.wav",
+        "ASPIRE/Clean/S1/Audio/133_001_bwbi7a.wav"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw/processed_train.zip",
+      "archive_bytes": 8730189641,
+      "entry_count": 60682,
+      "extensions": {
+        ".mp4": 30341,
+        ".wav": 30341
+      },
+      "examples": [
+        "processed_train/072_28_M_KJ_101.mp4",
+        "processed_train/166_26_M_JKYS_017.mp4",
+        "processed_train/210_27_M_DZJJ_058.wav"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw/processed_val.zip",
+      "archive_bytes": 546449545,
+      "entry_count": 3918,
+      "extensions": {
+        ".wav": 1959,
+        ".mp4": 1959
+      },
+      "examples": [
+        "processed_val/189_24_F_QC_230.wav",
+        "processed_val/119_28_F_ZX_083.wav",
+        "processed_val/070_22_M_ZX_078.wav"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw/processed_test.zip",
+      "archive_bytes": 1044092064,
+      "entry_count": 7816,
+      "extensions": {
+        ".mp4": 3908,
+        ".wav": 3908
+      },
+      "examples": [
+        "processed_test/130_42_M_TY_064.mp4",
+        "processed_test/040_25_F_ZX_081.wav",
+        "processed_test/007_26_M_YS_102.mp4"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/raw/lombardgrid_audio.zip",
+      "archive_bytes": 652614041,
+      "entry_count": 5390,
+      "extensions": {
+        ".wav": 5390
+      },
+      "examples": [
+        "lombardgrid/audio/s10_l_bbat9p.wav",
+        "lombardgrid/audio/s10_l_bbay5n.wav",
+        "lombardgrid/audio/s10_l_bbbg8s.wav"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/raw/lombardgrid_front.zip",
+      "archive_bytes": 837239327,
+      "entry_count": 5390,
+      "extensions": {
+        ".mov": 5390
+      },
+      "examples": [
+        "lombardgrid/front/s10_l_bbat9p.mov",
+        "lombardgrid/front/s10_l_bbay5n.mov",
+        "lombardgrid/front/s10_l_bbbg8s.mov"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/audio.zip",
+      "archive_bytes": 1774188067,
+      "entry_count": 20804,
+      "extensions": {
+        ".wav": 20803,
+        ".py": 1
+      },
+      "examples": [
+        "audio/Online/speaker_21/TXHY/9/60db.wav",
+        "audio/Online/speaker_21/TXHY/9/80db.wav",
+        "audio/Online/speaker_21/TXHY/9/40db.wav"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/video.zip",
+      "archive_bytes": 7866823152,
+      "entry_count": 62410,
+      "extensions": {
+        ".mp4": 20803,
+        ".metadata": 20803,
+        ".lock": 20803,
+        "[no extension]": 1
+      },
+      "examples": [
+        "video/Online/speaker_21/TXHY/9/clean.mp4",
+        "video/Online/speaker_21/TXHY/9/60db.mp4",
+        "video/Online/speaker_21/TXHY/9/80db.mp4"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial/raw/cuave-group-aligned.zip",
+      "archive_bytes": 640156002,
+      "entry_count": 22,
+      "extensions": {
+        ".mat": 22
+      },
+      "examples": [
+        "g01_aligned.mat",
+        "g02_aligned.mat",
+        "g03_aligned.mat"
+      ]
+    },
+    {
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/grid/raw/s1.zip",
+      "archive_bytes": 423520514,
+      "entry_count": 1001,
+      "extensions": {
+        ".mpg": 1000,
+        ".db": 1
+      },
+      "examples": [
+        "s1/bbaf2n.mpg",
+        "s1/bbaf3s.mpg",
+        "s1/bbaf4p.mpg"
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "dataset": "aspire",
+      "audio_archive": "aspire/raw/ASPIRE.zip",
+      "video_archive": "aspire/raw/ASPIRE.zip",
+      "comparison_key": "stem",
+      "audio_files": 5940,
+      "video_files": 5940,
+      "audio_unique_keys": 5940,
+      "video_unique_keys": 5940,
+      "matched_unique_keys": 5940,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    },
+    {
+      "dataset": "chinese_train",
+      "audio_archive": "chinese_lips/raw/processed_train.zip",
+      "video_archive": "chinese_lips/raw/processed_train.zip",
+      "comparison_key": "stem",
+      "audio_files": 30341,
+      "video_files": 30341,
+      "audio_unique_keys": 30341,
+      "video_unique_keys": 30341,
+      "matched_unique_keys": 30341,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    },
+    {
+      "dataset": "chinese_val",
+      "audio_archive": "chinese_lips/raw/processed_val.zip",
+      "video_archive": "chinese_lips/raw/processed_val.zip",
+      "comparison_key": "stem",
+      "audio_files": 1959,
+      "video_files": 1959,
+      "audio_unique_keys": 1959,
+      "video_unique_keys": 1959,
+      "matched_unique_keys": 1959,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    },
+    {
+      "dataset": "chinese_test",
+      "audio_archive": "chinese_lips/raw/processed_test.zip",
+      "video_archive": "chinese_lips/raw/processed_test.zip",
+      "comparison_key": "stem",
+      "audio_files": 3908,
+      "video_files": 3908,
+      "audio_unique_keys": 3908,
+      "video_unique_keys": 3908,
+      "matched_unique_keys": 3908,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    },
+    {
+      "dataset": "lombard_front",
+      "audio_archive": "lombard_grid/raw/lombardgrid_audio.zip",
+      "video_archive": "lombard_grid/raw/lombardgrid_front.zip",
+      "comparison_key": "stem",
+      "audio_files": 5390,
+      "video_files": 5390,
+      "audio_unique_keys": 5390,
+      "video_unique_keys": 5390,
+      "matched_unique_keys": 5390,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    },
+    {
+      "dataset": "mld_vc",
+      "audio_archive": "mld_vc/raw/audio.zip",
+      "video_archive": "mld_vc/raw/video.zip",
+      "comparison_key": "relative_after_top",
+      "audio_files": 20803,
+      "video_files": 20803,
+      "audio_unique_keys": 20803,
+      "video_unique_keys": 20803,
+      "matched_unique_keys": 20803,
+      "audio_only_keys": 0,
+      "video_only_keys": 0,
+      "audio_duplicate_keys": 0,
+      "video_duplicate_keys": 0
+    }
+  ]
+}

@@ -1,0 +1,1301 @@
+{
+  "time_utc": "2026-11-10T16:44:07.930766+00:00",
+  "host": "di-20260825114741-2bbpx",
+  "cold_shared_bundle": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+  "items": [
+    {
+      "slug": "lrs2",
+      "registry": {
+        "name": "LRS2",
+        "description": "BBC 野外英语句子级唇读/视听语音数据。",
+        "source": "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html",
+        "license": "official access terms",
+        "notes": "用户确认已在共享 tar 中，不重复下载。",
+        "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      },
+      "status": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755,
+        "license": "official access terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "lrs3",
+      "registry": {
+        "name": "LRS3",
+        "description": "TED/TEDx 野外英语句子级唇读/视听语音数据。",
+        "source": "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs3.html",
+        "license": "official access terms",
+        "notes": "用户确认已在共享 tar 中，不重复下载。",
+        "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      },
+      "status": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755,
+        "license": "official access terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "lrs_combined",
+      "registry": {
+        "name": "LRS Combined",
+        "description": "LRS2 与 LRS3 的本地派生合并集。",
+        "source": "local derivation",
+        "license": "inherits source terms",
+        "notes": "需要时从已授权的 LRS2/LRS3 生成，不重复保存一份。"
+      },
+      "status": {
+        "state": "derived_not_materialized",
+        "updated_at": 1789455755,
+        "license": "inherits source terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "tcd_timit",
+      "registry": {
+        "name": "TCD-TIMIT",
+        "description": "受控场景高清双视角连续语音视听语料。",
+        "source": "https://sigmedia.tcd.ie/TCDTIMIT/",
+        "license": "non-commercial research terms",
+        "notes": "已向官方联系人发送非商业研究访问申请，等待回复。"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1794329020,
+        "updated_at_utc": "2026-11-10T16:43:40Z",
+        "expected_files": 137,
+        "expected_bytes_estimate": 630511396224,
+        "completed_files": 137,
+        "completed_bytes": 676948863296,
+        "license": "authenticated academic access; source terms apply"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "Additional Resources",
+          "directory": true
+        },
+        {
+          "name": "raw",
+          "directory": true
+        },
+        {
+          "name": "lipspeakers",
+          "directory": true
+        },
+        {
+          "name": "volunteers",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/Additional Resources/EGillen MSc Thesis/EGillen_thesis.pdf",
+        "raw/Additional Resources/EGillen MSc Thesis/Thumbs.db",
+        "raw/Additional Resources/Modified CMU Pronouncing Dictionary/CMUdict_with_dublin",
+        "raw/Additional Resources/Recommended Train-Test Splits/Speaker-Dependent Baseline Sets/TCDSpkrDepTestSet.scp",
+        "raw/Additional Resources/Recommended Train-Test Splits/Speaker-Dependent Baseline Sets/TCDSpkrDepTrainSet.scp",
+        "raw/Additional Resources/Recommended Train-Test Splits/Speaker-Independent Baseline Sets/TCDSpkrIndepTestSet.scp",
+        "raw/Additional Resources/Recommended Train-Test Splits/Speaker-Independent Baseline Sets/TCDSpkrIndepTrainSet.scp",
+        "raw/Additional Resources/TCD-TIMIT Additional Info.xlsx"
+      ],
+      "cold_receipt": {
+        "file_count": 137,
+        "total_bytes": 676948863296,
+        "updated_at": "2026-10-22T17:45:11Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "grid",
+      "registry": {
+        "name": "GRID",
+        "description": "固定语法、33 名可用说话人的受控视听语音语料。",
+        "source": "https://zenodo.org/records/3625687",
+        "license": "CC BY 4.0",
+        "notes": "按 Zenodo 文件清单逐文件校验 MD5。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789596509,
+        "expected_files": 36,
+        "expected_bytes": 16211527582,
+        "verified_files": 36,
+        "verified_bytes": 16211527582,
+        "license": "cc-by-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/alignments.zip",
+        "raw/audio_25k.zip",
+        "raw/jasagrid.pdf",
+        "raw/s1.zip",
+        "raw/s10.zip",
+        "raw/s11.zip",
+        "raw/s12.zip",
+        "raw/s13.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 36,
+        "total_bytes": 16211527582,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "lombard_grid",
+      "registry": {
+        "name": "Lombard GRID",
+        "description": "54 名说话人、正常/噪声条件、正面与侧面双视角。",
+        "source": "https://zenodo.org/records/3736465",
+        "license": "CC BY 4.0",
+        "notes": "使用已核正的 Zenodo 记录 3736465。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789487376,
+        "expected_files": 5,
+        "expected_bytes": 2485068233,
+        "verified_files": 5,
+        "verified_bytes": 2485068233,
+        "license": "cc-by-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/lombardgrid_alignment.zip",
+        "raw/lombardgrid_audio.zip",
+        "raw/lombardgrid_front.zip",
+        "raw/lombardgrid_json.zip",
+        "raw/lombardgrid_side.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 5,
+        "total_bytes": 2485068233,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "roomreader",
+      "registry": {
+        "name": "RoomReader",
+        "description": "在线多人会话，118 名参与者、约 322 个视频。",
+        "source": "https://sigmedia.tcd.ie/RoomReader/",
+        "license": "session-specific research consent",
+        "notes": "注册表仍需用户设置密码并完成人机验证；视频权限需逐 session 审计。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1791388762,
+        "updated_at_utc": "2026-10-06T17:59:55Z",
+        "expected_files": 1339,
+        "expected_bytes": 159508080509,
+        "expected_bytes_estimate": 152387904545,
+        "completed_files": 1339,
+        "completed_bytes": 159508080509,
+        "verified_bytes": 159508080509,
+        "license": "RoomReader Non-Commercial Licence Agreement; source terms apply"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/NON COMMERCIAL LICENCE AGREEMENT_RoomReaderDataset.pdf",
+        "raw/README_RoomReader.txt",
+        "raw/annotations/continuous engagement/EngAnno_1/S01_P011_Christian.csv",
+        "raw/annotations/continuous engagement/EngAnno_1/S01_P017_Julian.csv",
+        "raw/annotations/continuous engagement/EngAnno_1/S01_P025_liam.csv",
+        "raw/annotations/continuous engagement/EngAnno_1/S01_P026_Oliver.csv",
+        "raw/annotations/continuous engagement/EngAnno_1/S06_P045_Max_all.csv",
+        "raw/annotations/continuous engagement/EngAnno_1/S07_P046_Violet_all.csv"
+      ],
+      "cold_receipt": {
+        "file_count": 1339,
+        "total_bytes": 159508080509,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "candor",
+      "registry": {
+        "name": "CANDOR",
+        "description": "大规模自然双人对话的音视频与行为标注。",
+        "source": "https://candor.usc.edu/",
+        "license": "application-controlled research access",
+        "notes": "Raw data 访问表已提交，等待 TalkBank/项目方回复。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789703896,
+        "updated_at_utc": "2026-09-17T20:11:46Z",
+        "expected_files": 166,
+        "expected_bytes": 951758137196,
+        "completed_files": 166,
+        "completed_bytes": 951758137196,
+        "verified_bytes": 951758137196,
+        "license": "academic/scientific research only; no redistribution or re-identification"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/raw_media_part_001.zip",
+        "raw/raw_media_part_002.zip",
+        "raw/raw_media_part_003.zip",
+        "raw/raw_media_part_004.zip",
+        "raw/raw_media_part_005.zip",
+        "raw/raw_media_part_006.zip",
+        "raw/raw_media_part_007.zip",
+        "raw/raw_media_part_008.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 166,
+        "total_bytes": 951758137196,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "voxceleb2",
+      "registry": {
+        "name": "VoxCeleb2",
+        "description": "大规模野外说话人音视频数据。",
+        "source": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html",
+        "license": "official access terms",
+        "notes": "用户确认已在共享 tar 中，不重复下载。",
+        "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      },
+      "status": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755,
+        "license": "official access terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "avspeech",
+      "registry": {
+        "name": "AVSpeech",
+        "description": "大规模野外音视频语音片段。",
+        "source": "https://looking-to-listen.github.io/avspeech/",
+        "license": "dataset-specific terms",
+        "notes": "用户确认已在共享 tar 中，不重复下载。",
+        "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      },
+      "status": {
+        "state": "merged_complete",
+        "updated_at_utc": "2026-09-21T07:33:06Z"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "audioset",
+      "registry": {
+        "name": "AudioSet",
+        "description": "YouTube 音频事件数据及标签。",
+        "source": "https://research.google.com/audioset/",
+        "license": "dataset-specific terms",
+        "notes": "共享 tar 名称与目录检查表明包含 AudioSet；保留为现有冷端引用。",
+        "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      },
+      "status": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755,
+        "license": "dataset-specific terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": false,
+      "cold_sha_exists": false,
+      "cold_first_objects": [],
+      "cold_receipt": {}
+    },
+    {
+      "slug": "wildvsr",
+      "registry": {
+        "name": "WildVSR",
+        "description": "野外条件英文视觉语音识别泛化测试集。",
+        "source": "https://github.com/YasserdahouML/VSR_test_set",
+        "license": "official release terms",
+        "notes": "官方 ZIP 已校验并归档。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789455520,
+        "expected_bytes": 91755398,
+        "verified_bytes": 91755398
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/WildVSR.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 1,
+        "total_bytes": 91755398,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "avcocktail",
+      "registry": {
+        "name": "AVCocktail",
+        "description": "多人、噪声和重叠语音条件的鸡尾酒会 AVSR 挑战集。",
+        "source": "https://huggingface.co/datasets/nguyenvulebinh/AVCocktail",
+        "license": "CC BY-SA 4.0",
+        "notes": "冻结仓库 revision 后逐文件校验。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789478043,
+        "expected_files": 206,
+        "expected_bytes": 3438836255,
+        "verified_files": 206,
+        "verified_bytes": 3438836255,
+        "license": "cc-by-sa-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/.gitattributes",
+        "raw/README.md",
+        "raw/labels/video_0/label-eval-0.tar",
+        "raw/labels/video_1/label-eval-0.tar",
+        "raw/labels/video_10/label-eval-0.tar",
+        "raw/labels/video_11/label-eval-0.tar",
+        "raw/labels/video_12/label-eval-0.tar",
+        "raw/labels/video_13/label-eval-0.tar"
+      ],
+      "cold_receipt": {
+        "file_count": 206,
+        "total_bytes": 3438836255,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "avyt",
+      "registry": {
+        "name": "AVYT",
+        "description": "AVCocktail 工作中的约 1.42 TB 大规模野外派生训练集。",
+        "source": "https://huggingface.co/datasets/nguyenvulebinh/AVYT",
+        "license": "not declared",
+        "notes": "用户已明确授权下载；固定 revision，通过 https://hf-mirror.com 直连且不设置 proxy，单 runner/单 worker 续传并逐文件校验。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1790582533,
+        "expected_files": 1320,
+        "expected_bytes": 1419416723248,
+        "verified_files": 1320,
+        "verified_bytes": 1419416723248,
+        "license": null
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/.gitattributes",
+        "raw/README.md",
+        "raw/avyt/silent-train-000000.tar",
+        "raw/avyt/silent-train-000001.tar",
+        "raw/avyt/silent-train-000002.tar",
+        "raw/avyt/silent-train-000003.tar",
+        "raw/avyt/silent-train-000004.tar",
+        "raw/avyt/silent-train-000005.tar"
+      ],
+      "cold_receipt": {
+        "file_count": 1320,
+        "total_bytes": 1419416723248,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "muavic_metadata",
+      "registry": {
+        "name": "MuAViC Metadata",
+        "description": "MuAViC 九语种官方人脸轨迹和 mean-face 元数据。",
+        "source": "https://github.com/facebookresearch/muavic",
+        "license": "CC BY-NC 4.0",
+        "notes": "当前只归档官方 metadata，不把它冒充完整 MuAViC。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789602079,
+        "expected_files": 10,
+        "expected_bytes": 15182727260,
+        "verified_files": 10,
+        "verified_bytes": 15182727260,
+        "license": "CC-BY-NC-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/20words_mean_face.npy",
+        "raw/ar_metadata.tgz",
+        "raw/de_metadata.tgz",
+        "raw/el_metadata.tgz",
+        "raw/en_metadata.tgz",
+        "raw/es_metadata.tgz",
+        "raw/fr_metadata.tgz",
+        "raw/it_metadata.tgz"
+      ],
+      "cold_receipt": {
+        "file_count": 10,
+        "total_bytes": 15182727260,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "muavic",
+      "registry": {
+        "name": "MuAViC Full",
+        "description": "九语种 AVSR/AVST 完整重建集，依赖 OpenSLR 音频和原视频。",
+        "source": "https://github.com/facebookresearch/muavic",
+        "license": "CC BY-NC 4.0",
+        "notes": "用户已明确授权重建；非英语源视频按官方 metadata 的 YouTube ID 用 yt-dlp 单 worker 下载；因服务器直连 YouTube 不可达，仅该 runner 使用已验证的回环代理，英语部分复用现有 LRS3 冷端引用。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1791410908,
+        "expected_files": 3882,
+        "verified_files": 3875,
+        "verified_bytes": 767683633536,
+        "failure_count": 7,
+        "license": "CC BY-NC 4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/source_videos/ar/test/U7yWsUX5TLY.mp4",
+        "raw/source_videos/ar/test/VDJ88bKCi-A.mp4",
+        "raw/source_videos/ar/test/XAW3SoGevgg.mp4",
+        "raw/source_videos/ar/test/uz6GpKZkWRc.mp4",
+        "raw/source_videos/ar/test/wFK0ccfE3to.mp4",
+        "raw/source_videos/ar/test/wMiIS9Huwko.mp4",
+        "raw/source_videos/ar/test/xunu__AO9C8.mp4",
+        "raw/source_videos/ar/train/14zpc3Nj_e4.mp4"
+      ],
+      "cold_receipt": {
+        "file_count": 3875,
+        "total_bytes": 767683633536,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "multivsr_metadata",
+      "registry": {
+        "name": "MultiVSR Metadata",
+        "description": "MultiVSR 的划分、YouTube ID、词时间戳和人脸轨迹发布物。",
+        "source": "https://huggingface.co/datasets/sindhuhegde/multivsr",
+        "license": "MIT",
+        "notes": "当前归档固定 revision 的官方元数据发布物。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789761393,
+        "expected_files": 10,
+        "expected_bytes": 42984746968,
+        "verified_files": 10,
+        "verified_bytes": 42984746968,
+        "license": "mit"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/.gitattributes",
+        "raw/README.md",
+        "raw/dataset_teaser.gif",
+        "raw/multivsr.tar",
+        "raw/test.csv",
+        "raw/train_major.csv",
+        "raw/train_minor.csv",
+        "raw/val_major.csv"
+      ],
+      "cold_receipt": {
+        "file_count": 10,
+        "total_bytes": 42984746968,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "multivsr",
+      "registry": {
+        "name": "MultiVSR Full Videos",
+        "description": "约 12,000 小时、13 种语言的原视频重建集。",
+        "source": "https://github.com/Sindhu-Hegde/multivsr",
+        "license": "source-video terms vary",
+        "notes": "用户已明确授权重建；按官方 ytids.txt 用 yt-dlp 单 worker 下载；因服务器直连 YouTube 不可达，仅该 runner 使用已验证的回环代理，并保留 manifest、断点、逐项失败和校验记录。"
+      },
+      "status": {
+        "state": "downloading",
+        "updated_at": 1794329026,
+        "expected_files": 124416,
+        "verified_files": 75998,
+        "verified_bytes": 10572295769172,
+        "failure_count": 48418,
+        "license": "source-video terms vary"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "source_videos",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/source_videos/---ZLAsraJY.mp4",
+        "raw/source_videos/--9Icp6IITs.mp4",
+        "raw/source_videos/--D6bQ0mY9Y.mp4",
+        "raw/source_videos/--F-B0HOeVY.mp4",
+        "raw/source_videos/--FWKJ7ME8Y.mp4",
+        "raw/source_videos/--Hll5rhd0c.mp4",
+        "raw/source_videos/--Imk01KiSk.mp4",
+        "raw/source_videos/--JKMajC4Lg.mp4"
+      ],
+      "cold_receipt": {
+        "file_count": 75991,
+        "total_bytes": 10571152579195,
+        "updated_at": "2026-11-10T16:41:28Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "mafi",
+      "registry": {
+        "name": "MaFi",
+        "description": "5 人、2,519 个静音单词视频的 VSR 测试集。",
+        "source": "repository documentation only",
+        "license": "unverified",
+        "notes": "尚未找到可验证的官方数据获取与许可入口。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1790004308,
+        "updated_at_utc": "2026-09-21T14:56:48Z",
+        "expected_files": 24,
+        "expected_bytes": 5128929084,
+        "completed_files": 24,
+        "completed_bytes": 5128929084,
+        "verified_files": 24,
+        "verified_bytes": 5128929084,
+        "license": "unverified"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/Analysis/data_100words_American.csv",
+        "raw/Analysis/data_100words_AmericanSpeaker_AmericanParticipants.csv",
+        "raw/Analysis/data_100words_AmericanSpeaker_BritishParticipants.csv",
+        "raw/Analysis/data_100words_Australian.csv",
+        "raw/Analysis/data_100words_British.csv",
+        "raw/Analysis/data_100words_BritishSpeaker_AmericanParticipants.csv",
+        "raw/Analysis/data_100words_BritishSpeaker_BritishParticipants.csv",
+        "raw/Analysis/data_100words_Canadian.csv"
+      ],
+      "cold_receipt": {
+        "file_count": 24,
+        "total_bytes": 5128929084,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "voxmm",
+      "registry": {
+        "name": "VoxMM / LRS-VoxMM",
+        "description": "自然长对话丰富转写、音频、人脸轨迹及含视频的 LRS-VoxMM 基准。",
+        "source": "https://mmai.io/projects/voxmm/",
+        "license": "CC BY 4.0",
+        "notes": "使用机构邮箱收到的一周有效链接，严格单文件串行下载并核对邮件 MD5。"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1789635473,
+        "expected_files": 8,
+        "expected_bytes": 43846182092,
+        "verified_bytes": 43846182092,
+        "license": "CC BY 4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/lrs_voxmm/3dist.tar.gz",
+        "raw/lrs_voxmm/noise.tar.gz",
+        "raw/lrs_voxmm/original.tar.gz",
+        "raw/voxmm/vmm_facetrack.zip",
+        "raw/voxmm/vmm_interjection_list.txt",
+        "raw/voxmm/vmm_metadata.zip",
+        "raw/voxmm/vmm_split.zip",
+        "raw/voxmm/vmm_wav.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 8,
+        "total_bytes": 43846182092,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "audioset_strong",
+      "registry": {
+        "description": "AudioSet Strong labels (CC-BY-4.0)"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1791792309,
+        "updated_at_utc": "2026-10-12T08:05:09Z",
+        "expected_files": 4,
+        "completed_files": 4,
+        "completed_bytes": 75750940,
+        "license": "CC-BY-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/audioset_eval_strong.tsv",
+        "raw/audioset_eval_strong_framed_posneg.tsv",
+        "raw/audioset_train_strong.tsv",
+        "raw/mid_to_display_name.tsv"
+      ],
+      "cold_receipt": {
+        "file_count": 4,
+        "total_bytes": 75750940,
+        "action": "archived"
+      }
+    },
+    {
+      "slug": "videocc",
+      "registry": {
+        "description": "VideoCC 3.3M clip URL list"
+      },
+      "status": {
+        "state": "archived",
+        "updated_at": 1791797655,
+        "updated_at_utc": "2026-10-12T09:30:41Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 203044884,
+        "license": "Google dataset terms"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/video_cc_public.csv"
+      ],
+      "cold_receipt": {
+        "file_count": 1,
+        "total_bytes": 203044884,
+        "updated_at": "2026-10-12T09:34:14Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "cuave_partial",
+      "registry": {
+        "description": "CUAVE group sequences (partial)"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573381,
+        "updated_at_utc": "2026-10-21T09:03:01Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 0,
+        "archived_to_cold": 1,
+        "license": "not stated"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/cuave-group-aligned.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 1,
+        "total_bytes": 640156002,
+        "updated_at": "2026-10-12T11:51:36Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "talkvid_meta",
+      "registry": {
+        "description": "TalkVid metadata (URL-list only)"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 951,
+        "completed_files": 951,
+        "completed_bytes": 0,
+        "archived_to_cold": 951,
+        "license": "CC-BY-NC-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "TalkVid-bench",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/TalkVid-bench/age/audios/videovideo-hOQAsNg8aw-scene3_scene3.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo2482_4v01hRqzlQg-scene69_scene9.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo2525_H3yZUfZV9UM-scene35_scene10.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo2535_y3-nmMtxtYM-scene5_scene3.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo4R1yqW6RFck-scene1_scene28.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo4R1yqW6RFck-scene3_scene39.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo4ZMaNQKFAyc-scene67_scene8.m4a",
+        "raw/TalkVid-bench/age/audios/videovideo5zvqk1BxR2k-scene51_scene10.m4a"
+      ],
+      "cold_receipt": {
+        "file_count": 951,
+        "total_bytes": 632073719,
+        "updated_at": "2026-10-12T12:29:41Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "visper",
+      "registry": {
+        "description": "ViSpeR multilingual AVSR transcripts + ID lists"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 20,
+        "completed_files": 20,
+        "completed_bytes": 0,
+        "archived_to_cold": 20,
+        "license": "CC-BY-NC-2.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/arabic_test.tar.gz",
+        "raw/arabic_train.tar.gz",
+        "raw/chinese_test.tar.gz",
+        "raw/chinese_train.tar.gz",
+        "raw/french_test.tar.gz",
+        "raw/french_train.tar.gz",
+        "raw/spanish_test.tar.gz",
+        "raw/spanish_train.tar.gz"
+      ],
+      "cold_receipt": {
+        "file_count": 20,
+        "total_bytes": 6971436241,
+        "updated_at": "2026-10-12T15:35:44Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "real_world_avse",
+      "registry": {
+        "description": "Real-World AVSE Challenge dev+test (ISCSLP 2026)"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 4,
+        "completed_files": 4,
+        "completed_bytes": 0,
+        "archived_to_cold": 4,
+        "license": "CC-BY-NC-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "assets",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/Testing_set_GT.zip",
+        "raw/assets/challenge_icon.png",
+        "raw/track1_dev.zip",
+        "raw/track2_dev.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 4,
+        "total_bytes": 9350891169,
+        "updated_at": "2026-10-12T17:06:35Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "mld_vc",
+      "registry": {
+        "description": "MLD-VC video-conferencing AVSR"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 5,
+        "completed_files": 5,
+        "completed_bytes": 0,
+        "archived_to_cold": 5,
+        "license": "not declared"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/audio.zip",
+        "raw/landmarks.zip",
+        "raw/metadata.jsonl",
+        "raw/text.zip",
+        "raw/video.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 5,
+        "total_bytes": 9914542126,
+        "updated_at": "2026-10-12T17:23:11Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "aspire",
+      "registry": {
+        "description": "ASPIRE real noisy AVSE corpus"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 0,
+        "archived_to_cold": 1,
+        "license": "NCGL-UK-2.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/ASPIRE.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 1,
+        "total_bytes": 12960167179,
+        "updated_at": "2026-10-13T07:36:46Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "unitalk_asd",
+      "registry": {
+        "description": "UniTalk-ASD active speaker detection"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 353,
+        "completed_files": 353,
+        "completed_bytes": 0,
+        "archived_to_cold": 353,
+        "license": "MIT"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "csv",
+          "directory": true
+        },
+        {
+          "name": "clips_audios",
+          "directory": true
+        },
+        {
+          "name": "clips_videos",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/clips_audios/train/-ASZexdSdWE.zip",
+        "raw/clips_audios/train/-maoolmiKi0.zip",
+        "raw/clips_audios/train/1JGpByLjUak.zip",
+        "raw/clips_audios/train/1hJn0KZ1cs8.zip",
+        "raw/clips_audios/train/1xrAHh2fCk8.zip",
+        "raw/clips_audios/train/2KHzKgncW7U.zip",
+        "raw/clips_audios/train/2qmFwQbrVck.zip",
+        "raw/clips_audios/train/3FTZwjGs9yI.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 353,
+        "total_bytes": 14555424127,
+        "updated_at": "2026-10-13T10:22:16Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "ravdess",
+      "registry": {
+        "description": "RAVDESS emotional speech AV database"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 49,
+        "completed_files": 49,
+        "completed_bytes": 0,
+        "archived_to_cold": 49,
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/Audio_Song_Actors_01-24.zip",
+        "raw/Audio_Speech_Actors_01-24.zip",
+        "raw/Video_Song_Actor_01.zip",
+        "raw/Video_Song_Actor_02.zip",
+        "raw/Video_Song_Actor_03.zip",
+        "raw/Video_Song_Actor_04.zip",
+        "raw/Video_Song_Actor_05.zip",
+        "raw/Video_Song_Actor_06.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 49,
+        "total_bytes": 25600214208,
+        "updated_at": "2026-10-14T14:19:00Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "ellipsis_lrs3",
+      "registry": {
+        "description": "LRS3 trainval Auto-AVSR format"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 34,
+        "completed_files": 34,
+        "completed_bytes": 0,
+        "archived_to_cold": 34,
+        "license": "CC-BY-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "shards",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/shards/bridge-report.json",
+        "raw/shards/dataset-manifest.jsonl",
+        "raw/shards/shard-000000.tar",
+        "raw/shards/shard-000001.tar",
+        "raw/shards/shard-000002.tar",
+        "raw/shards/shard-000003.tar",
+        "raw/shards/shard-000004.tar",
+        "raw/shards/shard-000005.tar"
+      ],
+      "cold_receipt": {
+        "file_count": 34,
+        "total_bytes": 25041170491,
+        "updated_at": "2026-10-13T12:37:19Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "facestar",
+      "registry": {
+        "description": "FaceStar studio AV conversational speech"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 115,
+        "completed_files": 115,
+        "completed_bytes": 0,
+        "archived_to_cold": 115,
+        "license": "CC-NC-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [
+        {
+          "name": "male_speaker_testset",
+          "directory": true
+        },
+        {
+          "name": "female_speaker_trainset",
+          "directory": true
+        },
+        {
+          "name": "female_speaker_testset",
+          "directory": true
+        }
+      ],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/female_speaker_testset/session01.zip",
+        "raw/female_speaker_testset/session02.zip",
+        "raw/female_speaker_testset/session03.zip",
+        "raw/female_speaker_testset/session04.zip",
+        "raw/female_speaker_testset/session05.zip",
+        "raw/female_speaker_testset/session06.zip",
+        "raw/female_speaker_testset/session07.zip",
+        "raw/female_speaker_trainset/session01.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 115,
+        "total_bytes": 29817491437,
+        "updated_at": "2026-10-15T09:28:50Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "mandarin_avsr",
+      "registry": {
+        "description": "Mandarin AVSS mixtures"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 9,
+        "completed_files": 9,
+        "completed_bytes": 0,
+        "archived_to_cold": 9,
+        "license": "other"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/cv.tar.gz",
+        "raw/preview.tar.gz",
+        "raw/tr_1mix.tar.gz",
+        "raw/tr_2mix.tar.gz",
+        "raw/tr_3mix.tar.gz",
+        "raw/tr_4mix.tar.gz",
+        "raw/tr_5mix.tar.gz",
+        "raw/tr_all.tar.gz"
+      ],
+      "cold_receipt": {
+        "file_count": 9,
+        "total_bytes": 49977304020,
+        "updated_at": "2026-10-14T14:35:31Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "darknsu_lrs3",
+      "registry": {
+        "description": "LRS3 all video + wav"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 2,
+        "completed_files": 2,
+        "completed_bytes": 0,
+        "archived_to_cold": 2,
+        "license": "Apache-2.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/video.tar.gz",
+        "raw/wav.tar.gz"
+      ],
+      "cold_receipt": {
+        "file_count": 2,
+        "total_bytes": 62975957463,
+        "updated_at": "2026-10-14T23:25:26Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "vlr",
+      "registry": {
+        "description": "Vietnamese Lip-Reading Dataset"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 8,
+        "completed_files": 8,
+        "completed_bytes": 70453584679,
+        "verified_bytes": 70453584679,
+        "archived_to_cold": 8,
+        "license": "CC-BY-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/README.txt",
+        "raw/part1.zip",
+        "raw/part2.zip",
+        "raw/part3.zip",
+        "raw/part4.zip",
+        "raw/part5.zip",
+        "raw/part6.zip",
+        "raw/part7.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 8,
+        "total_bytes": 70453584679,
+        "updated_at": "2026-10-15T20:48:42Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "chinese_lips",
+      "registry": {
+        "description": "Chinese-LiPS Mandarin AVSR"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 19,
+        "completed_files": 19,
+        "completed_bytes": 0,
+        "archived_to_cold": 19,
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/image.zip",
+        "raw/meta_all.csv",
+        "raw/meta_test.csv",
+        "raw/meta_test.json",
+        "raw/meta_train.csv",
+        "raw/meta_valid.csv",
+        "raw/processed_test.zip",
+        "raw/processed_train.zip"
+      ],
+      "cold_receipt": {
+        "file_count": 19,
+        "total_bytes": 93069232024,
+        "updated_at": "2026-10-15T10:59:39Z",
+        "action": "incremental_archive"
+      }
+    },
+    {
+      "slug": "voxceleb2_mix",
+      "registry": {
+        "description": "VoxCeleb2-mix AV target-speaker extraction"
+      },
+      "status": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 14,
+        "completed_files": 14,
+        "completed_bytes": 0,
+        "archived_to_cold": 14,
+        "license": "CC-BY-SA-4.0"
+      },
+      "hot_raw_exists": true,
+      "hot_raw_top_entries": [],
+      "cold_raw_exists": true,
+      "cold_sha_exists": true,
+      "cold_first_objects": [
+        "raw/audio_clean_part_aa",
+        "raw/audio_clean_part_ab",
+        "raw/audio_clean_part_ac",
+        "raw/audio_clean_part_ad",
+        "raw/audio_clean_part_ae",
+        "raw/audio_clean_part_af",
+        "raw/audio_clean_part_ag",
+        "raw/orig_part_aa"
+      ],
+      "cold_receipt": {
+        "file_count": 14,
+        "total_bytes": 563291453440,
+        "updated_at": "2026-10-19T09:32:36Z",
+        "action": "incremental_archive"
+      }
+    }
+  ]
+}

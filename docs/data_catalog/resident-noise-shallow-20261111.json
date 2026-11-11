@@ -1,0 +1,164 @@
+{
+  "captured_at": "2026-11-11T10:06:09.912106+08:00",
+  "scope": "immediate directory only; limit 25000 entries per directory, no recursion, no uniqueness or content checks; audio header sample up to two files",
+  "directories": [
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/AudioSet_balanced_nohuman",
+      "immediate_entry_counts": {
+        "directories": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/DEMAND-noise",
+      "immediate_entry_counts": {
+        ".zip": 19,
+        "directories": 20,
+        ".md": 1,
+        ".m": 5,
+        ".pdf": 1,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/DNS5_noise_fullband_vad_filtered",
+      "immediate_entry_counts": {
+        ".wav": 24998,
+        ".md": 1,
+        "directories": 1
+      },
+      "limit": 25000,
+      "truncated": true,
+      "error": null,
+      "audio_header_samples": [
+        {
+          "name": "door_Freesound_validated_257372_44.wav",
+          "sample_rate": 48000,
+          "channels": 1,
+          "duration_seconds": 10.0,
+          "subtype": "PCM_16"
+        },
+        {
+          "name": "HISc4ywbp-c.wav",
+          "sample_rate": 48000,
+          "channels": 1,
+          "duration_seconds": 10.0,
+          "subtype": "PCM_16"
+        }
+      ]
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/QUT-noise",
+      "immediate_entry_counts": {
+        ".md": 1,
+        "directories": 3,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/chime4noise",
+      "immediate_entry_counts": {
+        ".md": 1,
+        "directories": 3,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/freesound_downloaded_noises",
+      "immediate_entry_counts": {
+        ".md": 1,
+        "directories": 4,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/manually_recorded_noises",
+      "immediate_entry_counts": {
+        ".wav": 130,
+        ".md": 1,
+        "directories": 5,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": [
+        {
+          "name": "chair_movement_android_9.wav",
+          "sample_rate": 48000,
+          "channels": 2,
+          "duration_seconds": 390.2277,
+          "subtype": "PCM_16"
+        },
+        {
+          "name": "door_closing_sound_recorder_10.WAV",
+          "sample_rate": 48000,
+          "channels": 2,
+          "duration_seconds": 457.183,
+          "subtype": "PCM_16"
+        }
+      ]
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/musan",
+      "immediate_entry_counts": {
+        "directories": 4,
+        ".md": 1,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/rirs_noises",
+      "immediate_entry_counts": {
+        ".zip": 1,
+        "directories": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    },
+    {
+      "directory": "/root/group-shared/voiceprint/data/noise/wham-noise",
+      "immediate_entry_counts": {
+        "directories": 3,
+        ".md": 1,
+        ".py": 1,
+        ".sh": 1
+      },
+      "limit": 25000,
+      "truncated": false,
+      "error": null,
+      "audio_header_samples": []
+    }
+  ]
+}

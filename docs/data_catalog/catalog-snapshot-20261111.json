@@ -1,0 +1,1320 @@
+{
+  "captured_at": "2026-11-11T00:46:16.575404+08:00",
+  "source_registry": "/root/group-shared/voiceprint/data/multimodal/_catalog/dataset_registry.json",
+  "hot_root": "/root/group-shared/voiceprint/data/multimodal",
+  "cold_root": "/aispeech-cfs/voiceprint/data/multimodal",
+  "scope": "Read-only snapshot of registry, status and historical receipt fields; directories and receipt counts do not independently verify media, current object completeness, or source licensing.",
+  "registered_count": 37,
+  "datasets": [
+    {
+      "slug": "lrs2",
+      "name": "LRS2",
+      "description": "BBC 野外英语句子级唇读/视听语音数据。",
+      "source": "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html",
+      "license": "official access terms",
+      "initial_state": "existing_cold_reference",
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/lrs2",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/lrs2/status.json",
+      "status_snapshot": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/lrs2",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "lrs3",
+      "name": "LRS3",
+      "description": "TED/TEDx 野外英语句子级唇读/视听语音数据。",
+      "source": "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs3.html",
+      "license": "official access terms",
+      "initial_state": "existing_cold_reference",
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/lrs3",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/lrs3/status.json",
+      "status_snapshot": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/lrs3",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "lrs_combined",
+      "name": "LRS Combined",
+      "description": "LRS2 与 LRS3 的本地派生合并集。",
+      "source": "local derivation",
+      "license": "inherits source terms",
+      "initial_state": "derived_not_materialized",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/lrs_combined",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/lrs_combined/status.json",
+      "status_snapshot": {
+        "state": "derived_not_materialized",
+        "updated_at": 1789455755
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/lrs_combined",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "tcd_timit",
+      "name": "TCD-TIMIT",
+      "description": "受控场景高清双视角连续语音视听语料。",
+      "source": "https://sigmedia.tcd.ie/TCDTIMIT/",
+      "license": "non-commercial research terms",
+      "initial_state": "authorization_requested",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/tcd_timit",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/tcd_timit/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1794329020,
+        "updated_at_utc": "2026-11-10T16:43:40Z",
+        "expected_files": 137,
+        "completed_files": 137,
+        "completed_bytes": 676948863296
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit/incremental_receipt.json",
+          "slug": "tcd_timit",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 137,
+          "total_bytes": 676948863296,
+          "updated_at": "2026-10-22T17:45:11Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit/raw"
+        }
+      ]
+    },
+    {
+      "slug": "grid",
+      "name": "GRID",
+      "description": "固定语法、33 名可用说话人的受控视听语音语料。",
+      "source": "https://zenodo.org/records/3625687",
+      "license": "CC BY 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/grid",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/grid/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789596509,
+        "expected_files": 36,
+        "verified_files": 36,
+        "expected_bytes": 16211527582,
+        "verified_bytes": 16211527582
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/grid",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/grid/archive_receipt.json",
+          "slug": "grid",
+          "action": "archived",
+          "file_count": 36,
+          "total_bytes": 16211527582,
+          "archived_at": "2026-09-16T22:07:51Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/grid/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "lombard_grid",
+      "name": "Lombard GRID",
+      "description": "54 名说话人、正常/噪声条件、正面与侧面双视角。",
+      "source": "https://zenodo.org/records/3736465",
+      "license": "CC BY 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/lombard_grid",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/lombard_grid/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789487376,
+        "expected_files": 5,
+        "verified_files": 5,
+        "expected_bytes": 2485068233,
+        "verified_bytes": 2485068233
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/archive_receipt.json",
+          "slug": "lombard_grid",
+          "action": "archived",
+          "file_count": 5,
+          "total_bytes": 2485068233,
+          "archived_at": "2026-09-15T15:49:30Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "roomreader",
+      "name": "RoomReader",
+      "description": "在线多人会话，118 名参与者、约 322 个视频。",
+      "source": "https://sigmedia.tcd.ie/RoomReader/",
+      "license": "session-specific research consent",
+      "initial_state": "registration_requires_user_action",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/roomreader",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/roomreader/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1791388762,
+        "updated_at_utc": "2026-10-06T17:59:55Z",
+        "expected_files": 1339,
+        "completed_files": 1339,
+        "expected_bytes": 159508080509,
+        "completed_bytes": 159508080509,
+        "verified_bytes": 159508080509
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/roomreader",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/roomreader/archive_receipt.json",
+          "slug": "roomreader",
+          "action": "archived",
+          "file_count": 1339,
+          "total_bytes": 159508080509,
+          "archived_at": "2026-10-07T15:47:33Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/roomreader/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "candor",
+      "name": "CANDOR",
+      "description": "大规模自然双人对话的音视频与行为标注。",
+      "source": "https://candor.usc.edu/",
+      "license": "application-controlled research access",
+      "initial_state": "application_submitted",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/candor",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/candor/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789703896,
+        "updated_at_utc": "2026-09-17T20:11:46Z",
+        "expected_files": 166,
+        "completed_files": 166,
+        "expected_bytes": 951758137196,
+        "completed_bytes": 951758137196,
+        "verified_bytes": 951758137196
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/candor",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/candor/archive_receipt.json",
+          "slug": "candor",
+          "action": "archived",
+          "file_count": 166,
+          "total_bytes": 951758137196,
+          "archived_at": "2026-09-18T01:36:41Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/candor/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "voxceleb2",
+      "name": "VoxCeleb2",
+      "description": "大规模野外说话人音视频数据。",
+      "source": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html",
+      "license": "official access terms",
+      "initial_state": "existing_cold_reference",
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/voxceleb2",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/voxceleb2/status.json",
+      "status_snapshot": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "avspeech",
+      "name": "AVSpeech",
+      "description": "大规模野外音视频语音片段。",
+      "source": "https://looking-to-listen.github.io/avspeech/",
+      "license": "dataset-specific terms",
+      "initial_state": "existing_cold_reference",
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/avspeech",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/avspeech/status.json",
+      "status_snapshot": {
+        "state": "merged_complete",
+        "updated_at_utc": "2026-09-21T07:33:06Z"
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/avspeech",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "audioset",
+      "name": "AudioSet",
+      "description": "YouTube 音频事件数据及标签。",
+      "source": "https://research.google.com/audioset/",
+      "license": "dataset-specific terms",
+      "initial_state": "existing_cold_reference",
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/audioset",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/audioset/status.json",
+      "status_snapshot": {
+        "state": "existing_cold_reference",
+        "updated_at": 1789455755
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/audioset",
+      "cold_directory_exists": false,
+      "cold_raw_directory_exists": false,
+      "historical_receipts": []
+    },
+    {
+      "slug": "wildvsr",
+      "name": "WildVSR",
+      "description": "野外条件英文视觉语音识别泛化测试集。",
+      "source": "https://github.com/YasserdahouML/VSR_test_set",
+      "license": "official release terms",
+      "initial_state": "archived",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/wildvsr",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/wildvsr/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789455520,
+        "expected_bytes": 91755398,
+        "verified_bytes": 91755398
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/wildvsr",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/wildvsr/archive_receipt.json",
+          "slug": "wildvsr",
+          "action": "archived",
+          "file_count": 1,
+          "total_bytes": 91755398,
+          "archived_at": "2026-09-15T06:58:39Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/wildvsr/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "avcocktail",
+      "name": "AVCocktail",
+      "description": "多人、噪声和重叠语音条件的鸡尾酒会 AVSR 挑战集。",
+      "source": "https://huggingface.co/datasets/nguyenvulebinh/AVCocktail",
+      "license": "CC BY-SA 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/avcocktail",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/avcocktail/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789478043,
+        "expected_files": 206,
+        "verified_files": 206,
+        "expected_bytes": 3438836255,
+        "verified_bytes": 3438836255
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/archive_receipt.json",
+          "slug": "avcocktail",
+          "action": "archived",
+          "file_count": 206,
+          "total_bytes": 3438836255,
+          "archived_at": "2026-09-15T13:13:51Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "avyt",
+      "name": "AVYT",
+      "description": "AVCocktail 工作中的约 1.42 TB 大规模野外派生训练集。",
+      "source": "https://huggingface.co/datasets/nguyenvulebinh/AVYT",
+      "license": "not declared",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/avyt",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/avyt/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1790582533,
+        "expected_files": 1320,
+        "verified_files": 1320,
+        "expected_bytes": 1419416723248,
+        "verified_bytes": 1419416723248
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/avyt",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/avyt/archive_receipt.json",
+          "slug": "avyt",
+          "action": "archived",
+          "file_count": 1320,
+          "total_bytes": 1419416723248,
+          "archived_at": "2026-09-28T04:04:40Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/avyt/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "muavic_metadata",
+      "name": "MuAViC Metadata",
+      "description": "MuAViC 九语种官方人脸轨迹和 mean-face 元数据。",
+      "source": "https://github.com/facebookresearch/muavic",
+      "license": "CC BY-NC 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/muavic_metadata",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/muavic_metadata/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789602079,
+        "expected_files": 10,
+        "verified_files": 10,
+        "expected_bytes": 15182727260,
+        "verified_bytes": 15182727260
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata/archive_receipt.json",
+          "slug": "muavic_metadata",
+          "action": "archived",
+          "file_count": 10,
+          "total_bytes": 15182727260,
+          "archived_at": "2026-09-16T23:40:45Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "muavic",
+      "name": "MuAViC Full",
+      "description": "九语种 AVSR/AVST 完整重建集，依赖 OpenSLR 音频和原视频。",
+      "source": "https://github.com/facebookresearch/muavic",
+      "license": "CC BY-NC 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/muavic",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/muavic/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1791410908,
+        "expected_files": 3882,
+        "verified_files": 3875,
+        "verified_bytes": 767683633536
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/muavic",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic/archive_receipt.json",
+          "slug": "muavic",
+          "action": "archived",
+          "file_count": 3875,
+          "total_bytes": 767683633536,
+          "archived_at": "2026-10-07T20:42:19Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/muavic/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "multivsr_metadata",
+      "name": "MultiVSR Metadata",
+      "description": "MultiVSR 的划分、YouTube ID、词时间戳和人脸轨迹发布物。",
+      "source": "https://huggingface.co/datasets/sindhuhegde/multivsr",
+      "license": "MIT",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/multivsr_metadata",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/multivsr_metadata/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789761393,
+        "expected_files": 10,
+        "verified_files": 10,
+        "expected_bytes": 42984746968,
+        "verified_bytes": 42984746968
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata/archive_receipt.json",
+          "slug": "multivsr_metadata",
+          "action": "archived",
+          "file_count": 10,
+          "total_bytes": 42984746968,
+          "archived_at": "2026-09-18T19:54:59Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "multivsr",
+      "name": "MultiVSR Full Videos",
+      "description": "约 12,000 小时、13 种语言的原视频重建集。",
+      "source": "https://github.com/Sindhu-Hegde/multivsr",
+      "license": "source-video terms vary",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/multivsr",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/multivsr/status.json",
+      "status_snapshot": {
+        "state": "downloading",
+        "updated_at": 1794329140,
+        "expected_files": 124416,
+        "verified_files": 76003,
+        "verified_bytes": 10573315866489
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/multivsr",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr/incremental_receipt.json",
+          "slug": "multivsr",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 75991,
+          "total_bytes": 10571152579195,
+          "updated_at": "2026-11-10T16:41:28Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/multivsr/raw"
+        }
+      ]
+    },
+    {
+      "slug": "mafi",
+      "name": "MaFi",
+      "description": "5 人、2,519 个静音单词视频的 VSR 测试集。",
+      "source": "repository documentation only",
+      "license": "unverified",
+      "initial_state": "no_verified_source",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/mafi",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/mafi/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1790004308,
+        "updated_at_utc": "2026-09-21T14:56:48Z",
+        "expected_files": 24,
+        "completed_files": 24,
+        "verified_files": 24,
+        "expected_bytes": 5128929084,
+        "completed_bytes": 5128929084,
+        "verified_bytes": 5128929084
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/mafi",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/mafi/archive_receipt.json",
+          "slug": "mafi",
+          "action": "archived",
+          "file_count": 24,
+          "total_bytes": 5128929084,
+          "archived_at": "2026-09-21T15:24:46Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/mafi/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "voxmm",
+      "name": "VoxMM / LRS-VoxMM",
+      "description": "自然长对话丰富转写、音频、人脸轨迹及含视频的 LRS-VoxMM 基准。",
+      "source": "https://mmai.io/projects/voxmm/",
+      "license": "CC BY 4.0",
+      "initial_state": "downloading",
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/voxmm",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/voxmm/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1789635473,
+        "expected_files": 8,
+        "expected_bytes": 43846182092,
+        "verified_bytes": 43846182092
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/voxmm",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/voxmm/archive_receipt.json",
+          "slug": "voxmm",
+          "action": "archived",
+          "file_count": 8,
+          "total_bytes": 43846182092,
+          "archived_at": "2026-09-17T08:56:17Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/voxmm/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "audioset_strong",
+      "name": null,
+      "description": "AudioSet Strong labels (CC-BY-4.0)",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/audioset_strong",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/audioset_strong/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1791792309,
+        "updated_at_utc": "2026-10-12T08:05:09Z",
+        "expected_files": 4,
+        "completed_files": 4,
+        "completed_bytes": 75750940
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong/archive_receipt.json",
+          "slug": "audioset_strong",
+          "action": "archived",
+          "file_count": 4,
+          "total_bytes": 75750940,
+          "archived_at": "2026-10-12T07:49:04Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        }
+      ]
+    },
+    {
+      "slug": "videocc",
+      "name": null,
+      "description": "VideoCC 3.3M clip URL list",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/videocc",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/videocc/status.json",
+      "status_snapshot": {
+        "state": "archived",
+        "updated_at": 1791797655,
+        "updated_at_utc": "2026-10-12T09:30:41Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 203044884
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/videocc",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/videocc/archive_receipt.json",
+          "slug": "videocc",
+          "action": "archived",
+          "file_count": 1,
+          "total_bytes": 203044884,
+          "archived_at": "2026-10-12T09:34:14Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/videocc/raw",
+          "cold_verified": true,
+          "post_cleanup_cold_verified": true
+        },
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/videocc/incremental_receipt.json",
+          "slug": "videocc",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 1,
+          "total_bytes": 203044884,
+          "updated_at": "2026-10-12T09:34:14Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/videocc/raw"
+        }
+      ]
+    },
+    {
+      "slug": "cuave_partial",
+      "name": null,
+      "description": "CUAVE group sequences (partial)",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/cuave_partial",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/cuave_partial/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573381,
+        "updated_at_utc": "2026-10-21T09:03:01Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial/incremental_receipt.json",
+          "slug": "cuave_partial",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 1,
+          "total_bytes": 640156002,
+          "updated_at": "2026-10-12T11:51:36Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial/raw"
+        }
+      ]
+    },
+    {
+      "slug": "talkvid_meta",
+      "name": null,
+      "description": "TalkVid metadata (URL-list only)",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/talkvid_meta",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/talkvid_meta/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 951,
+        "completed_files": 951,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta/incremental_receipt.json",
+          "slug": "talkvid_meta",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 951,
+          "total_bytes": 632073719,
+          "updated_at": "2026-10-12T12:29:41Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta/raw"
+        }
+      ]
+    },
+    {
+      "slug": "visper",
+      "name": null,
+      "description": "ViSpeR multilingual AVSR transcripts + ID lists",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/visper",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/visper/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 20,
+        "completed_files": 20,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/visper",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/visper/incremental_receipt.json",
+          "slug": "visper",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 20,
+          "total_bytes": 6971436241,
+          "updated_at": "2026-10-12T15:35:44Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/visper/raw"
+        }
+      ]
+    },
+    {
+      "slug": "real_world_avse",
+      "name": null,
+      "description": "Real-World AVSE Challenge dev+test (ISCSLP 2026)",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/real_world_avse",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/real_world_avse/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 4,
+        "completed_files": 4,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse/incremental_receipt.json",
+          "slug": "real_world_avse",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 4,
+          "total_bytes": 9350891169,
+          "updated_at": "2026-10-12T17:06:35Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse/raw"
+        }
+      ]
+    },
+    {
+      "slug": "mld_vc",
+      "name": null,
+      "description": "MLD-VC video-conferencing AVSR",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/mld_vc",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/mld_vc/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 5,
+        "completed_files": 5,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/incremental_receipt.json",
+          "slug": "mld_vc",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 5,
+          "total_bytes": 9914542126,
+          "updated_at": "2026-10-12T17:23:11Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw"
+        }
+      ]
+    },
+    {
+      "slug": "aspire",
+      "name": null,
+      "description": "ASPIRE real noisy AVSE corpus",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/aspire",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/aspire/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 1,
+        "completed_files": 1,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/aspire",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/aspire/incremental_receipt.json",
+          "slug": "aspire",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 1,
+          "total_bytes": 12960167179,
+          "updated_at": "2026-10-13T07:36:46Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw"
+        }
+      ]
+    },
+    {
+      "slug": "unitalk_asd",
+      "name": null,
+      "description": "UniTalk-ASD active speaker detection",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/unitalk_asd",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/unitalk_asd/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 353,
+        "completed_files": 353,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd/incremental_receipt.json",
+          "slug": "unitalk_asd",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 353,
+          "total_bytes": 14555424127,
+          "updated_at": "2026-10-13T10:22:16Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd/raw"
+        }
+      ]
+    },
+    {
+      "slug": "ravdess",
+      "name": null,
+      "description": "RAVDESS emotional speech AV database",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/ravdess",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/ravdess/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 49,
+        "completed_files": 49,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/ravdess",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/ravdess/incremental_receipt.json",
+          "slug": "ravdess",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 49,
+          "total_bytes": 25600214208,
+          "updated_at": "2026-10-14T14:19:00Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/ravdess/raw"
+        }
+      ]
+    },
+    {
+      "slug": "ellipsis_lrs3",
+      "name": null,
+      "description": "LRS3 trainval Auto-AVSR format",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/ellipsis_lrs3",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/ellipsis_lrs3/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573382,
+        "updated_at_utc": "2026-10-21T09:03:02Z",
+        "expected_files": 34,
+        "completed_files": 34,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3/incremental_receipt.json",
+          "slug": "ellipsis_lrs3",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 34,
+          "total_bytes": 25041170491,
+          "updated_at": "2026-10-13T12:37:19Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3/raw"
+        }
+      ]
+    },
+    {
+      "slug": "facestar",
+      "name": null,
+      "description": "FaceStar studio AV conversational speech",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/facestar",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/facestar/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 115,
+        "completed_files": 115,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/facestar",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/facestar/incremental_receipt.json",
+          "slug": "facestar",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 115,
+          "total_bytes": 29817491437,
+          "updated_at": "2026-10-15T09:28:50Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/facestar/raw"
+        }
+      ]
+    },
+    {
+      "slug": "mandarin_avsr",
+      "name": null,
+      "description": "Mandarin AVSS mixtures",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/mandarin_avsr",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/mandarin_avsr/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 9,
+        "completed_files": 9,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/incremental_receipt.json",
+          "slug": "mandarin_avsr",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 9,
+          "total_bytes": 49977304020,
+          "updated_at": "2026-10-14T14:35:31Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw"
+        }
+      ]
+    },
+    {
+      "slug": "darknsu_lrs3",
+      "name": null,
+      "description": "LRS3 all video + wav",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/darknsu_lrs3",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/darknsu_lrs3/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 2,
+        "completed_files": 2,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3/incremental_receipt.json",
+          "slug": "darknsu_lrs3",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 2,
+          "total_bytes": 62975957463,
+          "updated_at": "2026-10-14T23:25:26Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3/raw"
+        }
+      ]
+    },
+    {
+      "slug": "vlr",
+      "name": null,
+      "description": "Vietnamese Lip-Reading Dataset",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/vlr",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/vlr/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 8,
+        "completed_files": 8,
+        "completed_bytes": 70453584679,
+        "verified_bytes": 70453584679
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/vlr",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/vlr/incremental_receipt.json",
+          "slug": "vlr",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 8,
+          "total_bytes": 70453584679,
+          "updated_at": "2026-10-15T20:48:42Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/vlr/raw"
+        }
+      ]
+    },
+    {
+      "slug": "chinese_lips",
+      "name": null,
+      "description": "Chinese-LiPS Mandarin AVSR",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/chinese_lips",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/chinese_lips/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 19,
+        "completed_files": 19,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/incremental_receipt.json",
+          "slug": "chinese_lips",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 19,
+          "total_bytes": 93069232024,
+          "updated_at": "2026-10-15T10:59:39Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw"
+        }
+      ]
+    },
+    {
+      "slug": "voxceleb2_mix",
+      "name": null,
+      "description": "VoxCeleb2-mix AV target-speaker extraction",
+      "source": null,
+      "license": null,
+      "initial_state": null,
+      "cold_reference": null,
+      "hot_directory": "/root/group-shared/voiceprint/data/multimodal/voxceleb2_mix",
+      "hot_directory_exists": true,
+      "status_file": "/root/group-shared/voiceprint/data/multimodal/voxceleb2_mix/status.json",
+      "status_snapshot": {
+        "state": "source_verified",
+        "updated_at": 1792573383,
+        "updated_at_utc": "2026-10-21T09:03:03Z",
+        "expected_files": 14,
+        "completed_files": 14,
+        "completed_bytes": 0
+      },
+      "cold_directory": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix",
+      "cold_directory_exists": true,
+      "cold_raw_directory_exists": true,
+      "historical_receipts": [
+        {
+          "path": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/incremental_receipt.json",
+          "slug": "voxceleb2_mix",
+          "action": "incremental_archive",
+          "mode": "per_file",
+          "file_count": 14,
+          "total_bytes": 563291453440,
+          "updated_at": "2026-10-19T09:32:36Z",
+          "cold_payload": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/raw"
+        }
+      ]
+    }
+  ],
+  "additional_top_level_entries": [
+    {
+      "name": "_catalog",
+      "path": "/root/group-shared/voiceprint/data/multimodal/_catalog",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "_download",
+      "path": "/root/group-shared/voiceprint/data/multimodal/_download",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "AUTHORIZATION_STATUS_zh.md",
+      "path": "/root/group-shared/voiceprint/data/multimodal/AUTHORIZATION_STATUS_zh.md",
+      "kind": "file",
+      "symlink": false
+    },
+    {
+      "name": "DATASET_CATALOG_zh.md",
+      "path": "/root/group-shared/voiceprint/data/multimodal/DATASET_CATALOG_zh.md",
+      "kind": "file",
+      "symlink": false
+    },
+    {
+      "name": "existing_sources.json",
+      "path": "/root/group-shared/voiceprint/data/multimodal/existing_sources.json",
+      "kind": "file",
+      "symlink": false
+    },
+    {
+      "name": "multimodal",
+      "path": "/root/group-shared/voiceprint/data/multimodal/multimodal",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "README_zh.md",
+      "path": "/root/group-shared/voiceprint/data/multimodal/README_zh.md",
+      "kind": "file",
+      "symlink": false
+    }
+  ],
+  "cold_extra_captured_at": "2026-11-11T00:49:10.036388+08:00",
+  "additional_cold_top_level_entries": [
+    {
+      "name": "_catalog",
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/_catalog",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "_local_overflow_20261102",
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/_local_overflow_20261102",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar",
+      "kind": "file",
+      "symlink": false
+    },
+    {
+      "name": "realssa_real",
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/realssa_real",
+      "kind": "directory",
+      "symlink": false
+    },
+    {
+      "name": "realssa_sim",
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/realssa_sim",
+      "kind": "directory",
+      "symlink": false
+    }
+  ],
+  "timestamp_note": "Status updated_at and updated_at_utc are copied independently from source; some sources disagree. Dynamic states and archival receipts can represent different instants."
+}

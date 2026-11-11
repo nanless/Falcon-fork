@@ -1,0 +1,1523 @@
+{
+  "source": "multimodal-avsr-audit-2026-10-16/数据逐项清单.json",
+  "date": "2026-10-16",
+  "scope": "历史抽样和统计快照，动态完成数量以2026-11-11当前状态为准",
+  "items": [
+    {
+      "slug": "lrs2",
+      "title": "LRS2",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/lrs2",
+        "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      ],
+      "language": "英语",
+      "annotation": "官方发行包含句子文字和时间信息；当前本目录尚未直接读到联合包内部的对应标注",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "本目录 raw 为空，状态为 existing_cold_reference，引用 AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar。包头抽样确见 lrs2_rebuild/audio/wav8k/min/tr/mix 等派生混合音频目录，但这不足以证明原始LRS2发行全量齐全。",
+      "limitations": [
+        "优先交叉核对 nested audio-visual 中的已解包LRS2和训练用清单；本条引用目录不单独贡献媒体文件数或容量。联合大包不是已经就绪的标准AVSR训练目录。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs2.html"
+      ],
+      "completion": {
+        "status": "existing_cold_reference",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "本目录 raw 为空，状态为 existing_cold_reference，引用 AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar。包头抽样确见 lrs2_rebuild/audio/wav8k/min/tr/mix 等派生混合音频目录，但这不足以证明原始LRS2发行全量齐全。"
+      }
+    },
+    {
+      "slug": "lrs3",
+      "title": "LRS3",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/lrs3",
+        "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      ],
+      "language": "英语",
+      "annotation": "官方句子转写；现有派生目录另有已完成训练和评测的清单",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "本目录 raw 为空，状态 existing_cold_reference，指向联合大包；训练实际使用的已处理媒体与清单位于 nested multimodal/audio-visual/derived，另作专门审计，不能把此占位目录误当缺失数据。",
+      "limitations": [
+        "以派生数据章节报告的正式训练清单、测试清单和最近实测结果为准；本子任务不重复遍历该目录。本项没有重新核实官方原始发行全量一致性，不能据已完成训练推断联合包所有条目完整。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/lrs3.html"
+      ],
+      "completion": {
+        "status": "existing_cold_reference",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "本目录 raw 为空，状态 existing_cold_reference，指向联合大包；训练实际使用的已处理媒体与清单位于 nested multimodal/audio-visual/derived，另作专门审计，不能把此占位目录误当缺失数据。"
+      }
+    },
+    {
+      "slug": "lrs_combined",
+      "title": "LRS2 与 LRS3 合并入口",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/lrs_combined"
+      ],
+      "language": "英语",
+      "annotation": "继承LRS2/LRS3标签",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "raw为空，状态 derived_not_materialized。此名称表示按需合并来源，不是独立发行，也不是另存的一套可直接读取媒体。",
+      "limitations": [
+        "须先固定两数据集的原始视频ID、官方划分与排除规则，再生成清单。不要把目录存在理解为合并训练数据已经建好。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://www.robots.ox.ac.uk/~vgg/data/lip_reading/"
+      ],
+      "completion": {
+        "status": "derived_not_materialized",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "raw为空，状态 derived_not_materialized。此名称表示按需合并来源，不是独立发行，也不是另存的一套可直接读取媒体。"
+      }
+    },
+    {
+      "slug": "tcd_timit",
+      "title": "TCD-TIMIT",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/tcd_timit",
+        "/aispeech-cfs/voiceprint/data/multimodal/tcd_timit"
+      ],
+      "language": "英语，含爱尔兰口音",
+      "annotation": "每句MP4/WAV/TXT/嘴部MAT；MLF音素强制对齐；官方说话人划分SCP",
+      "counts": {
+        "cold_payload_files": 130,
+        "cold_payload_bytes": 551015183715,
+        "staging_raw_files": 4,
+        "staging_raw_bytes": 13186437717,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 137,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "计划137对象：62人双视角124ZIP与13附加文件；当前完成130，冷端实际130文件、551015183715字节，其中117ZIP。暂存4个文件13186437717字节包含3个.part和1个带时间戳文件，不能作为完成数据。",
+      "limitations": [
+        "仍缺7个发行对象，不能宣称全部62人双视角齐备；先做每人正面/侧面配对表。不同相机共享同一句录音，不计双倍语料。来源为账号授权非商业研究，保留原条款。本次只读目录与代表ZIP索引，未重复全量CRC。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://sigmedia.tcd.ie/tcd_timit_db/"
+      ],
+      "completion": {
+        "status": "downloading",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "计划137对象：62人双视角124ZIP与13附加文件；当前完成130，冷端实际130文件、551015183715字节，其中117ZIP。暂存4个文件13186437717字节包含3个.part和1个带时间戳文件，不能作为完成数据。"
+      }
+    },
+    {
+      "slug": "grid",
+      "title": "GRID",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/grid",
+        "/aispeech-cfs/voiceprint/data/multimodal/grid"
+      ],
+      "language": "英语",
+      "annotation": "逐词 .align 时间标注，独立25kHz WAV与逐句MPG",
+      "counts": {
+        "cold_payload_files": 36,
+        "cold_payload_bytes": 16211527582,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 36,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "real_audio_files": 34000,
+        "real_word_alignment_files": 34000,
+        "available_video_speakers": 33,
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端完整 36 个发行对象：33 个说话人视频ZIP、音频ZIP、对齐ZIP和论文。官方有34人音频与标签，t21 无视频。抽查 s1.zip 排除Mac伴生后是1000个MPG；音频与.align索引分别34000个真实文件。",
+      "limitations": [
+        "对齐ZIP中含一份真实文件与一份 __MACOSX/._ 伴生，若按扩展名直接数会翻倍。需剔除伴生、排除无视频说话人并做文件名交集；按说话人划分，避免同人不同句子的泄漏。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://zenodo.org/records/3625687"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端完整 36 个发行对象：33 个说话人视频ZIP、音频ZIP、对齐ZIP和论文。官方有34人音频与标签，t21 无视频。抽查 s1.zip 排除Mac伴生后是1000个MPG；音频与.align索引分别34000个真实文件。"
+      }
+    },
+    {
+      "slug": "lombard_grid",
+      "title": "Lombard GRID",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/lombard_grid",
+        "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid"
+      ],
+      "language": "英语",
+      "annotation": "句子编码、每人JSON、音素起点/时长JSON；正面/侧面视频与独立音频",
+      "counts": {
+        "cold_payload_files": 5,
+        "cold_payload_bytes": 2485068233,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 5,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "audio_files": 5390,
+        "front_video_files": 5390,
+        "side_video_files": 5390,
+        "phone_alignment_files": 5361,
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端完整5包：alignment、audio、front、json、side。音频5390个WAV，正面和侧面各5390个MOV，每人JSON54个，音素对齐JSON5361个。",
+      "limitations": [
+        "5390条媒体对应5361条音素对齐，少29条对齐。样本JSON中的 TRANSCRIPTION 可为“-”，需要结合句子编码、STATUS与官方词表生成文字，不能把“-”当标签。按说话人和录音成组划分；使用音素目标时只取已对齐交集。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://zenodo.org/records/3736465"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端完整5包：alignment、audio、front、json、side。音频5390个WAV，正面和侧面各5390个MOV，每人JSON54个，音素对齐JSON5361个。"
+      }
+    },
+    {
+      "slug": "roomreader",
+      "title": "RoomReader",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/roomreader",
+        "/aispeech-cfs/voiceprint/data/multimodal/roomreader"
+      ],
+      "language": "英语，含母语/非母语参与者",
+      "annotation": "修订后的TextGrid/EAF、逐词/逐句标注、个人音视频与整场音视频",
+      "counts": {
+        "cold_payload_files": 1339,
+        "cold_payload_bytes": 159508080509,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 1339,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端1339文件、159508080509字节；其中322MP4、176WAV、443TextGrid、30EAF，另有特征和研究文档。源README说明30场会话、118人。抽查修订TextGrid有IntervalTier、xmin/xmax和对应文字。",
+      "limitations": [
+        "先按参与者与时间窗配准、剔除无脸/遮挡/未发声段，处理修订标记与非语音事件，按场次/说话人划分。研究使用许可与在论文中展示图像/视频是两件事；公开展示需按每场参与者同意记录核查。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://sigmedia.tcd.ie/room_reader_corpus_db/"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端1339文件、159508080509字节；其中322MP4、176WAV、443TextGrid、30EAF，另有特征和研究文档。源README说明30场会话、118人。抽查修订TextGrid有IntervalTier、xmin/xmax和对应文字。"
+      }
+    },
+    {
+      "slug": "candor",
+      "title": "CANDOR",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/candor",
+        "/aispeech-cfs/voiceprint/data/multimodal/candor"
+      ],
+      "language": "英语为主；本次未逐会话做语言识别",
+      "annotation": "代表分卷有各说话人原始/处理视频、混合音频、转写CSV/JSON、时间偏移和行为数据",
+      "counts": {
+        "cold_payload_files": 166,
+        "cold_payload_bytes": 951758137196,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 166,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端 166 个 raw_media_part_*.zip，951758137196 字节，现有归档回执确认该授权分卷集合完成。抽查第1卷含10个会话目录、视频、音频、转写；这是分卷样本，不能乘166当作核实会话总数。",
+      "limitations": [
+        "代表 transcript_audiophile.csv 列有 turn_id、speaker、start、stop、utterance、overlap 等。转写版本有多种，不能默认全部为人工金标准。需评估标注质量，裁段/裁嘴、处理双方重叠、按会话或说话人划分。学术研究使用受限，不能公开原始媒体或重识别参与者。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://candor.usc.edu/"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端 166 个 raw_media_part_*.zip，951758137196 字节，现有归档回执确认该授权分卷集合完成。抽查第1卷含10个会话目录、视频、音频、转写；这是分卷样本，不能乘166当作核实会话总数。"
+      }
+    },
+    {
+      "slug": "voxceleb2",
+      "title": "VoxCeleb2",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/voxceleb2",
+        "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      ],
+      "language": "多语言；现有英语伪标注子集见派生章节",
+      "annotation": "官方说话人身份与片段来源，不提供通用AVSR所需人工逐字转写",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "本目录 raw为空，引用联合大包；现有MMS-LLaMA训练所用媒体、英语筛选与伪转写见nested audio-visual/derived专项审计。AVYT仓库也发布Vox2 dev/test处理版本。",
+      "limitations": [
+        "只合并已确认的音画同步、可见说话人、英语与转写质量达标条目；不同仓库预处理版本按原始speaker/video/utterance去重，不把同一素材重复计量。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html"
+      ],
+      "completion": {
+        "status": "existing_cold_reference",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "本目录 raw为空，引用联合大包；现有MMS-LLaMA训练所用媒体、英语筛选与伪转写见nested audio-visual/derived专项审计。AVYT仓库也发布Vox2 dev/test处理版本。"
+      }
+    },
+    {
+      "slug": "avspeech",
+      "title": "AVSpeech",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/avspeech"
+      ],
+      "language": "多语言；当前未全量统计",
+      "annotation": "YouTube ID、片段开始/结束时间、归一化人脸位置；没有官方逐字转写",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": null,
+        "staging_raw_bytes": null,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "current_list_rows": {
+          "file_lists/train.txt": 1888167,
+          "file_lists/test.txt": 120957,
+          "file_lists/legacy.txt": 229520,
+          "file_lists/superseded.txt": 313777,
+          "docs/remainder.tsv": 945663
+        },
+        "physical_video_full_census_performed": false,
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "媒体主要在暂存根 videos/{train,test,legacy_unmatched}/shard_*，另有 extras/superseded 和补录目录。raw 为空不表示没有媒体。status 的 merged_complete 只说明历史合并结束，后续补录另有脚本。",
+      "limitations": [
+        "2026-09-21 status 留存覆盖 1847042/2805118，2026-09-23 coverage.json 为 1862581/2805118；本次读取现有 train.txt 1888167 行、test.txt 120957 行、legacy.txt 229520 行、superseded.txt 313777 行。它们是不同日期、不同口径，当前行数不等于去重后媒体覆盖率。本次没有遍历百万媒体或重算总时长，不报“已经全量完成”。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://looking-to-listen.github.io/avspeech/"
+      ],
+      "completion": {
+        "status": "merged_complete",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "媒体主要在暂存根 videos/{train,test,legacy_unmatched}/shard_*，另有 extras/superseded 和补录目录。raw 为空不表示没有媒体。status 的 merged_complete 只说明历史合并结束，后续补录另有脚本。"
+      }
+    },
+    {
+      "slug": "audioset",
+      "title": "AudioSet",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/audioset",
+        "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+      ],
+      "language": "多语言；事件标签不代表转写语言",
+      "annotation": "音频事件类别；不是逐字语音转写",
+      "counts": {
+        "cold_payload_files": 0,
+        "cold_payload_bytes": 0,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "本目录只有状态与说明，raw 为空，引用联合冷端大包。包名和注册记录写明 AudioSet；本次包头抽样没有走到它的内部位置，不能确认 AudioSet 的具体版本、文件数、音视频配对与有效率。",
+      "limitations": [
+        "先定位联合包中 AudioSet 的实际目录或现有解包结果，明确 balanced/unbalanced/eval 等发行范围；训练用噪声与验证噪声应分开。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://research.google.com/audioset/"
+      ],
+      "completion": {
+        "status": "existing_cold_reference",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "本目录只有状态与说明，raw 为空，引用联合冷端大包。包名和注册记录写明 AudioSet；本次包头抽样没有走到它的内部位置，不能确认 AudioSet 的具体版本、文件数、音视频配对与有效率。"
+      }
+    },
+    {
+      "slug": "wildvsr",
+      "title": "WildVSR",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/wildvsr",
+        "/aispeech-cfs/voiceprint/data/multimodal/wildvsr"
+      ],
+      "language": "英语",
+      "annotation": "labels.json中的句子文字；对应96×96嘴部视频",
+      "counts": {
+        "cold_payload_files": 1,
+        "cold_payload_bytes": 91755398,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": null,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "video_objects_inside_zip": 2854,
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端1ZIP、91755398字节。ZIP目录实际2854个MP4和1JSON；JSON有2854个键。代表视频96×96、25fps，ffprobe只有视频流，没有音轨。",
+      "limitations": [
+        "不要把.mp4扩展名等同于含音频；若确实需要有声AVSR需有权取得同源音频并重新验证同步，但本次没有做此操作。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://github.com/YasserdahouML/VSR_test_set"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端1ZIP、91755398字节。ZIP目录实际2854个MP4和1JSON；JSON有2854个键。代表视频96×96、25fps，ffprobe只有视频流，没有音轨。"
+      }
+    },
+    {
+      "slug": "avcocktail",
+      "title": "AVCocktail",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/avcocktail",
+        "/aispeech-cfs/voiceprint/data/multimodal/avcocktail"
+      ],
+      "language": "英语（代表标签）；未逐条统计",
+      "annotation": "独立 label tar + 视频片段开始/结束时间、sample_id；按说话人检测、固定和标准切段三种方式发布",
+      "counts": {
+        "cold_payload_files": 206,
+        "cold_payload_bytes": 3438836255,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 206,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端 206 个发行文件，包含 51 个标签 tar、153 个视频 tar 与 2 个仓库文件；后者是 51 个源视频的三种切段，不是 153 个独立场景。代表片段确有 96×96、25 帧/秒视频和 16kHz 单声道音频。",
+      "limitations": [
+        "需写读取器，把独立标签包与各片段的时间窗、目标轨迹对应；核对重叠期间应输出哪个人的文本，不能直接复用单人整段识别标签。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://huggingface.co/datasets/nguyenvulebinh/AVCocktail"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端 206 个发行文件，包含 51 个标签 tar、153 个视频 tar 与 2 个仓库文件；后者是 51 个源视频的三种切段，不是 153 个独立场景。代表片段确有 96×96、25 帧/秒视频和 16kHz 单声道音频。"
+      }
+    },
+    {
+      "slug": "avyt",
+      "title": "AVYT 发布仓库",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/avyt",
+        "/aispeech-cfs/voiceprint/data/multimodal/avyt"
+      ],
+      "language": "英语（抽查）；全量语言未重统计",
+      "annotation": "label、length、sample_id 与封装音视频的 .video；转写来源及质量需沿用作者说明核对",
+      "counts": {
+        "cold_payload_files": 1320,
+        "cold_payload_bytes": 1419416723248,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 1320,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "完整冻结仓库 1320 文件，其中 1318 个 tar，合计 1419416723248 字节。它同时包含 avyt 518 包、dialog 666 包、lrs2 78 包、vox2 56 包。tar 数不是样本数。",
+      "limitations": [
+        "代表 talking、silent 和 Vox2 .video 均为 96×96/25fps + 16kHz 单声道AAC。需解码适配本项目、检查长度/文本、按原始视频ID去重。仓库还含 LRS2 valid/test 和不同信噪比 test，必须明确排除评测条目。AVYT 根卡片没有清楚声明许可，不能把 AVCocktail 的 CC BY-SA 自动套给 AVYT。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://huggingface.co/datasets/nguyenvulebinh/AVYT"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "完整冻结仓库 1320 文件，其中 1318 个 tar，合计 1419416723248 字节。它同时包含 avyt 518 包、dialog 666 包、lrs2 78 包、vox2 56 包。tar 数不是样本数。"
+      }
+    },
+    {
+      "slug": "muavic_metadata",
+      "title": "MuAViC 官方人脸轨迹",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/muavic_metadata",
+        "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata"
+      ],
+      "language": "9语种",
+      "annotation": "9个语言.tgz中的.pkl人脸轨迹及20words_mean_face.npy",
+      "counts": {
+        "cold_payload_files": 10,
+        "cold_payload_bytes": 15182727260,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 10,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端10个文件、15182727260字节，归档路径与清单一致。抽查de_metadata.tgz的前20成员确见语言/train、test目录和源视频ID.pkl；未执行任何pickle内容。",
+      "limitations": [
+        "需与MuAViC源视频、官方语音/文本和切分一同准备。不要直接加载不可信pickle；正式读取应使用项目已确认的可信发布物与受控转换。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://github.com/facebookresearch/muavic"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端10个文件、15182727260字节，归档路径与清单一致。抽查de_metadata.tgz的前20成员确见语言/train、test目录和源视频ID.pkl；未执行任何pickle内容。"
+      }
+    },
+    {
+      "slug": "muavic",
+      "title": "MuAViC 源视频重建",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/muavic",
+        "/aispeech-cfs/voiceprint/data/multimodal/muavic"
+      ],
+      "language": "阿拉伯语、德语、希腊语、西语、法语、意语、葡语、俄语；英语复用LRS3",
+      "annotation": "本项只存原始YouTube视频；人脸轨迹在muavic_metadata，转写与切分还依赖官方OpenSLR/mTEDx/LRS3准备流程",
+      "counts": {
+        "cold_payload_files": 3875,
+        "cold_payload_bytes": 767683633536,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 3882,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端3875个源MP4、767683633536字节；计划3882，缺7。归档回执明确这是用户接受的部分归档，不能写“官方全量已完成”。8种非英语视频数为ar109/de70/el130/es1013/fr970/it500/pt830/ru253。",
+      "limitations": [
+        "需补齐/定位各语言音频与转写、按官方轨迹和时间窗裁片、裁嘴、检查音画同步、保留官方train/valid/test。7个缺视频涉及多个划分；应在实际清单显式排除并报告对应句子损失，不能按7/3882直接推算小时损失。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://github.com/facebookresearch/muavic"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端3875个源MP4、767683633536字节；计划3882，缺7。归档回执明确这是用户接受的部分归档，不能写“官方全量已完成”。8种非英语视频数为ar109/de70/el130/es1013/fr970/it500/pt830/ru253。"
+      }
+    },
+    {
+      "slug": "multivsr_metadata",
+      "title": "MultiVSR 官方标注与清单",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/multivsr_metadata",
+        "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata"
+      ],
+      "language": "en/fr/de/es/it/ca/ru/ja/zh/pl/pt/tr/nl",
+      "annotation": "五CSV划分、ytids.txt、multivsr.tar中的文本与人脸轨迹.pckl",
+      "counts": {
+        "cold_payload_files": 10,
+        "cold_payload_bytes": 42984746968,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 10,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端10文件、42984746968字节。CSV实际表头file_path,transcript,length,language,start；tar成员抽样含同片段.txt/.pckl。文本示例有Text、Lang及WORD/START/END/SCORE。",
+      "limitations": [
+        "元数据记录的train_major/minor、val_major/minor、test需要保留；同源视频的不同句段不能混入互相独立的划分。MIT是发布元数据仓库声明，不自动授予源视频任意用途。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://huggingface.co/datasets/sindhuhegde/multivsr"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端10文件、42984746968字节。CSV实际表头file_path,transcript,length,language,start；tar成员抽样含同片段.txt/.pckl。文本示例有Text、Lang及WORD/START/END/SCORE。"
+      }
+    },
+    {
+      "slug": "multivsr",
+      "title": "MultiVSR 源视频重建",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/multivsr",
+        "/aispeech-cfs/voiceprint/data/multimodal/multivsr"
+      ],
+      "language": "元数据列出13语言；本项未逐视频语言识别",
+      "annotation": "本项为源MP4；转写、词时间戳与轨迹在multivsr_metadata",
+      "counts": {
+        "cold_payload_files": 13847,
+        "cold_payload_bytes": 1970922117477,
+        "staging_raw_files": 3,
+        "staging_raw_bytes": 660962484,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 124416,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": false,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "status计划124416个源视频，已校验13847个，失败计数68340；冷端实际13847个MP4、1970922117477字节；暂存另有3个MP4、660962484字节，正处增量迁移，不能简单加总为独立样本。",
+      "limitations": [
+        "必须按源视频ID生成成功/缺失交集，保留train/val/test，报告每语言、划分的有效句子与小时。failure_count不是唯一永久缺失总数，也不能加到成功数上充当覆盖。源平台条款与元数据MIT许可分别核对。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://github.com/Sindhu-Hegde/multivsr"
+      ],
+      "completion": {
+        "status": "downloading",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "status计划124416个源视频，已校验13847个，失败计数68340；冷端实际13847个MP4、1970922117477字节；暂存另有3个MP4、660962484字节，正处增量迁移，不能简单加总为独立样本。"
+      }
+    },
+    {
+      "slug": "mafi",
+      "title": "MaFi",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/mafi",
+        "/aispeech-cfs/voiceprint/data/multimodal/mafi"
+      ],
+      "language": "英语",
+      "annotation": "文件名词标签、词可读性/感知规范CSV与行为统计",
+      "counts": {
+        "cold_payload_files": 24,
+        "cold_payload_bytes": 5128929084,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 24,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "video_objects_inside_zip": 2519,
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端24文件包含5视频ZIP、12CSV、1XLSX、5Python、1R；五视频ZIP经目录索引剔除伴生后分别816、121、680、315、587个MP4，合计2519；B2包另有1个XLSX。来源清单指向OSF mna8j。",
+      "limitations": [
+        "status notes和registry还留有“没有可验证来源”的旧文案，与现有OSF清单和归档事实不一致；本报告保留矛盾并以实物描述，不改远端。许可字段仍 unverified，需核对OSF项目正式许可；不能用“已下载”替代用途授权。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://osf.io/mna8j/"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端24文件包含5视频ZIP、12CSV、1XLSX、5Python、1R；五视频ZIP经目录索引剔除伴生后分别816、121、680、315、587个MP4，合计2519；B2包另有1个XLSX。来源清单指向OSF mna8j。"
+      }
+    },
+    {
+      "slug": "voxmm",
+      "title": "VoxMM 与 LRS-VoxMM",
+      "roots": [
+        "/root/group-shared/voiceprint/data/multimodal/voxmm",
+        "/aispeech-cfs/voiceprint/data/multimodal/voxmm"
+      ],
+      "language": "英语（抽查）；未全量语言统计",
+      "annotation": "VoxMM有289份音频、289份转写JSON、289份人脸轨迹JSON和train247/test42；LRS-VoxMM有原版/三干扰源/噪声包",
+      "counts": {
+        "cold_payload_files": 8,
+        "cold_payload_bytes": 43846182092,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "count_unit": "发行对象或实际文件；不是句段数",
+        "expected_objects": 8,
+        "expected_source": "本次读取status.json；发行范围需结合来源清单",
+        "frozen_manifest_objects_complete": true,
+        "official_released_scope_complete": null,
+        "completion_scope_note": "完整仅针对本机冻结发行/获取清单；不代替官方全量语料与片段级可用性证明。"
+      },
+      "composition": "冷端8文件、43846182092字节。VoxMM四ZIP含音频/metadata/facetrack/split；没有独立源视频ZIP。LRS-VoxMM original与3dist包的有界抽样明确见test目录下成套MP4/WAV/TXT，TXT有词时间。",
+      "limitations": [
+        "train/test划分需要照搬；原版与不同干扰版本为同源，不能跨训练/测试分开。LRS-VoxMM本次抽查只见test，不据包名假设另有独立训练集。下载8包完整不等于所有VoxMM原YouTube视频已到位。",
+        "本次未做全量媒体解码、口型同步核验、逐字标注质量复核或重算冷端内容哈希。"
+      ],
+      "source_urls": [
+        "https://mmai.io/projects/voxmm/"
+      ],
+      "completion": {
+        "status": "archived",
+        "observed_utc": "2026-10-15T16:13:23Z",
+        "interpretation": "冷端8文件、43846182092字节。VoxMM四ZIP含音频/metadata/facetrack/split；没有独立源视频ZIP。LRS-VoxMM original与3dist包的有界抽样明确见test目录下成套MP4/WAV/TXT，TXT有词时间。"
+      }
+    },
+    {
+      "slug": "audioset_strong",
+      "title": "AudioSet Strong：有起止时间的声音类别标注",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/audioset_strong",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong"
+      },
+      "language": "非逐字语料，类别名称为英语",
+      "annotation": "TSV 描述声音类别、开始时间和结束时间，不记录说了什么。",
+      "counts": {
+        "cold_raw_files": 4,
+        "cold_raw_bytes": 75750940,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 1,
+        "staging_recovery_bytes": 30309134,
+        "source_expected_files": 4,
+        "status_completed_files": 4,
+        "status_archived_to_cold": null,
+        "cold_raw_extensions": {
+          ".tsv": 4
+        }
+      },
+      "facts": [
+        "冷端只有 4 个 TSV 文件，共 75,750,940 字节，没有音视频媒体。",
+        "本地训练 TSV 的有效记录为 933,241 个声音区间、103,299 个独立片段，类别代码 447 种；评测 TSV 读取到 139,538 行。",
+        "官方页面当前写训练部分为 934,821 个区间、103,463 个片段。本地有效统计与之不一致；按二进制逐行复查发现末行只剩 3 字节 H5f，没有制表符，是明确截断行。"
+      ],
+      "limitations": [
+        "声音类别标签不能替代逐字转写；即使复用原 AudioSet 媒体，仍不构成现成 AVSR 训练样本。",
+        "该训练 TSV 存在明确截断证据，不能标作完整标签；冷端 SHA 清单覆盖和历史归档状态不能替代来源内容完整性验证。"
+      ],
+      "next_step": "先保留截断证据并核对原下载验收记录，后续修复训练标签；当前仅作为辅助索引，不计入有监督AVSR样本数。",
+      "source_urls": [
+        "https://research.google.com/audioset/download_strong.html"
+      ],
+      "license_recorded_in_local_status": "CC-BY-4.0",
+      "license_note": "本地记录为 CC-BY-4.0，适用于标注文件的记录不能自动替代原始视频的使用条件。",
+      "completion": {
+        "status": "archived",
+        "status_updated_at_utc": "2026-10-12T08:05:09Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "videocc",
+      "title": "VideoCC：视频片段链接与画面描述清单",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/videocc",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/videocc"
+      },
+      "language": "描述以英语为主，媒体实际语种不由此确定",
+      "annotation": "第四列是画面描述，不是语音逐字转写。",
+      "counts": {
+        "cold_raw_files": 1,
+        "cold_raw_bytes": 203044884,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 2,
+        "staging_recovery_bytes": 216030413,
+        "source_expected_files": 1,
+        "status_completed_files": 1,
+        "status_archived_to_cold": null,
+        "cold_raw_extensions": {
+          ".csv": 1
+        }
+      },
+      "facts": [
+        "冷端只有 video_cc_public.csv，203,044,884 字节，没有对应视频。",
+        "本轮按无表头 CSV 统计为 2,340,950 行；不能把第一行当表头而少算一条。",
+        "四列依次是视频标识、开始和结束微秒、画面描述。发布者说明其从 Conceptual Captions 的图像描述自动检索视频得到。"
+      ],
+      "limitations": [
+        "名称中的 3.3M 或其他公开规模数字不代表当前这份 CSV 的实测行数。",
+        "画面中可能没有可见讲话人，也不保证存在语音；下载媒体后仍需筛选及补转写。",
+        "暂存区有失败 CSV 分片，不能计作新数据。"
+      ],
+      "next_step": "不列入近期AVSR训练队列，可保留为广义视频数据检索来源。",
+      "source_urls": [
+        "https://github.com/google-research-datasets/videoCC-data"
+      ],
+      "license_recorded_in_local_status": "Google dataset terms",
+      "license_note": "本地记 Google dataset terms，作者仓库亦有许可说明；链接清单不等于取得链接中视频的完整使用权。",
+      "completion": {
+        "status": "archived",
+        "status_updated_at_utc": "2026-10-12T09:30:41Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "cuave_partial",
+      "title": "CUAVE group 派生包：双人灰度人脸与音频特征",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/cuave_partial",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial"
+      },
+      "language": "英语，数字和有限句式",
+      "annotation": "官方页面称 MAT 内含 labels；该标注主要涉及两人的说话状态，不能据此认定是词序列。",
+      "counts": {
+        "cold_raw_files": 1,
+        "cold_raw_bytes": 640156002,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 1,
+        "staging_recovery_bytes": 461200527,
+        "source_expected_files": 1,
+        "status_completed_files": 1,
+        "status_archived_to_cold": 1,
+        "cold_raw_extensions": {
+          ".zip": 1
+        }
+      },
+      "facts": [
+        "冷端 cuave-group-aligned.zip 有 22 个 MAT 文件，大小合计 640,156,002 字节，属于 CUAVE 的 group 部分派生包。",
+        "来源页说明每个 MAT 含两人的 75×50 灰度帧、按帧索引的音频及 MFCC，还包含两人同时说话时的状态标签。",
+        "使用现有 Conda 读取 g01_aligned.mat 的字段：video 是 1×2 元胞数组，audioIndexed 为 534×957，MFCC 为 13×957，labels 为 1×957 的数值数组，另有帧号、帧率及采样率；未出现逐字文本字段。",
+        "暂存 recovery 保留约 461 MB 的失败分片；完整包位于冷端。"
+      ],
+      "limitations": [
+        "这是部分 group 序列，不是完整 CUAVE 原始发行。",
+        "本轮只读取一个代表 MAT 的字段说明及 labels 数组，没有展开全部视频矩阵；状态值与说话人的完整对应仍需核对来源定义。",
+        "未在当前目录确认逐字句子清单。"
+      ],
+      "next_step": "若需监督识别，应先读取 MAT 字段并取得准确句子标注；现阶段不并入主训练清单。",
+      "source_urls": [
+        "https://people.csail.mit.edu/siracusa/avdata/"
+      ],
+      "license_recorded_in_local_status": "not stated",
+      "license_note": "本地未记载明确许可。能够访问这份派生包，不等于原 CUAVE 的所有用途均已获授权。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:50Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "talkvid_meta",
+      "title": "TalkVid 元数据及小规模展示/评测媒体",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/talkvid_meta",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/talkvid_meta"
+      },
+      "language": "多语种，包含中文与英语",
+      "annotation": "代表 JSON 是片段边界、人物及画质信息；画面描述不等于说话转写。",
+      "counts": {
+        "cold_raw_files": 951,
+        "cold_raw_bytes": 632073719,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 951,
+        "status_completed_files": 951,
+        "status_archived_to_cold": 951,
+        "cold_raw_extensions": {
+          ".json": 3,
+          ".m4a": 305,
+          ".mp4": 643
+        }
+      },
+      "facts": [
+        "冷端 951 个文件，共 632,073,719 字节，确有少量音视频，不应写成完全没有媒体。",
+        "age/test_age.json 有 105 项，字段含音视频相对路径、起止时间、帧数、人物信息、质量分数；未见逐字转写字段。",
+        "发布页把 TalkVid 定位为语音驱动说话人视频生成，并区分大规模训练素材说明与 500 片段 TalkVid-Bench。",
+        "当前下载范围不是论文所述完整 1,244 小时媒体。"
+      ],
+      "limitations": [
+        "不能把大规模数据说明的小时数当作本地已落盘时长。",
+        "bench 的年龄、语言等分类可能复用同一片段，需按唯一 ID 去重。",
+        "缺逐字文字和大规模原媒体时，不能直接计入有监督AVSR训练。"
+      ],
+      "next_step": "可作为多语种和画面多样性的候选索引；若另行获得并整理训练媒体，需要补转写、口型和同步验证。",
+      "source_urls": [
+        "https://huggingface.co/datasets/FreedomIntelligence/TalkVid"
+      ],
+      "license_recorded_in_local_status": "CC-BY-NC-4.0",
+      "license_note": "发布页标注 CC-BY-NC-4.0；元数据及评测素材的许可不能自动扩展到全部原始视频。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:50Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "visper",
+      "title": "ViSpeR：四语种转写、时间信息与视频编号",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/visper",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/visper"
+      },
+      "language": "中文、阿拉伯语、法语、西班牙语",
+      "annotation": "压缩包样本为 JSON 与视频编号 TXT；JSON 可用于后续切片和文字关联。",
+      "counts": {
+        "cold_raw_files": 20,
+        "cold_raw_bytes": 6971436241,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 4,
+        "staging_recovery_bytes": 1644117349,
+        "source_expected_files": 20,
+        "status_completed_files": 20,
+        "status_archived_to_cold": 20,
+        "cold_raw_extensions": {
+          ".gz": 8,
+          ".txt": 12
+        }
+      },
+      "facts": [
+        "冷端 20 文件，共 6,971,436,241 字节，含四种语言各训练/测试的 8 个 tar.gz，以及 12 份视频 ID 表。",
+        "有界读取中文和阿拉伯语测试包，确认内部是 JSON 和视频编号，并非压缩视频。中文训练包开头含 1.57 GB 的 JSON 成员。",
+        "官方说明要求用户先根据视频列表下载媒体，说明当前发行清单和文字不能当作完整视听媒体。",
+        "文件名里的 cz 在这一发行中对应 Chinese 目录，不能按常见语言代码误认成捷克语。"
+      ],
+      "limitations": [
+        "7 GB 大小主要来自详细 JSON，不能按文件大就推断媒体已准备。",
+        "没有全流展开训练包，本轮不报告本地已验收样本小时数。",
+        "后续获取媒体时需保留失效视频的缺失记录，并检查与现有 LRS3、MuAViC、AVSpeech 的重叠。"
+      ],
+      "next_step": "中文及其他非英语扩展的重要候选，但当前应标成缺媒体；不把发布页总时长计入现成可训数据。",
+      "source_urls": [
+        "https://huggingface.co/datasets/tiiuae/visper"
+      ],
+      "license_recorded_in_local_status": "CC-BY-NC-2.0",
+      "license_note": "发布页标注 CC-BY-NC-2.0；据编号取得的原视频还需遵守其来源条件。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:50Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "real_world_avse",
+      "title": "Real-World AVSE 2026：中文真实重叠及视觉退化测试数据",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/real_world_avse",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/real_world_avse"
+      },
+      "language": "普通话",
+      "annotation": "实际 ZIP 内有 s1.txt、s2.txt 中文逐句文字，不只是语音分离标签。",
+      "counts": {
+        "cold_raw_files": 4,
+        "cold_raw_bytes": 9350891169,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 4,
+        "status_completed_files": 4,
+        "status_archived_to_cold": 4,
+        "cold_raw_extensions": {
+          ".zip": 3,
+          ".png": 1
+        }
+      },
+      "facts": [
+        "冷端共 4 文件、9,350,891,169 字节，核心是 track1_dev.zip、track2_dev.zip、Testing_set_GT.zip，另有展示图。",
+        "两份开发包分别有 4,284、5,250 个目标文字文件；测试包有 18,396 个目标文字文件。三包每条目标文字均有同名目标 MP4。",
+        "只有 1,800、2,196、7,812 个文字项同时有同名目标 WAV；不能说每个文字项都已配干净目标音轨。",
+        "抽样混合音频为 16 kHz、单声道，目标人脸视频为 256×256、25 帧/秒。",
+        "发布者明确这些是开发与测试数据；第二赛道还包含遮挡、低分辨率、卡帧与音视频不同步等退化。"
+      ],
+      "limitations": [
+        "同一源片段在不同混合、重混合和视觉退化版本中出现，不可简单相加为独立样本量。",
+        "目标视频对应的是 s1 还是 s2、输入混合声和目标文字的关联，仍需按清单逐项确认。",
+        "开发集和测试集不能在仍用它们报告成绩的同时并入训练。"
+      ],
+      "next_step": "作为中文目标说话人识别和视觉失真评测候选；保留官方划分，制作识别评测清单后再跑基线。",
+      "source_urls": [
+        "https://huggingface.co/datasets/Rezzsl/Real-World_AVSE_Challenge_dev_and_test_sets_ISCSLP_2026"
+      ],
+      "license_recorded_in_local_status": "CC-BY-NC-4.0",
+      "license_note": "发布页标注 CC-BY-NC-4.0，包含非商业条件；公开开发与测试集也仍需遵守实验划分。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:50Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "mld_vc",
+      "title": "MLD-VC：中文和英语视频会议识别数据",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/mld_vc",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc"
+      },
+      "language": "普通话、英语",
+      "annotation": "metadata.jsonl 有音视频及人脸关键点路径；text.zip 按说话人保存 30 句中英文本。",
+      "counts": {
+        "cold_raw_files": 5,
+        "cold_raw_bytes": 9914542126,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 5,
+        "status_completed_files": 5,
+        "status_archived_to_cold": 5,
+        "cold_raw_extensions": {
+          ".zip": 4,
+          ".jsonl": 1
+        }
+      },
+      "facts": [
+        "冷端 5 个文件，共 9,914,542,126 字节；实际 audio.zip 包含 20,803 个 WAV，video.zip 包含 20,803 个 MP4。",
+        "metadata.jsonl 正好 20,803 行，涉及 31 人；离线 6,236 行，在线 14,567 行，覆盖 DD、FS、TXHY、zoom 四类平台目录。",
+        "text.zip 去除 Mac 系统附带项后，有 31 个真正的文字文件，各含编号、表头和 30 条句子；文字包括中文及英语。",
+        "metadata 使用 videos/ 与 audios/ 复数路径，压缩包内却是 video/ 与 audio/ 单数。全量核对 20,803 行：原路径全部缺失，修正前缀后音视频缺失均归零；说话人文字文件也全部覆盖。",
+        "代表视频为 512×512、25 帧/秒，音频为 16 kHz、单声道。视频包中额外有 .metadata 和 .lock，不应把这些当作更多视频。"
+      ],
+      "limitations": [
+        "20,803 是包含说话人、平台和录音条件的媒体实例数，不是 20,803 条不同句子。",
+        "同句不同平台和不同噪声条件高度相关，划分应按说话人和录制来源，避免随机逐文件拆分。",
+        "还需确认 utt=0…29 与文字行的准确对应、离线重复录制的关系；当前未完成中文模型接入验收。"
+      ],
+      "next_step": "适合视频会议场景适配和跨平台测试；先修正路径并生成逐人逐句文字关联表，再建立说话人隔离的训练/评测划分。",
+      "source_urls": [
+        "https://huggingface.co/datasets/nccm2p2/MLD-VC"
+      ],
+      "license_recorded_in_local_status": "not declared",
+      "license_note": "本地记录为未声明，不能替发布者确认使用授权。技术上可整理，不表示已确认训练或商业使用条件。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "aspire",
+      "title": "ASPIRE：真实噪声环境中的英语视听语音",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/aspire",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/aspire"
+      },
+      "language": "英语",
+      "annotation": "包内只有音频和视频；文件名含GRID式句子编码，未见独立逐句文本文件。",
+      "counts": {
+        "cold_raw_files": 1,
+        "cold_raw_bytes": 12960167179,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 1,
+        "staging_recovery_bytes": 3234863804,
+        "source_expected_files": 1,
+        "status_completed_files": 1,
+        "status_archived_to_cold": 1,
+        "cold_raw_extensions": {
+          ".zip": 1
+        }
+      },
+      "facts": [
+        "冷端 ASPIRE.zip 的压缩目录包含 5,940 个 WAV 和 5,940 个 MOV；这些是不同环境下的录制文件数，不能直接当作 5,940 个独立句子。",
+        "抽样音频为 44.1 kHz、双声道；视频为 1920×1080、30 帧/秒、无内嵌音轨。",
+        "发布者说明语句使用 GRID 的固定句式，目标任务是实际噪声下的视听语音增强。"
+      ],
+      "limitations": [
+        "应先按文件名建立音视频配对，再核对 GRID 编码到完整句子的映射；不能直接把六位编码当作转写。",
+        "本轮未统计各环境间重复句子的关系，也未核对全量同步偏移。",
+        "暂存区另留有约 3.23 GB 失败分片，不能与冷端完整 ZIP 重复计量。"
+      ],
+      "next_step": "适合作为小规模噪声补充或专项测试，不建议优先并入开放词表大规模主训练集。",
+      "source_urls": [
+        "https://zenodo.org/records/4585619"
+      ],
+      "license_recorded_in_local_status": "NCGL-UK-2.0",
+      "license_note": "本地记录为 NCGL-UK-2.0；本轮保留这一记录，没有重新解释其具体使用范围。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "unitalk_asd",
+      "title": "UniTalk-ASD：是否正在说话的音视频标注",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/unitalk_asd",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/unitalk_asd"
+      },
+      "language": "需以来源及片段识别为准；本轮不推断全部语言",
+      "annotation": "CSV 标签是 SPEAKING_AUDIBLE 与 NOT_SPEAKING，并不是说了什么。",
+      "counts": {
+        "cold_raw_files": 353,
+        "cold_raw_bytes": 14555424127,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 353,
+        "status_completed_files": 353,
+        "status_archived_to_cold": 353,
+        "cold_raw_extensions": {
+          ".zip": 234,
+          ".csv": 119
+        }
+      },
+      "facts": [
+        "冷端 353 个文件，共 14,555,424,127 字节，包含成包音频、按脸轨分组的 JPG 帧和 CSV。",
+        "代表音频 ZIP 有 244 个 16 kHz 单声道 WAV；对应画面 ZIP 有 16,818 个 JPG。",
+        "代表 CSV 没有表头，实际 16,818 行，涉及 244 个脸轨编号；其中 2,864 行为可听说话，13,954 行为未说话。",
+        "csv/train 与 csv/val 是来源拆分；不能把每帧标签行当作独立句子。"
+      ],
+      "limitations": [
+        "即使音视频已经存在，活动标签也不能替代逐字转写。",
+        "口型与音轨配对需要按脸轨和时间戳处理；不能仅凭同一视频 ID 就认定全程是目标说话人的语音。"
+      ],
+      "next_step": "用于训练或检验目标脸是否正在发声，再帮助筛选其他数据；若用于识别训练，须另行补齐转写。",
+      "source_urls": [
+        "https://huggingface.co/datasets/plnguyen2908/UniTalk-ASD"
+      ],
+      "license_recorded_in_local_status": "MIT",
+      "license_note": "本地状态记 MIT；该记录不能自动证明所有来源视频已允许任意再分发或商业使用。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "ravdess",
+      "title": "RAVDESS：英语情绪语音与歌唱",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/ravdess",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/ravdess"
+      },
+      "language": "英语",
+      "annotation": "文件名第5段决定句子编号；官方公布两条固定句子，不需把情绪类别当转写。",
+      "counts": {
+        "cold_raw_files": 49,
+        "cold_raw_bytes": 25600214208,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 49,
+        "status_completed_files": 49,
+        "status_archived_to_cold": 49,
+        "cold_raw_extensions": {
+          ".zip": 49
+        }
+      },
+      "facts": [
+        "冷端 49 个 ZIP，共 25,600,214,208 字节，含 2 个全体音频包、24 个语音视频包、23 个歌唱视频包；Actor_18 没有歌唱包是发行范围，不是缺下载。",
+        "音频语音 ZIP 实读 1,440 个 WAV；Actor_01 语音视频包有 120 个 MP4，包含带音视频和无声视频两种版本。",
+        "代表带音视频为 1280×720、约 29.97 帧/秒，含 48 kHz 音轨。",
+        "官方文件名规则区分完整音视频、无声视频、纯音频；语音和歌唱必须分开。"
+      ],
+      "limitations": [
+        "同一表演的音频、无声视频和带音视频不能当作独立语料重复加总。",
+        "只有两条固定句子，不适合据此估计开放词表识别能力；歌唱不宜直接混入普通语音训练。"
+      ],
+      "next_step": "保留为情绪及表情变化专项测试；如训练，按文件名恢复文字、按演员拆分，并只选合适媒体版本。",
+      "source_urls": [
+        "https://zenodo.org/records/1188976"
+      ],
+      "license_recorded_in_local_status": "CC-BY-NC-SA-4.0",
+      "license_note": "发布页标注 CC-BY-NC-SA-4.0，并另列商业许可渠道；当前记录不覆盖任意商业用途。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:52Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "ellipsis_lrs3",
+      "title": "ellipsis LRS3 trainval：口型数组与文字派生包",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/ellipsis_lrs3",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3"
+      },
+      "language": "英语",
+      "annotation": "代表分片按样本保存 roi.npy、txt 和 json；未见音频成员。",
+      "counts": {
+        "cold_raw_files": 34,
+        "cold_raw_bytes": 25041170491,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 34,
+        "status_completed_files": 34,
+        "status_archived_to_cold": 34,
+        "cold_raw_extensions": {
+          ".json": 1,
+          ".jsonl": 1,
+          ".tar": 32
+        }
+      },
+      "facts": [
+        "冷端是 32 个未压缩 TAR 分片及 2 个清单/处理报告，共 25,041,170,491 字节。",
+        "处理报告写输入 31,982 条、成功 31,957 条，另有 25 条因未提取到口型而丢弃；这是发布者报告中的计数，尚非本轮逐片复算。",
+        "代表样本的灰度口型形状为 [帧数,96,96]，25 帧/秒，有英语句子文字。",
+        "目录和发布页称 LRS3 trainval，但代表样本 JSON 写 source=voxpopuli，并含 vp- 开头的说话人编号；这与页面身份描述存在差异。"
+      ],
+      "limitations": [
+        "不能只凭 source 字段就判定真正来自 VoxPopuli，也不能忽略该差异直接宣称来源已确认。",
+        "本轮只读首个分片的有限成员；没有把 31,957 条当成新增独立 LRS3 数据。",
+        "缺独立音频时，口型数组加文字只能直接支持纯视觉识别；AVSR 需要与已有 LRS3 音频准确连接。"
+      ],
+      "next_step": "先核对源镜像、处理程序和 ID 与现有 LRS3 的关系；未解决来源及重复前，不放入正式合并训练。",
+      "source_urls": [
+        "https://huggingface.co/datasets/TheNHz/ellipsis-lrs3-trainval-autoavsr"
+      ],
+      "license_recorded_in_local_status": "CC-BY-4.0",
+      "license_note": "镜像发布页标注 CC-BY-4.0；派生包的标注不能自动消除原 LRS3 素材的使用条件。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "facestar",
+      "title": "FaceStar：高质量英语会话音视频",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/facestar",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/facestar"
+      },
+      "language": "英语",
+      "annotation": "抽查 session ZIP 内只有对应 MP4 和 WAV，没有句子文字。",
+      "counts": {
+        "cold_raw_files": 115,
+        "cold_raw_bytes": 29817491437,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 115,
+        "status_completed_files": 115,
+        "status_archived_to_cold": 115,
+        "cold_raw_extensions": {
+          ".zip": 112,
+          ".pdf": 2,
+          ".mp4": 1
+        }
+      },
+      "facts": [
+        "冷端 115 个文件，共 29,817,491,437 字节：112 个会话 ZIP，另有论文及展示材料。",
+        "官方按女说话人训练 55 场/测试 7 场、男说话人训练 45 场/测试 5 场发布，约 10 小时、2 人。",
+        "抽查女/男训练 session01，分别有 18/9 对 MP4 和 WAV。样本视频为 1300×1600、60 帧/秒，音频为 16 kHz、单声道浮点 WAV。"
+      ],
+      "limitations": [
+        "没有逐字文字时不能直接进行有文字监督的识别训练。",
+        "只有两位说话人，规模和说话人多样性都有限；会话是长片段，需要分句和口型裁剪。",
+        "发布者现成 train/test 应保持隔离。"
+      ],
+      "next_step": "可用于音视频表示学习或视频压缩/噪声研究；若用于识别，应先生成并审核转写。",
+      "source_urls": [
+        "https://github.com/facebookresearch/facestar"
+      ],
+      "license_recorded_in_local_status": "CC-NC-4.0",
+      "license_note": "本地及发布页记录非商业许可；本轮不把它解释为已允许任意商业训练。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "mandarin_avsr",
+      "title": "mandarin_avsr：中文目标说话人语音分离数据",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/mandarin_avsr",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr"
+      },
+      "language": "普通话",
+      "annotation": "代表样本含 mix.wav、label.wav、video.mp4、info.json；label.wav 是干净目标音频，不是文字标签。",
+      "counts": {
+        "cold_raw_files": 9,
+        "cold_raw_bytes": 49977304020,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 9,
+        "status_completed_files": 9,
+        "status_archived_to_cold": 9,
+        "cold_raw_extensions": {
+          ".gz": 9
+        }
+      },
+      "facts": [
+        "冷端 9 个包，共 49,977,304,020 字节，含训练 1 至 5 人混合、验证、测试、示例和训练路径清单。",
+        "tr_all 的 mix.json 与 s1.json 各有 40,000 行，记录混合音频、目标音频及口型文件路径；这些行不是逐字转写。",
+        "示例 info.json 给出目标片段 ID、干扰说话人、重叠范围和噪声条件。lips_ 开头的目标 ID 提示可能与 Chinese-LiPS 有关，另有 aishell_ 开头的干扰编号；本轮未完成来源确认或全量 ID 关联。",
+        "代表目标/混合音频均为 16 kHz、单声道，视频是无声口型视频。"
+      ],
+      "limitations": [
+        "本轮未遍历所有压缩流，未验证所有 40,000 个路径与媒体齐全。",
+        "若后续确认 lips_ 片段来自 Chinese-LiPS，可再尝试关联其 TEXT；在此之前不能假定二者必然对应。关联后仍须防止同一源片段跨训练/测试。",
+        "这是分离数据，不因目录名含 avsr 就自动成为可直接跑识别训练的数据。"
+      ],
+      "next_step": "优先用于中文重叠语音专项；如做目标识别，先确认来源并建立文字映射，保持源数据拆分，明确输入是混合声还是干净声。",
+      "source_urls": [
+        "https://huggingface.co/datasets/playwithmino/mandarin_avsr"
+      ],
+      "license_recorded_in_local_status": "other",
+      "license_note": "本地只记 other，没有可据此确认的完整许可范围；原始素材来源及其条件也待核对。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:51Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "darknsu_lrs3",
+      "title": "Darknsu LRS3 镜像：已裁口型视频和音频",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/darknsu_lrs3",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3"
+      },
+      "language": "英语",
+      "annotation": "顶层仅 video.tar.gz 与 wav.tar.gz，未发现独立文本清单。",
+      "counts": {
+        "cold_raw_files": 2,
+        "cold_raw_bytes": 62975957463,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 2,
+        "status_completed_files": 2,
+        "status_archived_to_cold": 2,
+        "cold_raw_extensions": {
+          ".gz": 2
+        }
+      },
+      "facts": [
+        "冷端 2 个 gzip 压缩包，共 62,975,957,463 字节。",
+        "有界读取开头的媒体表明，视频为 96×96、25 帧/秒，音频为 16 kHz、单声道；样本共享 LRS3 式视频 ID。",
+        "部分文件名带 _0、_1 等二次分段编号，不能直接假定与原始 LRS3 文件名逐条相同。"
+      ],
+      "limitations": [
+        "本轮没有遍历两个大压缩流的全部成员，不报告全量片段数。",
+        "来源是第三方镜像，不是 LRS3 作者原发行；状态里的许可证字段不能替代原数据许可。",
+        "不能与已有 LRS3 原始和 derived 处理结果重复计算训练规模；必须排除测试和验证样本。"
+      ],
+      "next_step": "只在原有口型或音频缺失时作为候选替代来源，先完成 ID、文字及原始划分核对。",
+      "source_urls": [
+        "https://huggingface.co/datasets/Darknsu/lrs3_all_video_wav"
+      ],
+      "license_recorded_in_local_status": "Apache-2.0",
+      "license_note": "镜像状态写 Apache-2.0；这是镜像记录，不能据此改变 LRS3 及原视频的使用条件。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:52Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "vlr",
+      "title": "VLR：越南语纯视觉识别视频与词级时间标注",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/vlr",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/vlr"
+      },
+      "language": "越南语",
+      "annotation": "每个视频配一份 Word,Start,End 的词级 CSV；README 说明转写由自动识别生成。",
+      "counts": {
+        "cold_raw_files": 3,
+        "cold_raw_bytes": 19810493650,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 194,
+        "staging_recovery_bytes": 18824210787,
+        "source_expected_files": 8,
+        "status_completed_files": 4,
+        "status_archived_to_cold": 2,
+        "cold_raw_extensions": {
+          ".txt": 1,
+          ".zip": 2
+        }
+      },
+      "facts": [
+        "当前冷端只有 README.txt、part5.zip、part7.zip，共 19,810,493,650 字节；完整来源期望 README 加 7 个 ZIP，尚未全部完成。",
+        "part5 与 part7 分别含 23,910、6,271 对 MP4 与 CSV，总计 30,181 对；两个 ZIP 均可独立读取，不是同一个压缩包的卷。",
+        "代表视频均为 320×320，但分别为 25 帧/秒与 60 帧/秒，不能强行使用同一帧率换算时间。",
+        "README 明确视频去掉了音频；两个可寻址媒体头抽样也均只有视频流。",
+        "README 写约 116,000 对属于完整发行介绍，不是本地全部完成数量。"
+      ],
+      "limitations": [
+        "当前状态仍为 downloading；completed_files 等计数与已落冷端文件口径不同，应以具体路径及时间说明。",
+        "自动生成文字不等于人工真值；没有音轨时无法原地做AVSR或核对声音和文字。",
+        "文件夹名不代表说话人身份，不能据此宣称说话人独立划分。"
+      ],
+      "next_step": "可规划越南语纯视觉识别；若目标是AVSR，应先解决可授权原音频来源与精确切片对应。",
+      "source_urls": [
+        "https://zenodo.org/records/19709456",
+        "https://zenodo.org/records/19705466"
+      ],
+      "license_recorded_in_local_status": "CC-BY-4.0",
+      "license_note": "本地记录为 CC-BY-4.0；视频来自网络的事实和自动文字的质量仍应单独记录，不扩大解释使用范围。",
+      "completion": {
+        "status": "downloading",
+        "status_updated_at_utc": "2026-10-15T16:12:39Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "chinese_lips",
+      "title": "Chinese-LiPS：中文音频、口型和逐句文字",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/chinese_lips",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips"
+      },
+      "language": "普通话",
+      "annotation": "CSV 的 TEXT 列是中文逐句文字，ID 与已处理音视频名称可直接关联。",
+      "counts": {
+        "cold_raw_files": 19,
+        "cold_raw_bytes": 93069232024,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 0,
+        "staging_recovery_bytes": 0,
+        "source_expected_files": 19,
+        "status_completed_files": 19,
+        "status_archived_to_cold": 19,
+        "cold_raw_extensions": {
+          ".zip": 6,
+          ".csv": 4,
+          ".json": 1,
+          ".z01": 1,
+          ".z02": 1,
+          ".z03": 1,
+          ".z04": 1,
+          ".z05": 1,
+          ".z06": 1,
+          ".z07": 1,
+          ".z08": 1
+        }
+      },
+      "facts": [
+        "冷端 19 个文件，共 93,069,232,024 字节。其中 processed_train.zip、processed_val.zip、processed_test.zip 是独立可读 ZIP。",
+        "三个已处理包分别有 30,341、1,959、3,908 对 MP4 和 WAV；对应 CSV 行数完全相同，总计 36,208 条。",
+        "本轮对三个拆分全部核对 ID：每条文字都能找到同 ID 音频和视频，文字无空值；拆分之间样本 ID、说话人编号前缀都无交叉。",
+        "样本口型视频为 96×96、25 帧/秒；样本音频为 16 kHz、单声道。三个拆分按 ID 前缀分别涉及 175、11、21 个说话人编号。",
+        "原始 train.z01 至 train.z08 共 8 卷，但冷端没有 train.zip；本次查看的发布页也未列出这个终卷。已处理的训练 ZIP 不依赖这些原始分卷。"
+      ],
+      "limitations": [
+        "本轮验证的是所有 ID 的存在和代表媒体头，不是对全部媒体逐帧解码、听写或同步验收。",
+        "原始训练分卷不能仅因 8 卷都在而宣称可完整解压。无需为使用已处理包而重复下载。",
+        "当前 MMS-LLaMA 的英语配置不能默认直接适用中文；仍需检查文字规范、分词器、模型语言能力和训练清单。"
+      ],
+      "next_step": "新增中文训练优先项：使用官方 train/valid/test 拆分制作清单，先保持现有测试隔离，再核对中文模型及音视频同步。",
+      "source_urls": [
+        "https://huggingface.co/datasets/BAAI/Chinese-LiPS",
+        "https://huggingface.co/datasets/BAAI/Chinese-LiPS/tree/main"
+      ],
+      "license_recorded_in_local_status": "CC-BY-NC-SA-4.0",
+      "license_note": "发布页标注 CC-BY-NC-SA-4.0，包含非商业及相同方式共享条件。可准备训练数据不等于已获得任意商业用途授权。",
+      "completion": {
+        "status": "source_verified",
+        "status_updated_at_utc": "2026-10-15T16:08:52Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    },
+    {
+      "slug": "voxceleb2_mix",
+      "title": "VoxCeleb2-mix：目标说话人提取的分片下载",
+      "roots": {
+        "staging": "/root/group-shared/voiceprint/data/multimodal/voxceleb2_mix",
+        "cold": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix"
+      },
+      "language": "多语种，原VoxCeleb2来源",
+      "annotation": "目标是混合语音与目标说话人提取；本轮未发现逐字文本包。",
+      "counts": {
+        "cold_raw_files": 7,
+        "cold_raw_bytes": 283396208640,
+        "staging_raw_files": 0,
+        "staging_raw_bytes": 0,
+        "staging_recovery_files": 2,
+        "staging_recovery_bytes": 31022717670,
+        "source_expected_files": 14,
+        "status_completed_files": 7,
+        "status_archived_to_cold": 0,
+        "cold_raw_extensions": {
+          "(无后缀)": 7
+        }
+      },
+      "facts": [
+        "冷端 7 个 audio_clean_part_aa 至 ag，合计 283,396,208,640 字节；它们是大文件拆分段，不能按 7 个独立可解压数据包使用。",
+        "状态期望总共 14 个对象，另组 orig_part_* 尚未完整落冷端；暂存 recovery 有 orig_part_aa/ab 的未完成文件。",
+        "状态记录 orig_part_aa 发生连接超时；本轮只记录现状，没有启动、停止或重试下载器。",
+        "该目录与已有 VoxCeleb2 原始包有来源重叠，不应直接作为新增独立VoxCeleb2规模相加。"
+      ],
+      "limitations": [
+        "没有合并/读取这组超大分片，不声称内部容器已验证。",
+        "当前缺原始音视频组，且缺逐字文字；音频大小不能代表AVSR样本已齐。",
+        "混合和干净目标数据是同一源片段的派生版本，训练/测试必须按原始视频关联去重。"
+      ],
+      "next_step": "等待现有受控下载自然推进；后续用于视听分离或噪声增强前，先确认分片完整性、音视频对应和文字来源。",
+      "source_urls": [
+        "https://huggingface.co/datasets/alibabasglab/VoxCeleb2-mix"
+      ],
+      "license_recorded_in_local_status": "CC-BY-SA-4.0",
+      "license_note": "本地记 CC-BY-SA-4.0；派生混合包的记录不能替代原 VoxCeleb2 素材的使用条件。",
+      "completion": {
+        "status": "downloading",
+        "status_updated_at_utc": "2026-10-15T16:13:13Z",
+        "interpretation": "下载状态仅描述来源对象与归档进度，不等同训练验收。"
+      }
+    }
+  ]
+}

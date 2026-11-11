@@ -1,0 +1,225 @@
+{
+  "date": "2026-11-11",
+  "scope": "Selected ZIP/tar members, no full archive extraction or sync proof; decoded first video frame and first second audio when present",
+  "samples": [
+    {
+      "name": "aspire_audio",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw/ASPIRE.zip",
+      "member": "ASPIRE/Clean/S1/Audio/129_001_lbiv2s.wav",
+      "bytes": 529244,
+      "sha256": "80b1ec42204ac49114d9b764fc2ec81f346421c5a974a24d2a962138de510e52",
+      "container_duration": "3.000000",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "pcm_s16le",
+          "sample_rate": "44100",
+          "channels": 2,
+          "r_frame_rate": "0/0",
+          "duration": "3.000000"
+        }
+      ],
+      "audio_one_second": {
+        "decode_exit": 0,
+        "sample_count": 16000,
+        "rms": 0.0435332781669772
+      }
+    },
+    {
+      "name": "aspire_video",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw/ASPIRE.zip",
+      "member": "ASPIRE/Clean/S1/Video/129_001_lbiv2s.mov",
+      "bytes": 2421656,
+      "sha256": "574394dd8d5cada5ca1df2f2d07f83190e661f80f9e82de5f75cda2a0809725d",
+      "container_duration": "3.034000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "r_frame_rate": "30/1",
+          "duration": "3.033333",
+          "nb_frames": "91"
+        }
+      ],
+      "video_first_frame_decode_exit": 0
+    },
+    {
+      "name": "chinese_test_audio",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw/processed_test.zip",
+      "member": "processed_test/130_42_M_TY_064.wav",
+      "bytes": 413552,
+      "sha256": "26071abc0517f0920d491a12541923cff74b42ad267dcc29af0f8505d3f09dc0",
+      "container_duration": "12.921063",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "pcm_s16le",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "12.921062"
+        }
+      ],
+      "audio_one_second": {
+        "decode_exit": 0,
+        "sample_count": 16000,
+        "rms": 0.06335189402678952
+      }
+    },
+    {
+      "name": "chinese_test_video",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw/processed_test.zip",
+      "member": "processed_test/130_42_M_TY_064.mp4",
+      "bytes": 35655,
+      "sha256": "9eb333cd9941ff27465e0e244d78de68ee642c67312af7940c18829a2f6863bb",
+      "container_duration": "13.000000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 96,
+          "height": 96,
+          "r_frame_rate": "25/1",
+          "duration": "13.000000",
+          "nb_frames": "325"
+        }
+      ],
+      "video_first_frame_decode_exit": 0
+    },
+    {
+      "name": "mld_60_audio",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/audio.zip",
+      "member": "audio/Online/speaker_21/TXHY/9/60db.wav",
+      "bytes": 137294,
+      "sha256": "6ce15d5145216f18ac83420dfb18e546b155ef206e5e11350206c35a65268a15",
+      "container_duration": "4.288000",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "pcm_s16le",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "4.288000"
+        }
+      ],
+      "audio_one_second": {
+        "decode_exit": 0,
+        "sample_count": 16000,
+        "rms": 0.0009928489056551784
+      }
+    },
+    {
+      "name": "mld_60_video",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/video.zip",
+      "member": "video/Online/speaker_21/TXHY/9/60db.mp4",
+      "bytes": 353734,
+      "sha256": "1cf8274d4da16e8c8c49dbf500db6da9e1728ae414fa008b26a8d6d0a42226ad",
+      "container_duration": "4.360000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "mpeg4",
+          "width": 512,
+          "height": 512,
+          "r_frame_rate": "25/1",
+          "duration": "4.360000",
+          "nb_frames": "109"
+        }
+      ],
+      "video_first_frame_decode_exit": 0
+    },
+    {
+      "name": "mld_clean_audio",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/audio.zip",
+      "member": "audio/Online/speaker_21/TXHY/9/clean.wav",
+      "bytes": 106574,
+      "sha256": "81ee7c60b28ead96e671158fe69b75f4fb6b20b5954098b54e05d6c8d3efaa8d",
+      "container_duration": "3.328000",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "pcm_s16le",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "3.328000"
+        }
+      ],
+      "audio_one_second": {
+        "decode_exit": 0,
+        "sample_count": 16000,
+        "rms": 0.07934987423790472
+      }
+    },
+    {
+      "name": "mld_clean_video",
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/video.zip",
+      "member": "video/Online/speaker_21/TXHY/9/clean.mp4",
+      "bytes": 282315,
+      "sha256": "4b4133d2fa5ae513f9ecb3bba3180fda9fe72737e90cc0ff1b7a5fcddd56cbd9",
+      "container_duration": "3.400000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "mpeg4",
+          "width": 512,
+          "height": 512,
+          "r_frame_rate": "25/1",
+          "duration": "3.400000",
+          "nb_frames": "85"
+        }
+      ],
+      "video_first_frame_decode_exit": 0
+    }
+  ],
+  "avcocktail": {
+    "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/videos/video_0/asd-chunk-eval-0.tar",
+    "sample_key": "0000000000",
+    "metadata": {
+      "end_time": "28.48",
+      "sample_id": "seg-0_344_712",
+      "start_time": "13.76"
+    },
+    "video": {
+      "bytes": 1515666,
+      "sha256": "1d2f46be84aa04377179205e9996d651cfdee32b34a6cdef08915a51528d6982",
+      "container_duration": "14.784000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 96,
+          "height": 96,
+          "r_frame_rate": "25/1",
+          "duration": "14.760000",
+          "nb_frames": "369"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "14.720000",
+          "nb_frames": "231"
+        }
+      ],
+      "video_first_frame_decode_exit": 0,
+      "audio_one_second": {
+        "decode_exit": 0,
+        "sample_count": 16000,
+        "rms": 0.04975145147584398
+      }
+    },
+    "label": {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw/labels/video_0/label-eval-0.tar",
+      "member": "0000000000.label",
+      "format": "WebVTT",
+      "cue_count": 69,
+      "byte_count": 5423
+    }
+  }
+}

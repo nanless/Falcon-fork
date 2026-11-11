@@ -1,0 +1,994 @@
+{
+  "timestamp": "2026-11-11T10:06:10.196493+08:00",
+  "scope": "Complete TSV text/index rows and aligned WRD row counts; sample file existence every 20000 train or 100 test rows; first item per source group ffprobe and video first-frame decode. No media-wide validation.",
+  "sets": {
+    "mms_llama_433h_nocap_srlength_v6_20261004": {
+      "train": {
+        "path": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_433h_nocap_srlength_v6_20261004/train.tsv",
+        "sha256": "d63f0f9116fb213a2c3e979a9bfc3667a563046e9b99ac83db940cf39390ae4e",
+        "header": "/",
+        "rows": 164916,
+        "field_or_numeric_errors": 0,
+        "source_groups": {
+          "lrs3": 164916
+        },
+        "vox2_source_partition_from_path": {},
+        "absolute_audio_video_duration_difference_over_seconds": {
+          "0.04": 35094
+        },
+        "audio_samples_sum": 25131553792,
+        "audio_hours_at_16k": 436.3116977777778,
+        "video_frame_count_sum": 39170653,
+        "text_file": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_433h_nocap_srlength_v6_20261004/train.wrd",
+        "text_rows": 164916,
+        "bounded_path_checks": [
+          {
+            "row": 0,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 20000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/zuAj2F54bdo/50005.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/zuAj2F54bdo/50005.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 40000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/V1ItvwxBENg/00029_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/V1ItvwxBENg/00029_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 60000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/VC0taBVUF2o/00003_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/VC0taBVUF2o/00003_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 80000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/Ftnb2fpJ664/00004_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/Ftnb2fpJ664/00004_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 100000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/QoTSdOkjEVs/00011_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/QoTSdOkjEVs/00011_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 120000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/ELET24AHnEg/00015_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/ELET24AHnEg/00015_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 140000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/SRKgDP1YPUo/00005_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/SRKgDP1YPUo/00005_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 160000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/GtXyGFMBWBs/00017_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/GtXyGFMBWBs/00017_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          }
+        ],
+        "first_per_group": {
+          "lrs3": {
+            "row": 0,
+            "source": "lrs3/lrs3_video_seg24s",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.wav",
+            "frames": "37",
+            "samples": "24576",
+            "column6": "1.25",
+            "video_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "h264",
+                    "codec_type": "video",
+                    "width": 96,
+                    "height": 96,
+                    "avg_frame_rate": "25/1"
+                  }
+                ],
+                "format": {
+                  "duration": "1.480000"
+                }
+              },
+              "error": null
+            },
+            "audio_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "pcm_f32le",
+                    "codec_type": "audio",
+                    "sample_rate": "16000",
+                    "channels": 1,
+                    "avg_frame_rate": "0/0"
+                  }
+                ],
+                "format": {
+                  "duration": "1.536000"
+                }
+              },
+              "error": null
+            },
+            "video_first_frame_decode": {
+              "exit": 0,
+              "error": null
+            }
+          }
+        }
+      },
+      "test": {
+        "path": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_433h_nocap_srlength_v6_20261004/test.tsv",
+        "sha256": "d7e480109c2dbd4fbf8b46efb167b08e80939388a5df10eee0fada4a9d634c60",
+        "header": "/",
+        "rows": 1321,
+        "field_or_numeric_errors": 0,
+        "source_groups": {
+          "lrs3": 1321
+        },
+        "vox2_source_partition_from_path": {},
+        "absolute_audio_video_duration_difference_over_seconds": {
+          "0.04": 324
+        },
+        "audio_samples_sum": 48992256,
+        "audio_hours_at_16k": 0.85056,
+        "video_frame_count_sum": 75626,
+        "text_file": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_433h_nocap_srlength_v6_20261004/test.wrd",
+        "text_rows": 1321,
+        "bounded_path_checks": [
+          {
+            "row": 0,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 100,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/O0JDDyqtSVY/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/O0JDDyqtSVY/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 200,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/qsJYrwzfd6w/00004.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/qsJYrwzfd6w/00004.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 300,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/sVtIuDKFO1c/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/sVtIuDKFO1c/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 400,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/fxbCHn6gE3U/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/fxbCHn6gE3U/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 500,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/XESFPEFpHt4/00011.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/XESFPEFpHt4/00011.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 600,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/FxtSMZKMdes/00015.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/FxtSMZKMdes/00015.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 700,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/AWPrOvzzqZk/00002.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/AWPrOvzzqZk/00002.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 800,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/SnSHsb5xKPo/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/SnSHsb5xKPo/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 900,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/mgcjr1yz7ow/00009.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/mgcjr1yz7ow/00009.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/MsLuQM5V3FA/00005.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/MsLuQM5V3FA/00005.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1100,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/os69gEFXUW4/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/os69gEFXUW4/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1200,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/akiQuyhXR8o/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/akiQuyhXR8o/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1300,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/xTkKSJSqUSI/00012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/xTkKSJSqUSI/00012.wav",
+            "video_exists": true,
+            "audio_exists": true
+          }
+        ],
+        "first_per_group": {
+          "lrs3": {
+            "row": 0,
+            "source": "lrs3/lrs3_video_seg24s",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.wav",
+            "frames": "29",
+            "samples": "19456",
+            "column6": "1.27",
+            "video_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "h264",
+                    "codec_type": "video",
+                    "width": 96,
+                    "height": 96,
+                    "avg_frame_rate": "25/1"
+                  }
+                ],
+                "format": {
+                  "duration": "1.160000"
+                }
+              },
+              "error": null
+            },
+            "audio_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "pcm_f32le",
+                    "codec_type": "audio",
+                    "sample_rate": "16000",
+                    "channels": 1,
+                    "avg_frame_rate": "0/0"
+                  }
+                ],
+                "format": {
+                  "duration": "1.216000"
+                }
+              },
+              "error": null
+            },
+            "video_first_frame_decode": {
+              "exit": 0,
+              "error": null
+            }
+          }
+        }
+      }
+    },
+    "mms_llama_1759h_v6_datarepair_20261004": {
+      "train": {
+        "path": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_1759h_v6_datarepair_20261004/train.tsv",
+        "sha256": "b04742ad9500dfba5359c1234343bc29361180fbf747c0a64de93a0836d05bff",
+        "header": "/",
+        "rows": 820468,
+        "field_or_numeric_errors": 0,
+        "source_groups": {
+          "lrs3": 164916,
+          "vox2": 655552
+        },
+        "vox2_source_partition_from_path": {
+          "dev": 625683,
+          "other": 369,
+          "test": 29500
+        },
+        "absolute_audio_video_duration_difference_over_seconds": {
+          "0.04": 35096
+        },
+        "audio_samples_sum": 101261463424,
+        "audio_hours_at_16k": 1758.0115177777777,
+        "video_frame_count_sum": 158187367,
+        "text_file": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_1759h_v6_datarepair_20261004/train.wrd",
+        "text_rows": 820468,
+        "bounded_path_checks": [
+          {
+            "row": 0,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 20000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/zuAj2F54bdo/50005.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/zuAj2F54bdo/50005.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 40000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/V1ItvwxBENg/00029_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/V1ItvwxBENg/00029_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 60000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/VC0taBVUF2o/00003_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/VC0taBVUF2o/00003_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 80000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/Ftnb2fpJ664/00004_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/Ftnb2fpJ664/00004_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 100000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/QoTSdOkjEVs/00011_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/QoTSdOkjEVs/00011_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 120000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/ELET24AHnEg/00015_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/ELET24AHnEg/00015_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 140000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/SRKgDP1YPUo/00005_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/SRKgDP1YPUo/00005_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 160000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/GtXyGFMBWBs/00017_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/pretrain/GtXyGFMBWBs/00017_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 180000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00251/nVxrjyBmhM8/00076_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00251/nVxrjyBmhM8/00076_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 200000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00529/8bnNjKYiB68/00141_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00529/8bnNjKYiB68/00141_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 220000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00829/RG_lR8TxOBk/00192_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00829/RG_lR8TxOBk/00192_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 240000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01100/KfvV3DPSElE/00165_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01100/KfvV3DPSElE/00165_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 260000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01346/G9bNl4SnNP4/00068_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01346/G9bNl4SnNP4/00068_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 280000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01674/Lqb0kiu-Tic/00133_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01674/Lqb0kiu-Tic/00133_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 300000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01908/syotc5ZhKD0/00439_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id01908/syotc5ZhKD0/00439_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 320000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02141/Mj8HdtQ_THQ/00104_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02141/Mj8HdtQ_THQ/00104_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 340000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02453/T3_0Ih6vKPU/00094_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02453/T3_0Ih6vKPU/00094_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 360000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02877/9T4A0-bfFBU/00118_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id02877/9T4A0-bfFBU/00118_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 380000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03269/XAG7CeoQRRI/00307_01.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03269/XAG7CeoQRRI/00307_01.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 400000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03668/Ls8-ihYaT_4/00037_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03668/Ls8-ihYaT_4/00037_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 420000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03855/RltWo8qH3iQ/00241_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id03855/RltWo8qH3iQ/00241_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 440000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04116/H2rwYzGZh30/00033_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04116/H2rwYzGZh30/00033_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 460000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04334/fjyaGLFWWNA/00355_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04334/fjyaGLFWWNA/00355_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 480000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04615/5xXg_9WGVH0/00019_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04615/5xXg_9WGVH0/00019_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 500000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04847/6-x741Hbymo/00015_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id04847/6-x741Hbymo/00015_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 520000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05147/aNpg2pfPkcY/00250_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05147/aNpg2pfPkcY/00250_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 540000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05466/atLSB7SIRYI/00135_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05466/atLSB7SIRYI/00135_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 560000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05812/lbU5dWTbdBU/00021_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id05812/lbU5dWTbdBU/00021_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 580000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06087/OWH0rpNKSQ0/00052_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06087/OWH0rpNKSQ0/00052_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 600000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06406/UZDMJaxdYUg/00059_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06406/UZDMJaxdYUg/00059_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 620000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06694/wZuln88THbg/00249_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06694/wZuln88THbg/00249_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 640000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06991/UowFxdk0xXE/00166_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id06991/UowFxdk0xXE/00166_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 660000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07303/X7niPtKoICk/00115_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07303/X7niPtKoICk/00115_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 680000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07556/nSGIXOXf868/00371_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07556/nSGIXOXf868/00371_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 700000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07829/B7LbPcOBl8o/00053_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id07829/B7LbPcOBl8o/00053_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 720000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08142/TujEMaY5QEI/00077_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08142/TujEMaY5QEI/00077_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 740000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08451/JRWkfkiN2FY/00141_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08451/JRWkfkiN2FY/00141_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 760000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08681/iPnG7QR4rcQ/00115_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id08681/iPnG7QR4rcQ/00115_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 780000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id09009/BozHHSTYmjM/00128_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id09009/BozHHSTYmjM/00128_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 800000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_test_seg16/vox2/vox2_video_seg16s/id02465/6jp5YsZYtHI/00021_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_test_seg16/vox2/vox2_video_seg16s/id02465/6jp5YsZYtHI/00021_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 820000,
+            "source": "vox2",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_test_seg16/vox2/vox2_video_seg16s/id09017/kMXREOtRBsM/00235_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_test_seg16/vox2/vox2_video_seg16s/id09017/kMXREOtRBsM/00235_00.wav",
+            "video_exists": true,
+            "audio_exists": true
+          }
+        ],
+        "first_per_group": {
+          "lrs3": {
+            "row": 0,
+            "source": "lrs3/lrs3_video_seg24s",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/trainval/cbSts8fUhB8/50012.wav",
+            "frames": "37",
+            "samples": "24576",
+            "column6": "1.25",
+            "video_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "h264",
+                    "codec_type": "video",
+                    "width": 96,
+                    "height": 96,
+                    "avg_frame_rate": "25/1"
+                  }
+                ],
+                "format": {
+                  "duration": "1.480000"
+                }
+              },
+              "error": null
+            },
+            "audio_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "pcm_f32le",
+                    "codec_type": "audio",
+                    "sample_rate": "16000",
+                    "channels": 1,
+                    "avg_frame_rate": "0/0"
+                  }
+                ],
+                "format": {
+                  "duration": "1.536000"
+                }
+              },
+              "error": null
+            },
+            "video_first_frame_decode": {
+              "exit": 0,
+              "error": null
+            }
+          },
+          "vox2": {
+            "row": 164916,
+            "source": "vox2/vox2_video_seg16s",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00012/21Uxsk56VDQ/00001_00.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_vox2_1759h_v1/preprocessed_dev_seg16/vox2/vox2_video_seg16s/id00012/21Uxsk56VDQ/00001_00.wav",
+            "frames": "236",
+            "samples": "150528",
+            "column6": "1.1821",
+            "video_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "h264",
+                    "codec_type": "video",
+                    "width": 96,
+                    "height": 96,
+                    "avg_frame_rate": "25/1"
+                  }
+                ],
+                "format": {
+                  "duration": "9.440000"
+                }
+              },
+              "error": null
+            },
+            "audio_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "pcm_f32le",
+                    "codec_type": "audio",
+                    "sample_rate": "16000",
+                    "channels": 1,
+                    "avg_frame_rate": "0/0"
+                  }
+                ],
+                "format": {
+                  "duration": "9.408000"
+                }
+              },
+              "error": null
+            },
+            "video_first_frame_decode": {
+              "exit": 0,
+              "error": null
+            }
+          }
+        }
+      },
+      "test": {
+        "path": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_1759h_v6_datarepair_20261004/test.tsv",
+        "sha256": "d7e480109c2dbd4fbf8b46efb167b08e80939388a5df10eee0fada4a9d634c60",
+        "header": "/",
+        "rows": 1321,
+        "field_or_numeric_errors": 0,
+        "source_groups": {
+          "lrs3": 1321
+        },
+        "vox2_source_partition_from_path": {},
+        "absolute_audio_video_duration_difference_over_seconds": {
+          "0.04": 324
+        },
+        "audio_samples_sum": 48992256,
+        "audio_hours_at_16k": 0.85056,
+        "video_frame_count_sum": 75626,
+        "text_file": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/manifests/mms_llama_1759h_v6_datarepair_20261004/test.wrd",
+        "text_rows": 1321,
+        "bounded_path_checks": [
+          {
+            "row": 0,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 100,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/O0JDDyqtSVY/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/O0JDDyqtSVY/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 200,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/qsJYrwzfd6w/00004.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/qsJYrwzfd6w/00004.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 300,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/sVtIuDKFO1c/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/sVtIuDKFO1c/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 400,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/fxbCHn6gE3U/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/fxbCHn6gE3U/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 500,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/XESFPEFpHt4/00011.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/XESFPEFpHt4/00011.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 600,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/FxtSMZKMdes/00015.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/FxtSMZKMdes/00015.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 700,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/AWPrOvzzqZk/00002.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/AWPrOvzzqZk/00002.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 800,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/SnSHsb5xKPo/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/SnSHsb5xKPo/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 900,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/mgcjr1yz7ow/00009.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/mgcjr1yz7ow/00009.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1000,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/MsLuQM5V3FA/00005.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/MsLuQM5V3FA/00005.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1100,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/os69gEFXUW4/00001.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/os69gEFXUW4/00001.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1200,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/akiQuyhXR8o/00003.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/akiQuyhXR8o/00003.wav",
+            "video_exists": true,
+            "audio_exists": true
+          },
+          {
+            "row": 1300,
+            "source": "lrs3",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/xTkKSJSqUSI/00012.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/xTkKSJSqUSI/00012.wav",
+            "video_exists": true,
+            "audio_exists": true
+          }
+        ],
+        "first_per_group": {
+          "lrs3": {
+            "row": 0,
+            "source": "lrs3/lrs3_video_seg24s",
+            "video": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.mp4",
+            "audio": "/root/group-shared/voiceprint/data/multimodal/multimodal/audio-visual/derived/avsr_reproduction/mms_lrs3_24s/lrs3/lrs3_video_seg24s/test/S2Dj9M71JAc/00006.wav",
+            "frames": "29",
+            "samples": "19456",
+            "column6": "1.27",
+            "video_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "h264",
+                    "codec_type": "video",
+                    "width": 96,
+                    "height": 96,
+                    "avg_frame_rate": "25/1"
+                  }
+                ],
+                "format": {
+                  "duration": "1.160000"
+                }
+              },
+              "error": null
+            },
+            "audio_ffprobe": {
+              "exit": 0,
+              "media": {
+                "programs": [],
+                "streams": [
+                  {
+                    "codec_name": "pcm_f32le",
+                    "codec_type": "audio",
+                    "sample_rate": "16000",
+                    "channels": 1,
+                    "avg_frame_rate": "0/0"
+                  }
+                ],
+                "format": {
+                  "duration": "1.216000"
+                }
+              },
+              "error": null
+            },
+            "video_first_frame_decode": {
+              "exit": 0,
+              "error": null
+            }
+          }
+        }
+      }
+    }
+  }
+}

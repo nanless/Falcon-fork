@@ -1,0 +1,222 @@
+{
+  "captured_at": "2026-11-11T01:00:48.192802+08:00",
+  "scope": "stat of 14 cold split files; first 15 tar members of each group first split; no concatenation, full extraction or content-hash recomputation",
+  "root": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix",
+  "archive_files": [
+    {
+      "name": "audio_clean_part_aa",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_ab",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_ac",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_ad",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_ae",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_af",
+      "size_bytes": 41943040000
+    },
+    {
+      "name": "audio_clean_part_ag",
+      "size_bytes": 31737968640
+    },
+    {
+      "name": "orig_part_aa",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_ab",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_ac",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_ad",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_ae",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_af",
+      "size_bytes": 42949672960
+    },
+    {
+      "name": "orig_part_ag",
+      "size_bytes": 22197207040
+    }
+  ],
+  "archive_count": 14,
+  "archive_total_bytes": 563291453440,
+  "first_members": {
+    "audio_clean_part_aa": [
+      {
+        "name": "./audio_clean",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test/id00017",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test/id00017/01dfn2spqyE",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test/id00017/01dfn2spqyE/00001.wav",
+        "size": 137294,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/5MkXgwdrmJw",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test/id00017/5MkXgwdrmJw/00002.wav",
+        "size": 256078,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00003.wav",
+        "size": 288846,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00004.wav",
+        "size": 157774,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00005.wav",
+        "size": 180302,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00006.wav",
+        "size": 147534,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00007.wav",
+        "size": 143438,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00008.wav",
+        "size": 213070,
+        "kind": "file"
+      },
+      {
+        "name": "./audio_clean/test/id00017/7t6lfzvVaTM/00009.wav",
+        "size": 200782,
+        "kind": "file"
+      }
+    ],
+    "orig_part_aa": [
+      {
+        "name": "orig",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/.DS_Store",
+        "size": 6148,
+        "kind": "file"
+      },
+      {
+        "name": "orig/._.DS_Store",
+        "size": 4096,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/test/.DS_Store",
+        "size": 6148,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/._.DS_Store",
+        "size": 4096,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/id00017",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/test/id00017/01dfn2spqyE",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/test/id00017/01dfn2spqyE/00001.mp4",
+        "size": 135577,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/id00017/5MkXgwdrmJw",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/test/id00017/5MkXgwdrmJw/00002.mp4",
+        "size": 189503,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/id00017/7t6lfzvVaTM",
+        "size": 0,
+        "kind": "dir"
+      },
+      {
+        "name": "orig/test/id00017/7t6lfzvVaTM/00003.mp4",
+        "size": 285793,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/id00017/7t6lfzvVaTM/00004.mp4",
+        "size": 151471,
+        "kind": "file"
+      },
+      {
+        "name": "orig/test/id00017/7t6lfzvVaTM/00005.mp4",
+        "size": 181740,
+        "kind": "file"
+      }
+    ]
+  },
+  "excluded_test_file": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/raw/.write_test_avsr"
+}

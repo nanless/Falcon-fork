@@ -18,6 +18,7 @@ Falcon 接收两种信息：包含多人声音的**混合音频**，以及希望
 | 理解模型内部 | [模型、融合与时间依赖](docs/understanding/20261110-model-and-streaming.md) | 张量形状、多尺度处理、视觉融合和因果性 |
 | 使用 160 ms 增量流式模型 | [流式模型与训练推理](docs/FALCON_STREAMING_160MS.md) | 状态缓存、实时接口、随机检查点和训练步骤 |
 | 看五套数据本机有什么 | [数据集说明](docs/understanding/20261110-datasets.md) | 每套样本的内容、目录、索引条数和评测用的是哪一套 |
+| 盘点项目与多模态数据 | [数据集全景](docs/data_catalog/README.md) | 项目训练/测试、37个登记库、冷端位置和按需恢复 |
 | 理解数据和训练 | [数据准备与训练](docs/understanding/20261110-data-and-training.md) | 索引、采样、损失、检查点和配置差异 |
 | 跑评测或体验演示 | [评测、Studio 与 Space](docs/understanding/20261110-evaluation-and-apps.md) | 评测口径、窗口切分、输入格式和运行边界 |
 | 查看哪些结果有依据 | [复现状态](docs/STATUS.md)和[本轮审查证据](docs/verification/deepdive-20261110/README.md) | 已有结果、适用条件、实验脚本与尚未完成的验证 |

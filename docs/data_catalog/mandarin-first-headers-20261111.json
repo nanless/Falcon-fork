@@ -1,0 +1,174 @@
+{
+  "date": "2026-11-11",
+  "scope": "First ten sequential members of each compressed tar; not a count of complete splits.",
+  "archives": [
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw/cv.tar.gz",
+      "archive_bytes": 4068518756,
+      "first_ten_members": [
+        {
+          "name": "cv",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "cv/3mix",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "cv/3mix/audio",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "cv/3mix/audio/s1",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000421.wav",
+          "bytes": 403244,
+          "kind": "file"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000856.wav",
+          "bytes": 185644,
+          "kind": "file"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000879.wav",
+          "bytes": 243244,
+          "kind": "file"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000130.wav",
+          "bytes": 147244,
+          "kind": "file"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000050.wav",
+          "bytes": 285484,
+          "kind": "file"
+        },
+        {
+          "name": "cv/3mix/audio/s1/cv_3mix_000784.wav",
+          "bytes": 157484,
+          "kind": "file"
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw/tt.tar.gz",
+      "archive_bytes": 4306679368,
+      "first_ten_members": [
+        {
+          "name": "tt",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tt/3mix",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tt/3mix/audio",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tt/3mix/audio/s1",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000998.wav",
+          "bytes": 377644,
+          "kind": "file"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000230.wav",
+          "bytes": 129324,
+          "kind": "file"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000027.wav",
+          "bytes": 390444,
+          "kind": "file"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000006.wav",
+          "bytes": 202284,
+          "kind": "file"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000959.wav",
+          "bytes": 221484,
+          "kind": "file"
+        },
+        {
+          "name": "tt/3mix/audio/s1/tt_3mix_000957.wav",
+          "bytes": 317484,
+          "kind": "file"
+        }
+      ]
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw/tr_1mix.tar.gz",
+      "archive_bytes": 8444482161,
+      "first_ten_members": [
+        {
+          "name": "tr/1mix",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tr/1mix/audio",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tr/1mix/audio/s1",
+          "bytes": 0,
+          "kind": "dir"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_007019.wav",
+          "bytes": 153644,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_006732.wav",
+          "bytes": 366124,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_001030.wav",
+          "bytes": 194604,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_006156.wav",
+          "bytes": 372524,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_007324.wav",
+          "bytes": 465964,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_003497.wav",
+          "bytes": 409644,
+          "kind": "file"
+        },
+        {
+          "name": "tr/1mix/audio/s1/tr_1mix_000902.wav",
+          "bytes": 372524,
+          "kind": "file"
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@
 | 现在复现到了哪里 | [复现状态](STATUS.md) | 权重与指标条件、已有结果、测试状态和未完成项 |
 | 模型怎样处理音频与嘴部 | [模型、融合与时间依赖](understanding/20261110-model-and-streaming.md) | 张量形状、两次音频块、视觉融合、因果性和计算量 |
 | 五套开源数据分别是什么、本机有哪一层 | [数据集说明](understanding/20261110-datasets.md) | LRS2、RealSSA-Sim、RealSSA-Real 的样本、目录、索引和空仓库 |
+| 项目与多模态数据有哪些、冷端怎样取回 | [数据集全景](data_catalog/README.md) | 训练/测试数据、逐库卡片、归档回执与恢复方法 |
 | 数据、采样和训练怎样工作 | [数据准备与训练](understanding/20261110-data-and-training.md) | 索引、目标方向、near、损失、配置和检查点 |
 | 怎样评测和使用演示 | [评测、Studio 与 Space](understanding/20261110-evaluation-and-apps.md) | 整段/分窗/批处理、指标、输入格式、输出和风险 |
 | 怎样下载、转换和核对访问条件 | [数据访问说明](DATA_ACCESS_GUIDE.md) | 历史获取记录、转换示例和许可；当前目录以数据集说明为准 |

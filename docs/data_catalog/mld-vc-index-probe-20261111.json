@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-11",
+  "source_metadata": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/metadata.jsonl",
+  "metadata_sha256": "f23d716e27155d739c599cc2062a6d8a1b94bdb742e4df6920b83afaff3c51cb",
+  "rows": 20803,
+  "distinct_ids": 20803,
+  "distinct_speakers": 31,
+  "fields": [
+    "audio",
+    "env",
+    "id",
+    "landmarks",
+    "noise_level",
+    "platform",
+    "speaker",
+    "utt",
+    "video"
+  ],
+  "counts": {
+    "env": {
+      "Offline": 6236,
+      "Online": 14567
+    },
+    "platform": {
+      "DD": 7192,
+      "FS": 4560,
+      "TXHY": 4559,
+      "zoom": 4492
+    },
+    "noise_level": {
+      "40db": 5201,
+      "60db": 5201,
+      "80db": 5201,
+      "clean": 5200
+    }
+  },
+  "archive_checks": {
+    "audio": {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/audio.zip",
+      "archive_bytes": 1774188067,
+      "file_count": 20804,
+      "extensions": {
+        ".wav": 20803,
+        ".py": 1
+      },
+      "references": 20803,
+      "unique_references": 20803,
+      "missing_references": 0
+    },
+    "video": {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/video.zip",
+      "archive_bytes": 7866823152,
+      "file_count": 62410,
+      "extensions": {
+        ".mp4": 20803,
+        ".metadata": 20803,
+        ".lock": 20803,
+        "": 1
+      },
+      "references": 20803,
+      "unique_references": 20803,
+      "missing_references": 0
+    },
+    "landmarks": {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw/landmarks.zip",
+      "archive_bytes": 267627013,
+      "file_count": 20803,
+      "extensions": {
+        ".npy": 20803
+      },
+      "references": 20803,
+      "unique_references": 20803,
+      "missing_references": 0
+    }
+  },
+  "scope": "All metadata rows and ZIP central-directory names. No extraction, audio/video sync or speaker identity validation."
+}

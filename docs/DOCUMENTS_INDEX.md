@@ -13,6 +13,7 @@
 - [README.md](../README.md)
 - [README_zh.md](../README_zh.md)
 - [docs/DATA_ACCESS_GUIDE.md](DATA_ACCESS_GUIDE.md)
+- [docs/data_catalog/README.md](data_catalog/README.md)
 - [docs/FALCON_STREAMING_160MS.md](FALCON_STREAMING_160MS.md)
 - [docs/DOCUMENTS_INDEX.md](DOCUMENTS_INDEX.md)
 - [docs/PAPER_REPORTED_RESULTS.md](PAPER_REPORTED_RESULTS.md)

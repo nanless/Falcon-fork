@@ -1,0 +1,1708 @@
+{
+  "started_unix": 1794362762.445423,
+  "ended_unix": 1794362896.1404378,
+  "scope": "All rows of listed index JSON; stat unique referenced paths; decode 5 spread samples per group, load first mouth only. The filename fields are numeric prefixes and prefix+clip-number keys; their relationship to persons or original video identity is not verified.",
+  "groups": {
+    "lrs2_single/tr": {
+      "root": "/root/data/falcon_lrs2_2mix/tr",
+      "index_sha256": {
+        "mix.json": "ca4e3b31e6cf1ab8038aec8cebdc68f675ea202a2a3686c0e1381565e911e97d",
+        "target.json": "9a8cb39441d7ec5ed91b00b0a3ce954fa9df55b6bbd7b9c94d8a65586ec9c855",
+        "near.json": "7e29b3cce65d48575fda120fcd1fd8475375146b8edf70199dba47e447e37567"
+      },
+      "rows": 20000,
+      "unique_paths": {
+        "mix": 20000,
+        "target": 20000,
+        "mouth": 14773,
+        "near": 20000
+      },
+      "samples_by_length": {
+        "32000": 20000
+      },
+      "hours_assuming_16khz": 11.11111111111111,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 20000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/falcon_lrs2_2mix/tr/mix/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tr/target/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tr/mouths/5535415699068794046_00004.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 5000,
+          "mix": "/root/data/falcon_lrs2_2mix/tr/mix/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tr/target/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tr/mouths/5945793381750602365_00034.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 10000,
+          "mix": "/root/data/falcon_lrs2_2mix/tr/mix/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tr/target/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tr/mouths/6058554312133246129_00056.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 15000,
+          "mix": "/root/data/falcon_lrs2_2mix/tr/mix/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tr/target/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tr/mouths/6172027777590340984_00065.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 19999,
+          "mix": "/root/data/falcon_lrs2_2mix/tr/mix/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tr/target/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tr/mouths/6298351355700308615_00023.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 20000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 20000
+        },
+        "target": {
+          "distinct_paths_checked": 20000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 20000
+        },
+        "mouth": {
+          "distinct_paths_checked": 14773,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 14773
+        },
+        "near": {
+          "distinct_paths_checked": 20000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 20000
+        }
+      },
+      "unique_filename_first_id": 2884,
+      "unique_filename_id_plus_segment": 18691
+    },
+    "lrs2_single/cv": {
+      "root": "/root/data/falcon_lrs2_2mix/cv",
+      "index_sha256": {
+        "mix.json": "80ddcc081a30ecab1d40b1bb9907cda453bc2081bde5fdb2b0434b73a607cbce",
+        "target.json": "9be11db3d5171c83122b8bb5f6fde7a08b2af818b534a76e5f2e9dd87a5c6fa8",
+        "near.json": "36dc189e966f1469fa17d81d0209a0d35e7cd1b0c3635281044b8ba39b90ea6b"
+      },
+      "rows": 5000,
+      "unique_paths": {
+        "mix": 5000,
+        "target": 5000,
+        "mouth": 476,
+        "near": 5000
+      },
+      "samples_by_length": {
+        "32000": 5000
+      },
+      "hours_assuming_16khz": 2.7777777777777777,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 5000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/falcon_lrs2_2mix/cv/mix/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "target": "/root/data/falcon_lrs2_2mix/cv/target/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/cv/mouths/6300370419826092098_00001.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 1250,
+          "mix": "/root/data/falcon_lrs2_2mix/cv/mix/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "target": "/root/data/falcon_lrs2_2mix/cv/target/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/cv/mouths/6313656042293295351_00007.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 2500,
+          "mix": "/root/data/falcon_lrs2_2mix/cv/mix/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "target": "/root/data/falcon_lrs2_2mix/cv/target/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/cv/mouths/6324713864963081921_00008.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 3750,
+          "mix": "/root/data/falcon_lrs2_2mix/cv/mix/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "target": "/root/data/falcon_lrs2_2mix/cv/target/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/cv/mouths/6327740528416575363_00006.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 4999,
+          "mix": "/root/data/falcon_lrs2_2mix/cv/mix/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "target": "/root/data/falcon_lrs2_2mix/cv/target/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/cv/mouths/6329893595522062514_00006.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 5000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 5000
+        },
+        "target": {
+          "distinct_paths_checked": 5000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 5000
+        },
+        "mouth": {
+          "distinct_paths_checked": 476,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 476
+        },
+        "near": {
+          "distinct_paths_checked": 5000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 5000
+        }
+      },
+      "unique_filename_first_id": 68,
+      "unique_filename_id_plus_segment": 476
+    },
+    "lrs2_single/tt": {
+      "root": "/root/data/falcon_lrs2_2mix/tt",
+      "index_sha256": {
+        "mix.json": "ff6b029b11951879fe0775bb12c4ea729f8ff43539529549839aa0c840c958ad",
+        "target.json": "9c9bb1cb155b2c0dbbba6c7034f8fe51ce7eb4b3f2dc94f26824a84d04b83728",
+        "near.json": "3e1675ccded9d4e0a6a5dfc36ae2a24f11959c00a04d1f1d27d826f065a27609"
+      },
+      "rows": 3000,
+      "unique_paths": {
+        "mix": 3000,
+        "target": 3000,
+        "mouth": 267,
+        "near": 3000
+      },
+      "samples_by_length": {
+        "32000": 3000
+      },
+      "hours_assuming_16khz": 1.6666666666666667,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 3000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tt/target/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 750,
+          "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tt/target/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6347667029186417939_00011.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 1500,
+          "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tt/target/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6358830508182123252_00017.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 2250,
+          "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tt/target/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6374083655167624227_00045.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 2999,
+          "mix": "/root/data/falcon_lrs2_2mix/tt/mix/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "target": "/root/data/falcon_lrs2_2mix/tt/target/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6392568335285725796_00016.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 3000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 3000
+        },
+        "target": {
+          "distinct_paths_checked": 3000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 3000
+        },
+        "mouth": {
+          "distinct_paths_checked": 267,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 267
+        },
+        "near": {
+          "distinct_paths_checked": 3000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 3000
+        }
+      },
+      "unique_filename_first_id": 144,
+      "unique_filename_id_plus_segment": 267
+    },
+    "lrs2_paper/tr": {
+      "root": "/root/data/falcon_lrs2_2mix_paper/tr",
+      "index_sha256": {
+        "mix.json": "187c69c159689798de5da238372c4edd5a621db0d4f575c4730419c16d7d1600",
+        "target.json": "1a1bcc9a4584a93e5a5d8150a88f0136ef52c8ac1e4872950dad1ce2aa0ede50",
+        "near.json": "d745217a97b705f1117f15606420b028ab2614e7730da64aaebe1c7468a36112"
+      },
+      "rows": 40000,
+      "unique_paths": {
+        "mix": 20000,
+        "target": 40000,
+        "mouth": 18691,
+        "near": 40000
+      },
+      "samples_by_length": {
+        "32000": 40000
+      },
+      "hours_assuming_16khz": 22.22222222222222,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 40000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/mix/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s1/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tr/mouths/5535415699068794046_00004.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/5535415699068794046_00004_2.4022_6160231649911868423_00015_-2.4022.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 10000,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/mix/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s1/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tr/mouths/5945793381750602365_00034.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/5945793381750602365_00034_0.64876_6092441604098670412_00001_-0.64876.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 20000,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/mix/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s1/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tr/mouths/6058554312133246129_00056.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6058554312133246129_00056_3.6674_5972140429131177767_00002_-3.6674.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 30000,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/mix/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s1/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tr/mouths/6172027777590340984_00065.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6172027777590340984_00065_1.6045_6110918553406054350_00031_-1.6045.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 39999,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/mix/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s2/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tr/mouths/6282410155214887954_00016.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tr/s1/6298351355700308615_00023_4.734_6282410155214887954_00016_-4.734.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 20000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 20000
+        },
+        "target": {
+          "distinct_paths_checked": 40000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 40000
+        },
+        "mouth": {
+          "distinct_paths_checked": 18691,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 18691
+        },
+        "near": {
+          "distinct_paths_checked": 40000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 40000
+        }
+      },
+      "unique_filename_first_id": 2884,
+      "unique_filename_id_plus_segment": 18691
+    },
+    "lrs2_paper/cv": {
+      "root": "/root/data/falcon_lrs2_2mix_paper/cv",
+      "index_sha256": {
+        "mix.json": "d2f06033054ba3d2d4bdaa8682d0226fafe12f504754e6e674ca393e41c97f2f",
+        "target.json": "e82676d5ba4309808d62efaef3d94fd127a2b1355424deb39236d2ed88321fc2",
+        "near.json": "e0f36474524475bfb4e1c709edfdb9f465f6966d8e5d4b4a8805d6f03c6156a3"
+      },
+      "rows": 10000,
+      "unique_paths": {
+        "mix": 5000,
+        "target": 10000,
+        "mouth": 476,
+        "near": 10000
+      },
+      "samples_by_length": {
+        "32000": 10000
+      },
+      "hours_assuming_16khz": 5.555555555555555,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 10000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/mix/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s1/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/cv/mouths/6300370419826092098_00001.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6300370419826092098_00001_1.3679_6306811582279909115_00026_-1.3679.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 2500,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/mix/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s1/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/cv/mouths/6313656042293295351_00007.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6313656042293295351_00007_1.3508_6328111613590949805_00026_-1.3508.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 5000,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/mix/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s1/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/cv/mouths/6324713864963081921_00008.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6324713864963081921_00008_2.0945_6306870852828565379_00004_-2.0945.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 7500,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/mix/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s1/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/cv/mouths/6327740528416575363_00006.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6327740528416575363_00006_4.3439_6325894121976022773_00008_-4.3439.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 9999,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/mix/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s2/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/cv/mouths/6325440573560032726_00038.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/cv/s1/6329893595522062514_00006_4.9973_6325440573560032726_00038_-4.9973.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 5000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 5000
+        },
+        "target": {
+          "distinct_paths_checked": 10000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 10000
+        },
+        "mouth": {
+          "distinct_paths_checked": 476,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 476
+        },
+        "near": {
+          "distinct_paths_checked": 10000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 10000
+        }
+      },
+      "unique_filename_first_id": 68,
+      "unique_filename_id_plus_segment": 476
+    },
+    "lrs2_paper/tt": {
+      "root": "/root/data/falcon_lrs2_2mix_paper/tt",
+      "index_sha256": {
+        "mix.json": "b6beaea7c5d85bd90c6ce93823de4e73125c266258651c32982c9798f658a6bd",
+        "target.json": "5ed1c594b408a609124dbdd0641dd43063ca1459bd5abade8de43f0a9b1c594a",
+        "near.json": "996b6dc4d19eff78b578655c70fbbc7b83cf6653497f86e6cd105cce8689cc82"
+      },
+      "rows": 6000,
+      "unique_paths": {
+        "mix": 3000,
+        "target": 6000,
+        "mouth": 267,
+        "near": 6000
+      },
+      "samples_by_length": {
+        "32000": 6000
+      },
+      "hours_assuming_16khz": 3.3333333333333335,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 6000,
+      "self_near": 0,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s1/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tt/mouths/6330311066473698535_00011.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            50,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 1500,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s1/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tt/mouths/6347667029186417939_00011.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6347667029186417939_00011_4.3867_6348834401297406331_00023_-4.3867.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 3000,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s1/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tt/mouths/6358830508182123252_00017.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6358830508182123252_00017_3.2994_6385216210398859008_00009_-3.2994.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 4500,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s1/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tt/mouths/6374083655167624227_00045.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6374083655167624227_00045_0.69762_6390301881043558087_00025_-0.69762.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        },
+        {
+          "index": 5999,
+          "mix": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/mix/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "target": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s2/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "mouth": "/root/data/falcon_lrs2_2mix_paper/tt/mouths/6341242617105082637_00112.pt",
+          "near": "/root/data/lrs2_2mix/lrs2_rebuild/audio/wav16k/min/tt/s1/6392568335285725796_00016_4.6051_6341242617105082637_00112_-4.6051.wav",
+          "mix_shape": [
+            32000,
+            1
+          ],
+          "target_shape": [
+            32000,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "near_shape": [
+            32000,
+            1
+          ],
+          "near_rate": 16000,
+          "mix_minus_target_near_max_abs": 3.0517578125e-05
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 3000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 3000
+        },
+        "target": {
+          "distinct_paths_checked": 6000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 6000
+        },
+        "mouth": {
+          "distinct_paths_checked": 267,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 267
+        },
+        "near": {
+          "distinct_paths_checked": 6000,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 6000
+        }
+      },
+      "unique_filename_first_id": 144,
+      "unique_filename_id_plus_segment": 267
+    },
+    "realssa_mean/tt": {
+      "root": "/root/data/falcon_realssa_sim/tt",
+      "index_sha256": {
+        "mix.json": "b19a0064316d6f619e9b1cd8e889224aab9e400cdc6b77d684f1be8f1692bea6",
+        "target.json": "400a5679f18fa1f467b7eca545ff9a9c819f2be108e8c5b9e399784f38b934b8",
+        "near.json": "06836a26587cba91114ab54ea719ee60a7011ca5f42448ecf75184c8938402d8"
+      },
+      "rows": 9169,
+      "unique_paths": {
+        "mix": 9169,
+        "target": 9169,
+        "mouth": 9169,
+        "near": 9169
+      },
+      "samples_by_length": {
+        "16000": 28,
+        "16640": 26,
+        "17280": 64,
+        "17920": 29,
+        "18560": 28,
+        "19200": 62,
+        "19840": 18,
+        "20480": 67,
+        "21120": 32,
+        "21760": 11,
+        "22400": 86,
+        "23040": 31,
+        "23680": 18,
+        "24320": 68,
+        "24960": 16,
+        "25600": 66,
+        "26240": 33,
+        "26880": 23,
+        "27520": 82,
+        "28160": 39,
+        "28800": 16,
+        "29440": 69,
+        "30080": 25,
+        "30720": 72,
+        "31360": 38,
+        "32000": 14,
+        "32640": 55,
+        "33280": 35,
+        "33920": 23,
+        "34560": 49,
+        "35200": 13,
+        "35840": 63,
+        "36480": 35,
+        "37120": 14,
+        "37760": 41,
+        "38400": 38,
+        "39040": 18,
+        "39680": 50,
+        "40320": 18,
+        "40960": 47,
+        "41600": 31,
+        "42240": 16,
+        "42880": 54,
+        "43520": 36,
+        "44160": 22,
+        "44800": 45,
+        "45440": 11,
+        "46080": 48,
+        "46720": 35,
+        "47360": 14,
+        "48000": 52,
+        "48640": 44,
+        "49280": 14,
+        "49920": 52,
+        "50560": 11,
+        "51200": 38,
+        "51840": 51,
+        "52480": 13,
+        "53120": 52,
+        "53760": 31,
+        "54400": 16,
+        "55040": 39,
+        "55680": 12,
+        "56320": 53,
+        "56960": 32,
+        "57600": 21,
+        "58240": 49,
+        "58880": 39,
+        "59520": 19,
+        "60160": 43,
+        "60800": 5,
+        "61440": 56,
+        "62080": 43,
+        "62720": 11,
+        "63360": 63,
+        "64000": 32,
+        "64640": 11,
+        "65280": 45,
+        "65920": 14,
+        "66560": 50,
+        "67200": 42,
+        "67840": 20,
+        "68480": 41,
+        "69120": 35,
+        "69760": 14,
+        "70400": 59,
+        "71040": 11,
+        "71680": 58,
+        "72320": 28,
+        "72960": 20,
+        "73600": 62,
+        "74240": 45,
+        "74880": 24,
+        "75520": 53,
+        "76160": 21,
+        "76800": 58,
+        "77440": 46,
+        "78080": 39,
+        "78720": 76,
+        "79360": 51,
+        "80000": 36,
+        "80640": 75,
+        "81280": 39,
+        "81920": 85,
+        "82560": 69,
+        "83200": 45,
+        "83840": 110,
+        "84480": 81,
+        "85120": 63,
+        "85760": 118,
+        "86400": 85,
+        "87040": 142,
+        "87680": 129,
+        "88320": 150,
+        "88960": 220,
+        "89600": 210,
+        "90240": 190,
+        "90880": 343,
+        "91520": 266,
+        "92160": 365,
+        "92800": 375,
+        "93440": 388,
+        "94080": 500,
+        "94720": 486,
+        "95360": 485,
+        "96000": 191,
+        "97280": 98,
+        "97920": 43,
+        "99200": 92,
+        "109440": 2,
+        "120320": 2
+      },
+      "hours_assuming_16khz": 11.7349,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 0,
+      "self_near": 9169,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/falcon_realssa_sim/tt/mix/00001_00_10182.wav",
+          "target": "/root/data/falcon_realssa_sim/tt/target/00001_00_10182.wav",
+          "mouth": "/root/data/falcon_realssa_sim/tt/mouths/00001_00_10182.pt",
+          "near": "/root/data/falcon_realssa_sim/tt/mix/00001_00_10182.wav",
+          "mix_shape": [
+            92800,
+            1
+          ],
+          "target_shape": [
+            92800,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            145,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 2292,
+          "mix": "/root/data/falcon_realssa_sim/tt/mix/00008_01_23856.wav",
+          "target": "/root/data/falcon_realssa_sim/tt/target/00008_01_23856.wav",
+          "mouth": "/root/data/falcon_realssa_sim/tt/mouths/00008_01_23856.pt",
+          "near": "/root/data/falcon_realssa_sim/tt/mix/00008_01_23856.wav",
+          "mix_shape": [
+            77440,
+            1
+          ],
+          "target_shape": [
+            77440,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 4584,
+          "mix": "/root/data/falcon_realssa_sim/tt/mix/00018_00_57805.wav",
+          "target": "/root/data/falcon_realssa_sim/tt/target/00018_00_57805.wav",
+          "mouth": "/root/data/falcon_realssa_sim/tt/mouths/00018_00_57805.pt",
+          "near": "/root/data/falcon_realssa_sim/tt/mix/00018_00_57805.wav",
+          "mix_shape": [
+            94080,
+            1
+          ],
+          "target_shape": [
+            94080,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 6876,
+          "mix": "/root/data/falcon_realssa_sim/tt/mix/00043_00_14891.wav",
+          "target": "/root/data/falcon_realssa_sim/tt/target/00043_00_14891.wav",
+          "mouth": "/root/data/falcon_realssa_sim/tt/mouths/00043_00_14891.pt",
+          "near": "/root/data/falcon_realssa_sim/tt/mix/00043_00_14891.wav",
+          "mix_shape": [
+            91520,
+            1
+          ],
+          "target_shape": [
+            91520,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 9168,
+          "mix": "/root/data/falcon_realssa_sim/tt/mix/50074_32558.wav",
+          "target": "/root/data/falcon_realssa_sim/tt/target/50074_32558.wav",
+          "mouth": "/root/data/falcon_realssa_sim/tt/mouths/50074_32558.pt",
+          "near": "/root/data/falcon_realssa_sim/tt/mix/50074_32558.wav",
+          "mix_shape": [
+            24320,
+            1
+          ],
+          "target_shape": [
+            24320,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "target": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "mouth": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "near": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        }
+      },
+      "unique_filename_first_id": 0,
+      "unique_filename_id_plus_segment": 0
+    },
+    "realssa_ch0/tt": {
+      "root": "/root/data/falcon_realssa_sim_ch0/tt",
+      "index_sha256": {
+        "mix.json": "568c17de77a0bbe3a1e1f2d89922f3e0db7eb383760306192a5d26925e17d251",
+        "target.json": "1eeb0b9af2193e149b3678c1c70d80b12def7769bcc1f7c99d90a8871c1a32d5",
+        "near.json": "a292e495058d41ab4d7e4b99418e49144c1e160daaf21f2be8747f9e7596b0c9"
+      },
+      "rows": 9169,
+      "unique_paths": {
+        "mix": 9169,
+        "target": 9169,
+        "mouth": 9169,
+        "near": 9169
+      },
+      "samples_by_length": {
+        "16000": 28,
+        "16640": 26,
+        "17280": 64,
+        "17920": 29,
+        "18560": 28,
+        "19200": 62,
+        "19840": 18,
+        "20480": 67,
+        "21120": 32,
+        "21760": 11,
+        "22400": 86,
+        "23040": 31,
+        "23680": 18,
+        "24320": 68,
+        "24960": 16,
+        "25600": 66,
+        "26240": 33,
+        "26880": 23,
+        "27520": 82,
+        "28160": 39,
+        "28800": 16,
+        "29440": 69,
+        "30080": 25,
+        "30720": 72,
+        "31360": 38,
+        "32000": 14,
+        "32640": 55,
+        "33280": 35,
+        "33920": 23,
+        "34560": 49,
+        "35200": 13,
+        "35840": 63,
+        "36480": 35,
+        "37120": 14,
+        "37760": 41,
+        "38400": 38,
+        "39040": 18,
+        "39680": 50,
+        "40320": 18,
+        "40960": 47,
+        "41600": 31,
+        "42240": 16,
+        "42880": 54,
+        "43520": 36,
+        "44160": 22,
+        "44800": 45,
+        "45440": 11,
+        "46080": 48,
+        "46720": 35,
+        "47360": 14,
+        "48000": 52,
+        "48640": 44,
+        "49280": 14,
+        "49920": 52,
+        "50560": 11,
+        "51200": 38,
+        "51840": 51,
+        "52480": 13,
+        "53120": 52,
+        "53760": 31,
+        "54400": 16,
+        "55040": 39,
+        "55680": 12,
+        "56320": 53,
+        "56960": 32,
+        "57600": 21,
+        "58240": 49,
+        "58880": 39,
+        "59520": 19,
+        "60160": 43,
+        "60800": 5,
+        "61440": 56,
+        "62080": 43,
+        "62720": 11,
+        "63360": 63,
+        "64000": 32,
+        "64640": 11,
+        "65280": 45,
+        "65920": 14,
+        "66560": 50,
+        "67200": 42,
+        "67840": 20,
+        "68480": 41,
+        "69120": 35,
+        "69760": 14,
+        "70400": 59,
+        "71040": 11,
+        "71680": 58,
+        "72320": 28,
+        "72960": 20,
+        "73600": 62,
+        "74240": 45,
+        "74880": 24,
+        "75520": 53,
+        "76160": 21,
+        "76800": 58,
+        "77440": 46,
+        "78080": 39,
+        "78720": 76,
+        "79360": 51,
+        "80000": 36,
+        "80640": 75,
+        "81280": 39,
+        "81920": 85,
+        "82560": 69,
+        "83200": 45,
+        "83840": 110,
+        "84480": 81,
+        "85120": 63,
+        "85760": 118,
+        "86400": 85,
+        "87040": 142,
+        "87680": 129,
+        "88320": 150,
+        "88960": 220,
+        "89600": 210,
+        "90240": 190,
+        "90880": 343,
+        "91520": 266,
+        "92160": 365,
+        "92800": 375,
+        "93440": 388,
+        "94080": 500,
+        "94720": 486,
+        "95360": 485,
+        "96000": 191,
+        "97280": 98,
+        "97920": 43,
+        "99200": 92,
+        "109440": 2,
+        "120320": 2
+      },
+      "hours_assuming_16khz": 11.7349,
+      "invalid_rows": {},
+      "parsed_lrs2_mixtures": 0,
+      "self_near": 9169,
+      "decoded_samples": [
+        {
+          "index": 0,
+          "mix": "/root/data/falcon_realssa_sim_ch0/tt/mix/00001_00_10182.wav",
+          "target": "/root/data/falcon_realssa_sim_ch0/tt/target/00001_00_10182.wav",
+          "mouth": "/root/data/falcon_realssa_sim_ch0/tt/mouths/00001_00_10182.pt",
+          "near": "/root/data/falcon_realssa_sim_ch0/tt/mix/00001_00_10182.wav",
+          "mix_shape": [
+            92800,
+            1
+          ],
+          "target_shape": [
+            92800,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true,
+          "mouth_dtype": "torch.uint8",
+          "mouth_shape": [
+            145,
+            96,
+            96,
+            3
+          ]
+        },
+        {
+          "index": 2292,
+          "mix": "/root/data/falcon_realssa_sim_ch0/tt/mix/00008_01_23856.wav",
+          "target": "/root/data/falcon_realssa_sim_ch0/tt/target/00008_01_23856.wav",
+          "mouth": "/root/data/falcon_realssa_sim_ch0/tt/mouths/00008_01_23856.pt",
+          "near": "/root/data/falcon_realssa_sim_ch0/tt/mix/00008_01_23856.wav",
+          "mix_shape": [
+            77440,
+            1
+          ],
+          "target_shape": [
+            77440,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 4584,
+          "mix": "/root/data/falcon_realssa_sim_ch0/tt/mix/00018_00_57805.wav",
+          "target": "/root/data/falcon_realssa_sim_ch0/tt/target/00018_00_57805.wav",
+          "mouth": "/root/data/falcon_realssa_sim_ch0/tt/mouths/00018_00_57805.pt",
+          "near": "/root/data/falcon_realssa_sim_ch0/tt/mix/00018_00_57805.wav",
+          "mix_shape": [
+            94080,
+            1
+          ],
+          "target_shape": [
+            94080,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 6876,
+          "mix": "/root/data/falcon_realssa_sim_ch0/tt/mix/00043_00_14891.wav",
+          "target": "/root/data/falcon_realssa_sim_ch0/tt/target/00043_00_14891.wav",
+          "mouth": "/root/data/falcon_realssa_sim_ch0/tt/mouths/00043_00_14891.pt",
+          "near": "/root/data/falcon_realssa_sim_ch0/tt/mix/00043_00_14891.wav",
+          "mix_shape": [
+            91520,
+            1
+          ],
+          "target_shape": [
+            91520,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        },
+        {
+          "index": 9168,
+          "mix": "/root/data/falcon_realssa_sim_ch0/tt/mix/50074_32558.wav",
+          "target": "/root/data/falcon_realssa_sim_ch0/tt/target/50074_32558.wav",
+          "mouth": "/root/data/falcon_realssa_sim_ch0/tt/mouths/50074_32558.pt",
+          "near": "/root/data/falcon_realssa_sim_ch0/tt/mix/50074_32558.wav",
+          "mix_shape": [
+            24320,
+            1
+          ],
+          "target_shape": [
+            24320,
+            1
+          ],
+          "mix_rate": 16000,
+          "target_rate": 16000,
+          "mix_finite": true,
+          "target_finite": true
+        }
+      ],
+      "path_checks": {
+        "mix": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "target": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "mouth": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        },
+        "near": {
+          "distinct_paths_checked": 9169,
+          "missing_count": 0,
+          "missing_examples": [],
+          "unique_device_inode": 9169
+        }
+      },
+      "unique_filename_first_id": 0,
+      "unique_filename_id_plus_segment": 0
+    }
+  },
+  "all_unique_paths": 229964,
+  "stat_errors": {},
+  "cross_split_filename_ids": {
+    "lrs2_single:tr-cv": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    },
+    "lrs2_single:tr-tt": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    },
+    "lrs2_single:cv-tt": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    },
+    "lrs2_paper:tr-cv": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    },
+    "lrs2_paper:tr-tt": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    },
+    "lrs2_paper:cv-tt": {
+      "filename_first_id": 0,
+      "filename_id_plus_segment": 0
+    }
+  },
+  "label_correction": "Original audit used source_video_ids/utterances labels. No source evidence established those identity meanings; current labels refer only to parsed filename fields. Counts unchanged. Original-label reconstruction is preserved separately."
+}

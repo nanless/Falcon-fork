@@ -1,0 +1,369 @@
+{
+  "captured_at": "2026-11-11T08:55:18.126719+08:00",
+  "scope": "24 registry entries a–m, cold raw immediate children only; no recursive payload or completeness inference",
+  "rows": [
+    {
+      "slug": "aspire",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/aspire/raw",
+      "immediate_entries": 1,
+      "immediate_files": 1,
+      "immediate_directories": 0,
+      "first_20": [
+        "ASPIRE.zip"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "audioset",
+      "raw_exists": false,
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+    },
+    {
+      "slug": "audioset_strong",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/audioset_strong/raw",
+      "immediate_entries": 4,
+      "immediate_files": 4,
+      "immediate_directories": 0,
+      "first_20": [
+        "audioset_eval_strong.tsv",
+        "audioset_eval_strong_framed_posneg.tsv",
+        "audioset_train_strong.tsv",
+        "mid_to_display_name.tsv"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "avcocktail",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/avcocktail/raw",
+      "immediate_entries": 4,
+      "immediate_files": 2,
+      "immediate_directories": 2,
+      "first_20": [
+        ".gitattributes",
+        "README.md",
+        "labels",
+        "videos"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "avspeech",
+      "raw_exists": false,
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+    },
+    {
+      "slug": "avyt",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/avyt/raw",
+      "immediate_entries": 6,
+      "immediate_files": 2,
+      "immediate_directories": 4,
+      "first_20": [
+        ".gitattributes",
+        "README.md",
+        "avyt",
+        "dialog",
+        "lrs2",
+        "vox2"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "candor",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/candor/raw",
+      "immediate_entries": 166,
+      "immediate_files": 166,
+      "immediate_directories": 0,
+      "first_20": [
+        "raw_media_part_001.zip",
+        "raw_media_part_002.zip",
+        "raw_media_part_003.zip",
+        "raw_media_part_004.zip",
+        "raw_media_part_005.zip",
+        "raw_media_part_006.zip",
+        "raw_media_part_007.zip",
+        "raw_media_part_008.zip",
+        "raw_media_part_009.zip",
+        "raw_media_part_010.zip",
+        "raw_media_part_011.zip",
+        "raw_media_part_012.zip",
+        "raw_media_part_013.zip",
+        "raw_media_part_014.zip",
+        "raw_media_part_015.zip",
+        "raw_media_part_016.zip",
+        "raw_media_part_017.zip",
+        "raw_media_part_018.zip",
+        "raw_media_part_019.zip",
+        "raw_media_part_020.zip"
+      ],
+      "truncated": true
+    },
+    {
+      "slug": "chinese_lips",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/chinese_lips/raw",
+      "immediate_entries": 19,
+      "immediate_files": 19,
+      "immediate_directories": 0,
+      "first_20": [
+        "image.zip",
+        "meta_all.csv",
+        "meta_test.csv",
+        "meta_test.json",
+        "meta_train.csv",
+        "meta_valid.csv",
+        "processed_test.zip",
+        "processed_train.zip",
+        "processed_val.zip",
+        "test.zip",
+        "train.z01",
+        "train.z02",
+        "train.z03",
+        "train.z04",
+        "train.z05",
+        "train.z06",
+        "train.z07",
+        "train.z08",
+        "val.zip"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "cuave_partial",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/cuave_partial/raw",
+      "immediate_entries": 1,
+      "immediate_files": 1,
+      "immediate_directories": 0,
+      "first_20": [
+        "cuave-group-aligned.zip"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "darknsu_lrs3",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/darknsu_lrs3/raw",
+      "immediate_entries": 2,
+      "immediate_files": 2,
+      "immediate_directories": 0,
+      "first_20": [
+        "video.tar.gz",
+        "wav.tar.gz"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "ellipsis_lrs3",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/ellipsis_lrs3/raw",
+      "immediate_entries": 1,
+      "immediate_files": 0,
+      "immediate_directories": 1,
+      "first_20": [
+        "shards"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "facestar",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/facestar/raw",
+      "immediate_entries": 5,
+      "immediate_files": 0,
+      "immediate_directories": 5,
+      "first_20": [
+        "female_speaker_testset",
+        "female_speaker_trainset",
+        "male_speaker_testset",
+        "male_speaker_trainset",
+        "paper_materials"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "grid",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/grid/raw",
+      "immediate_entries": 36,
+      "immediate_files": 36,
+      "immediate_directories": 0,
+      "first_20": [
+        "alignments.zip",
+        "audio_25k.zip",
+        "jasagrid.pdf",
+        "s1.zip",
+        "s10.zip",
+        "s11.zip",
+        "s12.zip",
+        "s13.zip",
+        "s14.zip",
+        "s15.zip",
+        "s16.zip",
+        "s17.zip",
+        "s18.zip",
+        "s19.zip",
+        "s2.zip",
+        "s20.zip",
+        "s22.zip",
+        "s23.zip",
+        "s24.zip",
+        "s25.zip"
+      ],
+      "truncated": true
+    },
+    {
+      "slug": "lombard_grid",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/lombard_grid/raw",
+      "immediate_entries": 5,
+      "immediate_files": 5,
+      "immediate_directories": 0,
+      "first_20": [
+        "lombardgrid_alignment.zip",
+        "lombardgrid_audio.zip",
+        "lombardgrid_front.zip",
+        "lombardgrid_json.zip",
+        "lombardgrid_side.zip"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "lrs2",
+      "raw_exists": false,
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+    },
+    {
+      "slug": "lrs3",
+      "raw_exists": false,
+      "cold_reference": "/aispeech-cfs/voiceprint/data/multimodal/AVSpeech_Vox2_LRS2_LRS3_AudioSet.tar"
+    },
+    {
+      "slug": "lrs_combined",
+      "raw_exists": false,
+      "cold_reference": null
+    },
+    {
+      "slug": "mafi",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/mafi/raw",
+      "immediate_entries": 5,
+      "immediate_files": 0,
+      "immediate_directories": 5,
+      "first_20": [
+        "Analysis",
+        "Behavioural Data",
+        "Norms",
+        "Scripts",
+        "Videos Folder"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "mandarin_avsr",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw",
+      "immediate_entries": 9,
+      "immediate_files": 9,
+      "immediate_directories": 0,
+      "first_20": [
+        "cv.tar.gz",
+        "preview.tar.gz",
+        "tr_1mix.tar.gz",
+        "tr_2mix.tar.gz",
+        "tr_3mix.tar.gz",
+        "tr_4mix.tar.gz",
+        "tr_5mix.tar.gz",
+        "tr_all.tar.gz",
+        "tt.tar.gz"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "mld_vc",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/mld_vc/raw",
+      "immediate_entries": 5,
+      "immediate_files": 5,
+      "immediate_directories": 0,
+      "first_20": [
+        "audio.zip",
+        "landmarks.zip",
+        "metadata.jsonl",
+        "text.zip",
+        "video.zip"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "muavic",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic/raw",
+      "immediate_entries": 1,
+      "immediate_files": 0,
+      "immediate_directories": 1,
+      "first_20": [
+        "source_videos"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "muavic_metadata",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/muavic_metadata/raw",
+      "immediate_entries": 10,
+      "immediate_files": 10,
+      "immediate_directories": 0,
+      "first_20": [
+        "20words_mean_face.npy",
+        "ar_metadata.tgz",
+        "de_metadata.tgz",
+        "el_metadata.tgz",
+        "en_metadata.tgz",
+        "es_metadata.tgz",
+        "fr_metadata.tgz",
+        "it_metadata.tgz",
+        "pt_metadata.tgz",
+        "ru_metadata.tgz"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "multivsr",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr/raw",
+      "immediate_entries": 1,
+      "immediate_files": 0,
+      "immediate_directories": 1,
+      "first_20": [
+        "source_videos"
+      ],
+      "truncated": false
+    },
+    {
+      "slug": "multivsr_metadata",
+      "raw_exists": true,
+      "path": "/aispeech-cfs/voiceprint/data/multimodal/multivsr_metadata/raw",
+      "immediate_entries": 10,
+      "immediate_files": 10,
+      "immediate_directories": 0,
+      "first_20": [
+        ".gitattributes",
+        "README.md",
+        "dataset_teaser.gif",
+        "multivsr.tar",
+        "test.csv",
+        "train_major.csv",
+        "train_minor.csv",
+        "val_major.csv",
+        "val_minor.csv",
+        "ytids.txt"
+      ],
+      "truncated": false
+    }
+  ]
+}

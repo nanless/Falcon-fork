@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-11",
+  "scope": "First matching test pair only, read from first tar parts; no full-volume traversal, identity or sync validation.",
+  "samples": [
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/raw/audio_clean_part_aa",
+      "member": "./audio_clean/test/id00017/01dfn2spqyE/00001.wav",
+      "bytes": 137294,
+      "sha256": "c2a6f2340b99d793bb2a3d6f4ab395e72ebbb1a84b6982e45f3a7488f962fbee",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "pcm_s16le",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "4.288000"
+        }
+      ],
+      "container_duration": "4.288000",
+      "decode_exit": 0
+    },
+    {
+      "archive": "/aispeech-cfs/voiceprint/data/multimodal/voxceleb2_mix/raw/orig_part_aa",
+      "member": "orig/test/id00017/01dfn2spqyE/00001.mp4",
+      "bytes": 135577,
+      "sha256": "15335133faedd1769f6bb57419576b1593ccf55c1a859229a0358a5f4018ecb4",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "width": 224,
+          "height": 224,
+          "r_frame_rate": "25/1",
+          "duration": "4.280000",
+          "nb_frames": "107"
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "sample_rate": "16000",
+          "channels": 1,
+          "r_frame_rate": "0/0",
+          "duration": "4.280000",
+          "nb_frames": "68"
+        }
+      ],
+      "container_duration": "4.344000",
+      "decode_exit": 0
+    }
+  ]
+}

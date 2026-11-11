@@ -1,0 +1,50 @@
+{
+  "captured_at_utc": "2026-11-10T17:02:08.870829+00:00",
+  "scope": "One 3-speaker preview sample; probe and first-frame decode, not full collection or full video decode",
+  "archive": "/aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw/preview.tar.gz",
+  "member": "preview/tt_3mix_000001/video.mp4",
+  "member_bytes": 414538,
+  "member_sha256": "60ea09f1a09364fb5794e0208553e7b37b2c4f6e844d1dd37cd1bafc8526af79",
+  "ffmpeg_version": "4.2.7-0ubuntu0.1",
+  "tar_pipe_decode": {
+    "command": "tar -xOf /aispeech-cfs/voiceprint/data/multimodal/mandarin_avsr/raw/preview.tar.gz preview/tt_3mix_000001/video.mp4 | ffmpeg -v error -i pipe:0 -frames:v 1 -f null -",
+    "exit_code": 1,
+    "stderr_summary": "partial file at offset 0x2c; invalid data on pipe; cannot determine input stream format",
+    "top_level_atoms": [
+      {
+        "name": "ftyp",
+        "offset": 0
+      },
+      {
+        "name": "free",
+        "offset": 28
+      },
+      {
+        "name": "mdat",
+        "offset": 36
+      },
+      {
+        "name": "moov",
+        "offset": 412546
+      }
+    ],
+    "interpretation": "moov follows mdat; non-seekable input cannot revisit earlier media bytes"
+  },
+  "seekable_member_decode": {
+    "method": "Extracted only this 414538-byte member to a temporary regular file; ffprobe and ffmpeg read that file",
+    "codec": "mpeg4",
+    "width": 384,
+    "height": 384,
+    "fps": 25,
+    "frames_reported": 267,
+    "duration_seconds": 10.68,
+    "ffmpeg_first_frame_exit_code": 0,
+    "ffmpeg_first_frame_stderr": ""
+  },
+  "audio": {
+    "sample_rate": 16000,
+    "samples": 170880,
+    "duration_seconds": 10.68,
+    "source": "mandarin-avsr-index-check-20261111.json"
+  }
+}
