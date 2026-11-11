@@ -9,7 +9,7 @@
 | 内部音频帧 | 8 ms 一帧，每块 15 帧 |
 | 音频通道 | 320，膨胀系数 1、2、4、8、16、32 |
 | 历史 | 音频卷积缓存、最近音频与视觉缓存；不同会话分别保存 |
-| 检查点 | v4 原非负合成，v5 块内居中视觉，v6 有符号频响残差，v7 增加已完成块的注意力缓存。由格式与模型配置共同决定加载方式 |
+| 检查点 | v4 原非负合成，v5 块内居中视觉，v6 有符号频响残差，v7 增加已完成块的注意力缓存，v8 增加块内子带估计。由格式与模型配置共同决定加载方式 |
 | 输出保护区 | 0，输出完整块 |
 
 `FalconStreaming.forward_chunk` 接收一块音视频与上块状态，返回当前音频与新状态；`StreamingSession` 提供带序号、音频采样时钟和嘴图时间戳检查的接口。一个块收齐后才运行模型；音频块内允许互看，块首样本等待完整块，与块处理耗时是两个不同的时间量。视频帧应按其所在 40 ms 区间选择，接口中的时间戳规则见 `tools/streaming/session.py`。
@@ -55,3 +55,5 @@ PYTHONPATH=. OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=4 \
 2026-11-12 的训练质量修复、派生数据分组、对照方案和 CPU 验证见[质量改造与 A/B/C 对照](FALCON_STREAMING_QUALITY_REWORK_20261112.md)。
 
 后续 v6/v7 实验使用同一 120 ms 接口。v7 的本次训练配置允许当前块查询此前最多 16 个块的投影 K/V，缓存满后只保留最近历史。新训练入口仍为 `tools.streaming.train_ddp`，训练配方和结果见[历史注意力与教师蒸馏验证](verification/streaming-history-distillation-20261112.md)。
+
+[子带估计与双卡启动](verification/streaming-v8-subband-20261112.md)记录 v8 的训练配置、梯度重放和运行证据。

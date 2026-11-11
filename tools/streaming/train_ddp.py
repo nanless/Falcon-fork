@@ -195,7 +195,8 @@ class TrainingWrapper(torch.nn.Module):
         return output, positive, variance
 
 
-def reconstruction_components(output, target, mixture, silence_rms_threshold=0.0, silence_loss_weight=1.0):
+def reconstruction_components(output, target, mixture, silence_rms_threshold=0.0,
+                              silence_loss_weight=1.0, speech_ratio_floor=0.0):
     """Per-sample hybrid: original negative SI-SDR for speech, normalized MSE for degenerate targets.
 
     The scale-free target MSE trains zero and near-constant targets, where SI-SDR
@@ -207,7 +208,14 @@ def reconstruction_components(output, target, mixture, silence_rms_threshold=0.0
     degenerate, silent = target_degeneracy_masks(target, silence_rms_threshold)
     sisdr = pairwise_neg_sisdr(output.unsqueeze(1), target.unsqueeze(1)).reshape(-1)
     normalized_mse = (output - target).square().mean(dim=1) / mixture.square().mean(dim=1).clamp_min(1e-8)
-    combined = torch.where(degenerate, float(silence_loss_weight) * normalized_mse, sisdr)
+    speech = sisdr
+    if speech_ratio_floor:
+        # Apply the floor in power-ratio space. logaddexp avoids exponentiating
+        # a large ratio and smoothly reduces gradients near zero projection.
+        db_per_neper = 10.0 / math.log(10.0)
+        speech = -db_per_neper * torch.logaddexp(
+            -sisdr / db_per_neper, sisdr.new_tensor(math.log(speech_ratio_floor)))
+    combined = torch.where(degenerate, float(silence_loss_weight) * normalized_mse, speech)
     return combined, sisdr, normalized_mse, degenerate, silent
 
 
@@ -385,6 +393,14 @@ def load_warm_start(path, model, training_model, visual_sha, *, random_visual, r
         if "history_attention_gate" in source_state:
             raise ValueError("legacy warm-start contains a history attention gate")
         source_state["history_attention_gate"] = torch.zeros_like(destination_state["history_attention_gate"])
+    source_subband = source_config.get("subband_refiner", False)
+    if source_subband and not model.subband_refiner:
+        raise ValueError("cannot discard the subband refiner in warm-start")
+    if model.subband_refiner and not source_subband:
+        subband = {name: value for name, value in destination_state.items() if name.startswith("subband.")}
+        if not subband or source_state.keys() & subband.keys():
+            raise ValueError("invalid legacy warm-start subband state")
+        source_state.update(subband)
     source_state["_streaming_format_version"] = destination_state["_streaming_format_version"].detach().cpu().clone()
     model.load_state_dict(source_state, strict=True)
     pool_sha = None
@@ -431,6 +447,10 @@ def parse_args(argv=None):
     parser.add_argument("--silence-loss-weight", type=float, default=1.0)
     parser.add_argument("--visual-mode", choices=("causal", "chunk_centered"), default="causal")
     parser.add_argument("--synthesis-mode", choices=("nonnegative", "signed_residual"), default="nonnegative")
+    parser.add_argument("--subband-refiner", action="store_true")
+    parser.add_argument("--spectral-loss-weight", type=float, default=0.0)
+    parser.add_argument("--speech-ratio-floor", type=float, default=0.0,
+                        help="training-only soft floor added to the linear SI-SDR power ratio")
     parser.add_argument("--attention-history-chunks", type=int, default=0)
     parser.add_argument("--teacher-checkpoint", help="released Falcon checkpoint for training-only distillation")
     parser.add_argument("--teacher-cache", help="complete verified teacher cache for the fixed training view")
@@ -484,7 +504,8 @@ def parse_args(argv=None):
     if args.variance_weight > 0 and not args.positive_contrastive:
         parser.error("variance regularizer requires positive-contrastive")
     try:
-        checkpoint_format_for_visual_mode(args.visual_mode, args.synthesis_mode, args.attention_history_chunks)
+        checkpoint_format_for_visual_mode(args.visual_mode, args.synthesis_mode,
+                                          args.attention_history_chunks, args.subband_refiner)
     except ValueError as exc:
         parser.error(str(exc))
     if (args.teacher_microbatch < 1
@@ -500,6 +521,10 @@ def parse_args(argv=None):
         parser.error("teacher cache requires the teacher checkpoint for identity verification")
     if args.teacher_cache and not args.fixed_crop:
         parser.error("teacher cache requires --fixed-crop so cached targets and student views match")
+    if not np.isfinite(args.spectral_loss_weight) or args.spectral_loss_weight < 0:
+        parser.error("spectral loss weight must be finite and nonnegative")
+    if not 0 <= args.speech_ratio_floor < 1:
+        parser.error("speech ratio floor must be in [0, 1)")
     if args.teacher_checkpoint and args.synthetic:
         parser.error("distillation requires real audiovisual data")
     if not 0 <= args.seed <= 2**32 - 2:
@@ -561,7 +586,8 @@ def main():
             raise ValueError("dataset too small for batch, ranks and accumulation")
         model = FalconStreaming(channels=args.model_channels, visual_mode=args.visual_mode,
                                 synthesis_mode=args.synthesis_mode,
-                                attention_history_chunks=args.attention_history_chunks)
+                                attention_history_chunks=args.attention_history_chunks,
+                                subband_refiner=args.subband_refiner)
         model_config = {"channels": model.channels, "dilations": list(model.dilations)}
         if args.visual_mode != "causal":
             model_config["visual_mode"] = args.visual_mode
@@ -569,6 +595,8 @@ def main():
             model_config["synthesis_mode"] = args.synthesis_mode
         if args.attention_history_chunks:
             model_config["attention_history_chunks"] = args.attention_history_chunks
+        if args.subband_refiner:
+            model_config["subband_refiner"] = True
         model_code_sha = sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconStreaming.py")
         trainer_code_sha = sha256(__file__)
         data_code_sha = sha256(Path(__file__).with_name("realssa_tar.py")) if (args.tar_index or args.valid_tar_index) else sha256(Path(__file__).with_name("common.py"))
@@ -589,6 +617,17 @@ def main():
                                          args.variance_floor, args.silence_rms_threshold,
                                          args.exclude_degenerate_contrastive).to(device)
         objective_name = "negative_si_snr_plus_positive_contrastive_no_negatives" if args.positive_contrastive else "negative_si_snr_reconstruction_only"
+        if args.speech_ratio_floor:
+            objective_name += "_with_soft_sisdr_floor"
+        spectral_loss = None
+        spectral_protocol = None
+        if args.spectral_loss_weight:
+            from tools.streaming.spectral_loss import MultiResolutionSpectralLoss
+
+            spectral_loss = MultiResolutionSpectralLoss().to(device)
+            spectral_protocol = {"weight": args.spectral_loss_weight,
+                                 "source_sha256": sha256(Path(__file__).with_name("spectral_loss.py"))}
+            objective_name += "_with_multires_spectral"
         teacher = None
         distillation_protocol = None
         if args.teacher_checkpoint:
@@ -645,10 +684,13 @@ def main():
                            "variance_floor": args.variance_floor,
                            "silence_rms_threshold": args.silence_rms_threshold,
                            "silence_loss_weight": args.silence_loss_weight,
+                           "speech_ratio_floor": args.speech_ratio_floor,
                            "reconstruction_protocol": "centered_rms_sisdr_or_mixture_normalized_mse_v1",
                            "validation_tracking_version": 2,
                            "synthesis_mode": args.synthesis_mode,
                            "attention_history_chunks": args.attention_history_chunks,
+                           "subband_refiner": args.subband_refiner,
+                           "spectral": spectral_protocol,
                            "distillation": distillation_protocol,
                            "fixed_crop": args.fixed_crop,
                            "cache_code_sha256": cache_code_sha}
@@ -691,9 +733,9 @@ def main():
         def checkpoint_payload(current_epoch, partial):
             return {
                 "format": checkpoint_format_for_visual_mode(
-                    args.visual_mode, args.synthesis_mode, args.attention_history_chunks),
+                    args.visual_mode, args.synthesis_mode, args.attention_history_chunks, args.subband_refiner),
                 "state_dict": model.state_dict(), "model_config": model_config,
-                "distillation": distillation_protocol,
+                "distillation": distillation_protocol, "spectral": spectral_protocol,
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
                 "configuration_path": args.config, "configuration_sha256": args.config_sha256,
@@ -715,6 +757,7 @@ def main():
                 "exclude_degenerate_contrastive": args.exclude_degenerate_contrastive,
                 "contrastive_reduction": "global_valid_mean_v1",
                 "silence_rms_threshold": args.silence_rms_threshold, "silence_loss_weight": args.silence_loss_weight,
+                "speech_ratio_floor": args.speech_ratio_floor,
                 "speaker_contrastive_loss": args.positive_contrastive, "near_negatives": False,
                 "visual_initialization": "random_frozen" if args.random_visual else str(Path(args.visual_init).resolve()),
                 "visual_initialization_sha256": visual_sha, "visual_initialization_metadata": visual_meta, "visual_frozen": True,
@@ -755,8 +798,13 @@ def main():
                 output, contrastive, variance = ddp(padded, frames, target)
                 output = output[:, :SEGMENT_SAMPLES]
                 combined, _, _, degenerate, silent = reconstruction_components(
-                    output, target, mixture, args.silence_rms_threshold, args.silence_loss_weight)
+                    output, target, mixture, args.silence_rms_threshold, args.silence_loss_weight,
+                    speech_ratio_floor=args.speech_ratio_floor)
                 loss = combined.mean()
+                spectral_value = None
+                if spectral_loss is not None:
+                    spectral_value = spectral_loss(output, target, mixture, ~degenerate).mean()
+                    loss = loss + args.spectral_loss_weight * spectral_value
                 distill_metrics = None
                 if teacher_output is not None:
                     auxiliary, selected, teacher_gain = distillation_components(
@@ -789,12 +837,17 @@ def main():
                                        f" teacher_gain_db={summed_gain / max(1, selected_count):.5g}")
                     else:
                         teacher_log = ""
+                    spectral_log = ""
+                    if spectral_value is not None:
+                        global_spectral = spectral_value.detach()
+                        dist.all_reduce(global_spectral, op=dist.ReduceOp.SUM)
+                        spectral_log = f" spectral_loss_last_microbatch={global_spectral.item() / world:.6g}"
                     warmup_learning_rate(optimizer, target_lr, updates, args.warmup_steps)
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     updates += 1
                     if rank == 0:
-                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}{teacher_log}", flush=True)
+                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}{teacher_log}{spectral_log}", flush=True)
                     if args.max_steps and updates - start_updates >= args.max_steps:
                         end_reason = "max_steps"
                         break

@@ -17,6 +17,7 @@
 - [docs/FALCON_STREAMING_120MS.md](FALCON_STREAMING_120MS.md)：当前版本
 - [120 ms 历史注意力与教师蒸馏验证](verification/streaming-history-distillation-20261112.md)
 - [120 ms 架构探针与历史缓存](verification/streaming-v7-architecture-probes.md)
+- [120 ms 子带估计与双卡启动](verification/streaming-v8-subband-20261112.md)
 - [docs/FALCON_STREAMING_160MS.md](FALCON_STREAMING_160MS.md)：历史版本
 - [docs/REALSSA_STREAMING_TRAINING.md](REALSSA_STREAMING_TRAINING.md)
 - [docs/DOCUMENTS_INDEX.md](DOCUMENTS_INDEX.md)

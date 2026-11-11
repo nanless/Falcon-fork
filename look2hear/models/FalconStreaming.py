@@ -61,6 +61,43 @@ class CausalResidualBlock(nn.Module):
         return x + self.out_proj(torch.tanh(a) * torch.sigmoid(b)), padded[..., -self.history:]
 
 
+class SubbandRefiner(nn.Module):
+    """Estimate a signed gain correction from local time-frequency structure."""
+
+    def __init__(self, channels: int):
+        super().__init__()
+        self.bins = FFT_SIZE // 2 + 1
+        self.group_width = 8
+        self.groups = (self.bins + self.group_width - 1) // self.group_width
+        self.pad_bins = self.groups * self.group_width - self.bins
+        width = 16
+        self.frequency_positions = nn.Parameter(torch.zeros(1, width, 1, self.groups))
+        nn.init.normal_(self.frequency_positions, std=0.02)
+        self.spectrum_proj = nn.Linear(3 * self.group_width, width)
+        self.condition_proj = nn.Conv1d(channels, width, 1)
+        self.depthwise = nn.Conv2d(width, width, 3, padding=1, groups=width)
+        self.pointwise = nn.Conv2d(width, width, 1)
+        self.output_proj = nn.Conv2d(width, self.group_width, 1)
+        nn.init.zeros_(self.output_proj.weight)
+        nn.init.zeros_(self.output_proj.bias)
+
+    def forward(self, spectrum: torch.Tensor, condition: torch.Tensor) -> torch.Tensor:
+        magnitude = spectrum.abs()
+        compressed = magnitude.log1p()
+        # The scale tends to one at silence and retains relative complex phase.
+        scale = (1.0 + magnitude).rsqrt()
+        features = torch.stack((compressed, spectrum.real * scale, spectrum.imag * scale), dim=-1)
+        features = F.pad(features, (0, 0, 0, self.pad_bins))
+        features = features.reshape(spectrum.size(0), spectrum.size(1), self.groups, -1)
+        local = self.spectrum_proj(features).permute(0, 3, 1, 2)
+        local = local + self.condition_proj(condition).unsqueeze(-1) + self.frequency_positions
+        # A symmetric convolution shares weights across both axes of this
+        # received chunk; padding introduces no samples from other chunks.
+        local = local + F.gelu(self.pointwise(F.gelu(self.depthwise(local))))
+        gains = self.output_proj(local).permute(0, 2, 3, 1).flatten(2)
+        return gains[..., :self.bins].transpose(1, 2)
+
+
 class FalconStreaming(nn.Module):
     """120 ms block-causal audio-visual extraction with explicit stream state.
 
@@ -76,7 +113,7 @@ class FalconStreaming(nn.Module):
     """
     def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32),
                  visual_mode: str = "causal", synthesis_mode: str = "nonnegative",
-                 attention_history_chunks: int = 0):
+                 attention_history_chunks: int = 0, subband_refiner: bool = False):
         super().__init__()
         if visual_mode not in ("causal", "chunk_centered"):
             raise ValueError("visual_mode must be causal or chunk_centered")
@@ -88,11 +125,18 @@ class FalconStreaming(nn.Module):
             raise ValueError("attention_history_chunks must be a nonnegative integer")
         if attention_history_chunks and synthesis_mode != "signed_residual":
             raise ValueError("attention history requires signed_residual synthesis")
+        if type(subband_refiner) is not bool:
+            raise ValueError("subband_refiner must be a boolean")
+        if subband_refiner and synthesis_mode != "signed_residual":
+            raise ValueError("subband_refiner requires signed_residual synthesis")
+        self.subband_refiner = subband_refiner
         self.visual_mode = visual_mode
         self.synthesis_mode = synthesis_mode
         self.attention_history_chunks = attention_history_chunks
-        # Changed synthesis, visual or attention semantics need a new checkpoint version.
-        if attention_history_chunks:
+        # Changed model semantics need a new checkpoint version.
+        if subband_refiner:
+            self._expected_format_version = 8
+        elif attention_history_chunks:
             self._expected_format_version = 7
         elif synthesis_mode == "signed_residual":
             self._expected_format_version = 6
@@ -129,6 +173,8 @@ class FalconStreaming(nn.Module):
             self.synthesis_residual = nn.Conv1d(channels, FFT_SIZE // 2 + 1, 1)
             nn.init.zeros_(self.synthesis_residual.weight)
             nn.init.zeros_(self.synthesis_residual.bias)
+        if subband_refiner:
+            self.subband = SubbandRefiner(channels)
         self._freeze_bn_stats()
 
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
@@ -288,6 +334,8 @@ class FalconStreaming(nn.Module):
         mask = torch.sigmoid(self.mask(x))
         if self.synthesis_mode == "signed_residual":
             mask = mask + self.synthesis_residual(x)
+        if self.subband_refiner:
+            mask = mask + self.subband(spec, x)
         reconstructed = causal_mask_filter(spec, mask.transpose(1, 2))
         output = reconstructed.reshape(audio.size(0), CHUNK_SAMPLES)
         next_state = {"audio": all_audio[:, -FRAME_SAMPLES:],
