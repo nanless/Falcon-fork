@@ -193,6 +193,10 @@ class FalconStreaming(nn.Module):
         if self.has_subband_capacity and not subband_refiner:
             raise ValueError("nondefault subband_width or subband_depth requires subband_refiner")
         self.subband_refiner = subband_refiner
+        # Training-only memory option. The frontend output and stream state do
+        # not change when checkpointing is enabled.
+        self.checkpoint_visual = False
+        self.checkpoint_chunks = False
         self.visual_mode = visual_mode
         self.synthesis_mode = synthesis_mode
         self.attention_history_chunks = attention_history_chunks
@@ -287,11 +291,20 @@ class FalconStreaming(nn.Module):
             )
         else:
             visual_input = frames
+        if self.checkpoint_visual and self.training and torch.is_grad_enabled():
+            # Non-reentrant checkpointing preserves gradients for trainable
+            # frontend parameters even when input frames do not require grad.
+            from torch.utils.checkpoint import checkpoint
+            x = checkpoint(self._visual_backbone, visual_input, use_reentrant=False)
+        else:
+            x = self._visual_backbone(visual_input)
+        return self.video_proj(x), frames[:, -4:]
+
+    def _visual_backbone(self, visual_input: torch.Tensor) -> torch.Tensor:
         x = self.video_model.frontend3D(visual_input.unsqueeze(1))
         batch, _, count, _, _ = x.shape
         x = self.video_model.trunk(threeD_to_2D_tensor(x))
-        x = x.reshape(batch, count, -1).transpose(1, 2)
-        return self.video_proj(x), frames[:, -4:]
+        return x.reshape(batch, count, -1).transpose(1, 2)
 
     def _attention_with_history(self, joint: torch.Tensor, local: torch.Tensor,
                                 cached: tuple[torch.Tensor, torch.Tensor] | None):
@@ -426,7 +439,15 @@ class FalconStreaming(nn.Module):
         state = None
         outputs = []
         for index in range(chunks):
-            y, state = self.forward_chunk(audio[:, index*CHUNK_SAMPLES:(index+1)*CHUNK_SAMPLES],
-                                          video[:, index*VIDEO_FRAMES:(index+1)*VIDEO_FRAMES], state)
+            audio_chunk = audio[:, index*CHUNK_SAMPLES:(index+1)*CHUNK_SAMPLES]
+            video_chunk = video[:, index*VIDEO_FRAMES:(index+1)*VIDEO_FRAMES]
+            if self.checkpoint_chunks and self.training and torch.is_grad_enabled():
+                # Non-reentrant checkpoint supports nested stream state,
+                # preserving backpropagation through previous chunks.
+                from torch.utils.checkpoint import checkpoint
+                y, state = checkpoint(self.forward_chunk, audio_chunk, video_chunk, state,
+                                      use_reentrant=False)
+            else:
+                y, state = self.forward_chunk(audio_chunk, video_chunk, state)
             outputs.append(y)
         return torch.cat(outputs, dim=-1)

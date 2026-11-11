@@ -458,6 +458,12 @@ def parse_args(argv=None):
     parser.add_argument("--visual-mode", choices=("causal", "chunk_centered"), default="causal")
     parser.add_argument("--synthesis-mode", choices=("nonnegative", "signed_residual"), default="nonnegative")
     parser.add_argument("--subband-refiner", action="store_true")
+    parser.add_argument("--train-visual", action="store_true",
+                        help="train the video backbone with frozen BN running statistics")
+    parser.add_argument("--checkpoint-chunks", action="store_true",
+                        help="recompute chunk activations during training to reduce GPU memory")
+    parser.add_argument("--from-scratch", action="store_true",
+                        help="require random audio/fusion/separator initialization without warm-start or teacher")
     parser.add_argument("--subband-width", type=int, default=16)
     parser.add_argument("--subband-depth", type=int, default=1)
     parser.add_argument("--subband-capacity-lr-multiplier", type=float, default=1.0)
@@ -546,6 +552,13 @@ def parse_args(argv=None):
         parser.error("capacity LR multiplier must be finite and positive")
     if (args.subband_width, args.subband_depth) == (16, 1) and args.subband_capacity_lr_multiplier != 1:
         parser.error("capacity LR multiplier requires the expanded subband branch")
+    if args.from_scratch:
+        if args.warm_start or args.teacher_checkpoint or args.teacher_cache:
+            parser.error("from-scratch forbids warm-start and teacher")
+        if args.random_visual and not args.train_visual:
+            parser.error("a randomly initialized visual backbone must be trained")
+        if args.accum != 1:
+            parser.error("from-scratch recipe uses direct updates without gradient accumulation")
     if args.teacher_checkpoint and args.synthetic:
         parser.error("distillation requires real audiovisual data")
     if not 0 <= args.seed <= 2**32 - 2:
@@ -635,7 +648,8 @@ def main():
             model.video_model.init_from(args.visual_init)
             visual_sha = sha256(args.visual_init)
         for parameter in model.video_model.parameters():
-            parameter.requires_grad_(False)
+            parameter.requires_grad_(args.train_visual)
+        model.checkpoint_chunks = args.checkpoint_chunks
         model = model.to(device)
         training_model = TrainingWrapper(model, args.positive_contrastive, args.variance_weight,
                                          args.variance_floor, args.silence_rms_threshold,
@@ -687,16 +701,29 @@ def main():
                 raise ValueError("resume checkpoint lacks matching training objective")
             if checkpoint.get("visual_initialization_sha256") != visual_sha:
                 raise ValueError("resume visual initialization differs from checkpoint")
-            if bool(checkpoint.get("visual_initialization") == "random_frozen") != bool(args.random_visual):
+            if bool(checkpoint.get("visual_initialization") in ("random_frozen", "random_trainable")) != bool(args.random_visual):
                 raise ValueError("resume visual initialization mode differs from checkpoint")
             model.load_state_dict(checkpoint["state_dict"], strict=True)
             if args.positive_contrastive:
                 training_model.speaker_pool.load_state_dict(checkpoint["speaker_pool_state"], strict=True)
+        if checkpoint and args.from_scratch and checkpoint.get("initialization", {}).get("source") not in ("random", "random_separator"):
+            raise ValueError("from-scratch resume requires a checkpoint from random initialization")
         warm_start_metadata = checkpoint.get("warm_start_metadata") if checkpoint else None
         if args.warm_start:
             warm_start_metadata = load_warm_start(
                 args.warm_start, model, training_model, visual_sha,
                 random_visual=args.random_visual, require_speaker_pool=args.positive_contrastive)
+        initialization = checkpoint.get("initialization") if checkpoint else None
+        if initialization is None and args.from_scratch:
+            digest = hashlib.sha256()
+            for name, value in sorted(model.state_dict().items()):
+                digest.update(name.encode("utf8") + b"\0")
+                digest.update(str(value.dtype).encode("ascii") + b"\0")
+                digest.update(str(tuple(value.shape)).encode("ascii") + b"\0")
+                digest.update(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes())
+            initialization = {"source": "random_separator", "seed": args.seed,
+                              "model_state_sha256": digest.hexdigest(),
+                              "visual_initialization_sha256": visual_sha, "visual_trainable": args.train_visual}
         train_fingerprint = {"kind": "synthetic"} if args.synthetic else index_fingerprint(args.tar_index, args.index_dir)
         valid_fingerprint = index_fingerprint(args.valid_tar_index, args.valid_index_dir)
         resume_protocol = {"train": train_fingerprint, "validation": valid_fingerprint,
@@ -723,6 +750,8 @@ def main():
                            "synthesis_mode": args.synthesis_mode,
                            "attention_history_chunks": args.attention_history_chunks,
                            "subband_refiner": args.subband_refiner,
+                           "train_visual": args.train_visual, "checkpoint_chunks": args.checkpoint_chunks,
+                           "from_scratch": args.from_scratch,
                            "subband_width": args.subband_width, "subband_depth": args.subband_depth,
                            "subband_capacity_lr_multiplier": args.subband_capacity_lr_multiplier,
                            "local_reconstruction": local_protocol,
@@ -790,7 +819,7 @@ def main():
                 "steps": updates, "next_epoch": current_epoch if partial else current_epoch + 1,
                 "resume_restarts_epoch": partial, "best_validation": best,
                 "significant_best_validation": significant_best, "stale_validations": stale,
-                "warm_start_metadata": warm_start_metadata,
+                "warm_start_metadata": warm_start_metadata, "initialization": initialization,
                 "validation_loss": validation_mean, "validation_limit": args.validation_limit,
                 "validation_samples": (min(len(valid), args.validation_limit) if args.validation_limit else len(valid)) if valid is not None else 0,
                 "validation_total": len(valid) if valid is not None else 0, "best_checkpoint": best_checkpoint,
@@ -806,8 +835,10 @@ def main():
                 "silence_rms_threshold": args.silence_rms_threshold, "silence_loss_weight": args.silence_loss_weight,
                 "speech_ratio_floor": args.speech_ratio_floor,
                 "speaker_contrastive_loss": args.positive_contrastive, "near_negatives": False,
-                "visual_initialization": "random_frozen" if args.random_visual else str(Path(args.visual_init).resolve()),
-                "visual_initialization_sha256": visual_sha, "visual_initialization_metadata": visual_meta, "visual_frozen": True,
+                "visual_initialization": ("random_trainable" if args.train_visual else "random_frozen")
+                                         if args.random_visual else str(Path(args.visual_init).resolve()),
+                "visual_initialization_sha256": visual_sha, "visual_initialization_metadata": visual_meta,
+                "visual_frozen": not args.train_visual,
                 "resumed_from": str(Path(args.resume).resolve()) if args.resume else None,
                 "train_index": "synthetic" if args.synthetic else str(Path(args.tar_index or args.index_dir).resolve()),
                 "validation_index": str(Path(args.valid_tar_index or args.valid_index_dir).resolve()) if (args.valid_tar_index or args.valid_index_dir) else None,
@@ -819,7 +850,7 @@ def main():
                 "seed": args.seed, "end_reason": end_reason,
             }
         if rank == 0:
-            visual_label = "random-frozen" if args.random_visual else args.visual_init
+            visual_label = ("random-trainable" if args.train_visual else "random-frozen") if args.random_visual else args.visual_init
             print(f"config={args.config} config_sha256={args.config_sha256} effective_arguments={json.dumps(effective_arguments, sort_keys=True)}", flush=True)
             print(f"trial: backend={args.backend} world={world} batch_per_rank={args.batch_size} accumulation={args.accum} global_batch={world*args.batch_size*args.accum} segment_samples={SEGMENT_SAMPLES} visual={visual_label} objective={objective_name} near_negatives=NOT_USED", flush=True)
         training_model.train()

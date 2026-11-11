@@ -1,0 +1,22 @@
+# 候选原型；完整训练需先通过双卡显存、数值、时序及 CPU 延迟验收。
+train_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/tr.json
+valid_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/cv.json
+visual_weights: /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
+experiment_root: /root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112
+batch_size: 1024
+validation_batch_size: 16
+workers: 2
+lr: 0.01
+warmup_steps: 1000
+weight_decay: 0.01
+epochs: 300
+lr_patience: 5
+early_stop_patience: 25
+min_delta: 0.005
+seed: 42
+width: 256
+rnn_hidden: 320
+heads: 4
+history_frames: 125
+checkpoint_chunks: true
+precision: bf16
