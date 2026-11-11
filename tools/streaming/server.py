@@ -1,8 +1,8 @@
 """Loopback-only WebSocket service for the 160 ms stateful prototype.
 
 The client, not this server, acquires audio, tracks the face, and selects four
-mouth images at or before the interval-start audio-clock timestamps. No future
-context/guard is requested. Timing fields are server-local and do not measure
+mouth images at or before the interval-start audio-clock timestamps. The model
+uses the whole current block but requests no later block or output guard. Timing fields are server-local and do not measure
 capture, network transit or playback.
 """
 from __future__ import annotations

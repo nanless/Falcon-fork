@@ -1,4 +1,4 @@
-"""State completeness and sample-granularity causality regression checks."""
+"""State completeness and chunk-boundary causality regression checks."""
 import pytest
 import torch
 from look2hear.models.FalconStreaming import FalconStreaming
@@ -36,28 +36,12 @@ def test_incomplete_or_malformed_state_is_rejected(setup_model):
         assert result.shape == (1, 2560) and set(next_state) == {"audio", "video", "blocks"}
 
 
-def test_prior_hops_ignore_every_later_subframe_perturbation(setup_model):
-    model, audio, video, _ = setup_model
+def test_history_state_changes_current_output(setup_model):
+    model, audio, video, state = setup_model
     with torch.no_grad():
-        baseline, _ = model.forward_chunk(audio, video)
-        # Test each 8 ms boundary within a chunk, including the last hop.
-        for hop in range(1, 20):
-            cut = 128 * hop
-            changed = audio.clone()
-            changed[:, cut:] = 10.0 * torch.randn_like(changed[:, cut:])
-            actual, _ = model.forward_chunk(changed, video)
-            torch.testing.assert_close(actual[:, :cut], baseline[:, :cut], rtol=0, atol=2e-6)
-
-
-def test_video_frames_do_not_influence_earlier_audio(setup_model):
-    model, audio, video, _ = setup_model
-    with torch.no_grad():
-        baseline, _ = model.forward_chunk(audio, video)
-        for frame in range(1, 4):
-            changed = video.clone()
-            changed[:, frame:] = 10.0 * torch.randn_like(changed[:, frame:])
-            actual, _ = model.forward_chunk(audio, changed)
-            torch.testing.assert_close(actual[:, :frame*640], baseline[:, :frame*640], rtol=0, atol=2e-6)
+        with_history, _ = model.forward_chunk(audio, video, state)
+        without_history, _ = model.forward_chunk(audio, video, None)
+    assert (with_history - without_history).abs().max() > 1e-6
 
 
 def test_multichunk_training_backpropagates_through_cached_state(setup_model):
@@ -107,17 +91,17 @@ def test_adaptive_fir_identity_mask_has_no_shift():
 
 def test_legacy_state_dict_cannot_be_silently_strict_loaded(setup_model):
     model, _, _, _ = setup_model
-    assert model.state_dict()["_streaming_format_version"].item() == 2
+    assert model.state_dict()["_streaming_format_version"].item() == 3
     legacy = {k: v for k, v in model.state_dict().items() if k != "_streaming_format_version"}
     with pytest.raises(RuntimeError, match="_streaming_format_version"):
         model.load_state_dict(legacy, strict=True)
 
 
-@pytest.mark.parametrize("bad", [torch.tensor(1), torch.tensor(2.0), torch.tensor([2])])
+@pytest.mark.parametrize("bad", [torch.tensor(1), torch.tensor(2), torch.tensor(3.0), torch.tensor([3])])
 @pytest.mark.parametrize("strict", [True, False])
 def test_direct_model_load_rejects_incorrect_version(setup_model, bad, strict):
     model, _, _, _ = setup_model
     state = dict(model.state_dict())
     state["_streaming_format_version"] = bad
-    with pytest.raises(RuntimeError, match="expected scalar int64 model version 2"):
+    with pytest.raises(RuntimeError, match="expected scalar int64 model version 3"):
         model.load_state_dict(state, strict=strict)

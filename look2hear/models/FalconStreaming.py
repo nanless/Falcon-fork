@@ -1,9 +1,9 @@
 """Causal, stateful audiovisual Falcon-family streaming research model.
 
 This is a new architecture, not the published Falcon checkpoint architecture.
-A video frame is timestamped at the *start* of the corresponding 40 ms audio
-interval.  Chunked audio arrives in 128-sample (8 ms) hops; each hop is emitted
-only once all 128 samples are available.  The public chunk contains 20 hops.
+Each public call processes one complete 160 ms block. Its 20 audio hops and
+four visual frames may interact bidirectionally within the block; later blocks
+are never inputs to the current call. Per-stream caches contain only history.
 """
 from __future__ import annotations
 
@@ -76,9 +76,9 @@ class FalconStreaming(nn.Module):
     """
     def __init__(self, channels: int = 112, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32)):
         super().__init__()
-        # Persistent marker prevents a strict state_dict load of a v1 model,
-        # whose identical parameter keys implement different synthesis math.
-        self.register_buffer("_streaming_format_version", torch.tensor(2, dtype=torch.int64))
+        # V3 adds block-local joint attention; older checkpoints do not encode
+        # the same architecture and must not silently load as this model.
+        self.register_buffer("_streaming_format_version", torch.tensor(3, dtype=torch.int64))
         if channels < 1 or not dilations or any(d < 1 for d in dilations):
             raise ValueError("channels and dilations must be positive")
         self.channels = int(channels)
@@ -90,6 +90,15 @@ class FalconStreaming(nn.Module):
         self.video_proj = nn.Conv1d(512, channels, 1)
         self.audio_proj = nn.Conv1d(FFT_SIZE + 2, channels, 1)
         self.blocks = nn.ModuleList(CausalResidualBlock(channels, d) for d in self.dilations)
+        # Twenty audio tokens and four video tokens, exclusively from this
+        # block. The causal stack supplies bounded history; attention supplies
+        # all-to-all context within the current block.
+        self.chunk_norm = nn.LayerNorm(channels)
+        self.chunk_attention = nn.MultiheadAttention(channels, num_heads=1, dropout=0.0,
+                                                     batch_first=True)
+        self.chunk_positions = nn.Parameter(torch.zeros(1, CHUNK_SAMPLES // FRAME_SAMPLES + VIDEO_FRAMES,
+                                                        channels))
+        nn.init.normal_(self.chunk_positions, std=0.02)
         self.mask = nn.Conv1d(channels, FFT_SIZE // 2 + 1, 1)
         self._freeze_bn_stats()
 
@@ -100,8 +109,8 @@ class FalconStreaming(nn.Module):
         name = prefix + "_streaming_format_version"
         marker = state_dict.get(name)
         if (not isinstance(marker, torch.Tensor) or marker.ndim != 0
-                or marker.dtype != torch.int64 or marker.item() != 2):
-            error_msgs.append(f"{name}: expected scalar int64 model version 2")
+                or marker.dtype != torch.int64 or marker.item() != 3):
+            error_msgs.append(f"{name}: expected scalar int64 model version 3")
             return
         super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
                                       missing_keys, unexpected_keys, error_msgs)
@@ -183,6 +192,12 @@ class FalconStreaming(nn.Module):
         for block, block_state in zip(self.blocks, previous):
             x, block_state = block(x, block_state)
             next_states.append(block_state)
+        # The call has received the entire block; the attention never sees
+        # tokens from subsequent blocks, including during training.
+        joint = torch.cat((x.transpose(1, 2), visual.transpose(1, 2)), dim=1)
+        joint = self.chunk_norm(joint + self.chunk_positions)
+        attended, _ = self.chunk_attention(joint, joint, joint, need_weights=False)
+        x = x + attended[:, :CHUNK_SAMPLES // FRAME_SAMPLES].transpose(1, 2)
         mask = torch.sigmoid(self.mask(x)).transpose(1, 2)
         reconstructed = causal_mask_filter(spec, mask)
         output = reconstructed.reshape(audio.size(0), CHUNK_SAMPLES)

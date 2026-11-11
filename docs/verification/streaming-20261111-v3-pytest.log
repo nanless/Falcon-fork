@@ -1,0 +1,110 @@
+........................................................................ [ 32%]
+........................................................................ [ 65%]
+....................s....................................s.............. [ 98%]
+...                                                                      [100%]
+=============================== warnings summary ===============================
+../../../miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+    warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+
+look2hear/layers/stft.py:15
+  /root/code/github_repos/Falcon-fork/look2hear/layers/stft.py:15: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if TORCH_VERSION >= LooseVersion("1.7"):
+
+../../../miniforge3/envs/falcon/lib/python3.11/site-packages/setuptools/_distutils/version.py:336
+../../../miniforge3/envs/falcon/lib/python3.11/site-packages/setuptools/_distutils/version.py:336
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/setuptools/_distutils/version.py:336: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    other = LooseVersion(other)
+
+look2hear/utils/stft.py:16
+  /root/code/github_repos/Falcon-fork/look2hear/utils/stft.py:16: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if TORCH_VERSION >= LooseVersion("1.7"):
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[base]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[nass_v2]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[mdcl]
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[base]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[nass_v2]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[mdcl]
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/loops/fit_loop.py:321: The number of training batches (2) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[base]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[nass_v2]
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[mdcl]
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:434: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=127` in the `DataLoader` to improve performance.
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[base]
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_with_csvlogger[base]
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/utilities/data.py:79: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 1. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_pit_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_spk_contrast_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_beta', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_cos_sim_pos', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_cos_sim_neg_avg', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_cos_sim_neg_max', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_neg_active_ratio', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_n_samples_0near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_n_samples_1near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_n_samples_2near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_n_samples_3near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('train_n_samples_4plus_near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('val_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('test_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('learning_rate', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('val_pit_sisnr', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('val_pit_sisnr_0near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('val_pit_sisnr_1near', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+tools/repro/tests/test_litmodule_logging.py::test_fit_without_logger_does_not_crash
+  /root/miniforge3/envs/falcon/lib/python3.11/site-packages/pytorch_lightning/core/module.py:522: You called `self.log('test_pit_sisnr', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tools/repro/tests/test_phase1_regression.py:842: Lead LRS2 评测日志不在 /root/tmp，跳过
+SKIPPED [1] tools/repro/tests/test_phase2_pipeline.py:781: P2-D 正式训练 metrics.csv 不在本机（/root/tmp/p2d_train）
+217 passed, 2 skipped, 1 deselected, 38 warnings in 294.33s (0:04:54)

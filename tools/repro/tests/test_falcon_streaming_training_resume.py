@@ -35,21 +35,22 @@ def test_resume_keeps_or_explicitly_overrides_saved_learning_rate(tmp_path):
     rejected = run_train("--index-dir", tmp_path / "missing", "--output", base, check=False)
     assert rejected.returncode != 0 and "output already exists" in rejected.stderr
 
-def test_old_checkpoint_cannot_be_silently_interpreted_as_new_model(tmp_path):
+@pytest.mark.parametrize("old_format", ["falcon-streaming-v1", "falcon-streaming-v2"])
+def test_old_checkpoint_cannot_be_silently_interpreted_as_new_model(tmp_path, old_format):
     from tools.streaming.common import CHECKPOINT_FORMAT, read_checkpoint
     old, new = tmp_path / "old.pt", tmp_path / "new.pt"
-    torch.save({"format": "falcon-streaming-v1", "state_dict": {}}, old)
-    torch.save({"format": CHECKPOINT_FORMAT, "state_dict": {"_streaming_format_version": torch.tensor(2, dtype=torch.int64)}}, new)
-    with pytest.raises(ValueError, match="v1 uses a different synthesis algorithm"):
+    torch.save({"format": old_format, "state_dict": {}}, old)
+    torch.save({"format": CHECKPOINT_FORMAT, "state_dict": {"_streaming_format_version": torch.tensor(3, dtype=torch.int64)}}, new)
+    with pytest.raises(ValueError, match="v1 and v2 use different model semantics"):
         read_checkpoint(old, "cpu")
-    assert read_checkpoint(new, "cpu")["format"] == "falcon-streaming-v2"
+    assert read_checkpoint(new, "cpu")["format"] == "falcon-streaming-v3"
 
 
-@pytest.mark.parametrize("version", [None, torch.tensor(1), torch.tensor(2.0), torch.tensor([2])])
-def test_v2_requires_valid_model_state_version(tmp_path, version):
+@pytest.mark.parametrize("version", [None, torch.tensor(1), torch.tensor(2), torch.tensor(3.0), torch.tensor([3])])
+def test_v3_requires_valid_model_state_version(tmp_path, version):
     from tools.streaming.common import CHECKPOINT_FORMAT, read_checkpoint
     state = {} if version is None else {"_streaming_format_version": version}
     path = tmp_path / "bad.pt"
     torch.save({"format": CHECKPOINT_FORMAT, "state_dict": state}, path)
-    with pytest.raises(ValueError, match="expected scalar int64 _streaming_format_version=2"):
+    with pytest.raises(ValueError, match="expected scalar int64 _streaming_format_version=3"):
         read_checkpoint(path, "cpu")

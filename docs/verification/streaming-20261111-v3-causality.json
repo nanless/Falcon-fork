@@ -1,0 +1,50 @@
+{
+  "scope": "CPU aligned real utterance, three 160ms chunks; prior chunks invariant under later chunk perturbations",
+  "checkpoint_format": "falcon-streaming-v3",
+  "training_status": "random_initialization",
+  "seed": 20261111,
+  "threads": 4,
+  "checkpoint": "/root/tmp/falcon-chunk-v3-training-20261111/random.pt",
+  "checkpoint_sha256": "795e927447b5ed6e0a73e0ae55855a7da624fbe494b5db51a6cc2b07b3ac62ea",
+  "model_sha256": "8a32dccc2807c574cd0c56ad10b14b1ac09363f104ea3e0af27fb600812e661b",
+  "audio": "/root/data/falcon_lrs2_2mix/tt/mix/6330311066473698535_00011_0.53084_6339356267468615354_00010_-0.53084.wav",
+  "audio_sha256": "2f3d3e7ebf1f6089e625ce14c6d487aee5aff3e79843b2a3a4f2b35d3cebcce6",
+  "mouth": "/root/data/falcon_lrs2_2mix/tt/mouths/6330311066473698535_00011.pt",
+  "mouth_sha256": "416cef8430415e7f93dd6f16f3d425ed12b66185abb104f6d09d327983477386",
+  "rows": [
+    {
+      "kind": "audio",
+      "changed_from_chunk": 1,
+      "prior_max_abs_delta": 0.0,
+      "changed_chunk_max_abs_delta": 0.802798330783844
+    },
+    {
+      "kind": "video",
+      "changed_from_chunk": 1,
+      "prior_max_abs_delta": 0.0,
+      "changed_chunk_max_abs_delta": 0.043880581855773926
+    },
+    {
+      "kind": "audio",
+      "changed_from_chunk": 2,
+      "prior_max_abs_delta": 0.0,
+      "changed_chunk_max_abs_delta": 0.869990348815918
+    },
+    {
+      "kind": "video",
+      "changed_from_chunk": 2,
+      "prior_max_abs_delta": 0.0,
+      "changed_chunk_max_abs_delta": 0.042780160903930664
+    },
+    {
+      "kind": "audio_within_chunk",
+      "earlier_same_chunk_max_abs_delta": 0.0025343680754303932,
+      "previous_chunk_max_abs_delta": 0.0
+    },
+    {
+      "kind": "video_within_chunk",
+      "earlier_same_chunk_max_abs_delta": 0.001472271978855133,
+      "previous_chunk_max_abs_delta": 0.0
+    }
+  ]
+}

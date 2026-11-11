@@ -30,8 +30,8 @@ def client():
 
 def test_websocket_reset_reconnect_isolation(client):
     with client.websocket_connect("ws://127.0.0.1:8765/ws") as a, client.websocket_connect("ws://127.0.0.1:8765/ws") as b:
-        assert a.receive_json()["format"] == "falcon-streaming-v2"
-        assert b.receive_json()["format"] == "falcon-streaming-v2"
+        assert a.receive_json()["format"] == "falcon-streaming-v3"
+        assert b.receive_json()["format"] == "falcon-streaming-v3"
         a.send_json(payload()); r0 = a.receive_json()
         b.send_json(payload()); r1 = b.receive_json()
         assert r0["type"] == "result" and r0["audio_f32le"] == r1["audio_f32le"]
@@ -133,7 +133,7 @@ def test_status_uses_current_checkpoint_format(client):
     from tools.streaming.common import CHECKPOINT_FORMAT
     response = client.get('/status')
     assert response.status_code == 200
-    assert response.json()['format'] == CHECKPOINT_FORMAT == 'falcon-streaming-v2'
+    assert response.json()['format'] == CHECKPOINT_FORMAT == 'falcon-streaming-v3'
 
 
 def test_partial_final_protocol_enforces_zero_padding_and_requires_reset(client):

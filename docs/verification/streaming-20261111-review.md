@@ -57,3 +57,8 @@ OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 "$PY" -m tools.streaming.bench_cpu_review \
 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 "$PY" -m tools.streaming.audit_causality \
   --checkpoint "$CKPT" --index-dir "$DATA" --threads 4 --output "$OUT/causality.json"
 ```
+
+
+## 2026-11-11 v3 版本说明
+
+本文件记录 v2 运行和历史结果。当前工作树的流式训练、检查点加载与因果审计已升级为 v3；复现这里的 v2 命令需使用对应历史代码版本和 v2 检查点。v3 结果见 [流式模型指南](../FALCON_STREAMING_160MS.md)。

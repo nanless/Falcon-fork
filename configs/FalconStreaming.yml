@@ -5,6 +5,11 @@ sample_rate: 16000
 video_fps: 25
 chunk_samples: 2560
 video_frames_per_chunk: 4
+checkpoint_format: falcon-streaming-v3
+temporal_context: chunkwise_causal
+chunk_internal_context: bidirectional
+future_chunks: forbidden
+history: causal_convolution_and_visual_frame_cache
 mouth_input_pixels: [88, 88]
 training:
   loss: negative_si_snr

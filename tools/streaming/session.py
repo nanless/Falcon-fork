@@ -11,11 +11,13 @@ class StreamingSession:
     """One speaker/session, own state. Times are integer samples on the audio clock.
 
     `push` accepts a complete 160ms mono audio block and 4 mouth crops. Each crop
-    timestamp must be no later than its 40ms interval start; this avoids future
-    video leaking into audio output. A reset starts a new independent stream.
+    timestamp must be no later than its 40ms interval start. This conservative
+    acquisition rule is stricter than block causality; the model may use every
+    frame in the current 160ms block for any output within that block. A reset starts a new independent stream.
     A partial final chunk specifies valid_samples, pads audio with zeros, and
-    closes the stream until reset. Only video bins covering valid audio are
-    checked for maximum age. An endpoint should select/track faces externally and map timestamps to this
+    closes the stream until reset. Video bins covering valid audio are
+    timestamp-checked; other supplied crops are replaced with the last valid
+    crop and their timestamps are ignored. An endpoint should select/track faces externally and map timestamps to this
     audio clock. Calls on one session must be serialized by the caller.
     """
     def __init__(self, checkpoint, device="cpu", max_frame_age_samples=2560):
@@ -65,11 +67,13 @@ class StreamingSession:
             raise ValueError(f"expected start_sample {self.next_sample}")
         if len(video_samples) != FRAMES or any(type(i) is not int for i in video_samples):
             raise ValueError("video_samples must contain four integer audio-clock sample timestamps")
-        if any(b < a for a, b in zip(video_samples, video_samples[1:])):
+        # Prevent padded tail frames from providing future video to attention.
+        valid_frames = (valid_samples + SAMPLES_PER_FRAME - 1) // SAMPLES_PER_FRAME
+        if any(b < a for a, b in zip(video_samples[:valid_frames], video_samples[1:valid_frames])):
             raise ValueError("video timestamps must be nondecreasing")
         if self.last_video_sample is not None and video_samples[0] < self.last_video_sample:
             raise ValueError("video timestamp moved backwards")
-        for i, timestamp in enumerate(video_samples):
+        for i, timestamp in enumerate(video_samples[:valid_frames]):
             nominal = start_sample + i * SAMPLES_PER_FRAME
             if timestamp > nominal:
                 raise ValueError("video frame is from the future for its audio interval")
@@ -83,6 +87,9 @@ class StreamingSession:
         v = mouth_tensor(mouth)
         if v.shape != (FRAMES, 88, 88):
             raise ValueError("mouth must have four uint8 96x96 crops")
+        if valid_frames < FRAMES:
+            v = v.clone()
+            v[valid_frames:] = v[valid_frames - 1]
         with torch.inference_mode():
             output, new_state = self.model.forward_chunk(torch.from_numpy(x.copy())[None].to(self.device),
                                                           v[None].to(self.device), self.state)

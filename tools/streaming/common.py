@@ -12,7 +12,7 @@ FPS = 25
 SAMPLES = 2560
 FRAMES = 4
 SAMPLES_PER_FRAME = 640
-CHECKPOINT_FORMAT = "falcon-streaming-v2"
+CHECKPOINT_FORMAT = "falcon-streaming-v3"
 
 
 def mouth_tensor(frames):
@@ -95,9 +95,9 @@ def read_checkpoint(path, device):
     if not isinstance(ckpt, dict):
         raise ValueError("invalid FalconStreaming checkpoint")
     if ckpt.get("format") != CHECKPOINT_FORMAT:
-        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v2; v1 uses a different synthesis algorithm and must be reinitialized or retrained")
+        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v3; v1 and v2 use different model semantics and must be reinitialized or retrained")
     state = ckpt.get("state_dict")
     version = state.get("_streaming_format_version") if isinstance(state, dict) else None
-    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != 2:
-        raise ValueError("incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version=2")
+    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != 3:
+        raise ValueError("incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version=3")
     return ckpt
