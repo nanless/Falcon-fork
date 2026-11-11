@@ -22,7 +22,7 @@ CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 
 ## 真实数据两步训练和续训
 
-使用 2 块连续输入、batch 1、CPU，在 `/root/tmp/falcon-streaming-v2-train-20261111-2QxOdL` 新建随机检查点，运行两步训练并再续训一步。训练与恢复均调用 `python -m tools.streaming.train`，数据参数为 `--index-dir /root/data/falcon_lrs2_2mix/tr --chunks 2 --batch-size 1 --device cpu`；第一次加 `--steps 2 --resume random-v2.pt`，第二次加 `--steps 1 --resume real-v2.pt --lr 0.0001`。
+使用 2 块连续输入、batch 1、CPU，在 `/root/group-shared/voiceprint/experiments/falcon_historical_runs_20261111/falcon-streaming-v2-train-20261111-2QxOdL` 新建随机检查点，运行两步训练并再续训一步。训练与恢复均调用 `python -m tools.streaming.train`，数据参数为 `--index-dir /root/data/falcon_lrs2_2mix/tr --chunks 2 --batch-size 1 --device cpu`；第一次加 `--steps 2 --resume random-v2.pt`，第二次加 `--steps 1 --resume real-v2.pt --lr 0.0001`。
 
 | 记录 | 值 |
 | --- | --- |

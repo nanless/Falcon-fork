@@ -19,6 +19,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, Dataset, DistributedSampler
 
 from look2hear.models.FalconStreaming import FalconStreaming
+from tools.streaming.training_config import yaml_arguments
 from look2hear.losses import pairwise_neg_sisdr
 from look2hear.losses.nass_contrastive_loss import NASSContrastiveLoss
 from look2hear.models.Falcon_Contrastive import AttentionSpeakerPool
@@ -220,8 +221,9 @@ def atomic_checkpoint(path, payload):
         os.unlink(temp_name)
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    parser.add_argument("--config", help="YAML configuration; explicit CLI options override it")
     data = parser.add_mutually_exclusive_group(required=True)
     data.add_argument("--index-dir")
     data.add_argument("--tar-index", help="prebuilt RealSSA tar index JSON")
@@ -250,16 +252,29 @@ def main():
     parser.add_argument("--workers", type=int, default=0)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--backend", choices=("nccl", "gloo"), default="nccl")
-    args = parser.parse_args()
+    try:
+        tokens, config_path, config_sha256 = yaml_arguments(argv)
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
+    args = parser.parse_args(tokens)
+    args.config = config_path
+    args.config_sha256 = config_sha256
     if min(args.batch_size, args.accum, args.epochs, args.save_every) < 1 or args.max_steps < 0 or args.workers < 0 or args.validation_limit < 0:
         parser.error("invalid batch/accum/epochs/steps/workers")
     if (args.lr is not None and (not np.isfinite(args.lr) or args.lr <= 0)) or not np.isfinite(args.weight_decay) or args.weight_decay < 0 or not np.isfinite(args.contrastive_weight) or args.contrastive_weight < 0:
         parser.error("invalid optimizer parameters")
+    if not 0 <= args.seed <= 2**32 - 2:
+        parser.error("seed must be between 0 and 2**32-2 for two ranks")
+    return args
+
+
+def main():
+    args = parse_args()
     if "RANK" not in os.environ or "WORLD_SIZE" not in os.environ:
-        parser.error("launch with torchrun; RANK/WORLD_SIZE are required")
+        raise ValueError("launch with torchrun; RANK/WORLD_SIZE are required")
     rank, world, local_rank = int(os.environ["RANK"]), int(os.environ["WORLD_SIZE"]), int(os.environ["LOCAL_RANK"])
     if world != 2:
-        parser.error("this trial requires exactly two ranks")
+        raise ValueError("this trial requires exactly two ranks")
     if Path(args.output).exists():
         raise FileExistsError(f"output already exists: {args.output}")
     if args.backend == "nccl":
@@ -269,6 +284,13 @@ def main():
         device = torch.device("cpu")
     dist.init_process_group(backend=args.backend)
     try:
+        # Check all ranks received identical effective settings before output.
+        effective_arguments = vars(args).copy()
+        arg_signature = hashlib.sha256(json.dumps(effective_arguments, sort_keys=True).encode()).hexdigest()
+        signatures = [None] * world
+        dist.all_gather_object(signatures, arg_signature)
+        if any(signature != arg_signature for signature in signatures):
+            raise ValueError("training configuration differs across ranks")
         if args.checkpoint_dir and rank == 0:
             Path(args.checkpoint_dir).mkdir(parents=True, exist_ok=False)
         dist.barrier()
@@ -322,6 +344,7 @@ def main():
                            "world_size": world, "batch_per_rank": args.batch_size, "accumulation": args.accum,
                            "seed": args.seed, "workers": args.workers, "validation_limit": args.validation_limit, "weight_decay": args.weight_decay, "visual_sha256": visual_sha,
                            "model_code_sha256": model_code_sha, "trainer_code_sha256": trainer_code_sha,
+                           "config_parser_sha256": sha256(Path(__file__).with_name("training_config.py")),
                            "data_code_sha256": data_code_sha, "torch_version": str(torch.__version__), "objective": objective_name,
                            "contrastive_weight": args.contrastive_weight if args.positive_contrastive else 0.0,
                            "optimizer": "AdamW", "segment_samples": SEGMENT_SAMPLES}
@@ -362,6 +385,8 @@ def main():
                 "format": CHECKPOINT_FORMAT, "state_dict": model.state_dict(),
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
+                "configuration_path": args.config, "configuration_sha256": args.config_sha256,
+                "effective_arguments": effective_arguments,
                 "steps": updates, "next_epoch": current_epoch if partial else current_epoch + 1,
                 "resume_restarts_epoch": partial, "best_validation": best, "stale_validations": stale,
                 "validation_loss": validation_mean, "validation_limit": args.validation_limit,
@@ -387,6 +412,7 @@ def main():
             }
         if rank == 0:
             visual_label = "random-frozen" if args.random_visual else args.visual_init
+            print(f"config={args.config} config_sha256={args.config_sha256} effective_arguments={json.dumps(effective_arguments, sort_keys=True)}", flush=True)
             print(f"trial: backend={args.backend} world={world} batch_per_rank={args.batch_size} accumulation={args.accum} global_batch={world*args.batch_size*args.accum} segment_samples={SEGMENT_SAMPLES} visual={visual_label} objective={objective_name} near_negatives=NOT_USED", flush=True)
         training_model.train()
         for epoch in range(start_epoch, start_epoch + args.epochs):

@@ -69,7 +69,7 @@ cd /root/code/github_repos/Falcon-fork
 PY=/root/miniforge3/envs/falcon/bin/python
 export PYTHONPATH="$PWD"
 export OMP_NUM_THREADS=4
-RUN_DIR="$(mktemp -d /root/tmp/falcon-streaming-example-XXXXXX)"
+RUN_DIR="$(mktemp -d /root/group-shared/voiceprint/experiments/falcon-streaming-example-XXXXXX)"
 echo "$RUN_DIR"
 ```
 
@@ -198,7 +198,7 @@ PY
 cd /root/code/github_repos/Falcon-fork
 PY=/root/miniforge3/envs/falcon/bin/python
 export PYTHONPATH="$PWD"
-RUN_DIR="$(mktemp -d /root/tmp/falcon-streaming-ws-XXXXXX)"
+RUN_DIR="$(mktemp -d /root/group-shared/voiceprint/experiments/falcon-streaming-ws-XXXXXX)"
 echo "$RUN_DIR"
 "$PY" -m tools.streaming.bench_ws \
   --url ws://127.0.0.1:8765/ws --warmup 0 --chunks 35 \
@@ -260,3 +260,5 @@ echo "$RUN_DIR"
 后续逐项复核修复了训练裁剪与服务非有限输出的边界，并在流式联合回归中通过 58 项；详细检查、抽样范围和日志见 [后续复核记录](verification/streaming-20261111-followup-review.md)。
 
 RealSSA-Sim TAR 直读、双卡训练和与公开 Falcon 的配对评测见 [RealSSA-Sim 双卡训练说明](REALSSA_STREAMING_TRAINING.md)。
+
+2026-11-11 服务器将 `/root/tmp/` 下选定的 26 个流式历史条目迁至 `/root/group-shared/voiceprint/experiments/falcon_historical_runs_20261111/`，原有条目名称保持不变；共 62 个文件经逐文件 SHA-256 校验后移除原件，具体对应关系和文件清单见该目录 `copy-before.json` 与 `copy-after.json`。历史 JSON、日志和记录保留当时的原路径字段，查找文件时可将清单所列条目的 `/root/tmp/` 前缀替换为上述新目录。

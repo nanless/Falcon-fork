@@ -43,9 +43,9 @@
 ```bash
 cd /root/code/github_repos/Falcon-fork
 PY=/root/miniforge3/envs/falcon/bin/python
-CKPT=/root/tmp/falcon-streaming-review-20261111/random-v2-r2.pt
+CKPT=/root/group-shared/voiceprint/experiments/falcon_historical_runs_20261111/falcon-streaming-review-20261111/random-v2-r2.pt
 DATA=/root/data/falcon_lrs2_2mix/tt
-OUT=$(mktemp -d /root/tmp/falcon-cpu-review-repeat-XXXXXX)
+OUT=$(mktemp -d /root/group-shared/voiceprint/experiments/falcon-cpu-review-repeat-XXXXXX)
 for n in 1 4 8; do
   OMP_NUM_THREADS=$n MKL_NUM_THREADS=$n "$PY" -m tools.streaming.bench_cpu_review \
     --checkpoint "$CKPT" --index-dir "$DATA" --threads "$n" --warmup 10 \

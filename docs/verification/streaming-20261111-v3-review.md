@@ -19,7 +19,7 @@ v3 用当前块的 20 个音频特征和 4 个视觉特征做块内自注意力�
 ```bash
 cd /root/code/github_repos/Falcon-fork
 PY=/root/miniforge3/envs/falcon/bin/python
-R=$(mktemp -d /root/tmp/falcon-chunk-v3-example-XXXXXX)
+R=$(mktemp -d /root/group-shared/voiceprint/experiments/falcon-chunk-v3-example-XXXXXX)
 OMP_NUM_THREADS=4 "$PY" -m tools.streaming.init --output "$R/random.pt" --seed 17
 OMP_NUM_THREADS=4 "$PY" -m tools.streaming.train --index-dir /root/data/falcon_lrs2_2mix/tr --chunks 2 --steps 2 --batch-size 1 --device cpu --output "$R/real.pt"
 OMP_NUM_THREADS=4 "$PY" -m tools.streaming.train --index-dir /root/data/falcon_lrs2_2mix/tr --chunks 2 --steps 1 --batch-size 1 --device cpu --resume "$R/real.pt" --output "$R/resume.pt"

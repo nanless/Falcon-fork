@@ -31,12 +31,12 @@
 
 ## 本机双路 WebSocket 实测
 
-在服务器启动 loopback 服务，使用随机检查点 `/root/tmp/falcon-streaming-check-20261110/random-v2.pt`、A800 GPU 和两个真实 TCP WebSocket 客户端。脚本位于 [`streaming_ws_concurrency.py`](scripts/streaming_ws_concurrency.py)，复现命令：
+在服务器启动 loopback 服务，使用随机检查点 `/root/tmp/falcon-streaming-check-20261110/random-v2.pt`、A800 GPU 和两个真实 TCP WebSocket 客户端。该检查点已迁至 `/root/group-shared/voiceprint/experiments/falcon_historical_runs_20261111/falcon-streaming-check-20261110/random-v2.pt`，原始记录的路径保留；迁移后文件 SHA-256 与下述记录一致。脚本位于 [`streaming_ws_concurrency.py`](scripts/streaming_ws_concurrency.py)，复现命令：
 
 ```bash
 PYTHONPATH=. OMP_NUM_THREADS=2 /root/miniforge3/envs/falcon/bin/python \
   docs/verification/scripts/streaming_ws_concurrency.py \
-  --checkpoint /root/tmp/falcon-streaming-check-20261110/random-v2.pt --device cuda
+  --checkpoint /root/group-shared/voiceprint/experiments/falcon_historical_runs_20261111/falcon-streaming-check-20261110/random-v2.pt --device cuda
 ```
 
 两路同输入的输出一致；单路 reset 后另一连接继续使用自己的序列，8 轮连续验证通过。启动后未经额外预热的第 0 轮两路完成耗时 338.11 ms，其中第二路服务端等待队列 325.93 ms；后 7 轮两路完成耗时 14.20～15.53 ms。该记录仅为少量本机请求，数字包括客户端发请求和收响应，不包含麦克风、摄像头跟踪和播放；不能作为端到端延迟百分位。后续服务如加入预热，其冷启动数值需要重新测量。

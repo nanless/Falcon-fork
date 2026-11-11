@@ -1,0 +1,26 @@
+# 双卡 RealSSA-Sim 训练试验，文件内相对路径相对于本配置文件目录。
+# 示例为两步与 16 条验证；更长训练请复制配置并调整参数。
+# 模型固定：16 kHz、25 fps、160 ms/chunk、2 秒训练片段、112 通道、
+# dilation 1/2/4/8/16/32；优化器为 AdamW，验证调度因子0.5/耐心15轮。
+# 这些规格由代码确定，不是本文件中的可配置键。
+tar_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/tr.json
+valid_tar_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/cv.json
+validation_limit: 16
+visual_init: /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
+# 数据不含独立近场干扰波形：只启用对比正项，并非完整论文损失。
+positive_contrastive: true
+contrastive_weight: 1.0
+batch_size: 4
+accum: 4
+epochs: 1
+max_steps: 2
+# null：新训练使用 0.001；续训恢复检查点的当前学习率。
+lr: null
+weight_decay: 0.01
+workers: 0
+seed: 42
+backend: nccl
+# 每次运行使用新输出路径，或使用命令行覆盖这两项。
+output: /root/group-shared/voiceprint/experiments/falcon_realssa_streaming_config_example/checkpoint.pt
+checkpoint_dir: /root/group-shared/voiceprint/experiments/falcon_realssa_streaming_config_example/epochs
+save_every: 1

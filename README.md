@@ -79,7 +79,7 @@ The command below creates a separate temporary output directory and evaluates on
 ```bash
 REPO=/root/code/github_repos/Falcon-fork
 PY=/root/miniforge3/envs/falcon/bin/python
-RUN_DIR="$(mktemp -d /root/tmp/falcon-eval-readme-XXXXXX)"
+RUN_DIR="$(mktemp -d /root/group-shared/voiceprint/experiments/falcon-eval-readme-XXXXXX)"
 cd "$RUN_DIR"
 PYTHONPATH="$REPO" OMP_NUM_THREADS=4 "$PY" "$REPO/audio_visual_test.py" \
   --conf_dir "$REPO/configs/LRS2_2Mix.yml" \

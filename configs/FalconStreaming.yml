@@ -1,4 +1,5 @@
 # Interface reference only: none of the CLI scripts reads this file.
+# For two-GPU RealSSA training use RealSSAStreamingDDP.yml via --config.
 # Set runtime options explicitly via the relevant command-line arguments.
 # The model validates fixed audio/video block sizes in code.
 sample_rate: 16000
