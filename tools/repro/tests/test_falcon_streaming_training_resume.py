@@ -54,3 +54,21 @@ def test_v4_requires_valid_model_state_version(tmp_path, version):
     torch.save({"format": CHECKPOINT_FORMAT, "state_dict": state}, path)
     with pytest.raises(ValueError, match="expected scalar int64 _streaming_format_version=4"):
         read_checkpoint(path, "cpu")
+
+
+def test_v5_single_device_training_can_save_load_and_resume(tmp_path):
+    from look2hear.models.FalconStreaming import FalconStreaming
+    from tools.streaming.common import read_checkpoint
+    source,first,second=[tmp_path/x for x in ('source-v5.pt','first-v5.pt','second-v5.pt')]
+    model=FalconStreaming(channels=8,dilations=(1,),visual_mode='chunk_centered')
+    torch.save({'format':'falcon-streaming-v5','state_dict':model.state_dict(),
+                'model_config':{'channels':8,'dilations':[1],'visual_mode':'chunk_centered'},
+                'steps':0},source)
+    common=('--synthetic','--chunks','1','--steps','1','--batch-size','1','--device','cpu')
+    run_train(*common,'--resume',source,'--output',first)
+    first_ckpt=read_checkpoint(first,'cpu')
+    assert first_ckpt['format']=='falcon-streaming-v5' and first_ckpt['steps']==1
+    assert first_ckpt['model_config']['visual_mode']=='chunk_centered'
+    run_train(*common,'--resume',first,'--output',second)
+    second_ckpt=read_checkpoint(second,'cpu')
+    assert second_ckpt['format']=='falcon-streaming-v5' and second_ckpt['steps']==2

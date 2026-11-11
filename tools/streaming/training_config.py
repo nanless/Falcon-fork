@@ -29,18 +29,19 @@ def _mapping(loader, node, deep=False):
 
 UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
 PATH_KEYS = {"index_dir", "tar_index", "valid_index_dir", "valid_tar_index",
-             "visual_init", "output", "checkpoint_dir", "resume"}
-BOOL_KEYS = {"synthetic", "random_visual", "reconstruction_only", "positive_contrastive"}
+             "visual_init", "output", "checkpoint_dir", "resume", "warm_start"}
+BOOL_KEYS = {"synthetic", "random_visual", "reconstruction_only", "positive_contrastive", "exclude_degenerate_contrastive"}
 INT_KEYS = {"validation_limit", "batch_size", "accum", "epochs", "max_steps",
             "save_every", "workers", "seed", "validation_batch_size", "model_channels",
             "warmup_steps", "lr_patience", "early_stop_patience"}
-FLOAT_KEYS = {"contrastive_weight", "lr", "weight_decay", "min_delta"}
-STR_KEYS = {"backend"}
+FLOAT_KEYS = {"contrastive_weight", "lr", "weight_decay", "min_delta", "variance_weight", "variance_floor", "silence_rms_threshold", "silence_loss_weight"}
+STR_KEYS = {"backend", "visual_mode"}
 KEYS = PATH_KEYS | BOOL_KEYS | INT_KEYS | FLOAT_KEYS | STR_KEYS
 GROUPS = ({"index_dir", "tar_index", "synthetic"},
           {"valid_index_dir", "valid_tar_index"},
           {"visual_init", "random_visual"},
-          {"reconstruction_only", "positive_contrastive"})
+          {"reconstruction_only", "positive_contrastive"},
+          {"resume", "warm_start"})
 
 
 def yaml_arguments(argv=None):

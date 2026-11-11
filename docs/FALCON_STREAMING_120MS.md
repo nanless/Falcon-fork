@@ -51,3 +51,5 @@ PYTHONPATH=. OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=4 \
 第 100 轮检查点的 RealSSA-Sim tt 全量中途配对结果、9,166 条有效样本统计和三个全零目标的核查，见 [测试记录](verification/streaming-120ms-realssa-tt-epoch100.md)。
 
 模型质量差距的数据、时序、对比损失、边界及训练诊断见[质量差距逐项诊断](verification/streaming-120ms-quality-diagnosis.md)。
+
+2026-11-12 的训练质量修复、派生数据分组、对照方案和 CPU 验证见[质量改造与 A/B/C 对照](FALCON_STREAMING_QUALITY_REWORK_20261112.md)。

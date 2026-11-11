@@ -74,11 +74,16 @@ class FalconStreaming(nn.Module):
     would leak context. Detach state between truncated-BPTT training segments.
     forward supports concatenated whole chunks and preserves gradients across them.
     """
-    def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32)):
+    def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32),
+                 visual_mode: str = "causal"):
         super().__init__()
-        # V4 uses 120 ms blocks; older checkpoints do not encode
-        # the same architecture and must not silently load as this model.
-        self.register_buffer("_streaming_format_version", torch.tensor(4, dtype=torch.int64))
+        if visual_mode not in ("causal", "chunk_centered"):
+            raise ValueError("visual_mode must be causal or chunk_centered")
+        self.visual_mode = visual_mode
+        # Version is part of the state: identical tensors used under another
+        # temporal interpretation cannot be mistaken for a strict resume.
+        version = 4 if visual_mode == "causal" else 5
+        self.register_buffer("_streaming_format_version", torch.tensor(version, dtype=torch.int64))
         if channels < 1 or not dilations or any(d < 1 for d in dilations):
             raise ValueError("channels and dilations must be positive")
         self.channels = int(channels)
@@ -108,9 +113,10 @@ class FalconStreaming(nn.Module):
         # keeping identical parameter names is not a safe partial load.
         name = prefix + "_streaming_format_version"
         marker = state_dict.get(name)
+        expected_version = 4 if self.visual_mode == "causal" else 5
         if (not isinstance(marker, torch.Tensor) or marker.ndim != 0
-                or marker.dtype != torch.int64 or marker.item() != 4):
-            error_msgs.append(f"{name}: expected scalar int64 model version 4")
+                or marker.dtype != torch.int64 or marker.item() != expected_version):
+            error_msgs.append(f"{name}: expected scalar int64 model version {expected_version}")
             return
         super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
                                       missing_keys, unexpected_keys, error_msgs)
@@ -133,7 +139,16 @@ class FalconStreaming(nn.Module):
         if old.shape != (video.size(0), 4, 88, 88):
             raise ValueError("video state shape does not match input")
         frames = torch.cat((old, video), dim=1)
-        x = self.video_model.frontend3D(frames.unsqueeze(1))
+        if self.visual_mode == "chunk_centered":
+            # At most two frames of context from the past and all three frames
+            # already received in this block. Repetition fills missing right
+            # context; no visual sample from a future block is consumed.
+            visual_input = torch.cat(
+                (old[:, -2:], video, video[:, -1:].expand(-1, 2, -1, -1)), dim=1
+            )
+        else:
+            visual_input = frames
+        x = self.video_model.frontend3D(visual_input.unsqueeze(1))
         batch, _, count, _, _ = x.shape
         x = self.video_model.trunk(threeD_to_2D_tensor(x))
         x = x.reshape(batch, count, -1).transpose(1, 2)

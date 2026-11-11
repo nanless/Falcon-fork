@@ -24,6 +24,28 @@ def sha(path):
     return h.hexdigest()
 
 
+
+def index_provenance(index):
+    # A split label alone is not evidence that an index is official.
+    if not isinstance(index, dict) or index.get("split") not in ("tr", "cv", "tt"):
+        raise ValueError("invalid index split for provenance")
+    explicitly_marked = "source_split" in index
+    source_split = index["source_split"] if explicitly_marked else index["split"]
+    kind = index.get("partition_kind")
+    selection = index.get("selection")
+    if source_split not in ("tr", "cv", "tt"):
+        raise ValueError("invalid index source_split")
+    if kind is not None and (not isinstance(kind, str) or not kind.strip()):
+        raise ValueError("invalid index partition_kind")
+    if kind is not None and not explicitly_marked:
+        raise ValueError("partition_kind requires an explicit source_split")
+    if selection is not None and not isinstance(selection, dict):
+        raise ValueError("invalid index selection")
+    return {"source_split": source_split, "partition_kind": kind,
+            "selection": selection,
+            "source_provenance_basis": "explicit" if explicitly_marked else "index_split_only"}
+
+
 def load_baseline(path, device):
     root = Path(__file__).resolve().parents[2]
     config = yaml.safe_load((root / "configs/Falcon.yml").read_text())
@@ -88,6 +110,8 @@ def main():
     code_hashes = {str(path.relative_to(root)): sha(path) for path in code_paths}
     inputs = (a.tar_index, a.baseline_checkpoint, a.streaming_checkpoint)
     input_hashes = [sha(path) for path in inputs]
+    with Path(a.tar_index).open(encoding="utf8") as source:
+        provenance = index_provenance(json.load(source))
     data = RealSSATarDataset(a.tar_index, seed=42, crop="center", augment=False)
     if data.split not in ("cv", "tt"):
         raise ValueError("evaluation requires cv or tt")
@@ -127,7 +151,7 @@ def main():
         "scope": f"same center-cropped 2s RealSSA, ch0; baseline full 2s vs streaming {CHUNK_SAMPLES / 16:g}ms chunks; not paper protocol",
         "start": a.start, "end_exclusive": end, "streaming_model_config": ckpt["model_config"],
         "preprocessing": "uint8 grayscale truncation, center 88x88, normalized; identical inputs to both",
-        "split": data.split, "index": str(Path(a.tar_index).resolve()), "index_sha256": input_hashes[0],
+        "split": data.split, **provenance, "index": str(Path(a.tar_index).resolve()), "index_sha256": input_hashes[0],
         "baseline_checkpoint": str(Path(a.baseline_checkpoint).resolve()), "baseline_sha256": input_hashes[1], "baseline_epoch": epoch,
         "streaming_checkpoint": str(Path(a.streaming_checkpoint).resolve()), "streaming_sha256": input_hashes[2],
         "streaming_steps": ckpt.get("steps"), "streaming_training_status": ckpt.get("training_status"),

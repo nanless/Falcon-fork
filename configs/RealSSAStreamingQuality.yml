@@ -1,0 +1,35 @@
+# 120ms 流式质量修复训练配置；实验产物全部保存在 experiments 下。
+# 该文件是新实验入口，正在运行的历史 v4 训练不使用它。
+tar_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/tr.json
+valid_tar_index: /root/group-shared/voiceprint/experiments/falcon_realssa_trial_20261111/index/full-S1xPSK/cv.json
+visual_init: /root/.cache/falcon_weights/frcnn_128_512.backbone.pth.tar
+model_channels: 320
+visual_mode: causal              # chunk_centered 是 v5 研究候选，须重新适配训练
+positive_contrastive: true
+contrastive_weight: 1.0
+exclude_degenerate_contrastive: true
+variance_weight: 0.0             # 0.1 是实验候选，未证明可改善质量
+variance_floor: 0.05
+silence_rms_threshold: 0.0       # 默认仅将精确常量目标视为退化
+silence_loss_weight: 1.0
+batch_size: 1024
+accum: 1
+epochs: 300
+max_steps: 0
+lr: 0.001
+warmup_steps: 100
+weight_decay: 0.01
+lr_patience: 5
+early_stop_patience: 25
+min_delta: 0.01
+validation_limit: 0
+validation_batch_size: 64
+workers: 4
+seed: 42
+backend: nccl
+save_every: 1
+# 按实验另建路径。文件/目录已存在时入口拒绝覆盖。
+output: /root/group-shared/voiceprint/experiments/falcon_quality_training_example/final.pt
+checkpoint_dir: /root/group-shared/voiceprint/experiments/falcon_quality_training_example/epochs
+# 可加 warm_start: <v4或v5检查点>，只加载模型和必需的说话人头，优化器与步数重置。
+# resume 与 warm_start 二选一；严格续训必须使用相同代码、数据、协议及模型结构。

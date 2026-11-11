@@ -13,6 +13,15 @@ SAMPLES = 1920
 FRAMES = 3
 SAMPLES_PER_FRAME = 640
 CHECKPOINT_FORMAT = "falcon-streaming-v4"
+CENTERED_CHECKPOINT_FORMAT = "falcon-streaming-v5"
+
+
+def checkpoint_format_for_visual_mode(visual_mode):
+    if visual_mode == "causal":
+        return CHECKPOINT_FORMAT
+    if visual_mode == "chunk_centered":
+        return CENTERED_CHECKPOINT_FORMAT
+    raise ValueError("visual_mode must be causal or chunk_centered")
 
 
 def mouth_tensor(frames):
@@ -98,16 +107,22 @@ def read_checkpoint(path, device):
     ckpt = torch.load(path, map_location=device, weights_only=True)
     if not isinstance(ckpt, dict):
         raise ValueError("invalid FalconStreaming checkpoint")
-    if ckpt.get("format") != CHECKPOINT_FORMAT:
-        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 (120 ms)")
+    format_name = ckpt.get("format")
+    if format_name not in (CHECKPOINT_FORMAT, CENTERED_CHECKPOINT_FORMAT):
+        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 or falcon-streaming-v5 (120 ms)")
+    required_version = 4 if format_name == CHECKPOINT_FORMAT else 5
     state = ckpt.get("state_dict")
     version = state.get("_streaming_format_version") if isinstance(state, dict) else None
-    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != 4:
-        raise ValueError("incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version=4")
+    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != required_version:
+        raise ValueError(f"incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version={required_version}")
     config = ckpt.get("model_config")
-    if (not isinstance(config, dict) or set(config) != {"channels", "dilations"}
+    allowed_keys = ({"channels", "dilations"}, {"channels", "dilations", "visual_mode"})
+    if (not isinstance(config, dict) or set(config) not in allowed_keys
             or type(config["channels"]) is not int or config["channels"] < 1
             or not isinstance(config["dilations"], (tuple, list)) or not config["dilations"]
             or any(type(d) is not int or d < 1 for d in config["dilations"])):
         raise ValueError("invalid or missing streaming model_config")
+    visual_mode = config.get("visual_mode", "causal")
+    if visual_mode not in ("causal", "chunk_centered") or checkpoint_format_for_visual_mode(visual_mode) != format_name:
+        raise ValueError("streaming model_config visual_mode does not match checkpoint format")
     return ckpt

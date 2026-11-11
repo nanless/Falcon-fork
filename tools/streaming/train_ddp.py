@@ -1,12 +1,13 @@
 """Two-GPU streaming trial with reconstruction and optional positive contrastive loss.
 
-Run with torchrun; output is a v3 checkpoint loadable by streaming inference.
+Run with torchrun; checkpoint format follows the selected visual mode.
 The final incomplete chunk is padded and excluded from the loss.
 """
 from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import random
@@ -25,7 +26,7 @@ from look2hear.losses import pairwise_neg_sisdr
 from look2hear.losses.nass_contrastive_loss import NASSContrastiveLoss
 from look2hear.models.Falcon_Contrastive import AttentionSpeakerPool
 from tools.streaming.common import (
-    CHECKPOINT_FORMAT, FRAMES, SAMPLES, SAMPLES_PER_FRAME, IndexedAudioVisualDataset, read_checkpoint, load_mono, mouth_tensor,
+    CHECKPOINT_FORMAT, checkpoint_format_for_visual_mode, FRAMES, SAMPLES, SAMPLES_PER_FRAME, IndexedAudioVisualDataset, read_checkpoint, load_mono, mouth_tensor,
 )
 
 SEGMENT_SAMPLES = 32000
@@ -88,12 +89,67 @@ def pad_two_seconds(mixture, video):
     return padded_audio, padded_video
 
 
+
+
+def target_degeneracy_masks(target, silence_rms_threshold):
+    """Return SI-SDR-degenerate and near-zero masks for each target.
+
+    Exact constant detection uses min/max equality, independent of float32
+    mean-reduction roundoff. A positive threshold additionally classifies
+    centered-RMS values below threshold as degenerate.
+    """
+    if target.ndim != 2 or target.numel() == 0:
+        raise ValueError("target must have nonempty [batch,time] shape")
+    threshold_sq = float(silence_rms_threshold) ** 2
+    centered = target.detach() - target.detach().mean(dim=1, keepdim=True)
+    exact_constant = target.detach().amax(dim=1) == target.detach().amin(dim=1)
+    degenerate = exact_constant | (centered.square().mean(dim=1) <= threshold_sq)
+    silent = target.detach().square().mean(dim=1) <= threshold_sq
+    return degenerate, silent
+
+def masked_positive_cosine_loss(query, positive, valid=None, alpha=1.0):
+    """Mean over globally valid examples under DDP, retaining an all-zero graph.
+
+    DDP averages gradients across ranks, so rank-local sums are multiplied by
+    world size and divided by the detached all-reduced global valid count.
+    Every rank using a validity mask participates in exactly one collective.
+    """
+    losses = float(alpha) * (1.0 - F.cosine_similarity(query, positive, dim=1))
+    if valid is None:
+        return losses.mean()
+    if valid.shape != losses.shape:
+        raise ValueError("positive validity mask shape mismatch")
+    mask = valid.to(dtype=losses.dtype)
+    total = mask.sum().detach().clone()
+    world = 1
+    if dist.is_available() and dist.is_initialized():
+        world = dist.get_world_size()
+        dist.all_reduce(total, op=dist.ReduceOp.SUM)
+    return (losses * mask).sum() * world / total.clamp_min(1)
+
+
+def reduce_training_loss_metrics(contrastive, variance, device):
+    """Log global valid positive mean and rank-average variance, without gradients."""
+    values = torch.stack((
+        contrastive.detach() if contrastive is not None else torch.zeros((), device=device),
+        variance.detach() if variance is not None else torch.zeros((), device=device),
+    ))
+    if dist.is_available() and dist.is_initialized():
+        dist.all_reduce(values, op=dist.ReduceOp.SUM)
+        values /= dist.get_world_size()
+    return (values[0].item() if contrastive is not None else None,
+            values[1].item() if variance is not None else None)
+
 class TrainingWrapper(torch.nn.Module):
     # The auxiliary head is used for training only; checkpoint state is separate.
-    def __init__(self, model, positive_contrastive):
+    def __init__(self, model, positive_contrastive, variance_weight=0.0, variance_floor=0.05, silence_rms_threshold=0.0, exclude_degenerate_contrastive=False):
         super().__init__()
         self.model = model
         self.positive_contrastive = positive_contrastive
+        self.variance_weight = float(variance_weight)
+        self.variance_floor = float(variance_floor)
+        self.silence_rms_threshold = float(silence_rms_threshold)
+        self.exclude_degenerate_contrastive = bool(exclude_degenerate_contrastive)
         self.speaker_pool = AttentionSpeakerPool(model.channels, 64) if positive_contrastive else None
         self.contrastive = NASSContrastiveLoss(margin=.5) if positive_contrastive else None
 
@@ -109,12 +165,50 @@ class TrainingWrapper(torch.nn.Module):
         query = self.speaker_pool(self.encode_waveform(output))
         with torch.no_grad():
             positive = self.speaker_pool(self.encode_waveform(target))
-        return self.contrastive(query, positive, [None] * output.size(0), beta=0.0).squeeze()
+        # This training objective explicitly has no negatives; preserve alpha/epsilon
+        # and detached-reference semantics of NASSContrastiveLoss, without its
+        # per-sample Python loop. The general loss still handles negative inputs.
+        valid = None
+        if self.exclude_degenerate_contrastive:
+            degenerate, _ = target_degeneracy_masks(target, self.silence_rms_threshold)
+            valid = ~degenerate
+        return masked_positive_cosine_loss(query, positive, valid, self.contrastive.alpha_pos)
+
+    def variance_penalty(self, target):
+        # Rank-local regularizer: only this rank's active examples are used.
+        # Only the auxiliary pool receives gradients; encoder features are detached.
+        features = self.encode_waveform(target).detach()
+        embeddings = F.normalize(self.speaker_pool(features), dim=1)
+        degenerate, _ = target_degeneracy_masks(target, self.silence_rms_threshold)
+        valid = ~degenerate
+        valid_embeddings = embeddings[valid]
+        if valid_embeddings.shape[0] < 2:
+            return embeddings.sum() * 0.0
+        # Population variance (correction=0); no batch identity assumptions.
+        std = (valid_embeddings.var(dim=0, unbiased=False) + 1e-8).sqrt()
+        return F.relu(self.variance_floor - std).mean()
 
     def forward(self, padded_audio, video, target):
         output = self.model(padded_audio, video)
         positive = self.positive_loss(output[:, :SEGMENT_SAMPLES], target) if self.positive_contrastive else None
-        return output, positive
+        variance = self.variance_penalty(target) if self.positive_contrastive and self.variance_weight > 0 else None
+        return output, positive, variance
+
+
+def reconstruction_components(output, target, mixture, silence_rms_threshold=0.0, silence_loss_weight=1.0):
+    """Per-sample hybrid: original negative SI-SDR for speech, normalized MSE for degenerate targets.
+
+    The scale-free target MSE trains zero and near-constant targets, where SI-SDR
+    is undefined. Threshold is centered target RMS; exact/near-zero RMS is also
+    exposed separately for logging. Normalized MSE denominator is floored.
+    """
+    if output.ndim != 2 or output.shape != target.shape or output.shape != mixture.shape or output.numel() == 0:
+        raise ValueError("output, target and mixture must have identical nonempty [batch,time] shape")
+    degenerate, silent = target_degeneracy_masks(target, silence_rms_threshold)
+    sisdr = pairwise_neg_sisdr(output.unsqueeze(1), target.unsqueeze(1)).reshape(-1)
+    normalized_mse = (output - target).square().mean(dim=1) / mixture.square().mean(dim=1).clamp_min(1e-8)
+    combined = torch.where(degenerate, float(silence_loss_weight) * normalized_mse, sisdr)
+    return combined, sisdr, normalized_mse, degenerate, silent
 
 
 def neg_si_snr(output, target):
@@ -207,6 +301,37 @@ def advance_validation(scheduler, loss, best, stale, partial, min_delta=0.0):
     return loss if improved else best, 0 if improved else stale + 1, improved
 
 
+def advance_validation_dual(scheduler, loss, numeric_best, significant_best, stale, partial, min_delta=0.0, policy_suppressed=False):
+    """Track actual lowest separately from significant-improvement early stopping."""
+    if partial:
+        return numeric_best, significant_best, stale, False
+    numeric_improved = loss < numeric_best
+    if policy_suppressed:
+        return min(numeric_best, loss), significant_best, stale, numeric_improved
+    scheduler.step(loss)
+    significant_improved = loss < significant_best - min_delta
+    return (min(numeric_best, loss), loss if significant_improved else significant_best,
+            0 if significant_improved else stale + 1, numeric_improved)
+
+
+
+def validation_tracking_from_checkpoint(checkpoint):
+    """Restore and validate independent numeric-best and patience reference."""
+    if not isinstance(checkpoint, dict) or any(key not in checkpoint for key in
+            ("best_validation", "significant_best_validation", "stale_validations")):
+        raise ValueError("resume checkpoint lacks dual validation tracking state")
+    numeric = checkpoint["best_validation"]
+    significant = checkpoint["significant_best_validation"]
+    stale = checkpoint["stale_validations"]
+    if (isinstance(numeric, bool) or not isinstance(numeric, (int, float))
+            or isinstance(significant, bool) or not isinstance(significant, (int, float))
+            or math.isnan(numeric) or math.isnan(significant)
+            or numeric == -math.inf or significant == -math.inf
+            or numeric > significant or type(stale) is not int or stale < 0
+            or (significant == math.inf and stale != 0)):
+        raise ValueError("resume checkpoint has invalid dual validation tracking state")
+    return float(numeric), float(significant), stale
+
 def warmup_learning_rate(optimizer, target_lr, update, warmup_steps):
     """Set the next update rate; the saved update counter makes resume exact."""
     if warmup_steps and update < warmup_steps:
@@ -230,6 +355,45 @@ def atomic_checkpoint(path, payload):
         os.unlink(temp_name)
 
 
+
+def load_warm_start(path, model, training_model, visual_sha, *, random_visual, require_speaker_pool):
+    """Strict model initialization; explicitly does not load optimizer, scheduler, or steps."""
+    before = sha256(path)
+    source = read_checkpoint(path, "cpu")
+    source_config = source["model_config"]
+    if source_config.get("channels") != model.channels or tuple(source_config.get("dilations", ())) != model.dilations:
+        raise ValueError("warm-start model channels or dilations differ")
+    if source.get("visual_initialization_sha256") != visual_sha:
+        raise ValueError("warm-start visual initialization differs from checkpoint")
+    if bool(source.get("visual_initialization") == "random_frozen") != bool(random_visual):
+        raise ValueError("warm-start visual initialization mode differs from checkpoint")
+    source_state = dict(source["state_dict"])
+    # The sole cross-mode state change is the format marker; every learned
+    # tensor is loaded with strict=True and unchanged.
+    source_state["_streaming_format_version"] = model.state_dict()["_streaming_format_version"].detach().cpu().clone()
+    model.load_state_dict(source_state, strict=True)
+    pool_sha = None
+    if require_speaker_pool:
+        pool = source.get("speaker_pool_state")
+        if pool is None:
+            raise ValueError("warm-start source lacks required speaker pool")
+        training_model.speaker_pool.load_state_dict(pool, strict=True)
+        digest = hashlib.sha256()
+        for name, value in sorted(pool.items()):
+            if not isinstance(value, torch.Tensor):
+                raise ValueError("warm-start speaker pool contains non-tensor value")
+            digest.update(name.encode("utf8") + b"\0")
+            digest.update(str(value.dtype).encode("ascii") + b"\0")
+            digest.update(str(tuple(value.shape)).encode("ascii") + b"\0")
+            digest.update(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes())
+        pool_sha = digest.hexdigest()
+    if sha256(path) != before:
+        raise RuntimeError("warm-start checkpoint changed during loading")
+    return {"path": str(Path(path).resolve()), "sha256": before,
+            "source_format": source["format"], "source_model_config": source_config,
+            "source_steps": source.get("steps"), "speaker_pool_loaded": require_speaker_pool,
+            "speaker_pool_sha256": pool_sha, "optimizer_scheduler_and_steps_reset": True}
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--config", help="YAML configuration; explicit CLI options override it")
@@ -244,10 +408,19 @@ def parse_args(argv=None):
     objective.add_argument("--reconstruction-only", action="store_true", help="only reconstruction loss")
     objective.add_argument("--positive-contrastive", action="store_true", help="NASS positive term only; no near-field negative waveforms")
     parser.add_argument("--contrastive-weight", type=float, default=1.0)
+    parser.add_argument("--exclude-degenerate-contrastive", action="store_true",
+                        help="exclude zero/constant targets from positive speaker loss")
+    parser.add_argument("--variance-weight", type=float, default=0.0)
+    parser.add_argument("--variance-floor", type=float, default=0.05)
+    parser.add_argument("--silence-rms-threshold", type=float, default=0.0)
+    parser.add_argument("--silence-loss-weight", type=float, default=1.0)
+    parser.add_argument("--visual-mode", choices=("causal", "chunk_centered"), default="causal")
     parser.add_argument("--output", required=True)
     parser.add_argument("--checkpoint-dir", help="new directory for immutable per-epoch checkpoints")
     parser.add_argument("--save-every", type=int, default=1)
-    parser.add_argument("--resume", help="resume model/optimizer/scheduler; data position restarts at the beginning of the saved epoch")
+    initialization = parser.add_mutually_exclusive_group()
+    initialization.add_argument("--resume", help="strictly resume model, optimizer and scheduler")
+    initialization.add_argument("--warm-start", help="initialize model and optional speaker pool only; optimizer and steps restart")
     validation = parser.add_mutually_exclusive_group()
     validation.add_argument("--valid-index-dir")
     validation.add_argument("--valid-tar-index")
@@ -280,6 +453,12 @@ def parse_args(argv=None):
         parser.error("invalid optimizer parameters")
     if not np.isfinite(args.min_delta) or args.min_delta < 0:
         parser.error("min-delta must be finite and nonnegative")
+    for name in ("variance_weight", "variance_floor", "silence_rms_threshold", "silence_loss_weight"):
+        value = getattr(args, name)
+        if not np.isfinite(value) or value < 0:
+            parser.error(f"{name} must be finite and nonnegative")
+    if args.variance_weight > 0 and not args.positive_contrastive:
+        parser.error("variance regularizer requires positive-contrastive")
     if not 0 <= args.seed <= 2**32 - 2:
         parser.error("seed must be between 0 and 2**32-2 for two ranks")
     return args
@@ -326,7 +505,7 @@ def main():
                             pin_memory=device.type == "cuda", prefetch_factor=1 if args.workers else None)
         if len(loader) < args.accum:
             raise ValueError("dataset too small for batch, ranks and accumulation")
-        model = FalconStreaming(channels=args.model_channels)
+        model = FalconStreaming(channels=args.model_channels, visual_mode=args.visual_mode)
         model_code_sha = sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconStreaming.py")
         trainer_code_sha = sha256(__file__)
         data_code_sha = sha256(Path(__file__).with_name("realssa_tar.py")) if (args.tar_index or args.valid_tar_index) else sha256(Path(__file__).with_name("common.py"))
@@ -343,7 +522,9 @@ def main():
         for parameter in model.video_model.parameters():
             parameter.requires_grad_(False)
         model = model.to(device)
-        training_model = TrainingWrapper(model, args.positive_contrastive).to(device)
+        training_model = TrainingWrapper(model, args.positive_contrastive, args.variance_weight,
+                                         args.variance_floor, args.silence_rms_threshold,
+                                         args.exclude_degenerate_contrastive).to(device)
         objective_name = "negative_si_snr_plus_positive_contrastive_no_negatives" if args.positive_contrastive else "negative_si_snr_reconstruction_only"
         checkpoint = read_checkpoint(args.resume, device) if args.resume else None
         if checkpoint is not None:
@@ -356,6 +537,11 @@ def main():
             model.load_state_dict(checkpoint["state_dict"], strict=True)
             if args.positive_contrastive:
                 training_model.speaker_pool.load_state_dict(checkpoint["speaker_pool_state"], strict=True)
+        warm_start_metadata = checkpoint.get("warm_start_metadata") if checkpoint else None
+        if args.warm_start:
+            warm_start_metadata = load_warm_start(
+                args.warm_start, model, training_model, visual_sha,
+                random_visual=args.random_visual, require_speaker_pool=args.positive_contrastive)
         train_fingerprint = {"kind": "synthetic"} if args.synthetic else index_fingerprint(args.tar_index, args.index_dir)
         valid_fingerprint = index_fingerprint(args.valid_tar_index, args.valid_index_dir)
         resume_protocol = {"train": train_fingerprint, "validation": valid_fingerprint,
@@ -368,7 +554,16 @@ def main():
                            "optimizer": "AdamW", "segment_samples": SEGMENT_SAMPLES,
                            "model_channels": args.model_channels, "warmup_steps": args.warmup_steps,
                            "lr_patience": args.lr_patience, "early_stop_patience": args.early_stop_patience,
-                           "min_delta": args.min_delta, "validation_batch_size": args.validation_batch_size}
+                           "min_delta": args.min_delta, "validation_batch_size": args.validation_batch_size,
+                           "visual_mode": args.visual_mode, "variance_weight": args.variance_weight,
+                           "variance_scope": "rank_local",
+                           "exclude_degenerate_contrastive": args.exclude_degenerate_contrastive,
+                           "contrastive_reduction": "global_valid_mean_v1",
+                           "variance_floor": args.variance_floor,
+                           "silence_rms_threshold": args.silence_rms_threshold,
+                           "silence_loss_weight": args.silence_loss_weight,
+                           "reconstruction_protocol": "centered_rms_sisdr_or_mixture_normalized_mse_v1",
+                           "validation_tracking_version": 2}
         if checkpoint is not None:
             validate_resume_protocol(checkpoint.get("resume_protocol"), resume_protocol)
             if args.lr is not None and args.lr != checkpoint.get("target_learning_rate"):
@@ -389,26 +584,36 @@ def main():
         if args.index_dir and args.valid_index_dir and Path(args.index_dir).resolve() == Path(args.valid_index_dir).resolve():
             raise ValueError("training and validation index directories must differ")
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=.5, patience=args.lr_patience, threshold=args.min_delta, threshold_mode="abs", min_lr=1e-6) if valid else None
-        if checkpoint is not None and scheduler is not None and checkpoint.get("scheduler") is not None:
+        if checkpoint is not None and scheduler is not None:
+            if checkpoint.get("scheduler") is None:
+                raise ValueError("resume checkpoint lacks validation scheduler state")
             scheduler.load_state_dict(checkpoint["scheduler"])
         updates = int(checkpoint.get("steps", 0)) if checkpoint else 0
         start_updates = updates
         start_epoch = int(checkpoint.get("next_epoch", 0)) if checkpoint else 0
-        best = float(checkpoint.get("best_validation", float("inf"))) if checkpoint else float("inf")
-        stale = int(checkpoint.get("stale_validations", 0)) if checkpoint else 0
+        if checkpoint:
+            best, significant_best, stale = validation_tracking_from_checkpoint(checkpoint)
+            if scheduler is not None and scheduler.best != significant_best:
+                raise ValueError("resume scheduler and significant-best validation state disagree")
+        else:
+            best, significant_best, stale = float("inf"), float("inf"), 0
         end_reason = "epochs"
         best_checkpoint = checkpoint.get("best_checkpoint") if checkpoint else None
         validation_mean = None
         def checkpoint_payload(current_epoch, partial):
             return {
-                "format": CHECKPOINT_FORMAT, "state_dict": model.state_dict(),
-                "model_config": {"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32]},
+                "format": checkpoint_format_for_visual_mode(args.visual_mode), "state_dict": model.state_dict(),
+                "model_config": ({"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32]}
+                                 if args.visual_mode == "causal" else
+                                 {"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32], "visual_mode": args.visual_mode}),
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
                 "configuration_path": args.config, "configuration_sha256": args.config_sha256,
                 "effective_arguments": effective_arguments,
                 "steps": updates, "next_epoch": current_epoch if partial else current_epoch + 1,
-                "resume_restarts_epoch": partial, "best_validation": best, "stale_validations": stale,
+                "resume_restarts_epoch": partial, "best_validation": best,
+                "significant_best_validation": significant_best, "stale_validations": stale,
+                "warm_start_metadata": warm_start_metadata,
                 "validation_loss": validation_mean, "validation_limit": args.validation_limit,
                 "validation_samples": (min(len(valid), args.validation_limit) if args.validation_limit else len(valid)) if valid is not None else 0,
                 "validation_total": len(valid) if valid is not None else 0, "best_checkpoint": best_checkpoint,
@@ -416,7 +621,12 @@ def main():
                 "training_objective": objective_name,
                 "speaker_pool_state": training_model.speaker_pool.state_dict() if args.positive_contrastive else None,
                 "positive_contrastive_weight": args.contrastive_weight if args.positive_contrastive else 0.0,
-                "positive_contrastive_definition": "output_and_target_valid_2s_reencoded_by_v3_audio_proj" if args.positive_contrastive else None,
+                "positive_contrastive_definition": "output_and_target_valid_2s_reencoded_by_current_audio_proj" if args.positive_contrastive else None,
+                "variance_weight": args.variance_weight, "variance_floor": args.variance_floor,
+                "variance_scope": "rank_local",
+                "exclude_degenerate_contrastive": args.exclude_degenerate_contrastive,
+                "contrastive_reduction": "global_valid_mean_v1",
+                "silence_rms_threshold": args.silence_rms_threshold, "silence_loss_weight": args.silence_loss_weight,
                 "speaker_contrastive_loss": args.positive_contrastive, "near_negatives": False,
                 "visual_initialization": "random_frozen" if args.random_visual else str(Path(args.visual_init).resolve()),
                 "visual_initialization_sha256": visual_sha, "visual_initialization_metadata": visual_meta, "visual_frozen": True,
@@ -448,11 +658,15 @@ def main():
                     break
                 mixture, target, video = (item.to(device) for item in (mixture, target, video))
                 padded, frames = pad_two_seconds(mixture, video)
-                output, contrastive = ddp(padded, frames, target)
+                output, contrastive, variance = ddp(padded, frames, target)
                 output = output[:, :SEGMENT_SAMPLES]
-                loss = neg_si_snr(output, target)
+                combined, _, _, degenerate, silent = reconstruction_components(
+                    output, target, mixture, args.silence_rms_threshold, args.silence_loss_weight)
+                loss = combined.mean()
                 if contrastive is not None:
                     loss = loss + args.contrastive_weight * contrastive
+                if variance is not None:
+                    loss = loss + args.variance_weight * variance
                 if not torch.isfinite(loss):
                     raise RuntimeError("non-finite training loss")
                 (loss / args.accum).backward()
@@ -460,12 +674,15 @@ def main():
                     norm = torch.nn.utils.clip_grad_norm_(training_model.parameters(), 5.0)
                     if not torch.isfinite(norm):
                         raise RuntimeError("non-finite gradient")
+                    # Every rank participates; contrastive is locally scaled so
+                    # its rank average equals the global valid-example mean.
+                    contrastive_mean, variance_rank_mean = reduce_training_loss_metrics(contrastive, variance, device)
                     warmup_learning_rate(optimizer, target_lr, updates, args.warmup_steps)
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     updates += 1
                     if rank == 0:
-                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g}", flush=True)
+                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}", flush=True)
                     if args.max_steps and updates - start_updates >= args.max_steps:
                         end_reason = "max_steps"
                         break
@@ -475,7 +692,9 @@ def main():
             if valid is not None:
                 # Each sample is evaluated exactly once across ranks, without sampler padding.
                 training_model.eval()
-                total = torch.zeros(2, device=device, dtype=torch.float64)
+                # combined sum/count, valid SI-SDR sum/count, silent NMSE sum/count,
+                # and non-silent but centered-degenerate count.
+                total = torch.zeros(7, device=device, dtype=torch.float64)
                 with torch.inference_mode():
                     validation_count = min(len(valid), args.validation_limit) if args.validation_limit else len(valid)
                     validation_set = Subset(valid, range(rank, validation_count, world))
@@ -485,18 +704,26 @@ def main():
                     for mixture, target, video in validation_loader:
                         mixture, target, video = (x.to(device, non_blocking=True) for x in (mixture, target, video))
                         padded, frames = pad_two_seconds(mixture, video)
-                        val_loss = neg_si_snr(model(padded, frames)[:, :SEGMENT_SAMPLES], target)
-                        if not torch.isfinite(val_loss):
+                        prediction = model(padded, frames)[:, :SEGMENT_SAMPLES]
+                        combined, sisdr, nmse, degenerate, silent = reconstruction_components(
+                            prediction, target, mixture, args.silence_rms_threshold, args.silence_loss_weight)
+                        if not torch.isfinite(combined).all():
                             raise RuntimeError("non-finite validation loss")
-                        count = mixture.shape[0]
-                        total += torch.tensor([val_loss.item() * count, count], device=device, dtype=torch.float64)
+                        total += torch.stack((combined.sum(), combined.new_tensor(combined.numel()),
+                                              sisdr[~degenerate].sum(), (~degenerate).sum(),
+                                              nmse[silent].sum(), silent.sum(),
+                                              (degenerate & ~silent).sum())).to(dtype=torch.float64)
                 dist.all_reduce(total)
                 mean = (total[0] / total[1]).item()
                 validation_mean = mean
-                best, stale, improved = advance_validation(scheduler, mean, best, stale, partial or updates < args.warmup_steps, args.min_delta)
+                best, significant_best, stale, improved = advance_validation_dual(
+                    scheduler, mean, best, significant_best, stale, partial, args.min_delta,
+                    policy_suppressed=updates < args.warmup_steps)
                 if rank == 0:
                     learning_rate = optimizer.param_groups[0]["lr"]
-                    print(f"epoch={epoch} validation_samples={int(total[1])} validation_total={len(valid)} validation_limit={args.validation_limit} loss={mean:.6f} lr={learning_rate:.8g} partial={partial}", flush=True)
+                    speech_loss = (total[2] / total[3]).item() if total[3].item() else float("nan")
+                    silent_nmse = (total[4] / total[5]).item() if total[5].item() else float("nan")
+                    print(f"epoch={epoch} validation_samples={int(total[1])} validation_total={len(valid)} validation_limit={args.validation_limit} loss={mean:.6f} lr={learning_rate:.8g} partial={partial} speech_neg_sisdr={speech_loss:.6f} speech_count={int(total[3])} silent_nmse={silent_nmse:.6f} silent_count={int(total[5])} constant_count={int(total[6])}", flush=True)
                 training_model.train()
                 if stale >= args.early_stop_patience:
                     end_reason = "early_stopping"

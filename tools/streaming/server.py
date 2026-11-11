@@ -25,7 +25,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
-from tools.streaming.common import CHECKPOINT_FORMAT, SAMPLES, FRAMES, SR, FPS
+from tools.streaming.common import checkpoint_format_for_visual_mode, SAMPLES, FRAMES, SR, FPS
 from tools.streaming.session import NonFiniteOutputError, StreamingSession
 
 MAX_MESSAGE_BYTES = 100_000
@@ -96,6 +96,7 @@ def _same_origin(ws: WebSocket):
 def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
     if model.training:
         raise ValueError("shared inference model must be in eval mode")
+    model_format = checkpoint_format_for_visual_mode(getattr(model, "visual_mode", "causal"))
     app = FastAPI(title="Falcon 120ms streaming")
     lock = asyncio.Lock()  # Shared model call is serialized; session state stays private.
     active_sessions = 0
@@ -121,7 +122,7 @@ def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
 
     @app.get("/status")
     async def status():
-        return {"format": CHECKPOINT_FORMAT, "sample_rate": SR,
+        return {"format": model_format, "sample_rate": SR,
                 "chunk_samples": SAMPLES, "video_fps": FPS, "frames": FRAMES,
                 "guard_samples": 0, "device": str(device), "training_status": training_status, "warmup_ms": warmup_ms,
                 "scope": "model service; excludes capture, tracking, network and playback"}
@@ -136,7 +137,7 @@ def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
         try:
             await ws.accept()
             session = StreamingSession.from_model(model, training_status=training_status)
-            await ws.send_json({"type": "ready", "format": CHECKPOINT_FORMAT, "chunk_samples": SAMPLES, "video_frames": FRAMES,
+            await ws.send_json({"type": "ready", "format": model_format, "chunk_samples": SAMPLES, "video_frames": FRAMES,
                                 "guard_samples": 0, "sample_rate": SR, "training_status": training_status, "warmup_ms": warmup_ms})
             while True:
                     raw = await ws.receive_text()

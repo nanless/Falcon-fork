@@ -48,3 +48,34 @@ def test_constant_target_is_rejected(value):
 
 def test_nonconstant_target_is_accepted():
     validate_reference(torch.tensor([0.0, 1.0]))
+
+
+def test_untagged_index_does_not_claim_official_provenance():
+    from tools.streaming.evaluate_realssa import index_provenance
+    result = index_provenance({'split': 'tt'})
+    assert result == {'source_split': 'tt', 'partition_kind': None, 'selection': None,
+                      'source_provenance_basis': 'index_split_only'}
+
+
+def test_derived_development_records_original_split_and_selection():
+    from tools.streaming.evaluate_realssa import index_provenance
+    selection = {'method': 'fixed-random', 'seed': 20261112}
+    result = index_provenance({'split': 'cv', 'source_split': 'tr',
+                               'partition_kind': 'derived_video_directory_group_holdout',
+                               'selection': selection})
+    assert result == {'source_split': 'tr',
+                      'partition_kind': 'derived_video_directory_group_holdout',
+                      'selection': selection, 'source_provenance_basis': 'explicit'}
+
+
+@pytest.mark.parametrize('bad', [
+    {'split': 'cv', 'partition_kind': 'derived'},
+    {'split': 'cv', 'source_split': 'wrong'},
+    {'split': 'cv', 'selection': 'not-a-mapping'},
+    {'split': 'cv', 'source_split': 'tr', 'partition_kind': ''},
+    {'split': 'invalid'},
+])
+def test_invalid_index_provenance_is_rejected(bad):
+    from tools.streaming.evaluate_realssa import index_provenance
+    with pytest.raises(ValueError):
+        index_provenance(bad)

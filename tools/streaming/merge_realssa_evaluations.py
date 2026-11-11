@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 METRICS = ("falcon_si_sdri_db", "streaming_si_sdri_db")
+PROVENANCE_KEYS = ("source_split", "partition_kind", "selection", "source_provenance_basis")
 PROTOCOL_KEYS = (
     "scope", "split", "index_sha256", "baseline_sha256", "baseline_epoch",
     "streaming_sha256", "streaming_steps", "streaming_training_status",
@@ -45,6 +46,18 @@ def merge(index_path, shard_paths):
             or type(index.get("sample_count")) is not int or index["sample_count"] != len(samples)
             or index.get("incomplete_count") != 0 or index.get("incomplete") != []):
         raise ValueError("expected a complete, nonempty RealSSA tt index")
+    explicit_source = "source_split" in index
+    expected_provenance = {
+        "source_split": index.get("source_split", index["split"]),
+        "partition_kind": index.get("partition_kind"),
+        "selection": index.get("selection"),
+        "source_provenance_basis": "explicit" if explicit_source else "index_split_only",
+    }
+    kind = expected_provenance["partition_kind"]
+    if (expected_provenance["source_split"] not in ("tr", "cv", "tt")
+            or (kind is not None and (not isinstance(kind, str) or not kind.strip() or not explicit_source))
+            or (expected_provenance["selection"] is not None and not isinstance(expected_provenance["selection"], dict))):
+        raise ValueError("invalid index provenance")
     ids = [record.get("id") if isinstance(record, dict) else None for record in samples]
     if any(not isinstance(sample_id, str) or not sample_id for sample_id in ids) or len(set(ids)) != len(ids):
         raise ValueError("index contains invalid or duplicate sample IDs")
@@ -57,13 +70,24 @@ def merge(index_path, shard_paths):
             shard = json.load(stream)
         if not isinstance(shard, dict) or any(key not in shard for key in PROTOCOL_KEYS):
             raise ValueError(f"missing protocol metadata: {path}")
+        present = [key in shard for key in PROVENANCE_KEYS]
+        if any(present) and not all(present):
+            raise ValueError(f"incomplete evaluation provenance: {path}")
+        if all(present):
+            recorded = {key: shard[key] for key in PROVENANCE_KEYS}
+            if recorded != expected_provenance:
+                raise ValueError(f"evaluation provenance does not match index: {path}")
+        else:
+            recorded = {"source_split": None, "partition_kind": None, "selection": None,
+                        "source_provenance_basis": "legacy_eval_unrecorded"}
         current = {key: shard[key] for key in PROTOCOL_KEYS}
+        current.update(recorded)
         if current["index_sha256"] != index_hash or current["split"] != index["split"]:
             raise ValueError(f"index identity mismatch: {path}")
         if protocol is None:
             protocol = current
         elif current != protocol:
-            changed = [key for key in PROTOCOL_KEYS if current[key] != protocol[key]]
+            changed = [key for key in (*PROTOCOL_KEYS, *PROVENANCE_KEYS) if current[key] != protocol[key]]
             raise ValueError(f"inconsistent evaluation protocol {changed}: {path}")
         start, end, rows = shard.get("start"), shard.get("end_exclusive"), shard.get("rows")
         if (type(start) is not int or type(end) is not int or not 0 <= start < end <= len(samples)
@@ -117,7 +141,7 @@ def merge(index_path, shard_paths):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--tar-index", required=True, help="complete official tt index")
+    p.add_argument("--tar-index", required=True, help="complete tt-role index; check recorded source provenance")
     p.add_argument("--output", required=True, help="new merged JSON path")
     p.add_argument("shards", nargs="+", help="all disjoint evaluate_realssa JSON outputs")
     args = p.parse_args()
