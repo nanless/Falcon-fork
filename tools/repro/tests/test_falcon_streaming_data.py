@@ -46,3 +46,29 @@ def test_inadequate_audio_length_rejected(tmp_path):
     make_data(tmp_path)
     with pytest.raises(ValueError, match='long enough'):
         IndexedAudioVisualDataset(tmp_path, 4)
+
+
+@pytest.mark.parametrize("frame_count, expected_max_start", [(8, 0), (9, 1), (10, 2), (12, 4)])
+def test_crop_start_respects_shorter_but_sufficient_video(tmp_path, monkeypatch, frame_count, expected_max_start):
+    make_data(tmp_path)
+    path = tmp_path / "mouths" / "sample.pt"
+    torch.save(torch.load(path, weights_only=True)[:frame_count], path)
+    # The common start is limited by both the audio and the available frames.
+    def last_legal(a, b):
+        assert (a, b) == (0, expected_max_start)
+        return b
+    monkeypatch.setattr("tools.streaming.common.random.randint", last_legal)
+    mix, target, frames = IndexedAudioVisualDataset(tmp_path, 2)[0]
+    torch.testing.assert_close(mix, target)
+    expected = torch.arange(expected_max_start, expected_max_start + 8, dtype=torch.float32)
+    torch.testing.assert_close(mix[::640], expected / 20)
+    torch.testing.assert_close(frames[:, 0, 0], (expected / 255 - .421) / .165)
+
+
+def test_video_shorter_than_training_segment_has_clear_error(tmp_path):
+    make_data(tmp_path)
+    path = tmp_path / "mouths" / "sample.pt"
+    torch.save(torch.load(path, weights_only=True)[:7], path)
+    dataset = IndexedAudioVisualDataset(tmp_path, 2)
+    with pytest.raises(ValueError, match="mouth video is too short"):
+        dataset[0]

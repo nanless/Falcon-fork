@@ -155,3 +155,22 @@ def test_partial_final_protocol_enforces_zero_padding_and_requires_reset(client)
         ws.send_json(again); assert ws.receive_json()['type']=='error'
         ws.send_json({'type':'reset'});assert ws.receive_json()['next_sample']==0
         ws.send_json(payload());assert ws.receive_json()['type']=='result'
+
+
+def test_nonfinite_output_reports_error_and_preserves_session_history(client):
+    # Finite float32 input can overflow intermediate FFT/model computations.
+    # A failed block must not close the connection or advance its history.
+    with client.websocket_connect("ws://127.0.0.1:8765/ws") as a, client.websocket_connect("ws://127.0.0.1:8765/ws") as b:
+        a.receive_json(); b.receive_json()
+        a.send_json(payload()); before_a = a.receive_json()
+        b.send_json(payload()); before_b = b.receive_json()
+        assert before_a["audio_f32le"] == before_b["audio_f32le"]
+        bad = payload(1)
+        bad["audio_f32le"] = base64.b64encode(np.full(2560, 3e38, dtype="<f4").tobytes()).decode("ascii")
+        a.send_json(bad); error = a.receive_json()
+        assert error == {"type": "error", "message": "non-finite model output",
+                         "expected_sequence": 1, "expected_start_sample": 2560}
+        a.send_json(payload(1)); resumed = a.receive_json()
+        b.send_json(payload(1)); control = b.receive_json()
+        assert resumed["type"] == control["type"] == "result"
+        assert resumed["audio_f32le"] == control["audio_f32le"]

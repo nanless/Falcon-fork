@@ -12,6 +12,7 @@ import asyncio
 import base64
 import binascii
 import json
+import logging
 import io
 import time
 from pathlib import Path
@@ -25,11 +26,12 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 from tools.streaming.common import CHECKPOINT_FORMAT, SAMPLES, FRAMES, SR, FPS
-from tools.streaming.session import StreamingSession
+from tools.streaming.session import NonFiniteOutputError, StreamingSession
 
 MAX_MESSAGE_BYTES = 100_000
 MOUTH_BYTES = FRAMES * 96 * 96
 MAX_JPEG_BYTES = 16_000
+logger = logging.getLogger(__name__)
 
 
 def _decode_base64(value, size, label):
@@ -168,6 +170,13 @@ def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
                                                           "session": (inferred-acquired)*1000,
                                                           "encode": (encoded-inferred)*1000,
                                                           "server_before_send": (encoded-received)*1000}})
+                    except NonFiniteOutputError:
+                        # push checks output before committing any session state.
+                        logger.warning("non-finite streaming output at sequence %s, sample %s",
+                                       session.next_sequence, session.next_sample)
+                        await ws.send_json({"type": "error", "message": "non-finite model output",
+                                            "expected_sequence": session.next_sequence,
+                                            "expected_start_sample": session.next_sample})
                     except (ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
                         await ws.send_json({"type": "error", "message": str(exc),
                                             "expected_sequence": session.next_sequence,

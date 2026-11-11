@@ -70,13 +70,17 @@ class IndexedAudioVisualDataset(Dataset):
 
     def __getitem__(self, index):
         mix, target = self.items[index]
-        # One aligned audio/video start; no fractional 40ms offset.
-        max_start = min(int(mix[1]), int(target[2])) - self.samples
-        start = random.randint(0, max_start // SAMPLES_PER_FRAME) * SAMPLES_PER_FRAME
+        # Limit the common 40 ms grid by both indexed audio lengths and the
+        # actual number of stored mouth frames before sampling a start.
+        raw = torch.load(target[1], map_location="cpu", weights_only=True)
+        if len(raw) < self.frame_count:
+            raise ValueError(f"mouth video is too short for the selected chunk count: {target[1]}")
+        audio_starts = (min(int(mix[1]), int(target[2])) - self.samples) // SAMPLES_PER_FRAME
+        video_starts = len(raw) - self.frame_count
+        frame_start = random.randint(0, min(audio_starts, video_starts))
+        start = frame_start * SAMPLES_PER_FRAME
         mixture = load_mono(mix[0], start, self.samples)
         source = load_mono(target[0], start, self.samples)
-        raw = torch.load(target[1], map_location="cpu", weights_only=True)
-        frame_start = start // SAMPLES_PER_FRAME
         video = mouth_tensor(raw[frame_start:frame_start + self.frame_count])
         if len(mixture) != self.samples or len(source) != self.samples or len(video) != self.frame_count:
             raise ValueError(f"incomplete aligned segment for {mix[0]}")

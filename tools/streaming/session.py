@@ -7,6 +7,10 @@ else:
     from common import FRAMES, SAMPLES, SAMPLES_PER_FRAME, mouth_tensor, read_checkpoint
 from look2hear.models.FalconStreaming import FalconStreaming
 
+class NonFiniteOutputError(RuntimeError):
+    """The current block did not yield finite audio; stream state is unchanged."""
+
+
 class StreamingSession:
     """One speaker/session, own state. Times are integer samples on the audio clock.
 
@@ -94,7 +98,7 @@ class StreamingSession:
             output, new_state = self.model.forward_chunk(torch.from_numpy(x.copy())[None].to(self.device),
                                                           v[None].to(self.device), self.state)
             result = output[0].float().cpu().numpy().copy()
-        if not np.isfinite(result).all(): raise RuntimeError("non-finite model output")
+        if not np.isfinite(result).all(): raise NonFiniteOutputError("non-finite model output")
         self.state = new_state
         self.next_sequence += 1
         self.next_sample += valid_samples
