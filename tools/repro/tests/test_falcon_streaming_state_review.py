@@ -8,8 +8,8 @@ def setup_model():
     torch.set_num_threads(2)
     torch.manual_seed(231)
     m = FalconStreaming(channels=8, dilations=(1, 2)).eval()
-    a = torch.randn(1, 2560)
-    v = torch.randn(1, 4, 88, 88)
+    a = torch.randn(1, 1920)
+    v = torch.randn(1, 3, 88, 88)
     with torch.no_grad():
         _, state = m.forward_chunk(a, v)
     return m, a, v, state
@@ -33,7 +33,7 @@ def test_incomplete_or_malformed_state_is_rejected(setup_model):
             with pytest.raises(ValueError, match="stream state"):
                 model.forward_chunk(audio, video, bad)
         result, next_state = model.forward_chunk(audio, video, state)
-        assert result.shape == (1, 2560) and set(next_state) == {"audio", "video", "blocks"}
+        assert result.shape == (1, 1920) and set(next_state) == {"audio", "video", "blocks"}
 
 
 def test_history_state_changes_current_output(setup_model):
@@ -47,14 +47,14 @@ def test_history_state_changes_current_output(setup_model):
 def test_multichunk_training_backpropagates_through_cached_state(setup_model):
     model, _, _, _ = setup_model
     model.train()
-    audio = torch.randn(1, 5120, requires_grad=True)
-    video = torch.randn(1, 8, 88, 88, requires_grad=True)
+    audio = torch.randn(1, 3840, requires_grad=True)
+    video = torch.randn(1, 6, 88, 88, requires_grad=True)
     model.zero_grad(set_to_none=True)
     prediction = model(audio, video)
-    prediction[:, 2560:].square().mean().backward()
+    prediction[:, 1920:].square().mean().backward()
     assert torch.isfinite(prediction).all()
-    assert audio.grad is not None and audio.grad[:, :2560].abs().sum() > 0
-    assert video.grad is not None and video.grad[:, :4].abs().sum() > 0
+    assert audio.grad is not None and audio.grad[:, :1920].abs().sum() > 0
+    assert video.grad is not None and video.grad[:, :3].abs().sum() > 0
     assert model.audio_proj.weight.grad is not None and model.audio_proj.weight.grad.abs().sum() > 0
     assert model.video_model.frontend3D[0].weight.grad is not None
     model.zero_grad(set_to_none=True)
@@ -91,7 +91,7 @@ def test_adaptive_fir_identity_mask_has_no_shift():
 
 def test_legacy_state_dict_cannot_be_silently_strict_loaded(setup_model):
     model, _, _, _ = setup_model
-    assert model.state_dict()["_streaming_format_version"].item() == 3
+    assert model.state_dict()["_streaming_format_version"].item() == 4
     legacy = {k: v for k, v in model.state_dict().items() if k != "_streaming_format_version"}
     with pytest.raises(RuntimeError, match="_streaming_format_version"):
         model.load_state_dict(legacy, strict=True)
@@ -103,5 +103,5 @@ def test_direct_model_load_rejects_incorrect_version(setup_model, bad, strict):
     model, _, _, _ = setup_model
     state = dict(model.state_dict())
     state["_streaming_format_version"] = bad
-    with pytest.raises(RuntimeError, match="expected scalar int64 model version 3"):
+    with pytest.raises(RuntimeError, match="expected scalar int64 model version 4"):
         model.load_state_dict(state, strict=strict)

@@ -16,7 +16,7 @@ Falcon 接收两种信息：包含多人声音的**混合音频**，以及希望
 | --- | --- | --- |
 | 看项目全貌 | 本页和[文档导航](docs/README.md) | 任务、目录、常用入口和已知限制 |
 | 理解模型内部 | [模型、融合与时间依赖](docs/understanding/20261110-model-and-streaming.md) | 张量形状、多尺度处理、视觉融合和因果性 |
-| 使用 160 ms 增量流式模型 | [流式模型与训练推理](docs/FALCON_STREAMING_160MS.md) | 块内音视频互看、跨块历史缓存、实时接口、训练和 CPU 测试 |
+| 使用 120 ms 增量流式模型 | [流式模型与训练推理](docs/FALCON_STREAMING_120MS.md) | 块内音视频互看、跨块历史缓存、实时接口、双卡训练和 CPU 测试 |
 | 训练 RealSSA-Sim 流式模型 | [双卡训练与数据说明](docs/REALSSA_STREAMING_TRAINING.md) | YAML 配置、TAR 与迁移后本地索引、双卡试训及配对评测 |
 | 看五套数据本机有什么 | [数据集说明](docs/understanding/20261110-datasets.md) | 每套样本的内容、目录、索引条数和评测用的是哪一套 |
 | 盘点项目与多模态数据 | [数据集全景](docs/data_catalog/README.md) | 项目训练/测试、37个登记库、冷端位置和按需恢复 |

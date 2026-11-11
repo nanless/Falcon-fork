@@ -10,12 +10,12 @@ from tools.streaming.server import create_app
 
 
 def payload(sequence=0, video_samples=None):
-    start = 2560 * sequence
-    a = np.sin(np.arange(2560, dtype=np.float32) * 0.03) * 0.2
-    v = np.random.default_rng(77).integers(0, 256, (4,96,96), dtype=np.uint8)
+    start = 1920 * sequence
+    a = np.sin(np.arange(1920, dtype=np.float32) * 0.03) * 0.2
+    v = np.random.default_rng(77).integers(0, 256, (3,96,96), dtype=np.uint8)
     enc = lambda raw: base64.b64encode(raw).decode("ascii")
     return {"type": "chunk", "sequence": sequence, "start_sample": start,
-            "video_samples": video_samples if video_samples is not None else [start + k * 640 for k in range(4)],
+            "video_samples": video_samples if video_samples is not None else [start + k * 640 for k in range(3)],
             "audio_f32le": enc(a.astype("<f4").tobytes()), "mouth_gray_u8": enc(v.tobytes())}
 
 
@@ -30,8 +30,8 @@ def client():
 
 def test_websocket_reset_reconnect_isolation(client):
     with client.websocket_connect("ws://127.0.0.1:8765/ws") as a, client.websocket_connect("ws://127.0.0.1:8765/ws") as b:
-        assert a.receive_json()["format"] == "falcon-streaming-v3"
-        assert b.receive_json()["format"] == "falcon-streaming-v3"
+        assert a.receive_json()["format"] == "falcon-streaming-v4"
+        assert b.receive_json()["format"] == "falcon-streaming-v4"
         a.send_json(payload()); r0 = a.receive_json()
         b.send_json(payload()); r1 = b.receive_json()
         assert r0["type"] == "result" and r0["audio_f32le"] == r1["audio_f32le"]
@@ -51,8 +51,8 @@ def test_bad_input_cannot_advance_state(client):
         assert ws.receive_json()["expected_sequence"] == 0
         ws.send_text("{" + " " * 100001); assert ws.receive_json()["type"] == "error"
         ws.send_json(payload(1)); assert ws.receive_json()["expected_sequence"] == 0
-        ws.send_json(payload(video_samples=[1,640,1280,1920])); assert ws.receive_json()["type"] == "error"
-        ws.send_json(payload(video_samples=[-99999,640,1280,1920])); assert ws.receive_json()["type"] == "error"
+        ws.send_json(payload(video_samples=[1,640,1280])); assert ws.receive_json()["type"] == "error"
+        ws.send_json(payload(video_samples=[-99999,640,1280])); assert ws.receive_json()["type"] == "error"
         ws.send_json(payload()); assert ws.receive_json()["type"] == "result"
 
 
@@ -99,7 +99,7 @@ def test_jpeg_input_matches_equivalent_raw_gray(client):
     from tools.streaming.server import decode_chunk
     request = payload()
     del request["mouth_gray_u8"]
-    request["mouth_jpeg"] = [_image64()]*4
+    request["mouth_jpeg"] = [_image64()]*3
     _, decoded, _, _, _, _ = decode_chunk(request)
     raw = payload()
     raw["mouth_gray_u8"] = base64.b64encode(decoded.tobytes()).decode("ascii")
@@ -113,13 +113,13 @@ def test_jpeg_input_matches_equivalent_raw_gray(client):
 
 def test_jpeg_rejects_bad_format_size_ambiguity_and_recovers(client):
     good = payload(); del good["mouth_gray_u8"]
-    good["mouth_jpeg"] = [_image64()]*4
-    wrong_length = dict(good, mouth_jpeg=good["mouth_jpeg"][:3])
-    wrong_dimension = dict(good, mouth_jpeg=[_image64((97,96))]*4)
-    png = dict(good, mouth_jpeg=[_image64(kind="PNG")]*4)
-    broken = dict(good, mouth_jpeg=[base64.b64encode(b"bad image").decode()]*4)
-    invalid_b64 = dict(good, mouth_jpeg=["@@@@"]*4)
-    oversized = dict(good, mouth_jpeg=["A"*22000]*4)
+    good["mouth_jpeg"] = [_image64()]*3
+    wrong_length = dict(good, mouth_jpeg=good["mouth_jpeg"][:2])
+    wrong_dimension = dict(good, mouth_jpeg=[_image64((97,96))]*3)
+    png = dict(good, mouth_jpeg=[_image64(kind="PNG")]*3)
+    broken = dict(good, mouth_jpeg=[base64.b64encode(b"bad image").decode()]*3)
+    invalid_b64 = dict(good, mouth_jpeg=["@@@@"]*3)
+    oversized = dict(good, mouth_jpeg=["A"*22000]*3)
     ambiguous = dict(good, mouth_gray_u8=payload()["mouth_gray_u8"])
     with client.websocket_connect("ws://127.0.0.1:8765/ws") as ws:
         ws.receive_json()
@@ -133,14 +133,14 @@ def test_status_uses_current_checkpoint_format(client):
     from tools.streaming.common import CHECKPOINT_FORMAT
     response = client.get('/status')
     assert response.status_code == 200
-    assert response.json()['format'] == CHECKPOINT_FORMAT == 'falcon-streaming-v3'
+    assert response.json()['format'] == CHECKPOINT_FORMAT == 'falcon-streaming-v4'
 
 
 def test_partial_final_protocol_enforces_zero_padding_and_requires_reset(client):
     req=payload()
-    audio=np.zeros(2560,dtype='<f4');audio[:20]=0.1
+    audio=np.zeros(1920,dtype='<f4');audio[:20]=0.1
     req['audio_f32le']=base64.b64encode(audio.tobytes()).decode('ascii')
-    req['video_samples']=[-2000]*4
+    req['video_samples']=[-1800]*3
     req['valid_samples']=20
     with client.websocket_connect('ws://127.0.0.1:8765/ws') as ws:
         ws.receive_json()
@@ -150,7 +150,7 @@ def test_partial_final_protocol_enforces_zero_padding_and_requires_reset(client)
         assert error['type']=='error' and error['expected_sequence']==0
         ws.send_json(req); result=ws.receive_json()
         assert result['type']=='result' and result['valid_samples']==20 and result['end_sample']==20
-        assert len(base64.b64decode(result['audio_f32le']))==2560*4
+        assert len(base64.b64decode(result['audio_f32le']))==1920*4
         again=payload(1);again['start_sample']=20
         ws.send_json(again); assert ws.receive_json()['type']=='error'
         ws.send_json({'type':'reset'});assert ws.receive_json()['next_sample']==0
@@ -166,10 +166,10 @@ def test_nonfinite_output_reports_error_and_preserves_session_history(client):
         b.send_json(payload()); before_b = b.receive_json()
         assert before_a["audio_f32le"] == before_b["audio_f32le"]
         bad = payload(1)
-        bad["audio_f32le"] = base64.b64encode(np.full(2560, 3e38, dtype="<f4").tobytes()).decode("ascii")
+        bad["audio_f32le"] = base64.b64encode(np.full(1920, 3e38, dtype="<f4").tobytes()).decode("ascii")
         a.send_json(bad); error = a.receive_json()
         assert error == {"type": "error", "message": "non-finite model output",
-                         "expected_sequence": 1, "expected_start_sample": 2560}
+                         "expected_sequence": 1, "expected_start_sample": 1920}
         a.send_json(payload(1)); resumed = a.receive_json()
         b.send_json(payload(1)); control = b.receive_json()
         assert resumed["type"] == control["type"] == "result"

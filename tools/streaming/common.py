@@ -1,4 +1,4 @@
-"""Shared input/checkpoint utilities for the 160 ms causal prototype."""
+"""Shared input/checkpoint utilities for the 120 ms causal prototype."""
 import json
 from pathlib import Path
 import random
@@ -9,10 +9,10 @@ from torch.utils.data import Dataset
 
 SR = 16000
 FPS = 25
-SAMPLES = 2560
-FRAMES = 4
+SAMPLES = 1920
+FRAMES = 3
 SAMPLES_PER_FRAME = 640
-CHECKPOINT_FORMAT = "falcon-streaming-v3"
+CHECKPOINT_FORMAT = "falcon-streaming-v4"
 
 
 def mouth_tensor(frames):
@@ -99,9 +99,15 @@ def read_checkpoint(path, device):
     if not isinstance(ckpt, dict):
         raise ValueError("invalid FalconStreaming checkpoint")
     if ckpt.get("format") != CHECKPOINT_FORMAT:
-        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v3; v1 and v2 use different model semantics and must be reinitialized or retrained")
+        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 (120 ms)")
     state = ckpt.get("state_dict")
     version = state.get("_streaming_format_version") if isinstance(state, dict) else None
-    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != 3:
-        raise ValueError("incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version=3")
+    if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != 4:
+        raise ValueError("incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version=4")
+    config = ckpt.get("model_config")
+    if (not isinstance(config, dict) or set(config) != {"channels", "dilations"}
+            or type(config["channels"]) is not int or config["channels"] < 1
+            or not isinstance(config["dilations"], (tuple, list)) or not config["dilations"]
+            or any(type(d) is not int or d < 1 for d in config["dilations"])):
+        raise ValueError("invalid or missing streaming model_config")
     return ckpt

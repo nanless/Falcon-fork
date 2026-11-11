@@ -1,7 +1,7 @@
 """Two-GPU streaming trial with reconstruction and optional positive contrastive loss.
 
 Run with torchrun; output is a v3 checkpoint loadable by streaming inference.
-The final 80 ms in the 13th block is padded and excluded from the loss.
+The final incomplete chunk is padded and excluded from the loss.
 """
 from __future__ import annotations
 import argparse
@@ -11,12 +11,13 @@ import os
 from pathlib import Path
 import random
 import tempfile
+import time
 import numpy as np
 import torch
 from torch import distributed as dist
 from torch.nn import functional as F
 from torch.nn.parallel import DistributedDataParallel
-from torch.utils.data import DataLoader, Dataset, DistributedSampler
+from torch.utils.data import DataLoader, Dataset, DistributedSampler, Subset
 
 from look2hear.models.FalconStreaming import FalconStreaming
 from tools.streaming.training_config import yaml_arguments
@@ -29,13 +30,13 @@ from tools.streaming.common import (
 
 SEGMENT_SAMPLES = 32000
 SEGMENT_FRAMES = 50
-CHUNKS = 13
+CHUNKS = (SEGMENT_SAMPLES + SAMPLES - 1) // SAMPLES
 
 
 class TwoSecondDataset(IndexedAudioVisualDataset):
     """Aligned 2-second segments on the same 40 ms grid as streaming data."""
     def __init__(self, directory, *, validation=False):
-        super().__init__(directory, 12)
+        super().__init__(directory, SEGMENT_FRAMES // FRAMES)
         self.validation = validation
         self.samples = SEGMENT_SAMPLES
         self.frame_count = SEGMENT_FRAMES
@@ -197,13 +198,21 @@ def validate_resume_protocol(saved, current):
         raise ValueError("resume protocol mismatch: " + ", ".join(sorted(mismatches)))
 
 
-def advance_validation(scheduler, loss, best, stale, partial):
+def advance_validation(scheduler, loss, best, stale, partial, min_delta=0.0):
     # Step-limited partial epochs report validation but do not affect epoch policy.
     if partial:
         return best, stale, False
     scheduler.step(loss)
-    improved = loss < best
-    return min(best, loss), 0 if improved else stale + 1, improved
+    improved = loss < best - min_delta
+    return loss if improved else best, 0 if improved else stale + 1, improved
+
+
+def warmup_learning_rate(optimizer, target_lr, update, warmup_steps):
+    """Set the next update rate; the saved update counter makes resume exact."""
+    if warmup_steps and update < warmup_steps:
+        rate = target_lr * (update + 1) / warmup_steps
+        for group in optimizer.param_groups:
+            group["lr"] = rate
 
 
 def atomic_checkpoint(path, payload):
@@ -243,6 +252,12 @@ def parse_args(argv=None):
     validation.add_argument("--valid-index-dir")
     validation.add_argument("--valid-tar-index")
     parser.add_argument("--validation-limit", type=int, default=0, help="0 evaluates the full validation index; positive values limit to its first N entries")
+    parser.add_argument("--validation-batch-size", type=int, default=64)
+    parser.add_argument("--model-channels", type=int, default=320)
+    parser.add_argument("--warmup-steps", type=int, default=0)
+    parser.add_argument("--lr-patience", type=int, default=15)
+    parser.add_argument("--early-stop-patience", type=int, default=30)
+    parser.add_argument("--min-delta", type=float, default=0.0)
     parser.add_argument("--batch-size", type=int, default=4, help="per-rank batch")
     parser.add_argument("--accum", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=1000)
@@ -259,10 +274,12 @@ def parse_args(argv=None):
     args = parser.parse_args(tokens)
     args.config = config_path
     args.config_sha256 = config_sha256
-    if min(args.batch_size, args.accum, args.epochs, args.save_every) < 1 or args.max_steps < 0 or args.workers < 0 or args.validation_limit < 0:
+    if min(args.batch_size, args.accum, args.epochs, args.save_every, args.validation_batch_size, args.model_channels, args.early_stop_patience) < 1 or min(args.max_steps, args.workers, args.validation_limit, args.warmup_steps, args.lr_patience) < 0:
         parser.error("invalid batch/accum/epochs/steps/workers")
     if (args.lr is not None and (not np.isfinite(args.lr) or args.lr <= 0)) or not np.isfinite(args.weight_decay) or args.weight_decay < 0 or not np.isfinite(args.contrastive_weight) or args.contrastive_weight < 0:
         parser.error("invalid optimizer parameters")
+    if not np.isfinite(args.min_delta) or args.min_delta < 0:
+        parser.error("min-delta must be finite and nonnegative")
     if not 0 <= args.seed <= 2**32 - 2:
         parser.error("seed must be between 0 and 2**32-2 for two ranks")
     return args
@@ -305,10 +322,11 @@ def main():
         else:
             dataset = TwoSecondDataset(args.index_dir)
         sampler = DistributedSampler(dataset, num_replicas=world, rank=rank, shuffle=True, seed=args.seed, drop_last=True)
-        loader = DataLoader(dataset, batch_size=args.batch_size, sampler=sampler, num_workers=args.workers, drop_last=True)
+        loader = DataLoader(dataset, batch_size=args.batch_size, sampler=sampler, num_workers=args.workers, drop_last=True,
+                            pin_memory=device.type == "cuda", prefetch_factor=1 if args.workers else None)
         if len(loader) < args.accum:
             raise ValueError("dataset too small for batch, ranks and accumulation")
-        model = FalconStreaming()
+        model = FalconStreaming(channels=args.model_channels)
         model_code_sha = sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconStreaming.py")
         trainer_code_sha = sha256(__file__)
         data_code_sha = sha256(Path(__file__).with_name("realssa_tar.py")) if (args.tar_index or args.valid_tar_index) else sha256(Path(__file__).with_name("common.py"))
@@ -347,18 +365,19 @@ def main():
                            "config_parser_sha256": sha256(Path(__file__).with_name("training_config.py")),
                            "data_code_sha256": data_code_sha, "torch_version": str(torch.__version__), "objective": objective_name,
                            "contrastive_weight": args.contrastive_weight if args.positive_contrastive else 0.0,
-                           "optimizer": "AdamW", "segment_samples": SEGMENT_SAMPLES}
+                           "optimizer": "AdamW", "segment_samples": SEGMENT_SAMPLES,
+                           "model_channels": args.model_channels, "warmup_steps": args.warmup_steps,
+                           "lr_patience": args.lr_patience, "early_stop_patience": args.early_stop_patience,
+                           "min_delta": args.min_delta, "validation_batch_size": args.validation_batch_size}
         if checkpoint is not None:
             validate_resume_protocol(checkpoint.get("resume_protocol"), resume_protocol)
-            if args.lr is not None and args.lr != checkpoint.get("learning_rate"):
-                raise ValueError("resume protocol mismatch: learning_rate")
+            if args.lr is not None and args.lr != checkpoint.get("target_learning_rate"):
+                raise ValueError("resume protocol mismatch: target_learning_rate")
         ddp = DistributedDataParallel(training_model, device_ids=[local_rank] if device.type == "cuda" else None)
-        optimizer = torch.optim.AdamW((p for p in training_model.parameters() if p.requires_grad), lr=args.lr if args.lr is not None else .001, weight_decay=args.weight_decay)
+        target_lr = args.lr if args.lr is not None else (checkpoint.get("target_learning_rate", .001) if checkpoint else .001)
+        optimizer = torch.optim.AdamW((p for p in training_model.parameters() if p.requires_grad), lr=target_lr, weight_decay=args.weight_decay)
         if checkpoint is not None:
             optimizer.load_state_dict(checkpoint["optimizer"])
-            if args.lr is not None:
-                for group in optimizer.param_groups:
-                    group["lr"] = args.lr
         if args.valid_tar_index:
             from tools.streaming.realssa_tar import RealSSATarDataset
             valid = RealSSATarDataset(args.valid_tar_index, seed=args.seed, crop="center", augment=False)
@@ -369,7 +388,7 @@ def main():
             print(f"split_identity_audit={split_identity_audit}", flush=True)
         if args.index_dir and args.valid_index_dir and Path(args.index_dir).resolve() == Path(args.valid_index_dir).resolve():
             raise ValueError("training and validation index directories must differ")
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=.5, patience=15) if valid else None
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=.5, patience=args.lr_patience, threshold=args.min_delta, threshold_mode="abs", min_lr=1e-6) if valid else None
         if checkpoint is not None and scheduler is not None and checkpoint.get("scheduler") is not None:
             scheduler.load_state_dict(checkpoint["scheduler"])
         updates = int(checkpoint.get("steps", 0)) if checkpoint else 0
@@ -383,6 +402,7 @@ def main():
         def checkpoint_payload(current_epoch, partial):
             return {
                 "format": CHECKPOINT_FORMAT, "state_dict": model.state_dict(),
+                "model_config": {"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32]},
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
                 "configuration_path": args.config, "configuration_sha256": args.config_sha256,
@@ -407,7 +427,7 @@ def main():
                 "model_code_sha256": model_code_sha, "torch_version": str(torch.__version__),
                 "segment_samples": SEGMENT_SAMPLES, "segment_video_frames": SEGMENT_FRAMES,
                 "world_size": world, "batch_per_rank": args.batch_size, "gradient_accumulation": args.accum,
-                "learning_rate": optimizer.param_groups[0]["lr"], "weight_decay": optimizer.param_groups[0]["weight_decay"],
+                "learning_rate": optimizer.param_groups[0]["lr"], "target_learning_rate": target_lr, "weight_decay": optimizer.param_groups[0]["weight_decay"],
                 "seed": args.seed, "end_reason": end_reason,
             }
         if rank == 0:
@@ -416,6 +436,7 @@ def main():
             print(f"trial: backend={args.backend} world={world} batch_per_rank={args.batch_size} accumulation={args.accum} global_batch={world*args.batch_size*args.accum} segment_samples={SEGMENT_SAMPLES} visual={visual_label} objective={objective_name} near_negatives=NOT_USED", flush=True)
         training_model.train()
         for epoch in range(start_epoch, start_epoch + args.epochs):
+            epoch_started = time.perf_counter()
             sampler.set_epoch(epoch)
             if hasattr(dataset, "set_epoch"):
                 dataset.set_epoch(epoch)
@@ -439,11 +460,12 @@ def main():
                     norm = torch.nn.utils.clip_grad_norm_(training_model.parameters(), 5.0)
                     if not torch.isfinite(norm):
                         raise RuntimeError("non-finite gradient")
+                    warmup_learning_rate(optimizer, target_lr, updates, args.warmup_steps)
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     updates += 1
                     if rank == 0:
-                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f}", flush=True)
+                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g}", flush=True)
                     if args.max_steps and updates - start_updates >= args.max_steps:
                         end_reason = "max_steps"
                         break
@@ -456,23 +478,27 @@ def main():
                 total = torch.zeros(2, device=device, dtype=torch.float64)
                 with torch.inference_mode():
                     validation_count = min(len(valid), args.validation_limit) if args.validation_limit else len(valid)
-                    for i in range(rank, validation_count, world):
-                        mixture, target, video = valid[i]
-                        mixture, target, video = (x.unsqueeze(0).to(device) for x in (mixture, target, video))
+                    validation_set = Subset(valid, range(rank, validation_count, world))
+                    validation_loader = DataLoader(validation_set, batch_size=args.validation_batch_size,
+                        num_workers=args.workers, pin_memory=device.type == "cuda",
+                        prefetch_factor=1 if args.workers else None)
+                    for mixture, target, video in validation_loader:
+                        mixture, target, video = (x.to(device, non_blocking=True) for x in (mixture, target, video))
                         padded, frames = pad_two_seconds(mixture, video)
                         val_loss = neg_si_snr(model(padded, frames)[:, :SEGMENT_SAMPLES], target)
                         if not torch.isfinite(val_loss):
                             raise RuntimeError("non-finite validation loss")
-                        total += torch.tensor([val_loss.item(), 1], device=device, dtype=torch.float64)
+                        count = mixture.shape[0]
+                        total += torch.tensor([val_loss.item() * count, count], device=device, dtype=torch.float64)
                 dist.all_reduce(total)
                 mean = (total[0] / total[1]).item()
                 validation_mean = mean
-                best, stale, improved = advance_validation(scheduler, mean, best, stale, partial)
+                best, stale, improved = advance_validation(scheduler, mean, best, stale, partial or updates < args.warmup_steps, args.min_delta)
                 if rank == 0:
                     learning_rate = optimizer.param_groups[0]["lr"]
                     print(f"epoch={epoch} validation_samples={int(total[1])} validation_total={len(valid)} validation_limit={args.validation_limit} loss={mean:.6f} lr={learning_rate:.8g} partial={partial}", flush=True)
                 training_model.train()
-                if stale >= 30:
+                if stale >= args.early_stop_patience:
                     end_reason = "early_stopping"
             should_save = bool(args.checkpoint_dir and ((epoch + 1) % args.save_every == 0 or improved or end_reason in ("max_steps", "early_stopping")))
             if should_save:
@@ -483,6 +509,8 @@ def main():
                     atomic_checkpoint(checkpoint_path, checkpoint_payload(epoch, partial))
                     print(f"checkpoint={checkpoint_path} best={best_checkpoint}", flush=True)
                 dist.barrier()
+            if rank == 0:
+                print(f"epoch={epoch} elapsed_seconds={time.perf_counter() - epoch_started:.3f} updates={updates}", flush=True)
             if end_reason in ("max_steps", "early_stopping"):
                 break
         dist.barrier()

@@ -35,7 +35,7 @@ g.add_argument("--index-dir", help="directory containing Falcon mix.json and tar
 g.add_argument("--synthetic", action="store_true", help="deterministic generated inputs for smoke tests only")
 p.add_argument("--output", required=True, help="new checkpoint path; existing files are never overwritten")
 p.add_argument("--resume", help="resume a streaming checkpoint and its optimizer, if saved")
-p.add_argument("--chunks", type=int, default=10, help="number of 160ms chunks per training example")
+p.add_argument("--chunks", type=int, default=10, help="number of 120ms chunks per training example")
 p.add_argument("--steps", type=int, default=1000)
 p.add_argument("--batch-size", type=int, default=2)
 p.add_argument("--lr", type=float, default=None, help="learning rate; default 0.0003 for new training, preserves checkpoint rate on resume unless explicitly set")
@@ -48,11 +48,12 @@ if Path(a.output).exists(): raise FileExistsError(f"output already exists: {a.ou
 random.seed(a.seed); np.random.seed(a.seed); torch.manual_seed(a.seed)
 dataset = Synthetic(a.chunks) if a.synthetic else IndexedAudioVisualDataset(a.index_dir, a.chunks)
 loader = DataLoader(dataset, batch_size=a.batch_size, shuffle=True, num_workers=a.workers)
-model = FalconStreaming().to(a.device)
+ckpt = read_checkpoint(a.resume, a.device) if a.resume else None
+model_config = ckpt["model_config"] if ckpt else {"channels": 320, "dilations": [1, 2, 4, 8, 16, 32]}
+model = FalconStreaming(**model_config).to(a.device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0003 if a.lr is None else a.lr)
 start = 0
 if a.resume:
-    ckpt = read_checkpoint(a.resume, a.device)
     model.load_state_dict(ckpt["state_dict"], strict=True)
     start = int(ckpt["steps"])
     if "optimizer" in ckpt: optimizer.load_state_dict(ckpt["optimizer"])
@@ -80,7 +81,7 @@ for step in range(a.steps):
     if not torch.isfinite(grad): raise RuntimeError("non-finite gradient")
     optimizer.step()
     print(f"step={start + step + 1} loss={loss.item():.5f} grad_norm={grad.item():.5f}", flush=True)
-new_checkpoint(a.output, {"format": CHECKPOINT_FORMAT, "state_dict": model.state_dict(),
+new_checkpoint(a.output, {"format": CHECKPOINT_FORMAT, "state_dict": model.state_dict(), "model_config": model_config,
                           "optimizer": optimizer.state_dict(), "steps": start + a.steps,
                           "training_status": "synthetic_smoke" if a.synthetic else "real_data_optimization", "data": "synthetic-smoke" if a.synthetic else str(a.index_dir),
                           "chunks": a.chunks, "seed": a.seed})

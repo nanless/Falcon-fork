@@ -1,4 +1,4 @@
-export const RATE = 16000, CHUNK = 2560, BIN = 640, FRAME = 96 * 96;
+export const RATE = 16000, CHUNK = 1920, BIN = 640, FRAME = 96 * 96;
 export class AudioRing {
   constructor(capacity = RATE * 8) { this.data = new Float32Array(capacity); this.total = 0; }
   push(values) { for (const v of values) { if (!Number.isFinite(v)) throw new Error("非有限音频采样"); this.data[this.total++ % this.data.length] = v; } }
@@ -22,7 +22,7 @@ export function finalChunk(ring, start, end) {
 export function selectFrames(frames, start, maxAge = CHUNK, valid = CHUNK) {
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(valid) || valid < 1 || valid > CHUNK) throw new Error("音频时间无效");
   const picked = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < CHUNK / BIN; i++) {
     const target = start + i * BIN;
     let best = null;
     for (const frame of frames) if (frame.sample <= target && (!best || frame.sample >= best.sample)) best = frame;
@@ -33,13 +33,13 @@ export function selectFrames(frames, start, maxAge = CHUNK, valid = CHUNK) {
   return picked;
 }
 export function makePayload(sequence, startAbs, audio, frames, valid = CHUNK) {
-  if (audio.length !== CHUNK || frames.length !== 4 || !Number.isSafeInteger(valid) || valid < 1 || valid > CHUNK) throw new Error("输入块尺寸无效");
+  if (audio.length !== CHUNK || frames.length !== CHUNK / BIN || !Number.isSafeInteger(valid) || valid < 1 || valid > CHUNK) throw new Error("输入块尺寸无效");
   const bytes = new Uint8Array(CHUNK * 4), view = new DataView(bytes.buffer);
   for (let i=0;i<CHUNK;i++) view.setFloat32(i*4, audio[i], true);
   const payload={type:"chunk",sequence,start_sample:sequence*CHUNK,video_samples:frames.map(x=>x.sample-startAbs+sequence*CHUNK),audio_f32le:encode(bytes)};
   if(valid < CHUNK) payload.valid_samples=valid;
   if(frames.every(frame=>frame.jpeg instanceof Uint8Array)) payload.mouth_jpeg=frames.map(frame=>encode(frame.jpeg));
-  else {const pictures=new Uint8Array(4*FRAME);frames.forEach((frame,i)=>pictures.set(frame.data,i*FRAME));payload.mouth_gray_u8=encode(pictures);}
+  else {const pictures=new Uint8Array((CHUNK / BIN)*FRAME);frames.forEach((frame,i)=>pictures.set(frame.data,i*FRAME));payload.mouth_gray_u8=encode(pictures);}
   return payload;
 }
 function encode(bytes) { let s=""; for(let i=0;i<bytes.length;i+=8192) s+=String.fromCharCode(...bytes.subarray(i,i+8192)); return btoa(s); }

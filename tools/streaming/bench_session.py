@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from .session import StreamingSession
+from .common import SAMPLES, FRAMES, SAMPLES_PER_FRAME, SR
 
 
 def main():
@@ -25,18 +26,18 @@ def main():
         raise FileExistsError(path)
     rng = np.random.default_rng(314159)
     session = StreamingSession(args.checkpoint, device=args.device)
-    samples = rng.normal(0, .1, size=(2560,)).astype(np.float32)
-    mouth = rng.integers(0, 256, size=(4, 96, 96), dtype=np.uint8)
+    samples = rng.normal(0, .1, size=(SAMPLES,)).astype(np.float32)
+    mouth = rng.integers(0, 256, size=(FRAMES, 96, 96), dtype=np.uint8)
     times = []
     memory = []
     for i in range(args.warmup + args.chunks):
-        start_sample = i * 2560
-        frame_samples = [start_sample + j * 640 for j in range(4)]
+        start_sample = i * SAMPLES
+        frame_samples = [start_sample + j * SAMPLES_PER_FRAME for j in range(FRAMES)]
         start = time.perf_counter_ns()
         out = session.push(samples, mouth, sequence=i, start_sample=start_sample,
                            video_samples=frame_samples)
         elapsed = (time.perf_counter_ns() - start) / 1_000_000
-        if out.shape != (2560,) or not np.isfinite(out).all():
+        if out.shape != (SAMPLES,) or not np.isfinite(out).all():
             raise RuntimeError('bad output')
         if i >= args.warmup:
             times.append(elapsed)
@@ -50,12 +51,14 @@ def main():
         'gpu_name': torch.cuda.get_device_name(session.device) if session.device.type == 'cuda' else None,
         'torch': torch.__version__, 'python': platform.python_version(),
         'warmup_chunks': args.warmup, 'chunks': args.chunks,
-        'simulated_audio_seconds': args.chunks * .16,
+        'sample_rate': SR, 'chunk_samples': SAMPLES, 'chunk_video_frames': FRAMES,
+        'chunk_ms': 1000 * SAMPLES / SR,
+        'simulated_audio_seconds': args.chunks * SAMPLES / SR,
         'latency_ms': {'p50': float(np.percentile(times, 50)), 'p90': float(np.percentile(times, 90)),
                        'p95': float(np.percentile(times, 95)), 'p99': float(np.percentile(times, 99)),
                        'max': float(max(times))},
         'memory_allocated_bytes': {'first': memory[0], 'last': memory[-1], 'max': max(memory)} if memory else None,
-        'output_samples': args.chunks * 2560,
+        'output_samples': args.chunks * SAMPLES,
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open('x') as f:

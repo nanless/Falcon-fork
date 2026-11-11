@@ -7,10 +7,10 @@ def test_two_second_training_pad_and_loss_ignores_invalid_tail():
     audio = torch.linspace(-1, 1, 32000).reshape(1, -1)
     video = torch.arange(50, dtype=torch.float32).reshape(1, 50, 1, 1).expand(-1, -1, 88, 88)
     padded, frames = pad_two_seconds(audio, video)
-    assert padded.shape == (1, 33280) and frames.shape == (1, 52, 88, 88)
+    assert padded.shape == (1, 32640) and frames.shape == (1, 51, 88, 88)
     torch.testing.assert_close(padded[:, :32000], audio)
     assert torch.count_nonzero(padded[:, 32000:]) == 0
-    assert frames[0, 49, 0, 0].item() == frames[0, 50, 0, 0].item() == frames[0, 51, 0, 0].item() == 49
+    assert frames[0, 49, 0, 0].item() == frames[0, 50, 0, 0].item() == 49
     y = padded.clone().requires_grad_()
     loss = neg_si_snr(y[:, :SEGMENT_SAMPLES], audio)
     loss.backward()
@@ -120,3 +120,30 @@ def test_partial_validation_does_not_advance_scheduler_or_best():
     assert advance_validation(scheduler, -10.0, -5.0, 4, False) == (-10.0, 0, True)
     assert scheduler.calls == [-10.0]
     assert advance_validation(scheduler, -9.0, -10.0, 0, False) == (-10.0, 1, False)
+
+
+def test_warmup_and_resume_use_absolute_update_count():
+    from tools.streaming.train_ddp import warmup_learning_rate
+    parameter = torch.nn.Parameter(torch.ones(1))
+    optimizer = torch.optim.AdamW([parameter], lr=.001)
+    warmup_learning_rate(optimizer, .001, 0, 100)
+    assert optimizer.param_groups[0]["lr"] == pytest.approx(.00001)
+    warmup_learning_rate(optimizer, .001, 49, 100)
+    assert optimizer.param_groups[0]["lr"] == pytest.approx(.0005)
+    warmup_learning_rate(optimizer, .001, 99, 100)
+    assert optimizer.param_groups[0]["lr"] == pytest.approx(.001)
+    optimizer.param_groups[0]["lr"] = .00025
+    warmup_learning_rate(optimizer, .001, 101, 100)
+    assert optimizer.param_groups[0]["lr"] == pytest.approx(.00025)
+
+
+def test_early_stop_min_delta_only_counts_meaningful_improvements():
+    from tools.streaming.train_ddp import advance_validation
+    class Scheduler:
+        def __init__(self): self.calls = []
+        def step(self, x): self.calls.append(x)
+    scheduler = Scheduler()
+    assert advance_validation(scheduler, -1.005, -1.0, 0, False, .01) == (-1.0, 1, False)
+    assert advance_validation(scheduler, -1.02, -1.0, 1, False, .01) == (-1.02, 0, True)
+    assert advance_validation(scheduler, -9.0, -1.02, 0, True, .01) == (-1.02, 0, False)
+    assert scheduler.calls == [-1.005, -1.02]

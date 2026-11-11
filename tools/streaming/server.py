@@ -1,6 +1,6 @@
-"""Loopback-only WebSocket service for the 160 ms stateful prototype.
+"""Loopback-only WebSocket service for the 120 ms stateful prototype.
 
-The client, not this server, acquires audio, tracks the face, and selects four
+The client, not this server, acquires audio, tracks the face, and selects three
 mouth images at or before the interval-start audio-clock timestamps. The model
 uses the whole current block but requests no later block or output guard. Timing fields are server-local and do not measure
 capture, network transit or playback.
@@ -60,7 +60,7 @@ def decode_chunk(data):
     else:
         encoded_frames = data["mouth_jpeg"]
         if not isinstance(encoded_frames, list) or len(encoded_frames) != FRAMES:
-            raise ValueError("mouth_jpeg must contain four base64 JPEG frames")
+            raise ValueError("mouth_jpeg must contain three base64 JPEG frames")
         frames = []
         for encoded in encoded_frames:
             if not isinstance(encoded, str) or not encoded or len(encoded) > 4 * ((MAX_JPEG_BYTES + 2) // 3):
@@ -96,7 +96,7 @@ def _same_origin(ws: WebSocket):
 def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
     if model.training:
         raise ValueError("shared inference model must be in eval mode")
-    app = FastAPI(title="Falcon 160ms streaming")
+    app = FastAPI(title="Falcon 120ms streaming")
     lock = asyncio.Lock()  # Shared model call is serialized; session state stays private.
     active_sessions = 0
     max_sessions = 8

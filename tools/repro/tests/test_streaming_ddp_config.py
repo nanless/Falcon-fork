@@ -188,3 +188,24 @@ output: result.pt
         parser()(["--config", str(config), "--random-v"])
     with pytest.raises(SystemExit):
         parser()(["--conf", str(config), "--random-visual"])
+
+
+def test_large_batch_training_policy_from_config(tmp_path):
+    config = write_config(tmp_path, """
+synthetic: true
+random_visual: true
+reconstruction_only: true
+output: run/final.pt
+model_channels: 192
+batch_size: 1024
+accum: 1
+warmup_steps: 100
+lr_patience: 5
+early_stop_patience: 25
+min_delta: 0.01
+validation_batch_size: 64
+""")
+    args = parser()(["--config", str(config)])
+    assert (args.model_channels, args.batch_size, args.accum) == (192, 1024, 1)
+    assert (args.warmup_steps, args.lr_patience, args.early_stop_patience) == (100, 5, 25)
+    assert (args.min_delta, args.validation_batch_size) == (.01, 64)

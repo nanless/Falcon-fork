@@ -21,11 +21,10 @@ class Baseline(nn.Module):
 
 class Stream(nn.Module):
     def forward(self, audio, video):
-        assert audio.shape == (1, 33280)
-        assert video.shape == (1, 52, 88, 88)
+        assert audio.shape == (1, 32640)
+        assert video.shape == (1, 51, 88, 88)
         assert torch.count_nonzero(audio[:, 32000:]) == 0
         torch.testing.assert_close(video[:, 50], video[:, 49])
-        torch.testing.assert_close(video[:, 51], video[:, 49])
         self.audio, self.video = audio.clone(), video.clone()
         return audio
 

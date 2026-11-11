@@ -22,10 +22,10 @@ try:
  else: raise RuntimeError("server startup timed out")
  print("status",status,flush=True)
  def payload(seq,amp=1):
-  n=seq*2560;rng=np.random.default_rng(77);v=rng.integers(0,256,(4,96,96),dtype=np.uint8)
-  a=(amp*np.sin(np.arange(2560,dtype=np.float32)*.03)).astype("<f4")
+  n=seq*status["chunk_samples"];rng=np.random.default_rng(77);v=rng.integers(0,256,(status["frames"],96,96),dtype=np.uint8)
+  a=(amp*np.sin(np.arange(status["chunk_samples"],dtype=np.float32)*.03)).astype("<f4")
   enc=lambda x:base64.b64encode(x.tobytes()).decode("ascii")
-  return {"type":"chunk","sequence":seq,"start_sample":n,"video_samples":[n+k*640 for k in range(4)],"audio_f32le":enc(a),"mouth_gray_u8":enc(v)}
+  return {"type":"chunk","sequence":seq,"start_sample":n,"video_samples":[n+k*640 for k in range(status["frames"])],"audio_f32le":enc(a),"mouth_gray_u8":enc(v)}
  async def run():
   url=f"ws://127.0.0.1:{port}/ws"
   async with websockets.connect(url,max_size=200000) as a,websockets.connect(url,max_size=200000) as b:

@@ -1,4 +1,4 @@
-"""Compare released Falcon and v3 on identical RealSSA 2s crops."""
+"""Compare released Falcon and block-causal Falcon on identical RealSSA 2s crops."""
 import argparse
 import copy
 import hashlib
@@ -9,7 +9,7 @@ import torch
 import yaml
 from torch.nn import functional as F
 from look2hear.models import FalconSpeakerContrastive
-from look2hear.models.FalconStreaming import FalconStreaming
+from look2hear.models.FalconStreaming import FalconStreaming, CHUNK_SAMPLES, VIDEO_FRAMES
 from look2hear.videomodels import FRCNNVideoModel
 from look2hear.metrics.core import si_sdr_improvement
 from tools.streaming.common import read_checkpoint
@@ -51,8 +51,12 @@ def validate_reference(target):
 def predict(model, visual, stream, mix, mouth, device):
     x, v = mix[None].to(device), mouth[None].to(device)
     baseline = model(x, visual(v.unsqueeze(1)))[0, 0]
-    padded = torch.cat((v, v[:, -1:].expand(-1, 2, -1, -1)), dim=1)
-    streaming = stream(F.pad(x, (0, 1280)), padded)[0, :32000]
+    chunks = (x.shape[-1] + CHUNK_SAMPLES - 1) // CHUNK_SAMPLES
+    extra_frames = chunks * VIDEO_FRAMES - v.shape[1]
+    if extra_frames < 0:
+        raise ValueError("video and audio chunk geometry is inconsistent")
+    padded = torch.cat((v, v[:, -1:].expand(-1, extra_frames, -1, -1)), dim=1)
+    streaming = stream(F.pad(x, (0, chunks * CHUNK_SAMPLES - x.shape[-1])), padded)[0, :x.shape[-1]]
     if baseline.shape != mix.shape or streaming.shape != mix.shape:
         raise ValueError("unexpected output shape")
     if not torch.isfinite(baseline).all() or not torch.isfinite(streaming).all():
@@ -67,10 +71,11 @@ def main():
     p.add_argument("--baseline-checkpoint", default="/root/.cache/falcon_weights/falcon.pt")
     p.add_argument("--device", default="cpu", choices=("cpu", "cuda", "cuda:0", "cuda:1"))
     p.add_argument("--threads", type=int, default=4)
-    p.add_argument("--limit", type=int, default=16, help="number of examples; 0 means all")
+    p.add_argument("--start", type=int, default=0, help="first sample index, inclusive")
+    p.add_argument("--limit", type=int, default=16, help="number of examples after start; 0 means all remaining")
     p.add_argument("--output", required=True)
     a = p.parse_args()
-    if a.limit < 0 or a.threads < 1:
+    if a.start < 0 or a.limit < 0 or a.threads < 1:
         p.error("invalid limit or thread count")
     out = Path(a.output)
     if out.exists():
@@ -88,11 +93,14 @@ def main():
         raise ValueError("evaluation requires cv or tt")
     model, visual, epoch = load_baseline(a.baseline_checkpoint, a.device)
     ckpt = read_checkpoint(a.streaming_checkpoint, "cpu")
-    stream = FalconStreaming().to(a.device)
+    stream = FalconStreaming(**ckpt["model_config"]).to(a.device)
     stream.load_state_dict(ckpt["state_dict"], strict=True)
     stream.eval()
     rows = []
-    for i in range(len(data) if a.limit == 0 else min(a.limit, len(data))):
+    if a.start >= len(data):
+        raise ValueError("start must be within the dataset")
+    end = len(data) if a.limit == 0 else min(a.start + a.limit, len(data))
+    for i in range(a.start, end):
         row = {"id": data.samples[i]["id"], "index": i}
         try:
             mix, target, mouth = data[i]
@@ -116,7 +124,8 @@ def main():
     if any(sha(path) != digest for path, digest in zip(inputs, input_hashes)) or any(sha(root / path) != digest for path, digest in code_hashes.items()):
         raise RuntimeError("evaluation input or code changed during run")
     result = {
-        "scope": "same center-cropped 2s RealSSA, ch0; baseline full 2s vs v3 160ms chunks; not paper protocol",
+        "scope": f"same center-cropped 2s RealSSA, ch0; baseline full 2s vs streaming {CHUNK_SAMPLES / 16:g}ms chunks; not paper protocol",
+        "start": a.start, "end_exclusive": end, "streaming_model_config": ckpt["model_config"],
         "preprocessing": "uint8 grayscale truncation, center 88x88, normalized; identical inputs to both",
         "split": data.split, "index": str(Path(a.tar_index).resolve()), "index_sha256": input_hashes[0],
         "baseline_checkpoint": str(Path(a.baseline_checkpoint).resolve()), "baseline_sha256": input_hashes[1], "baseline_epoch": epoch,

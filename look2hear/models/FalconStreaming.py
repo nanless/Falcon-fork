@@ -1,8 +1,8 @@
 """Causal, stateful audiovisual Falcon-family streaming research model.
 
 This is a new architecture, not the published Falcon checkpoint architecture.
-Each public call processes one complete 160 ms block. Its 20 audio hops and
-four visual frames may interact bidirectionally within the block; later blocks
+Each public call processes one complete 120 ms block. Its 15 audio hops and
+three visual frames may interact bidirectionally within the block; later blocks
 are never inputs to the current call. Per-stream caches contain only history.
 """
 from __future__ import annotations
@@ -15,8 +15,8 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel, threeD_to_2D_tensor
 
 SAMPLE_RATE = 16000
-CHUNK_SAMPLES = 2560
-VIDEO_FRAMES = 4
+CHUNK_SAMPLES = 1920
+VIDEO_FRAMES = 3
 FRAME_SAMPLES = 128
 FFT_SIZE = 256
 # A hop retains 128 input samples, hence at most 129 causal FIR taps are valid.
@@ -62,23 +62,23 @@ class CausalResidualBlock(nn.Module):
 
 
 class FalconStreaming(nn.Module):
-    """160 ms block-causal audio-visual extraction with explicit stream state.
+    """120 ms block-causal audio-visual extraction with explicit stream state.
 
-    Input audio: [B, 2560], floating point mono at 16 kHz.
-    Input mouth: [B, 4, 88, 88], normalized (gray / 255 - .421) / .165.
+    Input audio: [B, 1920], floating point mono at 16 kHz.
+    Input mouth: [B, 3, 88, 88], normalized (gray / 255 - .421) / .165.
     Each mouth frame must have a capture timestamp <= its 40 ms interval start.
     No audio-visual alignment or tracking is performed inside this model.
 
-    forward_chunk returns (waveform [B,2560], state). State belongs to one
+    forward_chunk returns (waveform [B,1920], state). State belongs to one
     continuous stream/batch; None resets it. Reusing a state across identities
     would leak context. Detach state between truncated-BPTT training segments.
     forward supports concatenated whole chunks and preserves gradients across them.
     """
-    def __init__(self, channels: int = 112, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32)):
+    def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32)):
         super().__init__()
-        # V3 adds block-local joint attention; older checkpoints do not encode
+        # V4 uses 120 ms blocks; older checkpoints do not encode
         # the same architecture and must not silently load as this model.
-        self.register_buffer("_streaming_format_version", torch.tensor(3, dtype=torch.int64))
+        self.register_buffer("_streaming_format_version", torch.tensor(4, dtype=torch.int64))
         if channels < 1 or not dilations or any(d < 1 for d in dilations):
             raise ValueError("channels and dilations must be positive")
         self.channels = int(channels)
@@ -90,7 +90,7 @@ class FalconStreaming(nn.Module):
         self.video_proj = nn.Conv1d(512, channels, 1)
         self.audio_proj = nn.Conv1d(FFT_SIZE + 2, channels, 1)
         self.blocks = nn.ModuleList(CausalResidualBlock(channels, d) for d in self.dilations)
-        # Twenty audio tokens and four video tokens, exclusively from this
+        # Fifteen audio tokens and three video tokens, exclusively from this
         # block. The causal stack supplies bounded history; attention supplies
         # all-to-all context within the current block.
         self.chunk_norm = nn.LayerNorm(channels)
@@ -109,8 +109,8 @@ class FalconStreaming(nn.Module):
         name = prefix + "_streaming_format_version"
         marker = state_dict.get(name)
         if (not isinstance(marker, torch.Tensor) or marker.ndim != 0
-                or marker.dtype != torch.int64 or marker.item() != 3):
-            error_msgs.append(f"{name}: expected scalar int64 model version 3")
+                or marker.dtype != torch.int64 or marker.item() != 4):
+            error_msgs.append(f"{name}: expected scalar int64 model version 4")
             return
         super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
                                       missing_keys, unexpected_keys, error_msgs)
@@ -142,9 +142,9 @@ class FalconStreaming(nn.Module):
     def forward_chunk(self, audio: torch.Tensor, video: torch.Tensor,
                       state: dict[str, Any] | None = None):
         if audio.ndim != 2 or audio.shape[1] != CHUNK_SAMPLES:
-            raise ValueError("audio must have shape [B, 2560]")
+            raise ValueError("audio must have shape [B, 1920]")
         if video.ndim != 4 or video.shape != (audio.size(0), VIDEO_FRAMES, 88, 88):
-            raise ValueError("video must have shape [B, 4, 88, 88]")
+            raise ValueError("video must have shape [B, 3, 88, 88]")
         if audio.dtype != torch.float32 or video.dtype != torch.float32:
             raise ValueError("audio and video must be float32")
         if audio.device != video.device or audio.dtype != video.dtype:
@@ -172,7 +172,7 @@ class FalconStreaming(nn.Module):
             old_audio = audio.new_zeros(audio.size(0), FRAME_SAMPLES)
         if old_audio.shape != (audio.size(0), FRAME_SAMPLES):
             raise ValueError("audio state shape does not match input")
-        # 128 past + 20x128 new samples -> twenty causal 256-sample windows.
+        # 128 past + 15x128 new samples -> fifteen causal 256-sample windows.
         # 129-tap causal FIR plus overlap-save is alias-free and gives an
         # identity when mask == 1, without shifting/dropping samples.
         all_audio = torch.cat((old_audio, audio), dim=-1)
@@ -206,10 +206,10 @@ class FalconStreaming(nn.Module):
 
     def forward(self, audio: torch.Tensor, video: torch.Tensor):
         if audio.ndim != 2 or audio.size(1) == 0 or audio.size(1) % CHUNK_SAMPLES:
-            raise ValueError("audio length must be a positive multiple of 2560")
+            raise ValueError("audio length must be a positive multiple of 1920")
         chunks = audio.size(1) // CHUNK_SAMPLES
         if video.ndim != 4 or video.shape != (audio.size(0), chunks * VIDEO_FRAMES, 88, 88):
-            raise ValueError("expected four 88x88 video frames per audio chunk")
+            raise ValueError("expected three 88x88 video frames per audio chunk")
         state = None
         outputs = []
         for index in range(chunks):

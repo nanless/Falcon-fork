@@ -11,7 +11,7 @@ This fork contains Falcon training and evaluation code, a local Studio applicati
 The [Chinese README](README_zh.md) is the detailed starting point. The following project guides explain the current implementation and the evidence behind it:
 
 - [Model, visual fusion, and time dependence](docs/understanding/20261110-model-and-streaming.md)
-- [160 ms chunk-wise causal streaming: training and inference](docs/FALCON_STREAMING_160MS.md) (Chinese)
+- [120 ms chunk-wise causal streaming: training and inference](docs/FALCON_STREAMING_120MS.md) (Chinese)
 - [RealSSA-Sim dual-GPU streaming training and paired evaluation](docs/REALSSA_STREAMING_TRAINING.md) (Chinese)
 - [Datasets: what each open corpus contains and what is on this machine](docs/understanding/20261110-datasets.md) (Chinese)
 - [Data and training](docs/understanding/20261110-data-and-training.md)

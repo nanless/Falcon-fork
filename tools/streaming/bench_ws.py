@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 import numpy as np
 import websockets
+from tools.streaming.common import SAMPLES, FRAMES, SR, SAMPLES_PER_FRAME
 
 
 def stats(v):
@@ -22,8 +23,8 @@ def stats(v):
 
 async def run(a):
     rng = np.random.default_rng(a.seed)
-    audio = (rng.standard_normal(2560) * .1).astype("<f4")
-    mouth = rng.integers(0,256,(4,96,96), dtype=np.uint8)
+    audio = (rng.standard_normal(SAMPLES) * .1).astype("<f4")
+    mouth = rng.integers(0,256,(FRAMES,96,96), dtype=np.uint8)
     measurements = []
     async with websockets.connect(a.url, max_size=100000) as ws:
         ready = json.loads(await ws.recv())
@@ -31,12 +32,12 @@ async def run(a):
         # Absolute deadlines prevent a slow iteration from silently lowering the rate.
         deadline = time.perf_counter()
         for i in range(a.warmup + a.chunks):
-            deadline += .160
+            deadline += SAMPLES / SR
             await asyncio.sleep(max(0,deadline - time.perf_counter()))
             start = time.perf_counter()
-            start_sample = i*2560
+            start_sample = i*SAMPLES
             request = {"type":"chunk", "sequence":i, "start_sample":start_sample,
-                       "video_samples":[start_sample+j*640 for j in range(4)],
+                       "video_samples":[start_sample+j*SAMPLES_PER_FRAME for j in range(FRAMES)],
                        "audio_f32le":base64.b64encode(audio.tobytes()).decode("ascii"),
                        "mouth_gray_u8":base64.b64encode(mouth.tobytes()).decode("ascii")}
             encoded = json.dumps(request,separators=(",", ":"))
@@ -45,19 +46,19 @@ async def run(a):
             elapsed = (time.perf_counter()-start)*1000
             if result.get("type") != "result" or result.get("sequence") != i:
                 raise RuntimeError(f"unexpected response: {result}")
-            if len(base64.b64decode(result["audio_f32le"],validate=True)) != 2560*4:
+            if len(base64.b64decode(result["audio_f32le"],validate=True)) != SAMPLES*4:
                 raise RuntimeError("wrong output length")
             measurements.append({"sequence":i,"client_elapsed_ms":elapsed,
                                  "schedule_late_ms":max(0,(start-deadline)*1000),
                                  "server":result["timing_ms"]})
     scored = measurements[a.warmup:]
     metric_names = sorted(scored[0]["server"])
-    return {"url":a.url, "seed":a.seed, "chunk_ms":160, "warmup_chunks":a.warmup,
+    return {"url":a.url, "seed":a.seed, "chunk_ms": SAMPLES * 1000 / SR, "warmup_chunks":a.warmup,
             "measured_chunks":a.chunks, "training_status":ready.get("training_status"),
             "client_encode_send_receive_parse_ms":stats([m["client_elapsed_ms"] for m in scored]),
             "client_schedule_lateness_ms":stats([m["schedule_late_ms"] for m in scored]),
             "server_ms":{name:stats([m["server"][name] for m in scored]) for name in metric_names},
-            "over_160ms_count":sum(m["client_elapsed_ms"]>160 for m in scored),
+            "over_chunk_ms_count":sum(m["client_elapsed_ms"] > SAMPLES * 1000 / SR for m in scored),
             "scope":"synthetic audio and mouth frames; same-machine WebSocket; excludes actual capture, face tracking, real network, speaker playback and separation quality",
             "samples":scored}
 

@@ -64,7 +64,7 @@ function play(s, samples, captureStart) {
 function warmupNext(s) {
   const seq=s.warmupSeq;
   if(seq>=3){s.socket.send(JSON.stringify({type:"reset"}));s.warmupReset=true;return;}
-  const frames=Array.from({length:4},(_,i)=>({sample:seq*CHUNK+i*640,data:new Uint8Array(FRAME).fill(128)}));
+  const frames=Array.from({length:CHUNK / 640},(_,i)=>({sample:seq*CHUNK+i*640,data:new Uint8Array(FRAME).fill(128)}));
   s.socket.send(JSON.stringify(makePayload(seq,seq*CHUNK,new Float32Array(CHUNK),frames)));
 }
 function message(s, raw) {

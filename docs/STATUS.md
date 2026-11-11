@@ -4,7 +4,7 @@
 
 本页以仓库代码 `6e5c1b5` 和 2026-11-10 的检查为基线。更早的实验条件和结果见 [2026-11-08 深挖](understanding/deepdive-20261108/00-SYNTHESIS.md)与 [Phase 1/2 记录](verification/README.md)。
 
-2026-11-11 新增块级因果 v3：每个 160 ms 块内部的音视频特征可互相参考，跨块只使用历史状态；模型从随机权重进行链路验证，语音提取质量以正式训练和评测为准。接口、时间轴和验证见 [160 ms 流式模型](FALCON_STREAMING_160MS.md)。
+2026-11-11 当前块级因果模型为 v4：每个 120 ms 块内部的音视频特征可互相参考，跨块只使用历史状态；双卡正式训练进行中，语音提取质量以训练和评测结果为准。接口、时间轴和验证见 [120 ms 流式模型](FALCON_STREAMING_120MS.md)；此前 160 ms v3 的设计和结果见 [历史记录](FALCON_STREAMING_160MS.md)。
 
 想先理解项目，可看[中文 README](../README_zh.md)；模型、数据集、训练、评测与应用分别有[模型说明](understanding/20261110-model-and-streaming.md)、[数据集说明](understanding/20261110-datasets.md)、[数据训练说明](understanding/20261110-data-and-training.md)和[评测应用说明](understanding/20261110-evaluation-and-apps.md)。本轮逐项发现与可复跑材料见[审查记录](verification/deepdive-20261110/审查记录.md)。
 

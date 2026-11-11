@@ -47,8 +47,8 @@ def main():
     y = mouth_tensor(raw_video[:count * FRAMES]).unsqueeze(0)
     if x.shape != (1, count * SAMPLES) or y.shape != (1, count * FRAMES, 88, 88):
         raise ValueError("three complete aligned chunks required")
-    model = FalconStreaming().eval()
     checkpoint = read_checkpoint(args.checkpoint, "cpu")
+    model = FalconStreaming(**checkpoint["model_config"]).eval()
     model.load_state_dict(checkpoint["state_dict"], strict=True)
     generator = torch.Generator().manual_seed(20261111)
     rows = []
@@ -88,7 +88,7 @@ def main():
                          "previous_chunk_max_abs_delta": (out[:, :SAMPLES] - baseline[:, :SAMPLES]).abs().max().item()})
     if model_hash != sha("look2hear/models/FalconStreaming.py") or checkpoint_hash != sha(args.checkpoint):
         raise RuntimeError("model or checkpoint changed during audit")
-    result = {"scope": "CPU aligned real utterance, three 160ms chunks; prior chunks invariant under later chunk perturbations",
+    result = {"scope": "CPU aligned real utterance, three 120ms chunks; prior chunks invariant under later chunk perturbations",
               "checkpoint_format": checkpoint["format"], "training_status": checkpoint.get("training_status"),
               "seed": 20261111, "threads": args.threads,
               "checkpoint": str(Path(args.checkpoint).resolve()), "checkpoint_sha256": checkpoint_hash,

@@ -1,4 +1,4 @@
-"""Offline replay through the exact stateful 160 ms live-model API."""
+"""Offline replay through the exact stateful 120 ms live-model API."""
 import argparse
 import math
 from pathlib import Path
@@ -34,7 +34,7 @@ video_pad = chunks * FRAMES - len(video)
 if video_pad:
     video = torch.cat((video, video[-1:].expand(video_pad, -1, -1)))
 ckpt = read_checkpoint(a.checkpoint, a.device)
-model = FalconStreaming().to(a.device)
+model = FalconStreaming(**ckpt["model_config"]).to(a.device)
 model.load_state_dict(ckpt["state_dict"], strict=True)
 model.eval()
 outputs = []

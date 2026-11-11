@@ -4,7 +4,7 @@ import { AudioRing, CHUNK, FRAME, finalChunk, selectFrames, makePayload, decodeA
 const f=(sample,byte=0)=>({sample,data:new Uint8Array(FRAME).fill(byte)});
 test("selects only the latest available past frame for each interval",()=>{
   const x=selectFrames([f(999),f(1001),f(1500),f(1641),f(2300),f(2921)],1000);
-  assert.deepEqual(x.map(y=>y.sample),[999,1500,1641,2300]);
+  assert.deepEqual(x.map(y=>y.sample),[999,1500,1641]);
   assert.equal(selectFrames([f(1001)],1000),null);
   assert.equal(selectFrames([f(-3000)],1000),null);
 });
@@ -15,19 +15,19 @@ test("audio ring preserves sequence and detects overwrite",()=>{
 });
 test("payload has causal relative timestamps, sequence and little-endian float",()=>{
   const a=new Float32Array(CHUNK);a[0]=.5;a[1]=-.25;
-  const frames=[f(999,1),f(1500,2),f(1641,3),f(2300,4)];
+  const frames=[f(999,1),f(1500,2),f(1641,3)];
   const q=makePayload(2,1000,a,frames);
-  assert.equal(q.start_sample,5120);assert.deepEqual(q.video_samples,[5119,5620,5761,6420]);
+  assert.equal(q.start_sample,3840);assert.deepEqual(q.video_samples,[3839,4340,4481]);
   assert.deepEqual([...decodeAudio(q.audio_f32le).slice(0,2)],[.5,-.25]);
-  assert.equal(atob(q.mouth_gray_u8).length,4*FRAME);
+  assert.equal(atob(q.mouth_gray_u8).length,3*FRAME);
   assert.throws(()=>decodeAudio(btoa("abc")));
 });
-test("JPEG transport sends four compressed frames with unchanged timestamps",()=>{
-  const fs=[0,640,1280,1920].map((sample,i)=>({sample,jpeg:new Uint8Array([255,216,i,255,217])}));
-  assert.equal(selectFrames(fs,0).length,4);
+test("JPEG transport sends three compressed frames with unchanged timestamps",()=>{
+  const fs=[0,640,1280].map((sample,i)=>({sample,jpeg:new Uint8Array([255,216,i,255,217])}));
+  assert.equal(selectFrames(fs,0).length,3);
   const payload=makePayload(0,0,new Float32Array(CHUNK),fs);
-  assert.equal(payload.mouth_gray_u8,undefined);assert.equal(payload.mouth_jpeg.length,4);
-  assert.deepEqual(payload.video_samples,[0,640,1280,1920]);assert.equal(atob(payload.mouth_jpeg[0]).length,5);
+  assert.equal(payload.mouth_gray_u8,undefined);assert.equal(payload.mouth_jpeg.length,3);
+  assert.deepEqual(payload.video_samples,[0,640,1280]);assert.equal(atob(payload.mouth_jpeg[0]).length,5);
 });
 
 test("final partial block is padded without losing or fabricating valid samples",()=>{
@@ -42,10 +42,10 @@ test("final partial block is padded without losing or fabricating valid samples"
 });
 
 test("only real audio intervals enforce video freshness in final partial block",()=>{
-  const old=f(-2000);
+  const old=f(-1800);
   assert.equal(selectFrames([old],0),null);
   const picked=selectFrames([old],0,CHUNK,20);
-  assert.equal(picked.length,4);assert.ok(picked.every(frame=>frame.sample===-2000));
+  assert.equal(picked.length,3);assert.ok(picked.every(frame=>frame.sample===-1800));
   const q=makePayload(0,0,new Float32Array(CHUNK),picked,20);
   assert.equal(q.valid_samples,20);
   assert.equal(makePayload(0,0,new Float32Array(CHUNK),picked).valid_samples,undefined);
