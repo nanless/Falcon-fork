@@ -81,20 +81,73 @@ class SubbandRefiner(nn.Module):
         nn.init.zeros_(self.output_proj.weight)
         nn.init.zeros_(self.output_proj.bias)
 
-    def forward(self, spectrum: torch.Tensor, condition: torch.Tensor) -> torch.Tensor:
+    def spectral_features(self, spectrum: torch.Tensor) -> torch.Tensor:
         magnitude = spectrum.abs()
         compressed = magnitude.log1p()
         # The scale tends to one at silence and retains relative complex phase.
         scale = (1.0 + magnitude).rsqrt()
         features = torch.stack((compressed, spectrum.real * scale, spectrum.imag * scale), dim=-1)
         features = F.pad(features, (0, 0, 0, self.pad_bins))
-        features = features.reshape(spectrum.size(0), spectrum.size(1), self.groups, -1)
+        return features.reshape(spectrum.size(0), spectrum.size(1), self.groups, -1)
+
+    def forward(self, spectrum: torch.Tensor, condition: torch.Tensor, *,
+                features: torch.Tensor | None = None) -> torch.Tensor:
+        if features is None:
+            features = self.spectral_features(spectrum)
         local = self.spectrum_proj(features).permute(0, 3, 1, 2)
         local = local + self.condition_proj(condition).unsqueeze(-1) + self.frequency_positions
         # A symmetric convolution shares weights across both axes of this
         # received chunk; padding introduces no samples from other chunks.
         local = local + F.gelu(self.pointwise(F.gelu(self.depthwise(local))))
         gains = self.output_proj(local).permute(0, 2, 3, 1).flatten(2)
+        return gains[..., :self.bins].transpose(1, 2)
+
+
+class SubbandResidualBlock(nn.Module):
+    """Mix neighbouring hops and bands within the received chunk."""
+
+    def __init__(self, width: int, dilation: tuple[int, int], depth: int):
+        super().__init__()
+        self.depthwise = nn.Conv2d(width, width, 3, padding=dilation,
+                                   dilation=dilation, groups=width)
+        self.expand = nn.Conv2d(width, 2 * width, 1)
+        self.mix = nn.Conv2d(width, width, 1)
+        self.residual_scale = depth ** -0.5
+
+    def forward(self, features: torch.Tensor) -> torch.Tensor:
+        value, gate = self.expand(self.depthwise(features)).chunk(2, dim=1)
+        return features + self.residual_scale * self.mix(value * F.silu(gate))
+
+
+class SubbandCapacity(nn.Module):
+    """Deeper local estimator, additive to the original v8 subband path."""
+
+    def __init__(self, channels: int, width: int, depth: int, *,
+                 bins: int, group_width: int, groups: int):
+        super().__init__()
+        self.bins = bins
+        self.frequency_positions = nn.Parameter(torch.empty(1, width, 1, groups))
+        nn.init.normal_(self.frequency_positions, std=0.02)
+        self.visual_band_gate = nn.Parameter(torch.zeros(1, width, 1, groups))
+        self.spectrum_proj = nn.Linear(3 * group_width, width)
+        self.condition_proj = nn.Conv1d(channels, width, 1)
+        self.visual_proj = nn.Conv1d(channels, 2 * width, 1)
+        dilations = ((1, 1), (2, 1), (4, 2), (1, 3))
+        self.blocks = nn.Sequential(*(SubbandResidualBlock(width, dilations[i % len(dilations)], depth)
+                                      for i in range(depth)))
+        self.output_proj = nn.Conv2d(width, group_width, 1)
+        # v8, including a trained subband estimator, is unchanged at warm start.
+        nn.init.zeros_(self.output_proj.weight)
+        nn.init.zeros_(self.output_proj.bias)
+
+    def forward(self, features: torch.Tensor, condition: torch.Tensor,
+                visual: torch.Tensor) -> torch.Tensor:
+        local = self.spectrum_proj(features).permute(0, 3, 1, 2)
+        local = local + self.condition_proj(condition).unsqueeze(-1) + self.frequency_positions
+        visual_gain, visual_bias = self.visual_proj(visual).unsqueeze(-1).chunk(2, dim=1)
+        band_gate = self.visual_band_gate.sigmoid()
+        local = local * (1.0 + band_gate * visual_gain.tanh()) + band_gate * visual_bias
+        gains = self.output_proj(self.blocks(local)).permute(0, 2, 3, 1).flatten(2)
         return gains[..., :self.bins].transpose(1, 2)
 
 
@@ -113,7 +166,8 @@ class FalconStreaming(nn.Module):
     """
     def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32),
                  visual_mode: str = "causal", synthesis_mode: str = "nonnegative",
-                 attention_history_chunks: int = 0, subband_refiner: bool = False):
+                 attention_history_chunks: int = 0, subband_refiner: bool = False,
+                 subband_width: int = 16, subband_depth: int = 1):
         super().__init__()
         if visual_mode not in ("causal", "chunk_centered"):
             raise ValueError("visual_mode must be causal or chunk_centered")
@@ -129,12 +183,23 @@ class FalconStreaming(nn.Module):
             raise ValueError("subband_refiner must be a boolean")
         if subband_refiner and synthesis_mode != "signed_residual":
             raise ValueError("subband_refiner requires signed_residual synthesis")
+        if type(subband_width) is not int or subband_width < 1:
+            raise ValueError("subband_width must be a positive integer")
+        if type(subband_depth) is not int or subband_depth < 1:
+            raise ValueError("subband_depth must be a positive integer")
+        self.subband_width = subband_width
+        self.subband_depth = subband_depth
+        self.has_subband_capacity = (subband_width, subband_depth) != (16, 1)
+        if self.has_subband_capacity and not subband_refiner:
+            raise ValueError("nondefault subband_width or subband_depth requires subband_refiner")
         self.subband_refiner = subband_refiner
         self.visual_mode = visual_mode
         self.synthesis_mode = synthesis_mode
         self.attention_history_chunks = attention_history_chunks
         # Changed model semantics need a new checkpoint version.
-        if subband_refiner:
+        if self.has_subband_capacity:
+            self._expected_format_version = 9
+        elif subband_refiner:
             self._expected_format_version = 8
         elif attention_history_chunks:
             self._expected_format_version = 7
@@ -175,6 +240,10 @@ class FalconStreaming(nn.Module):
             nn.init.zeros_(self.synthesis_residual.bias)
         if subband_refiner:
             self.subband = SubbandRefiner(channels)
+        if self.has_subband_capacity:
+            self.subband_capacity = SubbandCapacity(
+                channels, subband_width, subband_depth, bins=self.subband.bins,
+                group_width=self.subband.group_width, groups=self.subband.groups)
         self._freeze_bn_stats()
 
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
@@ -312,7 +381,8 @@ class FalconStreaming(nn.Module):
         x = self.audio_proj(feats)
         visual, video_state = self._visual(video, state.get("video"))
         # A video frame at each 40ms bin start conditions the five 8ms steps.
-        x = x + visual.repeat_interleave(5, dim=-1)
+        visual_hops = visual.repeat_interleave(5, dim=-1)
+        x = x + visual_hops
         previous = state.get("blocks")
         if previous is None:
             previous = [None] * len(self.blocks)
@@ -335,7 +405,10 @@ class FalconStreaming(nn.Module):
         if self.synthesis_mode == "signed_residual":
             mask = mask + self.synthesis_residual(x)
         if self.subband_refiner:
-            mask = mask + self.subband(spec, x)
+            features = self.subband.spectral_features(spec)
+            mask = mask + self.subband(spec, x, features=features)
+            if self.has_subband_capacity:
+                mask = mask + self.subband_capacity(features, x, visual_hops)
         reconstructed = causal_mask_filter(spec, mask.transpose(1, 2))
         output = reconstructed.reshape(audio.size(0), CHUNK_SAMPLES)
         next_state = {"audio": all_audio[:, -FRAME_SAMPLES:],

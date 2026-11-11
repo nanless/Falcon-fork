@@ -33,9 +33,9 @@ PATH_KEYS = {"index_dir", "tar_index", "valid_index_dir", "valid_tar_index",
 BOOL_KEYS = {"synthetic", "random_visual", "reconstruction_only", "positive_contrastive", "exclude_degenerate_contrastive", "fixed_crop", "subband_refiner"}
 INT_KEYS = {"validation_limit", "batch_size", "accum", "epochs", "max_steps",
             "save_every", "workers", "seed", "validation_batch_size", "model_channels",
-            "warmup_steps", "lr_patience", "early_stop_patience", "teacher_microbatch", "attention_history_chunks"}
+            "warmup_steps", "lr_patience", "early_stop_patience", "teacher_microbatch", "attention_history_chunks", "subband_width", "subband_depth"}
 FLOAT_KEYS = {"contrastive_weight", "lr", "weight_decay", "min_delta", "variance_weight", "variance_floor", "silence_rms_threshold", "silence_loss_weight",
-              "distillation_weight", "teacher_min_improvement_db", "teacher_min_sisdr_db", "spectral_loss_weight", "speech_ratio_floor"}
+              "distillation_weight", "teacher_min_improvement_db", "teacher_min_sisdr_db", "spectral_loss_weight", "speech_ratio_floor", "subband_capacity_lr_multiplier", "local_reconstruction_weight"}
 STR_KEYS = {"backend", "visual_mode", "synthesis_mode"}
 KEYS = PATH_KEYS | BOOL_KEYS | INT_KEYS | FLOAT_KEYS | STR_KEYS
 GROUPS = ({"index_dir", "tar_index", "synthetic"},

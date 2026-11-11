@@ -345,7 +345,7 @@ def warmup_learning_rate(optimizer, target_lr, update, warmup_steps):
     if warmup_steps and update < warmup_steps:
         rate = target_lr * (update + 1) / warmup_steps
         for group in optimizer.param_groups:
-            group["lr"] = rate
+            group["lr"] = rate * group.get("lr_multiplier", 1.0)
 
 
 def atomic_checkpoint(path, payload):
@@ -401,6 +401,16 @@ def load_warm_start(path, model, training_model, visual_sha, *, random_visual, r
         if not subband or source_state.keys() & subband.keys():
             raise ValueError("invalid legacy warm-start subband state")
         source_state.update(subband)
+    source_capacity = (source_config.get("subband_width", 16), source_config.get("subband_depth", 1))
+    destination_capacity = (model.subband_width, model.subband_depth)
+    if source_capacity != (16, 1) and source_capacity != destination_capacity:
+        raise ValueError("cannot discard or resize trained subband capacity in warm-start")
+    if model.has_subband_capacity and source_capacity == (16, 1):
+        capacity = {name: value for name, value in destination_state.items()
+                    if name.startswith("subband_capacity.")}
+        if not capacity or source_state.keys() & capacity.keys():
+            raise ValueError("invalid legacy warm-start capacity state")
+        source_state.update(capacity)
     source_state["_streaming_format_version"] = destination_state["_streaming_format_version"].detach().cpu().clone()
     model.load_state_dict(source_state, strict=True)
     pool_sha = None
@@ -448,6 +458,10 @@ def parse_args(argv=None):
     parser.add_argument("--visual-mode", choices=("causal", "chunk_centered"), default="causal")
     parser.add_argument("--synthesis-mode", choices=("nonnegative", "signed_residual"), default="nonnegative")
     parser.add_argument("--subband-refiner", action="store_true")
+    parser.add_argument("--subband-width", type=int, default=16)
+    parser.add_argument("--subband-depth", type=int, default=1)
+    parser.add_argument("--subband-capacity-lr-multiplier", type=float, default=1.0)
+    parser.add_argument("--local-reconstruction-weight", type=float, default=0.0)
     parser.add_argument("--spectral-loss-weight", type=float, default=0.0)
     parser.add_argument("--speech-ratio-floor", type=float, default=0.0,
                         help="training-only soft floor added to the linear SI-SDR power ratio")
@@ -505,7 +519,8 @@ def parse_args(argv=None):
         parser.error("variance regularizer requires positive-contrastive")
     try:
         checkpoint_format_for_visual_mode(args.visual_mode, args.synthesis_mode,
-                                          args.attention_history_chunks, args.subband_refiner)
+                                          args.attention_history_chunks, args.subband_refiner,
+                                          args.subband_width, args.subband_depth)
     except ValueError as exc:
         parser.error(str(exc))
     if (args.teacher_microbatch < 1
@@ -525,6 +540,12 @@ def parse_args(argv=None):
         parser.error("spectral loss weight must be finite and nonnegative")
     if not 0 <= args.speech_ratio_floor < 1:
         parser.error("speech ratio floor must be in [0, 1)")
+    if not np.isfinite(args.local_reconstruction_weight) or args.local_reconstruction_weight < 0:
+        parser.error("local reconstruction weight must be finite and nonnegative")
+    if not np.isfinite(args.subband_capacity_lr_multiplier) or args.subband_capacity_lr_multiplier <= 0:
+        parser.error("capacity LR multiplier must be finite and positive")
+    if (args.subband_width, args.subband_depth) == (16, 1) and args.subband_capacity_lr_multiplier != 1:
+        parser.error("capacity LR multiplier requires the expanded subband branch")
     if args.teacher_checkpoint and args.synthetic:
         parser.error("distillation requires real audiovisual data")
     if not 0 <= args.seed <= 2**32 - 2:
@@ -587,7 +608,8 @@ def main():
         model = FalconStreaming(channels=args.model_channels, visual_mode=args.visual_mode,
                                 synthesis_mode=args.synthesis_mode,
                                 attention_history_chunks=args.attention_history_chunks,
-                                subband_refiner=args.subband_refiner)
+                                subband_refiner=args.subband_refiner, subband_width=args.subband_width,
+                                subband_depth=args.subband_depth)
         model_config = {"channels": model.channels, "dilations": list(model.dilations)}
         if args.visual_mode != "causal":
             model_config["visual_mode"] = args.visual_mode
@@ -597,6 +619,8 @@ def main():
             model_config["attention_history_chunks"] = args.attention_history_chunks
         if args.subband_refiner:
             model_config["subband_refiner"] = True
+        if model.has_subband_capacity:
+            model_config.update(subband_width=model.subband_width, subband_depth=model.subband_depth)
         model_code_sha = sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconStreaming.py")
         trainer_code_sha = sha256(__file__)
         data_code_sha = sha256(Path(__file__).with_name("realssa_tar.py")) if (args.tar_index or args.valid_tar_index) else sha256(Path(__file__).with_name("common.py"))
@@ -628,6 +652,15 @@ def main():
             spectral_protocol = {"weight": args.spectral_loss_weight,
                                  "source_sha256": sha256(Path(__file__).with_name("spectral_loss.py"))}
             objective_name += "_with_multires_spectral"
+        local_reconstruction = None
+        local_protocol = None
+        if args.local_reconstruction_weight:
+            from tools.streaming.local_reconstruction import LocalReconstructionLoss
+
+            local_reconstruction = LocalReconstructionLoss().to(device)
+            local_protocol = {"weight": args.local_reconstruction_weight,
+                              "source_sha256": sha256(Path(__file__).with_name("local_reconstruction.py"))}
+            objective_name += "_with_local_reconstruction"
         teacher = None
         distillation_protocol = None
         if args.teacher_checkpoint:
@@ -690,6 +723,9 @@ def main():
                            "synthesis_mode": args.synthesis_mode,
                            "attention_history_chunks": args.attention_history_chunks,
                            "subband_refiner": args.subband_refiner,
+                           "subband_width": args.subband_width, "subband_depth": args.subband_depth,
+                           "subband_capacity_lr_multiplier": args.subband_capacity_lr_multiplier,
+                           "local_reconstruction": local_protocol,
                            "spectral": spectral_protocol,
                            "distillation": distillation_protocol,
                            "fixed_crop": args.fixed_crop,
@@ -700,7 +736,16 @@ def main():
                 raise ValueError("resume protocol mismatch: target_learning_rate")
         ddp = DistributedDataParallel(training_model, device_ids=[local_rank] if device.type == "cuda" else None)
         target_lr = args.lr if args.lr is not None else (checkpoint.get("target_learning_rate", .001) if checkpoint else .001)
-        optimizer = torch.optim.AdamW((p for p in training_model.parameters() if p.requires_grad), lr=target_lr, weight_decay=args.weight_decay)
+        trainable = [p for p in training_model.parameters() if p.requires_grad]
+        if model.has_subband_capacity:
+            capacity = list(model.subband_capacity.parameters())
+            capacity_ids = {id(p) for p in capacity}
+            groups = [{"params": [p for p in trainable if id(p) not in capacity_ids]},
+                      {"params": capacity, "lr": target_lr * args.subband_capacity_lr_multiplier,
+                       "lr_multiplier": args.subband_capacity_lr_multiplier}]
+        else:
+            groups = trainable
+        optimizer = torch.optim.AdamW(groups, lr=target_lr, weight_decay=args.weight_decay)
         if checkpoint is not None:
             optimizer.load_state_dict(checkpoint["optimizer"])
         if args.valid_tar_index:
@@ -733,9 +778,11 @@ def main():
         def checkpoint_payload(current_epoch, partial):
             return {
                 "format": checkpoint_format_for_visual_mode(
-                    args.visual_mode, args.synthesis_mode, args.attention_history_chunks, args.subband_refiner),
+                    args.visual_mode, args.synthesis_mode, args.attention_history_chunks, args.subband_refiner,
+                    args.subband_width, args.subband_depth),
                 "state_dict": model.state_dict(), "model_config": model_config,
                 "distillation": distillation_protocol, "spectral": spectral_protocol,
+                "local_reconstruction": local_protocol,
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
                 "configuration_path": args.config, "configuration_sha256": args.config_sha256,
@@ -805,6 +852,10 @@ def main():
                 if spectral_loss is not None:
                     spectral_value = spectral_loss(output, target, mixture, ~degenerate).mean()
                     loss = loss + args.spectral_loss_weight * spectral_value
+                local_value = None
+                if local_reconstruction is not None:
+                    local_value = local_reconstruction(output, target, mixture).mean()
+                    loss = loss + args.local_reconstruction_weight * local_value
                 distill_metrics = None
                 if teacher_output is not None:
                     auxiliary, selected, teacher_gain = distillation_components(
@@ -842,12 +893,19 @@ def main():
                         global_spectral = spectral_value.detach()
                         dist.all_reduce(global_spectral, op=dist.ReduceOp.SUM)
                         spectral_log = f" spectral_loss_last_microbatch={global_spectral.item() / world:.6g}"
+                    local_log = ""
+                    if local_value is not None:
+                        global_local = local_value.detach()
+                        dist.all_reduce(global_local, op=dist.ReduceOp.SUM)
+                        local_log = f" local_loss_last_microbatch={global_local.item() / world:.6g}"
                     warmup_learning_rate(optimizer, target_lr, updates, args.warmup_steps)
+                    if model.has_subband_capacity:
+                        local_log += f" capacity_lr={optimizer.param_groups[1]['lr']:.8g}"
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     updates += 1
                     if rank == 0:
-                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}{teacher_log}{spectral_log}", flush=True)
+                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}{teacher_log}{spectral_log}{local_log}", flush=True)
                     if args.max_steps and updates - start_updates >= args.max_steps:
                         end_reason = "max_steps"
                         break

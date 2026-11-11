@@ -99,7 +99,9 @@ def create_app(model, training_status="unknown", device="cpu", warmup_ms=None):
     model_format = checkpoint_format_for_visual_mode(getattr(model, "visual_mode", "causal"),
                                                     getattr(model, "synthesis_mode", "nonnegative"),
                                                     getattr(model, "attention_history_chunks", 0),
-                                                    getattr(model, "subband_refiner", False))
+                                                    getattr(model, "subband_refiner", False),
+                                                    getattr(model, "subband_width", 16),
+                                                    getattr(model, "subband_depth", 1))
     app = FastAPI(title="Falcon 120ms streaming")
     lock = asyncio.Lock()  # Shared model call is serialized; session state stays private.
     active_sessions = 0

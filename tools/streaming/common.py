@@ -17,17 +17,24 @@ CENTERED_CHECKPOINT_FORMAT = "falcon-streaming-v5"
 SIGNED_CHECKPOINT_FORMAT = "falcon-streaming-v6"
 HISTORY_CHECKPOINT_FORMAT = "falcon-streaming-v7"
 SUBBAND_CHECKPOINT_FORMAT = "falcon-streaming-v8"
+CAPACITY_CHECKPOINT_FORMAT = "falcon-streaming-v9"
 
 
 def checkpoint_format_for_visual_mode(visual_mode, synthesis_mode="nonnegative",
-                                      attention_history_chunks=0, subband_refiner=False):
+                                      attention_history_chunks=0, subband_refiner=False,
+                                      subband_width=16, subband_depth=1):
     if type(attention_history_chunks) is not int or attention_history_chunks < 0:
         raise ValueError("attention_history_chunks must be a nonnegative integer")
     if type(subband_refiner) is not bool:
         raise ValueError("subband_refiner must be a boolean")
+    if type(subband_width) is not int or type(subband_depth) is not int or min(subband_width, subband_depth) < 1:
+        raise ValueError("subband width and depth must be positive integers")
+    capacity = (subband_width, subband_depth) != (16, 1)
+    if capacity and not subband_refiner:
+        raise ValueError("nondefault subband dimensions require the subband refiner")
     if subband_refiner:
         if synthesis_mode == "signed_residual" and visual_mode == "causal":
-            return SUBBAND_CHECKPOINT_FORMAT
+            return CAPACITY_CHECKPOINT_FORMAT if capacity else SUBBAND_CHECKPOINT_FORMAT
         raise ValueError("subband_refiner requires signed_residual synthesis and causal visual mode")
     if attention_history_chunks:
         if synthesis_mode == "signed_residual" and visual_mode == "causal":
@@ -130,9 +137,9 @@ def read_checkpoint(path, device):
     format_name = ckpt.get("format")
     versions = {CHECKPOINT_FORMAT: 4, CENTERED_CHECKPOINT_FORMAT: 5,
                 SIGNED_CHECKPOINT_FORMAT: 6, HISTORY_CHECKPOINT_FORMAT: 7,
-                SUBBAND_CHECKPOINT_FORMAT: 8}
+                SUBBAND_CHECKPOINT_FORMAT: 8, CAPACITY_CHECKPOINT_FORMAT: 9}
     if not isinstance(format_name, str) or format_name not in versions:
-        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 through falcon-streaming-v8 (120 ms)")
+        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 through falcon-streaming-v9 (120 ms)")
     required_version = versions[format_name]
     state = ckpt.get("state_dict")
     version = state.get("_streaming_format_version") if isinstance(state, dict) else None
@@ -151,6 +158,12 @@ def read_checkpoint(path, device):
         allowed_keys = tuple(required | keys for keys in
                              (set(), {"visual_mode"}, {"attention_history_chunks"},
                               {"visual_mode", "attention_history_chunks"}))
+    if format_name == CAPACITY_CHECKPOINT_FORMAT:
+        required = {"channels", "dilations", "synthesis_mode", "subband_refiner",
+                    "subband_width", "subband_depth"}
+        allowed_keys = tuple(required | keys for keys in
+                             (set(), {"visual_mode"}, {"attention_history_chunks"},
+                              {"visual_mode", "attention_history_chunks"}))
     if (not isinstance(config, dict) or set(config) not in allowed_keys
             or type(config["channels"]) is not int or config["channels"] < 1
             or not isinstance(config["dilations"], (tuple, list)) or not config["dilations"]
@@ -159,7 +172,8 @@ def read_checkpoint(path, device):
     visual_mode = config.get("visual_mode", "causal")
     expected_format = checkpoint_format_for_visual_mode(
         visual_mode, config.get("synthesis_mode", "nonnegative"),
-        config.get("attention_history_chunks", 0), config.get("subband_refiner", False))
+        config.get("attention_history_chunks", 0), config.get("subband_refiner", False),
+        config.get("subband_width", 16), config.get("subband_depth", 1))
     if expected_format != format_name:
         raise ValueError("streaming model_config visual_mode or architecture does not match checkpoint format")
     return ckpt
