@@ -14,9 +14,21 @@ FRAMES = 3
 SAMPLES_PER_FRAME = 640
 CHECKPOINT_FORMAT = "falcon-streaming-v4"
 CENTERED_CHECKPOINT_FORMAT = "falcon-streaming-v5"
+SIGNED_CHECKPOINT_FORMAT = "falcon-streaming-v6"
+HISTORY_CHECKPOINT_FORMAT = "falcon-streaming-v7"
 
 
-def checkpoint_format_for_visual_mode(visual_mode):
+def checkpoint_format_for_visual_mode(visual_mode, synthesis_mode="nonnegative", attention_history_chunks=0):
+    if type(attention_history_chunks) is not int or attention_history_chunks < 0:
+        raise ValueError("attention_history_chunks must be a nonnegative integer")
+    if attention_history_chunks:
+        if synthesis_mode == "signed_residual" and visual_mode == "causal":
+            return HISTORY_CHECKPOINT_FORMAT
+        raise ValueError("history attention requires signed_residual synthesis and causal visual mode")
+    if synthesis_mode == "signed_residual" and visual_mode == "causal":
+        return SIGNED_CHECKPOINT_FORMAT
+    if synthesis_mode != "nonnegative":
+        raise ValueError("invalid visual and synthesis mode combination")
     if visual_mode == "causal":
         return CHECKPOINT_FORMAT
     if visual_mode == "chunk_centered":
@@ -108,21 +120,32 @@ def read_checkpoint(path, device):
     if not isinstance(ckpt, dict):
         raise ValueError("invalid FalconStreaming checkpoint")
     format_name = ckpt.get("format")
-    if format_name not in (CHECKPOINT_FORMAT, CENTERED_CHECKPOINT_FORMAT):
-        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 or falcon-streaming-v5 (120 ms)")
-    required_version = 4 if format_name == CHECKPOINT_FORMAT else 5
+    versions = {CHECKPOINT_FORMAT: 4, CENTERED_CHECKPOINT_FORMAT: 5,
+                SIGNED_CHECKPOINT_FORMAT: 6, HISTORY_CHECKPOINT_FORMAT: 7}
+    if format_name not in versions:
+        raise ValueError("incompatible FalconStreaming checkpoint: expected falcon-streaming-v4 through falcon-streaming-v7 (120 ms)")
+    required_version = versions[format_name]
     state = ckpt.get("state_dict")
     version = state.get("_streaming_format_version") if isinstance(state, dict) else None
     if not isinstance(version, torch.Tensor) or version.shape != () or version.dtype != torch.int64 or version.item() != required_version:
         raise ValueError(f"incompatible FalconStreaming model state: expected scalar int64 _streaming_format_version={required_version}")
     config = ckpt.get("model_config")
     allowed_keys = ({"channels", "dilations"}, {"channels", "dilations", "visual_mode"})
+    if format_name == SIGNED_CHECKPOINT_FORMAT:
+        allowed_keys = ({"channels", "dilations", "synthesis_mode"},
+                        {"channels", "dilations", "visual_mode", "synthesis_mode"})
+    if format_name == HISTORY_CHECKPOINT_FORMAT:
+        required = {"channels", "dilations", "synthesis_mode", "attention_history_chunks"}
+        allowed_keys = (required, required | {"visual_mode"})
     if (not isinstance(config, dict) or set(config) not in allowed_keys
             or type(config["channels"]) is not int or config["channels"] < 1
             or not isinstance(config["dilations"], (tuple, list)) or not config["dilations"]
             or any(type(d) is not int or d < 1 for d in config["dilations"])):
         raise ValueError("invalid or missing streaming model_config")
     visual_mode = config.get("visual_mode", "causal")
-    if visual_mode not in ("causal", "chunk_centered") or checkpoint_format_for_visual_mode(visual_mode) != format_name:
+    expected_format = checkpoint_format_for_visual_mode(
+        visual_mode, config.get("synthesis_mode", "nonnegative"),
+        config.get("attention_history_chunks", 0))
+    if expected_format != format_name:
         raise ValueError("streaming model_config visual_mode does not match checkpoint format")
     return ckpt

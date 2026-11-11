@@ -75,15 +75,31 @@ class FalconStreaming(nn.Module):
     forward supports concatenated whole chunks and preserves gradients across them.
     """
     def __init__(self, channels: int = 320, dilations: tuple[int, ...] = (1, 2, 4, 8, 16, 32),
-                 visual_mode: str = "causal"):
+                 visual_mode: str = "causal", synthesis_mode: str = "nonnegative",
+                 attention_history_chunks: int = 0):
         super().__init__()
         if visual_mode not in ("causal", "chunk_centered"):
             raise ValueError("visual_mode must be causal or chunk_centered")
+        if synthesis_mode not in ("nonnegative", "signed_residual"):
+            raise ValueError("synthesis_mode must be nonnegative or signed_residual")
+        if synthesis_mode == "signed_residual" and visual_mode != "causal":
+            raise ValueError("signed_residual requires causal visual mode")
+        if type(attention_history_chunks) is not int or attention_history_chunks < 0:
+            raise ValueError("attention_history_chunks must be a nonnegative integer")
+        if attention_history_chunks and synthesis_mode != "signed_residual":
+            raise ValueError("attention history requires signed_residual synthesis")
         self.visual_mode = visual_mode
-        # Version is part of the state: identical tensors used under another
-        # temporal interpretation cannot be mistaken for a strict resume.
-        version = 4 if visual_mode == "causal" else 5
-        self.register_buffer("_streaming_format_version", torch.tensor(version, dtype=torch.int64))
+        self.synthesis_mode = synthesis_mode
+        self.attention_history_chunks = attention_history_chunks
+        # Changed synthesis, visual or attention semantics need a new checkpoint version.
+        if attention_history_chunks:
+            self._expected_format_version = 7
+        elif synthesis_mode == "signed_residual":
+            self._expected_format_version = 6
+        else:
+            self._expected_format_version = 4 if visual_mode == "causal" else 5
+        self.register_buffer("_streaming_format_version",
+                             torch.tensor(self._expected_format_version, dtype=torch.int64))
         if channels < 1 or not dilations or any(d < 1 for d in dilations):
             raise ValueError("channels and dilations must be positive")
         self.channels = int(channels)
@@ -104,7 +120,15 @@ class FalconStreaming(nn.Module):
         self.chunk_positions = nn.Parameter(torch.zeros(1, CHUNK_SAMPLES // FRAME_SAMPLES + VIDEO_FRAMES,
                                                         channels))
         nn.init.normal_(self.chunk_positions, std=0.02)
+        if attention_history_chunks:
+            self.history_attention_gate = nn.Parameter(torch.zeros(()))
         self.mask = nn.Conv1d(channels, FFT_SIZE // 2 + 1, 1)
+        if synthesis_mode == "signed_residual":
+            # A signed real spectrum spans the full 129-tap causal FIR basis
+            # after irfft and truncation. Zero residual preserves warm start.
+            self.synthesis_residual = nn.Conv1d(channels, FFT_SIZE // 2 + 1, 1)
+            nn.init.zeros_(self.synthesis_residual.weight)
+            nn.init.zeros_(self.synthesis_residual.bias)
         self._freeze_bn_stats()
 
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
@@ -113,7 +137,7 @@ class FalconStreaming(nn.Module):
         # keeping identical parameter names is not a safe partial load.
         name = prefix + "_streaming_format_version"
         marker = state_dict.get(name)
-        expected_version = 4 if self.visual_mode == "causal" else 5
+        expected_version = self._expected_format_version
         if (not isinstance(marker, torch.Tensor) or marker.ndim != 0
                 or marker.dtype != torch.int64 or marker.item() != expected_version):
             error_msgs.append(f"{name}: expected scalar int64 model version {expected_version}")
@@ -154,6 +178,34 @@ class FalconStreaming(nn.Module):
         x = x.reshape(batch, count, -1).transpose(1, 2)
         return self.video_proj(x), frames[:, -4:]
 
+    def _attention_with_history(self, joint: torch.Tensor, local: torch.Tensor,
+                                cached: tuple[torch.Tensor, torch.Tensor] | None):
+        attention = self.chunk_attention
+        query, key, value = F.linear(
+            joint, attention.in_proj_weight, attention.in_proj_bias
+        ).chunk(3, dim=-1)
+        if cached is None:
+            keys, values = key.contiguous(), value.contiguous()
+            long_attention = local
+        else:
+            old_key, old_value = cached
+            if old_key.dtype != key.dtype:
+                raise ValueError("attention cache dtype does not match projection dtype")
+            keys = torch.cat((old_key, key), dim=1)
+            values = torch.cat((old_value, value), dim=1)
+            long_attention = F.scaled_dot_product_attention(
+                query.unsqueeze(1), keys.unsqueeze(1), values.unsqueeze(1),
+                dropout_p=0.0,
+            ).squeeze(1)
+            long_attention = attention.out_proj(long_attention)
+        # The new branch has zero effect until its gate learns to open.
+        result = local + self.history_attention_gate * (long_attention - local)
+        limit = self.attention_history_chunks * joint.size(1)
+        if keys.size(1) > limit:
+            keys = keys[:, -limit:].contiguous()
+            values = values[:, -limit:].contiguous()
+        return result, (keys, values)
+
     def forward_chunk(self, audio: torch.Tensor, video: torch.Tensor,
                       state: dict[str, Any] | None = None):
         if audio.ndim != 2 or audio.shape[1] != CHUNK_SAMPLES:
@@ -167,8 +219,11 @@ class FalconStreaming(nn.Module):
         if state is None:
             state = {}
         else:
-            if not isinstance(state, dict) or set(state) != {"audio", "video", "blocks"}:
-                raise ValueError("stream state must contain exactly audio, video and blocks")
+            fields = {"audio", "video", "blocks"}
+            if self.attention_history_chunks:
+                fields.add("attention")
+            if not isinstance(state, dict) or set(state) != fields:
+                raise ValueError("stream state must contain exactly " + ", ".join(sorted(fields)))
             audio_state, video_state, block_states = state["audio"], state["video"], state["blocks"]
             expected = [
                 (audio_state, (audio.size(0), FRAME_SAMPLES)),
@@ -182,6 +237,20 @@ class FalconStreaming(nn.Module):
                 if (not isinstance(cached, torch.Tensor) or tuple(cached.shape) != shape
                         or cached.dtype != audio.dtype or cached.device != audio.device):
                     raise ValueError("stream state tensor shape, dtype or device does not match input")
+            if self.attention_history_chunks:
+                cached = state["attention"]
+                if not isinstance(cached, (list, tuple)) or len(cached) != 2:
+                    raise ValueError("attention state must contain cached key and value")
+                key, value = cached
+                tokens = self.chunk_positions.size(1)
+                if (not isinstance(key, torch.Tensor) or not isinstance(value, torch.Tensor)
+                        or key.ndim != 3 or key.shape != value.shape
+                        or key.size(0) != audio.size(0) or key.size(2) != self.channels
+                        or key.size(1) % tokens != 0
+                        or not 1 <= key.size(1) // tokens <= self.attention_history_chunks
+                        or key.device != audio.device or value.device != audio.device
+                        or key.dtype != value.dtype or not key.is_floating_point()):
+                    raise ValueError("invalid attention cache geometry, dtype or device")
         old_audio = state.get("audio")
         if old_audio is None:
             old_audio = audio.new_zeros(audio.size(0), FRAME_SAMPLES)
@@ -207,17 +276,25 @@ class FalconStreaming(nn.Module):
         for block, block_state in zip(self.blocks, previous):
             x, block_state = block(x, block_state)
             next_states.append(block_state)
-        # The call has received the entire block; the attention never sees
-        # tokens from subsequent blocks, including during training.
+        # Attend within the received block, optionally adding earlier K/V.
+        # Neither path uses tokens from subsequent blocks during training.
         joint = torch.cat((x.transpose(1, 2), visual.transpose(1, 2)), dim=1)
         joint = self.chunk_norm(joint + self.chunk_positions)
         attended, _ = self.chunk_attention(joint, joint, joint, need_weights=False)
+        next_attention = None
+        if self.attention_history_chunks:
+            attended, next_attention = self._attention_with_history(joint, attended, state.get("attention"))
         x = x + attended[:, :CHUNK_SAMPLES // FRAME_SAMPLES].transpose(1, 2)
-        mask = torch.sigmoid(self.mask(x)).transpose(1, 2)
-        reconstructed = causal_mask_filter(spec, mask)
+        mask = torch.sigmoid(self.mask(x))
+        if self.synthesis_mode == "signed_residual":
+            mask = mask + self.synthesis_residual(x)
+        reconstructed = causal_mask_filter(spec, mask.transpose(1, 2))
         output = reconstructed.reshape(audio.size(0), CHUNK_SAMPLES)
-        return output, {"audio": all_audio[:, -FRAME_SAMPLES:],
-                        "video": video_state, "blocks": next_states}
+        next_state = {"audio": all_audio[:, -FRAME_SAMPLES:],
+                      "video": video_state, "blocks": next_states}
+        if self.attention_history_chunks:
+            next_state["attention"] = next_attention
+        return output, next_state
 
     def forward(self, audio: torch.Tensor, video: torch.Tensor):
         if audio.ndim != 2 or audio.size(1) == 0 or audio.size(1) % CHUNK_SAMPLES:

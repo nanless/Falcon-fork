@@ -81,7 +81,7 @@ for step in range(a.steps):
     if not torch.isfinite(grad): raise RuntimeError("non-finite gradient")
     optimizer.step()
     print(f"step={start + step + 1} loss={loss.item():.5f} grad_norm={grad.item():.5f}", flush=True)
-new_checkpoint(a.output, {"format": checkpoint_format_for_visual_mode(model.visual_mode), "state_dict": model.state_dict(), "model_config": model_config,
+new_checkpoint(a.output, {"format": checkpoint_format_for_visual_mode(model.visual_mode, model.synthesis_mode, model.attention_history_chunks), "state_dict": model.state_dict(), "model_config": model_config,
                           "optimizer": optimizer.state_dict(), "steps": start + a.steps,
                           "training_status": "synthetic_smoke" if a.synthetic else "real_data_optimization", "data": "synthetic-smoke" if a.synthetic else str(a.index_dir),
                           "chunks": a.chunks, "seed": a.seed})

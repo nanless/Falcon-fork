@@ -368,9 +368,24 @@ def load_warm_start(path, model, training_model, visual_sha, *, random_visual, r
     if bool(source.get("visual_initialization") == "random_frozen") != bool(random_visual):
         raise ValueError("warm-start visual initialization mode differs from checkpoint")
     source_state = dict(source["state_dict"])
-    # The sole cross-mode state change is the format marker; every learned
-    # tensor is loaded with strict=True and unchanged.
-    source_state["_streaming_format_version"] = model.state_dict()["_streaming_format_version"].detach().cpu().clone()
+    source_mode = source_config.get("synthesis_mode", "nonnegative")
+    destination_mode = model.synthesis_mode
+    destination_state = model.state_dict()
+    if source_mode != destination_mode:
+        if (source_mode, destination_mode) != ("nonnegative", "signed_residual"):
+            raise ValueError("unsupported synthesis warm-start migration")
+        for name in ("synthesis_residual.weight", "synthesis_residual.bias"):
+            if name in source_state:
+                raise ValueError("legacy warm-start contains a signed residual tensor")
+            source_state[name] = torch.zeros_like(destination_state[name])
+    source_has_history = bool(source_config.get("attention_history_chunks", 0))
+    if source_has_history and not model.attention_history_chunks:
+        raise ValueError("cannot discard history attention in warm-start")
+    if model.attention_history_chunks and not source_has_history:
+        if "history_attention_gate" in source_state:
+            raise ValueError("legacy warm-start contains a history attention gate")
+        source_state["history_attention_gate"] = torch.zeros_like(destination_state["history_attention_gate"])
+    source_state["_streaming_format_version"] = destination_state["_streaming_format_version"].detach().cpu().clone()
     model.load_state_dict(source_state, strict=True)
     pool_sha = None
     if require_speaker_pool:
@@ -415,6 +430,15 @@ def parse_args(argv=None):
     parser.add_argument("--silence-rms-threshold", type=float, default=0.0)
     parser.add_argument("--silence-loss-weight", type=float, default=1.0)
     parser.add_argument("--visual-mode", choices=("causal", "chunk_centered"), default="causal")
+    parser.add_argument("--synthesis-mode", choices=("nonnegative", "signed_residual"), default="nonnegative")
+    parser.add_argument("--attention-history-chunks", type=int, default=0)
+    parser.add_argument("--teacher-checkpoint", help="released Falcon checkpoint for training-only distillation")
+    parser.add_argument("--teacher-cache", help="complete verified teacher cache for the fixed training view")
+    parser.add_argument("--fixed-crop", action="store_true", help="reuse the deterministic epoch-zero crop and flip")
+    parser.add_argument("--teacher-microbatch", type=int, default=16)
+    parser.add_argument("--distillation-weight", type=float, default=0.0)
+    parser.add_argument("--teacher-min-improvement-db", type=float, default=0.0)
+    parser.add_argument("--teacher-min-sisdr-db", type=float, default=0.0)
     parser.add_argument("--output", required=True)
     parser.add_argument("--checkpoint-dir", help="new directory for immutable per-epoch checkpoints")
     parser.add_argument("--save-every", type=int, default=1)
@@ -459,6 +483,25 @@ def parse_args(argv=None):
             parser.error(f"{name} must be finite and nonnegative")
     if args.variance_weight > 0 and not args.positive_contrastive:
         parser.error("variance regularizer requires positive-contrastive")
+    try:
+        checkpoint_format_for_visual_mode(args.visual_mode, args.synthesis_mode, args.attention_history_chunks)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if (args.teacher_microbatch < 1
+            or not all(np.isfinite(getattr(args, name)) for name in
+                       ("distillation_weight", "teacher_min_improvement_db", "teacher_min_sisdr_db"))
+            or args.distillation_weight < 0):
+        parser.error("invalid teacher microbatch, weight, or quality threshold")
+    if bool(args.teacher_checkpoint) != (args.distillation_weight > 0):
+        parser.error("teacher checkpoint and positive distillation weight must be supplied together")
+    if (args.teacher_cache or args.fixed_crop) and not args.tar_index:
+        parser.error("teacher cache and fixed crop require a training TAR index")
+    if args.teacher_cache and not args.teacher_checkpoint:
+        parser.error("teacher cache requires the teacher checkpoint for identity verification")
+    if args.teacher_cache and not args.fixed_crop:
+        parser.error("teacher cache requires --fixed-crop so cached targets and student views match")
+    if args.teacher_checkpoint and args.synthetic:
+        parser.error("distillation requires real audiovisual data")
     if not 0 <= args.seed <= 2**32 - 2:
         parser.error("seed must be between 0 and 2**32-2 for two ranks")
     return args
@@ -500,12 +543,32 @@ def main():
             dataset = RealSSATarDataset(args.tar_index, seed=args.seed, crop="random", augment=True)
         else:
             dataset = TwoSecondDataset(args.index_dir)
+        cache_sha = None
+        cache_code_sha = None
+        if args.fixed_crop:
+            from tools.streaming.cache_teacher import CachedTeacherDataset, FixedCropDataset
+            cache_code_sha = sha256(Path(__file__).with_name("cache_teacher.py"))
+            if args.teacher_cache:
+                dataset = CachedTeacherDataset(dataset, args.teacher_cache, index_path=args.tar_index,
+                                               teacher_checkpoint=args.teacher_checkpoint)
+                cache_sha = dataset.teacher_cache_sha256
+            else:
+                dataset = FixedCropDataset(dataset)
         sampler = DistributedSampler(dataset, num_replicas=world, rank=rank, shuffle=True, seed=args.seed, drop_last=True)
         loader = DataLoader(dataset, batch_size=args.batch_size, sampler=sampler, num_workers=args.workers, drop_last=True,
                             pin_memory=device.type == "cuda", prefetch_factor=1 if args.workers else None)
         if len(loader) < args.accum:
             raise ValueError("dataset too small for batch, ranks and accumulation")
-        model = FalconStreaming(channels=args.model_channels, visual_mode=args.visual_mode)
+        model = FalconStreaming(channels=args.model_channels, visual_mode=args.visual_mode,
+                                synthesis_mode=args.synthesis_mode,
+                                attention_history_chunks=args.attention_history_chunks)
+        model_config = {"channels": model.channels, "dilations": list(model.dilations)}
+        if args.visual_mode != "causal":
+            model_config["visual_mode"] = args.visual_mode
+        if args.synthesis_mode != "nonnegative":
+            model_config["synthesis_mode"] = args.synthesis_mode
+        if args.attention_history_chunks:
+            model_config["attention_history_chunks"] = args.attention_history_chunks
         model_code_sha = sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconStreaming.py")
         trainer_code_sha = sha256(__file__)
         data_code_sha = sha256(Path(__file__).with_name("realssa_tar.py")) if (args.tar_index or args.valid_tar_index) else sha256(Path(__file__).with_name("common.py"))
@@ -526,6 +589,26 @@ def main():
                                          args.variance_floor, args.silence_rms_threshold,
                                          args.exclude_degenerate_contrastive).to(device)
         objective_name = "negative_si_snr_plus_positive_contrastive_no_negatives" if args.positive_contrastive else "negative_si_snr_reconstruction_only"
+        teacher = None
+        distillation_protocol = None
+        if args.teacher_checkpoint:
+            from tools.streaming.cache_teacher import teacher_source_sha256
+            from tools.streaming.distillation import load_teacher, predict_teacher, distillation_components
+            teacher_sha = sha256(args.teacher_checkpoint)
+            if not args.teacher_cache:
+                teacher = load_teacher(args.teacher_checkpoint, device)
+            if sha256(args.teacher_checkpoint) != teacher_sha:
+                raise RuntimeError("teacher checkpoint changed while loading")
+            distillation_protocol = {
+                "checkpoint_sha256": teacher_sha,
+                "source_sha256": teacher_source_sha256(),
+                "weight": args.distillation_weight,
+                "microbatch": args.teacher_microbatch if not args.teacher_cache else None,
+                "cache_manifest_sha256": cache_sha,
+                "min_improvement_db": args.teacher_min_improvement_db,
+                "min_sisdr_db": args.teacher_min_sisdr_db,
+            }
+            objective_name += "_with_released_teacher"
         checkpoint = read_checkpoint(args.resume, device) if args.resume else None
         if checkpoint is not None:
             if checkpoint.get("training_objective") != objective_name:
@@ -563,7 +646,12 @@ def main():
                            "silence_rms_threshold": args.silence_rms_threshold,
                            "silence_loss_weight": args.silence_loss_weight,
                            "reconstruction_protocol": "centered_rms_sisdr_or_mixture_normalized_mse_v1",
-                           "validation_tracking_version": 2}
+                           "validation_tracking_version": 2,
+                           "synthesis_mode": args.synthesis_mode,
+                           "attention_history_chunks": args.attention_history_chunks,
+                           "distillation": distillation_protocol,
+                           "fixed_crop": args.fixed_crop,
+                           "cache_code_sha256": cache_code_sha}
         if checkpoint is not None:
             validate_resume_protocol(checkpoint.get("resume_protocol"), resume_protocol)
             if args.lr is not None and args.lr != checkpoint.get("target_learning_rate"):
@@ -602,10 +690,10 @@ def main():
         validation_mean = None
         def checkpoint_payload(current_epoch, partial):
             return {
-                "format": checkpoint_format_for_visual_mode(args.visual_mode), "state_dict": model.state_dict(),
-                "model_config": ({"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32]}
-                                 if args.visual_mode == "causal" else
-                                 {"channels": args.model_channels, "dilations": [1, 2, 4, 8, 16, 32], "visual_mode": args.visual_mode}),
+                "format": checkpoint_format_for_visual_mode(
+                    args.visual_mode, args.synthesis_mode, args.attention_history_chunks),
+                "state_dict": model.state_dict(), "model_config": model_config,
+                "distillation": distillation_protocol,
                 "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict() if scheduler else None,
                 "resume_protocol": resume_protocol, "split_identity_audit": split_identity_audit,
                 "configuration_path": args.config, "configuration_sha256": args.config_sha256,
@@ -653,16 +741,32 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             # Process full accumulation groups only, so each update has the same scale.
             usable_batches = len(loader) // args.accum * args.accum
-            for index, (mixture, target, video) in enumerate(loader):
+            for index, batch in enumerate(loader):
                 if index >= usable_batches:
                     break
-                mixture, target, video = (item.to(device) for item in (mixture, target, video))
+                mixture, target, video = (item.to(device) for item in batch[:3])
+                if args.teacher_cache:
+                    teacher_output = batch[3].to(device)
+                elif teacher is not None:
+                    teacher_output = predict_teacher(teacher, mixture, video, microbatch_size=args.teacher_microbatch)
+                else:
+                    teacher_output = None
                 padded, frames = pad_two_seconds(mixture, video)
                 output, contrastive, variance = ddp(padded, frames, target)
                 output = output[:, :SEGMENT_SAMPLES]
                 combined, _, _, degenerate, silent = reconstruction_components(
                     output, target, mixture, args.silence_rms_threshold, args.silence_loss_weight)
                 loss = combined.mean()
+                distill_metrics = None
+                if teacher_output is not None:
+                    auxiliary, selected, teacher_gain = distillation_components(
+                        output, teacher_output, target, mixture,
+                        min_improvement_db=args.teacher_min_improvement_db,
+                        min_teacher_sisdr_db=args.teacher_min_sisdr_db,
+                        silence_rms_threshold=args.silence_rms_threshold)
+                    loss = loss + args.distillation_weight * auxiliary.mean()
+                    distill_metrics = torch.stack((auxiliary.detach().sum(), selected.float().sum(),
+                                                   torch.where(selected, teacher_gain, 0).sum()))
                 if contrastive is not None:
                     loss = loss + args.contrastive_weight * contrastive
                 if variance is not None:
@@ -677,12 +781,20 @@ def main():
                     # Every rank participates; contrastive is locally scaled so
                     # its rank average equals the global valid-example mean.
                     contrastive_mean, variance_rank_mean = reduce_training_loss_metrics(contrastive, variance, device)
+                    if distill_metrics is not None:
+                        dist.all_reduce(distill_metrics, op=dist.ReduceOp.SUM)
+                        summed_loss, selected_count, summed_gain = distill_metrics.tolist()
+                        teacher_log = (f" teacher_loss={summed_loss / (world * args.batch_size):.6g}"
+                                       f" teacher_selected={int(selected_count)}/{world * args.batch_size}"
+                                       f" teacher_gain_db={summed_gain / max(1, selected_count):.5g}")
+                    else:
+                        teacher_log = ""
                     warmup_learning_rate(optimizer, target_lr, updates, args.warmup_steps)
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
                     updates += 1
                     if rank == 0:
-                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}", flush=True)
+                        print(f"epoch={epoch} step={updates} loss_last_microbatch={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} rank0_speech={int((~degenerate).sum())} rank0_silent={int(silent.sum())} rank0_constant={int((degenerate & ~silent).sum())} contrastive_global_last_microbatch={contrastive_mean} variance_rank_mean_last_microbatch={variance_rank_mean}{teacher_log}", flush=True)
                     if args.max_steps and updates - start_updates >= args.max_steps:
                         end_reason = "max_steps"
                         break
