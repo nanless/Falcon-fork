@@ -47,3 +47,5 @@ PYTHONPATH=. OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=4 \
 `tools.streaming.evaluate_realssa` 在指定 cv 或 tt 索引上，对相同的 2 秒中心裁剪输入配对运行公开 Falcon 和流式模型，记录每条的 SI-SDR 改善以及输入、检查点、模型配置和代码摘要。公开 Falcon 使用完整 2 秒，流式模型使用 120 ms 块；比较结果需同时呈现这一时间上下文差异。不足 2 秒的片段由数据集补零到 2 秒，指标覆盖补零后的 2 秒；这不是论文的整句评测口径。评测脚本支持 `--start` 与 `--limit` 分段，实验产物统一保存在 `/root/group-shared/voiceprint/experiments/` 子目录。
 
 [160 ms v3 设计与历史结果](FALCON_STREAMING_160MS.md)保留此前实验；v4 使用不同块长和位置编码，需使用 v4 检查点。
+
+第 100 轮检查点的 RealSSA-Sim tt 全量中途配对结果、9,166 条有效样本统计和三个全零目标的核查，见 [测试记录](verification/streaming-120ms-realssa-tt-epoch100.md)。
