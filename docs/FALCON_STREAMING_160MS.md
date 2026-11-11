@@ -258,3 +258,5 @@ echo "$RUN_DIR"
 随机 v3 检查点在服务器 CPU 上按 160 ms 节奏处理 500 块，4 线程、单会话，计划释放到完成的 P99 为 **31.364 ms**，最大 **32.939 ms**；加块首 160 ms 等待，分别为 **191.364 ms** 和 **192.939 ms**。500 块均在 140 ms 预算内完成。测试包含嘴图预处理、模型计算和输出复制；输入循环使用一条真实 LRS2 测试样本的 12 个完整块。完整时序、线程对照、因果审计、短训和证据见 [v3 验证记录](verification/streaming-20261111-v3-review.md)。
 
 后续逐项复核修复了训练裁剪与服务非有限输出的边界，并在流式联合回归中通过 58 项；详细检查、抽样范围和日志见 [后续复核记录](verification/streaming-20261111-followup-review.md)。
+
+RealSSA-Sim TAR 直读、双卡训练和与公开 Falcon 的配对评测见 [RealSSA-Sim 双卡训练说明](REALSSA_STREAMING_TRAINING.md)。

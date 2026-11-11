@@ -38,7 +38,7 @@ Near-field negatives (important)
 RealSSA-Sim ships mixtures and targets only; the ``components[].path`` values are
 generation-time provenance paths and are **not** downloadable source waveforms.
 Without near waveforms, ``near.json`` falls back to mixture sentinels, the dataset
-skips them and the NASS contrastive loss stays inactive (K=0).  This is a known
+skips them; the NASS negative term is absent when K=0, while the positive term can remain.  This is a known
 limitation of the released data (see docs/REPRODUCTION_PLAN.md §5.1 Step 4).
 If you have a compatible directory of near wavs, pass ``--near-dir`` with files
 named ``<id>.near0.wav``, ``<id>.near1.wav``... and they will be wired into the
@@ -516,8 +516,8 @@ class Converter:
         if no_external_near:
             print("\n[realssa_to_falcon] NOTE: RealSSA-Sim ships no near-speaker waveforms and no "
                   "external --near-dir was supplied.\n  near.json entries fall back to mixture "
-                  "sentinels -> the dataset skips them -> K=0 -> the NASS contrastive loss stays "
-                  "inactive.\n  This matches the released-data limitation (docs/REPRODUCTION_PLAN.md "
+                  "sentinels -> the dataset skips them -> K=0 -> the NASS negative term is "
+                  "absent; its positive term can remain.\n  This matches the released-data limitation (docs/REPRODUCTION_PLAN.md "
                   "§5.1 Step 4); pass --near-dir to use compatible external negatives.")
         print("\n[realssa_to_falcon] done. Point the DataModule at: "
               f"train_dir={self.out}/tr valid_dir={self.out}/cv test_dir={self.out}/tt")

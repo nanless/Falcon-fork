@@ -1,0 +1,23 @@
+{
+  "tr_cv": {
+    "common_unique_sources": 4456,
+    "rows_tr": 6156,
+    "rows_cv": 4575,
+    "total_tr": 100826,
+    "total_cv": 9133
+  },
+  "tr_tt": {
+    "common_unique_sources": 4430,
+    "rows_tr": 6220,
+    "rows_tt": 4584,
+    "total_tr": 100826,
+    "total_tt": 9169
+  },
+  "cv_tt": {
+    "common_unique_sources": 538,
+    "rows_cv": 559,
+    "rows_tt": 557,
+    "total_cv": 9133,
+    "total_tt": 9169
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "scope": "source target paths normalized and SHA-256 hashed; video directory hashes are not verified speaker IDs",
+  "index_sha256": {
+    "tr": "a952f9f9b80f4a3ef80752785821aa16678186fb0dd4135f0a4d7340635d40f6",
+    "cv": "a7c4ad4d8e1a6eec4cd1b94b10ee962fb087ab172d90d2641e09c135eb3dfa33",
+    "tt": "f72e8efec3b7f8e1c242d291b57725b170db034097887d33bda45350d571f8c3"
+  },
+  "sources": {
+    "tr": {
+      "expected": 100826,
+      "valid_target": 100826,
+      "unique_targets": 72687,
+      "unique_video_directories": 4416,
+      "errors": {}
+    },
+    "cv": {
+      "expected": 9133,
+      "valid_target": 9133,
+      "unique_targets": 8875,
+      "unique_video_directories": 2673,
+      "errors": {}
+    },
+    "tt": {
+      "expected": 9169,
+      "valid_target": 9169,
+      "unique_targets": 8884,
+      "unique_video_directories": 2646,
+      "errors": {}
+    }
+  },
+  "pairwise": {
+    "tr_cv": {
+      "target_path_intersection": 4456,
+      "video_directory_intersection": 2630
+    },
+    "tr_tt": {
+      "target_path_intersection": 4430,
+      "video_directory_intersection": 2609
+    },
+    "cv_tt": {
+      "target_path_intersection": 538,
+      "video_directory_intersection": 2067
+    }
+  },
+  "elapsed_seconds": 324.372
+}
