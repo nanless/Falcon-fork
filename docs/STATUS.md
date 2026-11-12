@@ -4,11 +4,15 @@
 
 本页以仓库代码 `6e5c1b5` 和 2026-11-10 的检查为基线。更早的实验条件和结果见 [2026-11-08 深挖](understanding/deepdive-20261108/00-SYNTHESIS.md)与 [Phase 1/2 记录](verification/README.md)。
 
-2026-11-11 当前块级因果模型为 v4：每个 120 ms 块内部的音视频特征可互相参考，跨块只使用历史状态；双卡正式训练进行中，语音提取质量以训练和评测结果为准。接口、时间轴和验证见 [120 ms 流式模型](FALCON_STREAMING_120MS.md)；此前 160 ms v3 的设计和结果见 [历史记录](FALCON_STREAMING_160MS.md)。
+2026-11-11 的块级因果 v4 每块处理 120 ms、不看后续块，接口及当时的训练记录见 [v4 说明](FALCON_STREAMING_120MS.md)；更早的 160 ms v3 见 [历史记录](FALCON_STREAMING_160MS.md)。
+
+2026-11-12 新增的 [论文风格流式模型](FALCON_PAPER_LOOKAHEAD.md) 每次输出 120 ms，额外使用最多 80 ms 音视频前视，并缓存历史；它与 v4 和论文原模型是不同实现。训练使用 RealSSA-Sim 官方 tr/cv、冻结预训练 FRCNN、音频网络从零初始化；每卡 batch 1024、两卡、一次反向、无梯度累积。当前语音主目标是尺度敏感的直接波形信号误差比，静音与常数目标单独处理；具体公式、静音条件及训练和评测口径见[模型说明](FALCON_PAPER_LOOKAHEAD.md)。
+
+2026-11-12 14:55（北京时间）只读核验时，新损失任务运行至 epoch=0、step=7，使用官方训练集；尚未完成一轮验证或测试，不能据此判断收敛或与论文对比。旧 loss 实验及异常定位见[训练异常审查](verification/20261112-lookahead-training-instability.md)，跨轮设计和操作经验见[流式训练经验与复核](verification/20261112-falcon-experience-lessons.md)。运行状态会变化，以实验日志为准：`/root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112/sdr-w192-b1024-from-scratch-20261112.log`。
 
 想先理解项目，可看[中文 README](../README_zh.md)；模型、数据集、训练、评测与应用分别有[模型说明](understanding/20261110-model-and-streaming.md)、[数据集说明](understanding/20261110-datasets.md)、[数据训练说明](understanding/20261110-data-and-training.md)和[评测应用说明](understanding/20261110-evaluation-and-apps.md)。本轮逐项发现与可复跑材料见[审查记录](verification/deepdive-20261110/审查记录.md)。
 
-## 复现的四个层次
+## 原始模型复现的四个层次
 
 | 层次 | 现在能说什么 | 还缺什么 |
 | --- | --- | --- |
@@ -39,7 +43,7 @@ RealSSA-Real 的无参考评测采用 [full4 结果](verification/phase2/DNSMOS-
 
 ### 输入输出与结构
 
-Falcon 是单目标说话人提取：混合语音和目标嘴部视频输入，输出一条语音。当前配置使用 `n_src: 1`，已有测试中 `n_src=2` 形状不匹配。2 秒、16 kHz 的音频产生 251 个 STFT 帧和 129 个频点；50 帧视觉特征经处理后对齐音频帧。两个共享权重的音频块之间进行一次视频加性融合。
+原始 Falcon 是单目标说话人提取：混合语音和目标嘴部视频输入，输出一条语音。下段描述原始网络，不是新增的论文风格流式网络。原始配置使用 `n_src: 1`，已有测试中 `n_src=2` 形状不匹配。2 秒、16 kHz 的音频产生 251 个 STFT 帧和 129 个频点；50 帧视觉特征经处理后对齐音频帧。两个共享权重的音频块之间进行一次视频加性融合。
 
 音频主干总参数元素 **537,697**；`state_dict` 中 **525 个音频 key** 的 tensor 元素合计 **537,762**，前者统计参数元素，后者统计状态字典中的全部 tensor 元素。视觉前端参数元素 **11,186,688**。small 与 Big 的视觉部分有相同的 137 个状态 key、参数张量相同，但本轮比较发现其中 60 个 BatchNorm 运行状态不同。
 

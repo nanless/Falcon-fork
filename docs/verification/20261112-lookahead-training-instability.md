@@ -1,6 +1,6 @@
 # 120 ms 流式训练数值异常的定位与修复
 
-旧运行：`/root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112/full-w256-b1024-from-scratch-20261112/`；日志在同名 `.log`。旧进程在第 22 轮、第 1086 次成功更新后，因为双卡检测到非有限梯度自行退出。它使用两卡每卡 1024、无梯度累积和目标学习率 0.01；旧模型与优化器检查点保留，不加载到修复后的新模型。
+旧运行：`/root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112/full-w256-b1024-from-scratch-20261112/`；日志在同名 `.log`。旧进程在 epoch=22（从 0 开始计数）、第 1086 次成功更新后，因为双卡检测到非有限梯度自行退出。它使用两卡每卡 1024、无梯度累积和目标学习率 0.01；旧模型与优化器检查点保留，不加载到修复后的新模型。
 
 ## 可复现的异常
 

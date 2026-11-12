@@ -18,12 +18,13 @@ Falcon 接收两种信息：包含多人声音的**混合音频**，以及希望
 | --- | --- | --- |
 | 看项目全貌 | 本页和[文档导航](docs/README.md) | 任务、目录、常用入口和已知限制 |
 | 理解模型内部 | [模型、融合与时间依赖](docs/understanding/20261110-model-and-streaming.md) | 张量形状、多尺度处理、视觉融合和因果性 |
-| 使用 120 ms 增量流式模型 | [流式模型与训练推理](docs/FALCON_STREAMING_120MS.md) | 块内音视频互看、跨块历史缓存、实时接口、双卡训练和 CPU 测试 |
+| 使用 120 ms 输出、80 ms 前视流式模型 | [论文风格流式模型与训练](docs/FALCON_PAPER_LOOKAHEAD.md) | 时间轴、历史缓存、尺度敏感波形训练目标和双卡训练 |
+| 查看历史无前视块因果 v4 | [v4 模型与训练记录](docs/FALCON_STREAMING_120MS.md) | 每块 120 ms、块内音视频互看和跨块历史缓存 |
 | 诊断和改进流式质量 | [120 ms 质量改造与对照](docs/FALCON_STREAMING_QUALITY_REWORK_20261112.md) | 损失、视觉上下文、数据暴露、CPU 耗时与 A/B/C 实验 |
 | 验证 120 ms 历史注意力与教师蒸馏 | [新一轮流式质量验证](docs/verification/streaming-history-distillation-20261112.md) | 前缀诊断、有符号合成、历史缓存、双卡训练和 CPU 验收 |
 | 启动 120 ms 子带训练 | [子带估计与双卡启动](docs/verification/streaming-v8-subband-20261112.md) | 子带层、谱损失、梯度诊断、短跑和 CPU 验收 |
 | 扩容 120 ms 时频估计器 | [v9 扩容训练与论文对照](docs/verification/streaming-v9-capacity-20261112.md) | 两档容量、局部损失、CPU 验收和整句评测 |
-| 训练 RealSSA-Sim 流式模型 | [双卡训练与数据说明](docs/REALSSA_STREAMING_TRAINING.md) | YAML 配置、TAR 与迁移后本地索引、双卡试训及配对评测 |
+| 查看历史 RealSSA-Sim 流式训练 | [历史双卡训练与数据说明](docs/REALSSA_STREAMING_TRAINING.md) | 旧模型 YAML 配置、TAR 索引、双卡试训及配对评测 |
 | 看五套数据本机有什么 | [数据集说明](docs/understanding/20261110-datasets.md) | 每套样本的内容、目录、索引条数和评测用的是哪一套 |
 | 盘点项目与多模态数据 | [数据集全景](docs/data_catalog/README.md) | 项目训练/测试、37个登记库、冷端位置和按需恢复 |
 | 理解数据和训练 | [数据准备与训练](docs/understanding/20261110-data-and-training.md) | 索引、采样、损失、检查点和配置差异 |
@@ -48,7 +49,7 @@ flowchart TB
     H --> O[一路目标语音]
 ```
 
-图中的两次音频块使用同一组权重。视觉信息通过投影、时间对齐和逐帧相加进入音频特征；当前默认模型的视听融合没有使用跨模态注意力。训练时还会使用说话人对比损失；普通推理不需要目标人的干净语音或近场负样本。
+这张图描述上游公开的 Falcon，而非新增的论文风格流式模型。图中的两次音频块使用同一组权重；原模型视觉特征通过投影、时间对齐和逐帧相加进入音频特征。论文训练包含说话人对比损失；普通推理不需要目标人的干净语音或近场负样本。新流式训练的可用损失与不同实现见[论文风格流式模型](docs/FALCON_PAPER_LOOKAHEAD.md)。
 
 下图是上游论文提供的整体结构示意，便于了解论文中的模块名称。实际调用顺序和本仓库已发现的实现差异，以上面的源码流程图和[模型说明](docs/understanding/20261110-model-and-streaming.md)为准。
 

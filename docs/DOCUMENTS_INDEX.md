@@ -15,8 +15,10 @@
 - [docs/DATA_ACCESS_GUIDE.md](DATA_ACCESS_GUIDE.md)
 - [docs/data_catalog/README.md](data_catalog/README.md)
 - [120 ms 输出、80 ms 前视论文风格流式模型](FALCON_PAPER_LOOKAHEAD.md)
-- [docs/FALCON_STREAMING_120MS.md](FALCON_STREAMING_120MS.md)：当前版本
+- [docs/FALCON_STREAMING_120MS.md](FALCON_STREAMING_120MS.md)：历史 v4 无前视块因果模型；与新 120 ms、80 ms 前视模型是不同实现
+- [项目技能与文档复核](verification/20261112-skill-document-review.md)
 - [120 ms 流式训练数值异常定位与修复](verification/20261112-lookahead-training-instability.md)
+- [Falcon 流式训练经验与复核记录](verification/20261112-falcon-experience-lessons.md)
 - [120 ms 历史注意力与教师蒸馏验证](verification/streaming-history-distillation-20261112.md)
 - [120 ms 架构探针与历史缓存](verification/streaming-v7-architecture-probes.md)
 - [120 ms 子带估计与双卡启动](verification/streaming-v8-subband-20261112.md)

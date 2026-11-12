@@ -11,8 +11,9 @@ This fork contains Falcon training and evaluation code, a local Studio applicati
 The [Chinese README](README_zh.md) is the detailed starting point. The following project guides explain the current implementation and the evidence behind it:
 
 - [Model, visual fusion, and time dependence](docs/understanding/20261110-model-and-streaming.md)
-- [120 ms chunk-wise causal streaming: training and inference](docs/FALCON_STREAMING_120MS.md) (Chinese)
-- [RealSSA-Sim dual-GPU streaming training and paired evaluation](docs/REALSSA_STREAMING_TRAINING.md) (Chinese)
+- [120 ms output with 80 ms lookahead: paper-inspired streaming model and training](docs/FALCON_PAPER_LOOKAHEAD.md) (Chinese)
+- [Earlier 120 ms chunk-wise causal streaming: training and inference](docs/FALCON_STREAMING_120MS.md) (Chinese)
+- [Earlier RealSSA-Sim dual-GPU streaming training and paired evaluation](docs/REALSSA_STREAMING_TRAINING.md) (Chinese)
 - [Datasets: what each open corpus contains and what is on this machine](docs/understanding/20261110-datasets.md) (Chinese)
 - [Data and training](docs/understanding/20261110-data-and-training.md)
 - [Dataset inventory and cold storage guide](docs/data_catalog/README.md) (Chinese)
@@ -23,6 +24,8 @@ The [Chinese README](README_zh.md) is the detailed starting point. The following
 These guides are in Chinese. The [complete document index](docs/DOCUMENTS_INDEX.md) also lists historical reports with their original dates and conditions.
 
 ## How the model uses audio and video
+
+This section describes the original released Falcon. The separate [paper-inspired streaming model](docs/FALCON_PAPER_LOOKAHEAD.md) uses 120 ms output blocks, up to 80 ms of audio and video lookahead, and a different separator and training objective.
 
 ```mermaid
 flowchart TB

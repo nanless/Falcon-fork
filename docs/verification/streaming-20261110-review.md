@@ -1,4 +1,4 @@
-> 本页记录 160 ms 历史实现；当前 120 ms v4 运行方法见 [流式模型说明](../FALCON_STREAMING_120MS.md)。
+> 本页记录 160 ms 历史实现；后续无后续块前视的 120 ms v4 见 [v4 模型说明](../FALCON_STREAMING_120MS.md)，2026-11-12 的 120 ms 输出、80 ms 前视实现见 [论文风格模型](../FALCON_PAPER_LOOKAHEAD.md)。
 
 # 160 ms 音视频流式模型独立审查
 
