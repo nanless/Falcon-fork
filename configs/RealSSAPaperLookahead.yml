@@ -14,9 +14,15 @@ lr_patience: 5
 early_stop_patience: 25
 min_delta: 0.005
 seed: 42
-width: 256
-rnn_hidden: 320
+width: 192
+rnn_hidden: 256
 heads: 4
 history_frames: 125
 checkpoint_chunks: true
 precision: bf16
+grad_norm_limit: 1000.0
+max_consecutive_bad_steps: 3
+validation_severe_delta: 10.0
+mask_limit: 4.0
+gain_loss_weight: 0.1
+activation_batch_chunk: 256

@@ -38,7 +38,7 @@ class SavedPaperModel(nn.Module):
         super().__init__()
         self.visual = FalconLookaheadVisual(FRCNNVideoModel(backbone_type="resnet", relu_type="prelu", pretrain=None))
         self.core = PaperStreamPrototype(width=config["width"], rnn_hidden=config["rnn_hidden"],
-                                         heads=config["heads"], history_frames=config["history_frames"])
+                                         heads=config["heads"], history_frames=config["history_frames"], mask_limit=config.get("mask_limit", 4.0))
 
     def forward(self, audio, video, output_samples):
         def step(audio_window, video_window, state):

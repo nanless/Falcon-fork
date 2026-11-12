@@ -30,8 +30,10 @@ from look2hear.models.FalconPaperStreamPrototype import PaperStreamPrototype
 from look2hear.models.FalconLookaheadVisual import FalconLookaheadVisual
 from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
 from tools.streaming.lookahead_training import run_lookahead_sequence
+from tools.streaming.robust_schedule import RobustWarmupPlateau, global_gradient_norm
 from tools.streaming.realssa_lookahead import RealSSALookaheadDataset
-from tools.streaming.train_ddp import reconstruction_components
+from tools.streaming.robust_reconstruction import robust_reconstruction
+from tools.streaming import stability_metrics
 
 
 class PaperLookaheadTrainingModel(nn.Module):
@@ -42,10 +44,11 @@ class PaperLookaheadTrainingModel(nn.Module):
         backbone.init_from(config["visual_weights"])
         self.visual = FalconLookaheadVisual(backbone)
         self.core = PaperStreamPrototype(width=config["width"], rnn_hidden=config["rnn_hidden"],
-            heads=config["heads"], history_frames=config["history_frames"])
+            heads=config["heads"], history_frames=config["history_frames"], mask_limit=config["mask_limit"])
         self.checkpoint_chunks = config["checkpoint_chunks"]
+        self.activation_batch_chunk = config.get("activation_batch_chunk", 0)
 
-    def forward(self, audio, video, output_samples=None):
+    def _forward_sequence(self, audio, video, output_samples=None):
         def step(window_audio, window_video, state):
             core_state, video_state = (None, None) if state is None else state
             with torch.no_grad():
@@ -60,6 +63,19 @@ class PaperLookaheadTrainingModel(nn.Module):
         result, _ = run_lookahead_sequence(audio, video, step, output_samples=output_samples)
         return result
 
+    def forward(self, audio, video, output_samples=None):
+        # One DDP forward and one full-batch loss/backward/optimizer update.
+        # Slice only to checkpoint the activation graph, never the optimizer or loss.
+        chunk = self.activation_batch_chunk
+        if not self.training or chunk <= 0 or audio.size(0) <= chunk:
+            return self._forward_sequence(audio, video, output_samples)
+        outputs = []
+        for start in range(0, audio.size(0), chunk):
+            a, v = audio[start:start+chunk], video[start:start+chunk]
+            outputs.append(checkpoint(lambda x, y: self._forward_sequence(x, y, output_samples),
+                                      a, v, use_reentrant=False))
+        return torch.cat(outputs, dim=0)
+
 
 def sha256(path):
     digest = hashlib.sha256()
@@ -69,10 +85,8 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def training_loss(output, target, mix):
-    # SI-SDR for non-degenerate speech; silence uses scale-normalized MSE.
-    # The TAR does not supply the individual near-field negative waveforms.
-    return reconstruction_components(output, target, mix)[0].mean()
+def training_loss(output, target, mix, waveform_weight=0.1):
+    return robust_reconstruction(output, target, mix, waveform_weight=waveform_weight)
 
 
 def all_finite(value, device):
@@ -100,7 +114,9 @@ def main():
     required = {"train_index", "valid_index", "visual_weights", "experiment_root", "batch_size",
                 "validation_batch_size", "workers", "lr", "warmup_steps", "weight_decay", "epochs",
                 "lr_patience", "early_stop_patience", "min_delta", "seed", "width", "rnn_hidden",
-                "heads", "history_frames", "checkpoint_chunks", "precision"}
+                "heads", "history_frames", "checkpoint_chunks", "precision",
+                "grad_norm_limit", "max_consecutive_bad_steps", "validation_severe_delta",
+                "mask_limit", "gain_loss_weight", "activation_batch_chunk"}
     if not isinstance(config, dict) or set(config) != required:
         parser.error("config must have exactly the documented keys")
     if config["precision"] not in ("bf16", "fp32"):
@@ -109,7 +125,10 @@ def main():
         config["batch_size"] = args.batch_size
     if min(config["batch_size"], config["validation_batch_size"], config["epochs"], config["early_stop_patience"]) < 1:
         parser.error("batch sizes, epochs and early-stop patience must be positive")
-    if config["lr"] <= 0 or config["warmup_steps"] < 0 or config["workers"] < 0:
+    if (config["lr"] <= 0 or config["warmup_steps"] < 0 or config["workers"] < 0
+            or config["grad_norm_limit"] <= 0 or config["max_consecutive_bad_steps"] < 1
+            or config["validation_severe_delta"] <= 0 or config["mask_limit"] <= 0
+            or config["gain_loss_weight"] < 0 or config["activation_batch_chunk"] < 1):
         parser.error("invalid optimizer or worker configuration")
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
@@ -142,8 +161,9 @@ def main():
         model = PaperLookaheadTrainingModel(config).to(device)
         optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad),
                                       lr=config["lr"], weight_decay=config["weight_decay"])
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.5,
-            patience=config["lr_patience"], threshold=config["min_delta"], threshold_mode="abs", min_lr=1e-6)
+        scheduler = RobustWarmupPlateau(config["lr"], config["warmup_steps"], factor=0.5,
+            patience=config["lr_patience"], min_delta=config["min_delta"],
+            severe_delta=config["validation_severe_delta"])
         identity = {"visual_sha256": sha256(config["visual_weights"]),
                     "train_index_sha256": sha256(config["train_index"]),
                     "valid_index_sha256": sha256(config["valid_index"]),
@@ -152,10 +172,19 @@ def main():
                     "core_sha256": sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconPaperStreamPrototype.py"),
                     "visual_code_sha256": sha256(Path(__file__).resolve().parents[2] / "look2hear/models/FalconLookaheadVisual.py"),
                     "window_code_sha256": sha256(Path(__file__).with_name("lookahead_training.py")),
-                    "data_code_sha256": sha256(Path(__file__).with_name("realssa_lookahead.py"))}
+                    "data_code_sha256": sha256(Path(__file__).with_name("realssa_lookahead.py")),
+                    "schedule_code_sha256": sha256(Path(__file__).with_name("robust_schedule.py")),
+                    "loss_code_sha256": sha256(Path(__file__).with_name("robust_reconstruction.py")),
+                    "metrics_code_sha256": sha256(Path(__file__).with_name("stability_metrics.py")),
+                    "legacy_data_code_sha256": sha256(Path(__file__).with_name("realssa_tar.py")),
+                    "common_code_sha256": sha256(Path(__file__).with_name("common.py")),
+                    "mask_source_sha256": sha256(Path(__file__).with_name("train_ddp.py")),
+                    "backbone_code_sha256": sha256(Path(__file__).resolve().parents[2] / "look2hear/videomodels/frcnn_videomodel.py")}
         protocol = {"train_limit": args.train_limit, "validation_limit": args.validation_limit}
         start_epoch = updates = stale = 0
+        consecutive_bad_steps = skipped_steps = 0
         best = float("inf")
+        best_checkpoint = None
         if args.resume:
             saved = torch.load(args.resume, map_location=device, weights_only=False)
             if saved["identity"] != identity or saved["config"] != config or saved["world_size"] != world or saved["protocol"] != protocol:
@@ -166,12 +195,16 @@ def main():
             optimizer.load_state_dict(saved["optimizer"])
             scheduler.load_state_dict(saved["scheduler"])
             start_epoch, updates, stale, best = saved["next_epoch"], saved["updates"], saved["stale"], saved["best"]
+            consecutive_bad_steps, skipped_steps = saved["consecutive_bad_steps"], saved["skipped_steps"]
+            best_checkpoint = saved["best_checkpoint"]
+            if best != scheduler.best:
+                raise ValueError("resume best validation and scheduler state differ")
         ddp = DistributedDataParallel(model, device_ids=[local_rank], broadcast_buffers=False)
         if rank == 0:
             print(json.dumps({"config": config, "identity": identity, "train_samples": len(train),
                 "valid_samples": len(valid), "batches_per_epoch": len(loader), "world_size": world,
                 "global_batch": world * config["batch_size"], "gradient_accumulation": 1,
-                "objective": "negative SI-SDR plus silence NMSE; no near negatives"}, ensure_ascii=False), flush=True)
+                "objective": "stable SI-SDR plus waveform gain penalty and log silence NMSE; no near negatives"}, ensure_ascii=False), flush=True)
         for epoch in range(start_epoch, config["epochs"]):
             begin = time.monotonic()
             model.train()
@@ -183,22 +216,40 @@ def main():
                 optimizer.zero_grad(set_to_none=True)
                 with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=config["precision"] == "bf16"):
                     output = ddp(mix, video, target.shape[1])
-                loss = training_loss(output.float(), target.float(), mix[:, :target.shape[1]].float())
+                loss_values, masks = training_loss(output.float(), target.float(), mix[:, :target.shape[1]].float(), waveform_weight=config["gain_loss_weight"])
+                loss = loss_values.mean()
                 if not all_finite(loss, device):
                     raise RuntimeError("non-finite loss on at least one rank")
                 loss.backward()
                 norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
-                if not all_finite(norm, device):
-                    raise RuntimeError("non-finite gradient on at least one rank")
-                if updates < config["warmup_steps"]:
-                    for group in optimizer.param_groups:
-                        group["lr"] = config["lr"] * (updates + 1) / config["warmup_steps"]
+                # DDP gradients are synchronized, and MAX makes rejection
+                # identical even if local norms differ or a rank sees NaN.
+                max_norm = global_gradient_norm(norm)
+                if not torch.isfinite(max_norm) or max_norm.item() > config["grad_norm_limit"]:
+                    optimizer.zero_grad(set_to_none=True)
+                    consecutive_bad_steps += 1
+                    skipped_steps += 1
+                    scheduler.reduce_after_bad_step()
+                    if rank == 0:
+                        print(f"epoch={epoch} step={updates} rejected_gradient_norm={max_norm.item():.6g} lr_scale={scheduler.scale:.8g} consecutive_rejections={consecutive_bad_steps} skipped_total={skipped_steps}", flush=True)
+                    if consecutive_bad_steps >= config["max_consecutive_bad_steps"]:
+                        raise RuntimeError("too many consecutive abnormal gradient steps")
+                    continue
+                consecutive_bad_steps = 0
+                for group in optimizer.param_groups:
+                    group["lr"] = scheduler.learning_rate(updates)
                 optimizer.step()
                 updates += 1
+                metrics_local = stability_metrics.empty(device)
+                for metric_start in range(0, output.shape[0], 256):
+                    part = slice(metric_start, metric_start + 256)
+                    metrics_local = stability_metrics.merge(metrics_local, stability_metrics.collect(loss_values[part], {k: v[part] for k, v in masks.items()}, output[part], mix[part, :target.shape[1]]))
+                metrics_global = stability_metrics.summarize(stability_metrics.distributed_reduce(metrics_local))
                 peak = torch.tensor([torch.cuda.max_memory_allocated(device), torch.cuda.max_memory_reserved(device)], device=device, dtype=torch.int64)
                 dist.all_reduce(peak, op=dist.ReduceOp.MAX)
                 if rank == 0:
-                    print(f"epoch={epoch} step={updates} loss_rank0={loss.item():.6f} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} peak_allocated_gib={peak[0].item()/2**30:.3f} peak_reserved_gib={peak[1].item()/2**30:.3f}", flush=True)
+                    print(f"epoch={epoch} step={updates} stability={json.dumps(metrics_global, sort_keys=True)}", flush=True)
+                    print(f"epoch={epoch} step={updates} loss_rank0={loss.item():.6f} loss_max_rank0={loss_values.detach().max().item():.6f} silent_rank0={masks['silent'].sum().item()} grad_norm={norm.item():.6f} lr={optimizer.param_groups[0]['lr']:.8g} peak_allocated_gib={peak[0].item()/2**30:.3f} peak_reserved_gib={peak[1].item()/2**30:.3f}", flush=True)
                 if args.max_steps and updates >= args.max_steps:
                     partial = index + 1 < len(loader)
                     break
@@ -207,36 +258,51 @@ def main():
             valid_loader = DataLoader(Subset(valid, range(rank, limit, world)),
                 batch_size=config["validation_batch_size"], num_workers=config["workers"],
                 pin_memory=True, prefetch_factor=1 if config["workers"] else None)
-            totals = torch.zeros(2, dtype=torch.float64, device=device)
+            totals = torch.zeros(5, dtype=torch.float64, device=device)
+            validation_metrics = stability_metrics.empty(device)
             with torch.inference_mode():
                 for batch in valid_loader:
                     mix, target, video = (x.to(device, non_blocking=True) for x in batch[:3])
                     with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=config["precision"] == "bf16"):
                         prediction = model(mix, video, target.shape[1])
-                    values = reconstruction_components(prediction.float(), target.float(), mix[:, :target.shape[1]].float())[0]
-                    totals += torch.stack((values.double().sum(), values.new_tensor(values.numel(), dtype=torch.float64)))
+                    values, masks = training_loss(prediction.float(), target.float(), mix[:, :target.shape[1]].float(), waveform_weight=config["gain_loss_weight"])
+                    validation_metrics = stability_metrics.merge(validation_metrics, stability_metrics.collect(values, masks, prediction.float(), mix[:, :target.shape[1]].float()))
+                    totals += torch.stack((values.double().sum(), values.new_tensor(values.numel(), dtype=torch.float64), masks["silent"].double().sum(), values[masks["speech"]].double().sum(), masks["speech"].double().sum()))
             dist.all_reduce(totals)
+            validation_metrics = stability_metrics.summarize(stability_metrics.distributed_reduce(validation_metrics))
+            if rank == 0:
+                print(f"epoch={epoch} validation_stability={json.dumps(validation_metrics, sort_keys=True)}", flush=True)
             if not torch.isfinite(totals).all() or totals[1] == 0:
                 raise RuntimeError("invalid validation totals")
             validation = (totals[0] / totals[1]).item()
-            if not partial and not args.validation_limit and updates >= config["warmup_steps"]:
-                scheduler.step(validation)
-                if validation < best - config["min_delta"]:
-                    best, stale = validation, 0
+            improved = False
+            if not partial and not args.validation_limit:
+                previous_significant_best = scheduler.plateau_best
+                event = scheduler.observe(validation)
+                best = scheduler.best
+                improved = event["improved"]
+                if validation < previous_significant_best - config["min_delta"]:
+                    stale = 0
                 else:
                     stale += 1
+                if rank == 0:
+                    print(f"epoch={epoch} validation_best={best:.6f} lr_scale={scheduler.scale:.8g} lr_reduced={event['reduced']} severe={event['severe']}", flush=True)
             if rank == 0:
+                final = run_dir / f"epoch-{epoch:04d}-step-{updates:08d}.pt"
+                if improved:
+                    best_checkpoint = str(final)
                 payload = {"model": model.state_dict(), "optimizer": optimizer.state_dict(),
                     "scheduler": scheduler.state_dict(), "config": config, "identity": identity,
                     "world_size": world, "protocol": protocol, "next_epoch": epoch + 1, "updates": updates,
-                    "stale": stale, "best": best, "partial": partial, "validation": validation}
+                    "stale": stale, "best": best, "best_checkpoint": best_checkpoint,
+                    "consecutive_bad_steps": consecutive_bad_steps, "skipped_steps": skipped_steps,
+                    "partial": partial, "validation": validation}
                 tmp = run_dir / f".epoch-{epoch:04d}.tmp"
-                final = run_dir / f"epoch-{epoch:04d}-step-{updates:08d}.pt"
                 torch.save(payload, tmp)
                 os.replace(tmp, final)
-                print(f"epoch={epoch} validation={validation:.6f} samples={int(totals[1])} elapsed={time.monotonic()-begin:.1f} checkpoint={final}", flush=True)
+                print(f"epoch={epoch} validation={validation:.6f} samples={int(totals[1])} silent={int(totals[2])} speech_validation={(totals[3]/totals[4]).item() if totals[4] else float('nan'):.6f} elapsed={time.monotonic()-begin:.1f} checkpoint={final}", flush=True)
             dist.barrier()
-            if args.max_steps and updates >= args.max_steps or stale >= config["early_stop_patience"]:
+            if (args.max_steps and updates >= args.max_steps) or (updates >= config["warmup_steps"] and stale >= config["early_stop_patience"]):
                 break
     finally:
         dist.destroy_process_group()

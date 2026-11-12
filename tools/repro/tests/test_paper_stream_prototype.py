@@ -111,3 +111,56 @@ def test_cuda_bfloat16_two_chunks_and_checkpoint():
     assert torch.isfinite(loss)
     for name,param in m.named_parameters():
         assert param.grad is not None and torch.isfinite(param.grad).all(),name
+
+
+
+def test_mask_smooth_bounds_identity_phase_and_gradients():
+    model = PaperStreamPrototype(width=8, rnn_hidden=8, heads=2, mask_limit=4)
+    logits = torch.tensor([[[0.0, 0.0], [1e6, -1e6], [-1e6, 1e6], [-0.5, 1.0]]], requires_grad=True)
+    masks = model.bounded_complex_mask(logits)
+    assert masks[0, 0] == 1 + 0j
+    assert masks.real.min() >= -3 and masks.real.max() <= 5
+    assert masks.imag.min() >= -4 and masks.imag.max() <= 4
+    assert masks[0, 1].imag < 0 and masks[0, 2].real < 0 and masks[0, 2].imag > 0
+    (masks.real.sum() + masks.imag.sum()).backward()
+    assert torch.isfinite(logits.grad).all()
+    torch.testing.assert_close(logits.grad[0, 0], torch.ones(2))
+    assert (logits.grad[0, 3] > 0).all()
+
+
+def test_multiscale_norms_prevent_extreme_upstream_amplification():
+    torch.manual_seed(24)
+    model = PaperStreamPrototype(width=8, rnn_hidden=8, heads=2).eval()
+    # Stress every learned cross-scale projection. LayerNorm is computed
+    # independently for each time-frequency position, never over future time.
+    with torch.no_grad():
+        for layer in (model.global0, model.global1, model.global2, model.up0,
+                      model.up1, model.up2, model.decode):
+            layer.weight.mul_(1000)
+    peaks = []
+    handles = [module.register_forward_hook(lambda mod, inputs, output: peaks.append(output.detach().abs().max()))
+               for module in (*model.fusion_norms, *model.up_norms, model.decode_norm)]
+    audio = torch.randn(1, 3200, requires_grad=True)
+    video = torch.randn(1, 3, 512)
+    output, _ = model(audio, video)
+    output.square().mean().backward()
+    for handle in handles:
+        handle.remove()
+    assert peaks and all(torch.isfinite(x) and x < 10 for x in peaks)
+    assert torch.isfinite(output).all() and torch.isfinite(audio.grad).all()
+
+
+
+def test_concat_free_fusion_matches_forward_and_gradients():
+    torch.manual_seed(29)
+    conv = torch.nn.Conv2d(16, 8, 1)
+    first = torch.randn(3, 8, 7, 13, requires_grad=True)
+    second = torch.randn(3, 8, 7, 13, requires_grad=True)
+    probe = torch.randn(3, 8, 7, 13)
+    ref = conv(torch.cat((first, second), dim=1))
+    expected = torch.autograd.grad((ref * probe).sum(), (first, second, conv.weight, conv.bias))
+    actual = PaperStreamPrototype._fuse_without_concat(conv, first, second)
+    grads = torch.autograd.grad((actual * probe).sum(), (first, second, conv.weight, conv.bias))
+    torch.testing.assert_close(actual, ref, atol=1e-6, rtol=1e-6)
+    for grad, target in zip(grads, expected):
+        torch.testing.assert_close(grad, target, atol=1e-5, rtol=1e-6)

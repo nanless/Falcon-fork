@@ -38,8 +38,11 @@ class PaperStreamPrototype(nn.Module):
     commit_frames = 15
 
     def __init__(self, width=24, rnn_hidden=32, heads=4, history_frames=125,
-                 visual_channels=512, temporal_kernel=5, temporal_dilation=16):
+                 visual_channels=512, temporal_kernel=5, temporal_dilation=16, mask_limit=4.0):
         super().__init__()
+        if not 0 < mask_limit < float("inf"):
+            raise ValueError("mask_limit must be finite and positive")
+        self.mask_limit = float(mask_limit)
         if width % heads:
             raise ValueError('width must be divisible by attention heads')
         self.width, self.history_frames, self.visual_channels = width, history_frames, visual_channels
@@ -72,6 +75,12 @@ class PaperStreamPrototype(nn.Module):
         self.up1 = nn.Conv2d(width * 2, width, 1)
         self.up0 = nn.Conv2d(width * 2, width, 1)
         self.decode = nn.Conv2d(width, width, (1, 3), padding=(0, 1))
+        self.bottleneck_norm = FrameNorm(width)
+        self.fusion_norms = nn.ModuleList([FrameNorm(width) for _ in range(3)])
+        self.fusion_acts = nn.ModuleList([nn.PReLU(width) for _ in range(3)])
+        self.up_norms = nn.ModuleList([FrameNorm(width) for _ in range(3)])
+        self.up_acts = nn.ModuleList([nn.PReLU(width) for _ in range(3)])
+        self.decode_norm = FrameNorm(width)
         self.decode_act = nn.PReLU(width)
         self.mask = nn.Conv2d(width, 2, 1)
         nn.init.normal_(self.mask.weight, mean=0.0, std=1e-3)
@@ -84,6 +93,23 @@ class PaperStreamPrototype(nn.Module):
     @staticmethod
     def _resize_freq(x, size):
         return F.interpolate(x, size=(x.shape[-2], size), mode='nearest')
+
+    @staticmethod
+    def _fuse_without_concat(conv, first, second):
+        # Equivalent to conv(cat(first, second), dim=1), but avoids materializing
+        # the double-width activation during activation-checkpoint recompute.
+        if first.shape[0] != second.shape[0] or first.shape[2:] != second.shape[2:]:
+            raise ValueError("fusion inputs must have matching batch and spatial dimensions")
+        channels = first.shape[1]
+        left = F.conv2d(first, conv.weight[:, :channels], conv.bias)
+        right = F.conv2d(second, conv.weight[:, channels:], None)
+        return left.add_(right)
+
+    def bounded_complex_mask(self, logits):
+        if logits.shape[-1] != 2:
+            raise ValueError("mask logits must have real and imaginary channels")
+        bounded = self.mask_limit * torch.tanh(logits.float() / self.mask_limit)
+        return torch.complex(1.0 + bounded[..., 0], bounded[..., 1])
 
     def forward(self, audio, video, state=None):
         if audio.ndim != 2 or audio.shape[1] != self.chunk_samples + self.lookahead_samples:
@@ -134,18 +160,18 @@ class PaperStreamPrototype(nn.Module):
         memory = state.memory
         keys = tokens if memory is None else torch.cat((memory, tokens), dim=1)
         attended, _ = self.attn(tokens, keys, keys, need_weights=False)
-        x3 = x3 + attended.transpose(1, 2).unsqueeze(-1)
+        x3 = self.bottleneck_norm(x3 + attended.transpose(1, 2).unsqueeze(-1))
         # Inject bottleneck context into all skip scales, then fuse top-down.
-        g2 = x2 + self.global2(self._resize_freq(x3, x2.shape[-1]))
-        g1 = x1 + self.global1(self._resize_freq(x3, x1.shape[-1]))
-        g0 = x0 + self.global0(self._resize_freq(x3, x0.shape[-1]))
-        u2 = self.up2(torch.cat((g2, self._resize_freq(x3, x2.shape[-1])), dim=1))
-        u1 = self.up1(torch.cat((g1, self._resize_freq(u2, x1.shape[-1])), dim=1))
-        u0 = self.up0(torch.cat((g0, self._resize_freq(u1, x0.shape[-1])), dim=1))
-        m = self.mask(self.decode_act(self.decode(u0))).permute(0, 2, 3, 1)
+        g2 = self.fusion_acts[2](self.fusion_norms[2](x2 + self.global2(self._resize_freq(x3, x2.shape[-1]))))
+        g1 = self.fusion_acts[1](self.fusion_norms[1](x1 + self.global1(self._resize_freq(x3, x1.shape[-1]))))
+        g0 = self.fusion_acts[0](self.fusion_norms[0](x0 + self.global0(self._resize_freq(x3, x0.shape[-1]))))
+        u2 = self.up_acts[2](self.up_norms[2](self._fuse_without_concat(self.up2, g2, self._resize_freq(x3, x2.shape[-1]))))
+        u1 = self.up_acts[1](self.up_norms[1](self._fuse_without_concat(self.up1, g1, self._resize_freq(u2, x1.shape[-1]))))
+        u0 = self.up_acts[0](self.up_norms[0](self._fuse_without_concat(self.up0, g0, self._resize_freq(u1, x0.shape[-1]))))
+        m = self.mask(self.decode_act(self.decode_norm(self.decode(u0)))).permute(0, 2, 3, 1)
         # Complex mask permits phase correction. Identity-biased initialization.
         # PyTorch complex does not accept bfloat16; FFT/OLA stay float32.
-        mask = torch.complex(1.0 + m[..., 0].float(), m[..., 1].float())
+        mask = self.bounded_complex_mask(m)
         pred = mix * mask
         if state.boundary_spec is not None:
             pred = torch.cat((state.boundary_spec[:, None], pred[:, 1:]), dim=1)
