@@ -32,7 +32,7 @@ from look2hear.videomodels.frcnn_videomodel import FRCNNVideoModel
 from tools.streaming.lookahead_training import run_lookahead_sequence
 from tools.streaming.robust_schedule import RobustWarmupPlateau, global_gradient_norm
 from tools.streaming.realssa_lookahead import RealSSALookaheadDataset
-from tools.streaming.robust_reconstruction import robust_reconstruction
+from tools.streaming.scale_sdr_loss import scale_sdr_loss
 from tools.streaming import stability_metrics
 
 
@@ -85,8 +85,8 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def training_loss(output, target, mix, waveform_weight=0.1):
-    return robust_reconstruction(output, target, mix, waveform_weight=waveform_weight)
+def training_loss(output, target, mix):
+    return scale_sdr_loss(output, target, mix)
 
 
 def all_finite(value, device):
@@ -116,7 +116,7 @@ def main():
                 "lr_patience", "early_stop_patience", "min_delta", "seed", "width", "rnn_hidden",
                 "heads", "history_frames", "checkpoint_chunks", "precision",
                 "grad_norm_limit", "max_consecutive_bad_steps", "validation_severe_delta",
-                "mask_limit", "gain_loss_weight", "activation_batch_chunk"}
+                "mask_limit", "activation_batch_chunk"}
     if not isinstance(config, dict) or set(config) != required:
         parser.error("config must have exactly the documented keys")
     if config["precision"] not in ("bf16", "fp32"):
@@ -128,7 +128,7 @@ def main():
     if (config["lr"] <= 0 or config["warmup_steps"] < 0 or config["workers"] < 0
             or config["grad_norm_limit"] <= 0 or config["max_consecutive_bad_steps"] < 1
             or config["validation_severe_delta"] <= 0 or config["mask_limit"] <= 0
-            or config["gain_loss_weight"] < 0 or config["activation_batch_chunk"] < 1):
+            or config["activation_batch_chunk"] < 1):
         parser.error("invalid optimizer or worker configuration")
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
@@ -151,6 +151,8 @@ def main():
         if args.train_limit:
             train = Subset(train, range(min(len(train), args.train_limit)))
         valid = RealSSALookaheadDataset(config["valid_index"], seed=config["seed"], crop="center", augment=False)
+        if train_base.split != "tr" or valid.split != "cv":
+            raise ValueError("official training requires tr index and cv validation index")
         sampler = DistributedSampler(train, num_replicas=world, rank=rank, shuffle=True,
                                      seed=config["seed"], drop_last=True)
         loader = DataLoader(train, sampler=sampler, batch_size=config["batch_size"], drop_last=True,
@@ -174,7 +176,7 @@ def main():
                     "window_code_sha256": sha256(Path(__file__).with_name("lookahead_training.py")),
                     "data_code_sha256": sha256(Path(__file__).with_name("realssa_lookahead.py")),
                     "schedule_code_sha256": sha256(Path(__file__).with_name("robust_schedule.py")),
-                    "loss_code_sha256": sha256(Path(__file__).with_name("robust_reconstruction.py")),
+                    "loss_code_sha256": sha256(Path(__file__).with_name("scale_sdr_loss.py")),
                     "metrics_code_sha256": sha256(Path(__file__).with_name("stability_metrics.py")),
                     "legacy_data_code_sha256": sha256(Path(__file__).with_name("realssa_tar.py")),
                     "common_code_sha256": sha256(Path(__file__).with_name("common.py")),
@@ -204,7 +206,7 @@ def main():
             print(json.dumps({"config": config, "identity": identity, "train_samples": len(train),
                 "valid_samples": len(valid), "batches_per_epoch": len(loader), "world_size": world,
                 "global_batch": world * config["batch_size"], "gradient_accumulation": 1,
-                "objective": "stable SI-SDR plus waveform gain penalty and log silence NMSE; no near negatives"}, ensure_ascii=False), flush=True)
+                "objective": "scale-sensitive negative waveform SDR plus log silence NMSE; no near negatives"}, ensure_ascii=False), flush=True)
         for epoch in range(start_epoch, config["epochs"]):
             begin = time.monotonic()
             model.train()
@@ -216,7 +218,7 @@ def main():
                 optimizer.zero_grad(set_to_none=True)
                 with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=config["precision"] == "bf16"):
                     output = ddp(mix, video, target.shape[1])
-                loss_values, masks = training_loss(output.float(), target.float(), mix[:, :target.shape[1]].float(), waveform_weight=config["gain_loss_weight"])
+                loss_values, masks = training_loss(output.float(), target.float(), mix[:, :target.shape[1]].float())
                 loss = loss_values.mean()
                 if not all_finite(loss, device):
                     raise RuntimeError("non-finite loss on at least one rank")
@@ -265,7 +267,7 @@ def main():
                     mix, target, video = (x.to(device, non_blocking=True) for x in batch[:3])
                     with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=config["precision"] == "bf16"):
                         prediction = model(mix, video, target.shape[1])
-                    values, masks = training_loss(prediction.float(), target.float(), mix[:, :target.shape[1]].float(), waveform_weight=config["gain_loss_weight"])
+                    values, masks = training_loss(prediction.float(), target.float(), mix[:, :target.shape[1]].float())
                     validation_metrics = stability_metrics.merge(validation_metrics, stability_metrics.collect(values, masks, prediction.float(), mix[:, :target.shape[1]].float()))
                     totals += torch.stack((values.double().sum(), values.new_tensor(values.numel(), dtype=torch.float64), masks["silent"].double().sum(), values[masks["speech"]].double().sum(), masks["speech"].double().sum()))
             dist.all_reduce(totals)
@@ -296,7 +298,7 @@ def main():
                     "world_size": world, "protocol": protocol, "next_epoch": epoch + 1, "updates": updates,
                     "stale": stale, "best": best, "best_checkpoint": best_checkpoint,
                     "consecutive_bad_steps": consecutive_bad_steps, "skipped_steps": skipped_steps,
-                    "partial": partial, "validation": validation}
+                    "partial": partial, "validation": validation, "objective": "scale_sensitive_waveform_sdr_plus_log_silence"}
                 tmp = run_dir / f".epoch-{epoch:04d}.tmp"
                 torch.save(payload, tmp)
                 os.replace(tmp, final)

@@ -41,7 +41,7 @@ def test_activation_recompute_matches_outputs_and_core_gradients():
 
 @pytest.mark.skipif(not Path(VISUAL).exists(), reason="pretrained visual asset unavailable")
 def test_full_batch_activation_slicing_matches_all_gradients():
-    from tools.streaming.robust_reconstruction import robust_reconstruction
+    from tools.streaming.scale_sdr_loss import scale_sdr_loss
     torch.set_num_threads(2)
     torch.manual_seed(92)
     config = {"visual_weights": VISUAL, "width": 8, "rnn_hidden": 8,
@@ -56,8 +56,8 @@ def test_full_batch_activation_slicing_matches_all_gradients():
     a = whole(audio, video)
     b = sliced(audio, video)
     torch.testing.assert_close(a, b, rtol=1e-4, atol=1e-5)
-    la = robust_reconstruction(a, target, audio, waveform_weight=0.1)[0].mean()
-    lb = robust_reconstruction(b, target, audio, waveform_weight=0.1)[0].mean()
+    la = scale_sdr_loss(a, target, audio)[0].mean()
+    lb = scale_sdr_loss(b, target, audio)[0].mean()
     la.backward()
     lb.backward()
     for (name, x), (name2, y) in zip(whole.core.named_parameters(), sliced.core.named_parameters()):

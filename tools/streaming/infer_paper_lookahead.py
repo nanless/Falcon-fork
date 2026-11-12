@@ -61,6 +61,21 @@ def si_sdr_values(estimate, target):
     return -pairwise_neg_sisdr(estimate.unsqueeze(1), target.unsqueeze(1)).reshape(-1)
 
 
+def waveform_snr_values(estimate, target):
+    """Raw scale-sensitive waveform SNR, not filtered BSS Eval SDR.
+
+    Non-zero-mean target energy and error power use a 1e-12 floor.
+    Silent targets (RMS <= 1e-8) return NaN for caller-side null encoding.
+    """
+    if estimate.ndim != 2 or estimate.shape != target.shape:
+        raise ValueError("expected matching [batch,time] tensors")
+    est, ref = estimate.double(), target.double()
+    power = ref.square().mean(dim=1)
+    error = (est - ref).square().mean(dim=1)
+    result = 10 * torch.log10(power.clamp_min(1e-12) / error.clamp_min(1e-12))
+    return result.masked_fill(power <= 1e-16, float("nan"))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--checkpoint", required=True)
@@ -112,6 +127,8 @@ def main(argv=None):
                 raise RuntimeError("model produced non-finite output")
             scores = si_sdr_values(prediction, target.float())
             baseline = si_sdr_values(mix[:, :target.shape[1]].float(), target.float())
+            wave_scores = waveform_snr_values(prediction, target)
+            wave_baselines = waveform_snr_values(mix[:, :target.shape[1]], target)
             for j in range(prediction.size(0)):
                 index = a.start + batch_number*a.batch_size + j
                 target_rms = target[j].float().sub(target[j].float().mean()).square().mean().sqrt().item()
@@ -123,13 +140,19 @@ def main(argv=None):
                     sf.write(out_dir / f"{stem}-target.wav", target[j].float().cpu().numpy(), 16000, subtype="FLOAT")
                 score, base = float(scores[j]), float(baseline[j])
                 valid = target_rms > 1e-8 and math.isfinite(score) and math.isfinite(base)
+                wave_score, wave_base = float(wave_scores[j]), float(wave_baselines[j])
+                wave_valid = math.isfinite(wave_score) and math.isfinite(wave_base)
                 rows.append({"index": index, "sample_id": dataset.samples[index]["id"],
                              "estimate_wav": f"{stem}-estimate.wav", "target_rms": target_rms,
                              "si_sdri_db": score-base if valid else None,
-                             "si_sdr_db": score if valid else None, "mixture_si_sdr_db": base if valid else None})
+                             "si_sdr_db": score if valid else None, "mixture_si_sdr_db": base if valid else None,
+                             "waveform_snr_db": wave_score if wave_valid else None,
+                             "mixture_waveform_snr_db": wave_base if wave_valid else None,
+                             "waveform_snri_db": wave_score-wave_base if wave_valid else None})
     with open(out_dir / "samples.csv", "w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
     finite = [r["si_sdri_db"] for r in rows if r["si_sdri_db"] is not None]
+    wave_finite = [r["waveform_snri_db"] for r in rows if r["waveform_snri_db"] is not None]
     report = {"checkpoint": str(Path(a.checkpoint).resolve()), "checkpoint_sha256": digest(a.checkpoint),
               "checkpoint_updates": checkpoint.get("updates"), "checkpoint_identity": checkpoint.get("identity"),
               "index": str(Path(a.index).resolve()), "index_sha256": digest(a.index),
@@ -137,6 +160,10 @@ def main(argv=None):
               "output_samples": 32000, "chunk_samples": 1920, "lookahead_samples": 1280,
               "input_samples": 33920, "count": len(rows), "valid_si_sdri": len(finite),
               "mean_si_sdri_db": sum(finite)/len(finite) if finite else None,
+              "waveform_snr_definition": "10log10(max(mean(target^2),1e-12)/max(mean((estimate-target)^2),1e-12)); raw waveform; not BSS Eval SDR",
+              "waveform_snr_silent_target_rms_max": 1e-8,
+              "valid_waveform_snri": len(wave_finite),
+              "mean_waveform_snri_db": sum(wave_finite)/len(wave_finite) if wave_finite else None,
               "elapsed_seconds": time.monotonic()-started, "samples": rows}
     with open(out_dir / "result.json", "w", encoding="utf-8") as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2, allow_nan=False)
