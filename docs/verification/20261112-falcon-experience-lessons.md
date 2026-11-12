@@ -38,7 +38,11 @@
 
 音频尾部、时间卷积、LSTM、注意力及视觉递推历史仅推进当前块；重叠相加的边界频谱缓存的是本次预测的索引 15（从 0 开始）的频谱帧，即第 16 帧。该帧可使用当前块允许的 80 ms 前视，下一块重建时复用，以保持交叠部分一致。它与递推状态的提交含义不同。
 
-首次输出等待 120 ms 当前输入和 80 ms 前视，再加模型计算。CPU 单块计算耗时和音视频采集等待属于不同数字，网络和浏览器耗时不计入本任务约定。详见 [视觉编码器](../../look2hear/models/FalconLookaheadVisual.py)、[流式缓冲](../../tools/streaming/lookahead_session.py) 和 [时间与末尾测试](../../tools/repro/tests/test_falcon_lookahead_stream_e2e.py)。
+首次输出等待 120 ms 当前输入和 80 ms 前视，再加模型计算。CPU 单块计算耗时和音视频采集等待属于不同数字，网络和浏览器耗时不计入本任务约定。
+
+输入序号、形状或有限性检查未通过时当前 tick 不会被接受，修正后可重发同序号；会话处理器异常、输出非有限或长度不对时，已接受输入留在队列且旧状态不提交：`push()` 阶段用 `retry_ready()` 重试，`finish()` 阶段再次调用 `finish()`，尾块完成后一次返回。处理器应将传入状态视为只读；会话不能恢复外部处理器对状态的原地修改。
+
+[在线检查点适配器](../../tools/streaming/paper_live_inference.py) 将模型与会话连接，逐次接收 40 ms 单声道音频及已归一化嘴帧，并在收齐五个 tick 后开始按三 tick 输出；采集、嘴部检测与裁剪、网络连接不属于该适配器；指定 `threads` 会改变当前 PyTorch 进程的线程设置。一次 SDR 烟测 checkpoint 的完整会话测试中，4 线程预热 100 块、记录 500 个产出块的输入转换、缓冲、前向和 CPU 输出，最大为 40.93 ms、无块达到 60 ms；不包含采集、检测、裁剪或网络，完整记录见 `/root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112/online_session_sdr_b1024_cpu4_20261112.json`。 后续在训练并行运行时用固定重复随机输入实测 500 输出块，单次产出 push 最大 40.100 ms，逐块累计全部 push 的 CPU 处理耗时最大 40.229 ms；各 0 块达到 60 ms。测量范围不含采集等，源码、权重哈希及逐块数据见 `/root/group-shared/voiceprint/experiments/falcon_paper_lookahead_20261112/online_session_final_aggregate_cpu4_20261112.json`，复测入口为 [benchmark_paper_live.py](../../tools/streaming/benchmark_paper_live.py)。详见 [视觉编码器](../../look2hear/models/FalconLookaheadVisual.py)、[流式缓冲](../../tools/streaming/lookahead_session.py) 和 [时间与末尾测试](../../tools/repro/tests/test_falcon_lookahead_stream_e2e.py)。
 
 ## 二、区分“从零训练”和预训练视觉
 
@@ -135,6 +139,6 @@ CPU 候选测量使用服务器 4 线程、预热 100 块、测试 500 块，包
 5. 检查点的 epoch、成功更新步、优化器和调度器状态、最佳验证及实验目录；部分 epoch 不能当作完整 epoch 精确续训。
 6. 训练／验证损失、测试指标和静音有效数分别记录；与公开模型比较时保证样本、通道、裁剪及计算指标一致。
 
-服务器运行入口与配置为 [训练器](../../tools/streaming/train_paper_lookahead.py) 和 [配置](../../configs/RealSSAPaperLookahead.yml)。训练进程、双卡使用、日志更新、首个 optimizer step、完整验证和检查点各是不同的验收阶段。启动后还要在旧模型曾出现异常的约 394 步附近检查梯度、输出增益、静音项和完整验证曲线；模型是否收敛以及与论文和公开权重的差距，需要后续官方测试集评测。
+服务器运行入口与配置为 [训练器](../../tools/streaming/train_paper_lookahead.py) 和 [配置](../../configs/RealSSAPaperLookahead.yml)。 第二轮复核时，当前训练进程仍使用 `/root/group-shared/voiceprint/experiments/falcon_streaming_v9_capacity_20261112/repo` 的启动版本；YAML 解析和数据器注释修复放在独立的 `/root/group-shared/voiceprint/experiments/falcon_review_20261112/repo`。复核副本不会自动更新运行进程。严格恢复旧任务时，使用旧检查点保存的配置和各源码哈希对应的版本；修改后的训练器不能绕过身份检查直接续训旧检查点。训练进程、双卡使用、日志更新、首个 optimizer step、完整验证和检查点各是不同的验收阶段。启动后还要在旧模型曾出现异常的约 394 步附近检查梯度、输出增益、静音项和完整验证曲线；模型是否收敛以及与论文和公开权重的差距，需要后续官方测试集评测。
 
 本机到服务器的 SSH 配置曾因 yes#、auto# 缺少空格而让 Cursor 连接失败，服务器和直接 SSH 本身可用。修复先验证实际错误、备份配置、只修改注释分隔并复测连接。本机 GitHub 上传禁令不变；用户授权的提交和推送由服务器自身仓库及进程完成，本机配置中的禁推设置保持原样。

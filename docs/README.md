@@ -9,6 +9,7 @@
 | 这个项目做什么，怎样开始 | [中文 README](../README_zh.md) / [English README](../README.md) | 输入输出、目录、环境、快速评测和主要限制 |
 | 现在复现到了哪里 | [复现状态](STATUS.md) | 权重与指标条件、已有结果、测试状态和未完成项 |
 | 120 ms 输出、80 ms 前视的新模型怎样训练和推理 | [论文风格流式模型](FALCON_PAPER_LOOKAHEAD.md) | 官方数据、尺度敏感波形损失、冻结 FRCNN、训练与评测口径 |
+| 第二轮复核与在线推理接口 | [第二轮代码、文档与技能复核](verification/20261112-second-review.md) | 失败重试、训练配置及在线时延验证 |
 | 旧训练为何数值异常，修复了什么 | [训练异常审查](verification/20261112-lookahead-training-instability.md) | 输出增益、静音损失、多尺度放大和新训练协议 |
 | 流式训练有哪些经验教训 | [Falcon 流式训练经验与复核](verification/20261112-falcon-experience-lessons.md) | 时序、视觉初始化、数据与损失、数值稳定性和评测证据 |
 | 模型怎样处理音频与嘴部 | [模型、融合与时间依赖](understanding/20261110-model-and-streaming.md) | 张量形状、两次音频块、视觉融合、因果性和计算量 |

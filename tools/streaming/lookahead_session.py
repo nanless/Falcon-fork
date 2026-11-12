@@ -3,6 +3,12 @@
 Audio and video must share the same 25 Hz clock. The processor sees five
 consecutive ticks, but commits only the first three and returns its state at
 that boundary. A stream ending mid-tick may supply a short final audio tick.
+
+The processor must treat its input state as read-only and return a new state.
+Once push has accepted a tick, an execution error leaves that tick queued;
+call retry_ready() rather than pushing the same sequence again. If finish()
+fails, call finish() again; previously produced tail blocks are held until
+finish succeeds, so the caller receives them exactly once.
 """
 from __future__ import annotations
 
@@ -23,10 +29,15 @@ class LookaheadSession:
         self.closed = False
         self.short_seen = False
         self.next_sequence = 0
+        self._pending_error = False
+        self._finish_started = False
+        self._finish_outputs = []
 
     def push(self, audio, video, *, sequence):
-        if self.closed or self.short_seen:
+        if self.closed or self._finish_started or self.short_seen:
             raise ValueError("stream already ended or a short final tick was submitted")
+        if self._pending_error:
+            raise RuntimeError("processor failed after accepting a tick; call retry_ready()")
         if type(sequence) is not int or sequence != self.next_sequence:
             raise ValueError("sequence must be the next consecutive 40 ms tick")
         audio = np.asarray(audio, dtype=np.float32)
@@ -50,10 +61,16 @@ class LookaheadSession:
         while len(self.audio) >= BLOCK_TICKS + LOOKAHEAD_TICKS and sum(self.valid[:BLOCK_TICKS]):
             sound = np.concatenate(self.audio[:BLOCK_TICKS + LOOKAHEAD_TICKS])
             frames = np.stack(self.video[:BLOCK_TICKS + LOOKAHEAD_TICKS])
-            result, new_state = self.processor(sound, frames, self.state)
-            result = np.asarray(result)
-            if result.shape != (BLOCK_TICKS * TICK_SAMPLES,):
-                raise ValueError("processor must return exactly 1920 samples")
+            try:
+                result, new_state = self.processor(sound, frames, self.state)
+                result = np.asarray(result)
+                if result.shape != (BLOCK_TICKS * TICK_SAMPLES,):
+                    raise ValueError("processor must return exactly 1920 samples")
+                if not np.isfinite(result).all():
+                    raise ValueError("processor returned non-finite samples")
+            except Exception:
+                self._pending_error = True
+                raise
             valid = sum(self.valid[:BLOCK_TICKS])
             outputs.append(result[:valid].copy())
             self.state = new_state
@@ -62,18 +79,31 @@ class LookaheadSession:
             del self.valid[:BLOCK_TICKS]
         return outputs
 
+    def retry_ready(self):
+        """Retry a failed push without resubmitting its already accepted tick."""
+        if self.closed or self._finish_started:
+            raise ValueError("after finish has started, retry by calling finish()")
+        if not self._pending_error:
+            raise ValueError("no failed processor call to retry")
+        self._pending_error = False
+        return self._ready()
+
     def finish(self):
         if self.closed:
             raise ValueError("stream already ended")
-        self.closed = True
-        outputs = []
+        if self._pending_error and not self._finish_started:
+            raise RuntimeError("retry the failed push with retry_ready() before finish")
+        self._finish_started = True
+        self._pending_error = False
         if not self.audio:
-            return outputs
+            self.closed = True
+            return self._finish_outputs
         padding_frame = np.zeros_like(self.video[-1])
         while sum(self.valid):
             while len(self.audio) < BLOCK_TICKS + LOOKAHEAD_TICKS:
                 self.audio.append(np.zeros(TICK_SAMPLES, dtype=np.float32))
                 self.video.append(padding_frame.copy())
                 self.valid.append(0)
-            outputs.extend(self._ready())
-        return outputs
+            self._finish_outputs.extend(self._ready())
+        self.closed = True
+        return self._finish_outputs

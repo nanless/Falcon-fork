@@ -6,7 +6,7 @@
   <p><a href="https://huggingface.co/papers/2610.32749"><img src="assets/hf-paper-of-the-day.svg" alt="#2 Paper of the Day on Hugging Face Daily Papers" width="224"></a><br><small>Hugging Face Daily Papers, 2026-10-29</small></p>
 </div>
 
-This fork contains Falcon training and evaluation code, a local Studio application, a recording-based Space, data conversion tools, and reproducibility records. The default model receives a mixture and a target speaker's mouth video and returns **one** speech signal. `2Mix` describes a two-speaker mixture; the model extracts the target speaker. All current root configurations use `n_src: 1`.
+This fork contains Falcon training and evaluation code, a local Studio application, a recording-based Space, data conversion tools, and reproducibility records. The default model receives a mixture and a target speaker's mouth video and returns **one** speech signal. `2Mix` describes a two-speaker mixture; the model extracts the target speaker. The original Falcon configurations set `n_src: 1`; the separate paper-inspired streaming model also outputs one speech signal.
 
 The [Chinese README](README_zh.md) is the detailed starting point. The following project guides explain the current implementation and the evidence behind it:
 
