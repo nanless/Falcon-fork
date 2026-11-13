@@ -50,6 +50,14 @@ def dilated(occupied, guard=2):
     return result
 
 
+def transition_type(silent, active):
+    silent_blocks, active_blocks = block_numbers(silent), block_numbers(active)
+    bracket = any(min(active_blocks) < block < max(active_blocks) for block in silent_blocks)
+    if bracket:
+        return "stop_reopen"
+    return "reopen" if max(active_blocks) > max(silent_blocks) else "stop"
+
+
 def candidate_windows(annotations, target, shared, limit):
     target_speech, target_occupied = annotations[target]
     others_speech = np.logical_or.reduce([
@@ -67,15 +75,13 @@ def candidate_windows(annotations, target, shared, limit):
         active = block_numbers(target_speech[sl])
         if len(muted) < 3 or len(active) < 2:
             continue
-        bracket = any(before < silence < after for before in active for after in active for silence in muted)
-        transition = "stop_reopen" if bracket else "reopen" if max(active) > max(muted) else "stop"
-        score = (bracket, min(len(muted), 8) + min(len(active), 8), -start)
-        candidates.append((score, start, silent[sl], target_speech[sl], transition))
+        score = (transition_type(silent[sl], target_speech[sl]) == "stop_reopen", min(len(muted), 8) + min(len(active), 8), -start)
+        candidates.append((score, start, silent[sl], target_speech[sl]))
     candidates.sort(key=lambda item: item[0], reverse=True)
     retained = []
-    for _, start, silent, active, transition in candidates:
+    for _, start, silent, active in candidates:
         if all(abs(start - a[0]) >= width for a in retained):
-            retained.append((start, silent, active, transition))
+            retained.append((start, silent, active))
         if len(retained) == limit:
             break
     return retained
@@ -111,7 +117,7 @@ def audio_supervision(root, session, paths, target, shared, start, silent, activ
     return mix, target_audio, safe_silent, safe_active, shared_db, gain, float(residual / mix_power)
 
 
-def write_record(args, rows, session, target, start, silent, active, transition, shared, paths, detector):
+def write_record(args, rows, session, target, start, silent, active, shared, paths, detector):
     try:
         result = audio_supervision(args.source, session, paths, target, shared, start, silent, active)
     except (OSError, ValueError, sf.LibsndfileError) as exc:
@@ -120,6 +126,7 @@ def write_record(args, rows, session, target, start, silent, active, transition,
     if result is None:
         return False
     mixture, reference, silent, active, shared_db, gain, residual = result
+    transition = transition_type(silent, active)
     video_dir = args.source / "video/individual_participants/individual_participants_audio_all" / session
     matches = sorted(video_dir.glob(f"{session}_{target}_*_all.mp4"))
     if len(matches) != 1:
@@ -191,8 +198,8 @@ def main():
                 continue
             for target in sorted((set(paths) & annotations.keys()) - shared):
                 accepted = 0
-                for start, silent, active, transition in candidate_windows(annotations, target, shared, 16):
-                    if write_record(args, rows, session, target, start, silent, active, transition, shared, paths, detector):
+                for start, silent, active in candidate_windows(annotations, target, shared, 16):
+                    if write_record(args, rows, session, target, start, silent, active, shared, paths, detector):
                         accepted += 1
                         if accepted == 2 or len(rows) == args.count or len(rows) - before_session == args.per_session:
                             break
