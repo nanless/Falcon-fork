@@ -2,7 +2,7 @@
 
 > **2026-11-10 补充：**本文件保留环境和仓库操作约定。模型、数据、实验与测试的现状和证据边界以 [docs/STATUS.md](docs/STATUS.md)、[数据集说明](docs/understanding/20261110-datasets.md) 及 [2026-11-10 审查记录](docs/verification/deepdive-20261110/审查记录.md) 为入口；下文带日期的测试数字是历史记录。本轮 CPU 复现套件为 166 passed / 2 skipped，两项因历史临时资产缺失跳过。
 >
-> 默认 VideoBlock 在 batch>1 时有跨样本影响；`paper_causal=True` 会额外裁短 stride-2 的中间特征，`lookahead_ab.py` 的默认行比较同一次输出；跨版本比较另见状态页。发布的 LRS2 s1/s2 已包含混合比例，名义 gain 差不是逐条波形 RMS 比；10,000 次有放回抽样约覆盖 22.12% 方向条目、39.35% 不同混合（均为期望）。这些结论、条件和仍未完成的验证均见状态页。
+> 历史默认 VideoBlock 在 batch>1 时有跨样本影响。2026-11-13 起当前修复分支的默认分支以独立单步复用发布 B=1 语义，详见 [发布模型批次耦合](docs/verification/released-falcon-batch-coupling-20261113.md)；`paper_causal=True` 会额外裁短 stride-2 的中间特征，`lookahead_ab.py` 的默认行比较同一次输出；跨版本比较另见状态页。发布的 LRS2 s1/s2 已包含混合比例，名义 gain 差不是逐条波形 RMS 比；10,000 次有放回抽样约覆盖 22.12% 方向条目、39.35% 不同混合（均为期望）。这些结论、条件和仍未完成的验证均见状态页。
 
 > 本文件适用于在此仓库（`/root/code/github_repos/Falcon-fork`）工作的所有 AI agent 与人类开发者。
 > 环境与代码记录始于 2026-11-08，2026-11-10 已补充复核。环境与测试结果可能随时间变化；遇到冲突时，先核对当前代码、现行状态页及原始证据。
@@ -142,7 +142,7 @@ $FALCON_ENV_DIR/bin/python -m pytest tools/repro/tests -q -rs                   
 | 开关 | 默认 | 打开 / 改动后改变什么 | 代价 |
 |---|---|---|---|
 | `paper_causal` | `False` | `AudioBlock` 的 `downsample` / `fusion` / `concat` 三处卷积原本硬编码 `causal=False`；True 时改为透传 `self.causal`，即论文 §4.2 的左对齐 causal padding，逐卷积前瞻从 2 帧降到 0 帧 | 在该次 CPU 单输入对照中相对默认开关输出变化（`max\|Δ\|≈13`），要可比得重训；端到端"看未来"仍到窗尾，因为 30 处 `cLNhw` 是全窗 `GroupNorm`，padding 不是瓶颈 |
-| `video_lstm_batch_first` | `False` | False 时 `[B,T,C]` 被 `nn.LSTM(batch_first=False)` 读成 `[T,B,C]`，50 个视频帧之间没有递推；True 才沿 25 fps 帧轴递推 | 在该次 CPU 单输入对照中输出变化（`max\|Δ\|≈1.3e-2`），等于换了视频编码器，与发布权重的结果不能混用 |
+| `video_lstm_batch_first` | `False` | False 时逐样本逐帧独立执行一次 LSTM 零状态步，复用发布 B=1 语义；True 才沿 25 fps 帧轴递推 | 在该次 CPU 单输入对照中输出变化（`max\|Δ\|≈1.3e-2`），等于换了视频编码器，与发布权重的结果不能混用 |
 | `respect_index` | `False` | False 是历史行为：`__getitem__` 忽略 `idx`、每次从全量索引随机取，`DataLoader(shuffle=True)` 因此无效、采样有放回；True 严格按 `idx` 取，`__len__` 变成 `len(mix)`，一个 epoch 每条样本过一次 | 采样序列与历史 run 不同，loss 曲线不能直接对比；音频裁剪起点仍随机 |
 | `mouth_fps` | `25.0` | 嘴部裁剪帧率，决定 `mouth_start = int(rand_start / sample_rate * mouth_fps)` 与所需帧数 `int(segment * mouth_fps)` | 25.0 精确复现历史写死的 `(rand_start/16000)*25`；改成别的值要保证数据本身是该帧率，否则唇动与音频错位 |
 | `pad_mouth` | `False` | False 时帧数不足 `int(segment * mouth_fps)` 直接 `ValueError`；True 复制末帧补齐 | 补齐会在唇动里插静帧，短片段的结果与重采样的片段不等价 |
@@ -150,7 +150,7 @@ $FALCON_ENV_DIR/bin/python -m pytest tools/repro/tests -q -rs                   
 前两个是 `look2hear/models/Falcon.py` 里 `AudioBlock` / `VideoBlock` 的构造参数，A/B 用
 `tools/repro/experiments/lookahead_ab.py`（纯 CPU、约 40 s、真实权重）；后三个是 `avspeech_dataset.py` /
 `avspeech_dataset_near.py` 的 dataset 构造参数，`configs/*.yml` 里没有对应键，要用得自己接线。
-默认开关保留发布路径，但 `lookahead_ab.py` 的默认值比较是输出与自身比较，用于记录本次默认输出；跨版本逐位比较需另行执行。本轮另对 small 冻结 tag 与当前模型做过一个 CPU 输入的权重对照，范围见状态页；Big、其他输入和设备不能由此推定。
+默认开关保留发布 B=1 路径；2026-11-13 起消除了历史默认 B>1 的样本串扰。`lookahead_ab.py` 的默认值比较是输出与自身比较，用于记录本次默认输出；跨版本逐位比较需另行执行。本轮另对 small 冻结 tag 与当前模型做过一个 CPU 输入的权重对照，范围见状态页；Big、其他输入和设备不能由此推定。
 
 ## 4. 依赖安装 / 升级规则
 

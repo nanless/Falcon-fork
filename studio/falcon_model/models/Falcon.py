@@ -922,10 +922,7 @@ class VideoBlock(nn.Module):
         use_short_conv: bool = True,
         use_output_correction: bool = True,
         use_inner_decay: bool = True,
-        video_lstm_batch_first: bool = False,  # fidelity switch (default = released
-        #   behaviour): the frame axis has always been fed to a batch_first=False LSTM as if
-        #   it were the batch axis, so the 50 video frames never recursed over time.
-        #   True -> batch_first=True, i.e. a real temporal recurrence along 25 fps frames.
+        video_lstm_batch_first: bool = False,  # True explicitly enables recurrence across video frames.
     ):
         super(VideoBlock, self).__init__()
         self.video_lstm_batch_first = video_lstm_batch_first
@@ -978,12 +975,15 @@ class VideoBlock(nn.Module):
         residual = self.gateway(x)
         x_enc = self.projection(residual)
         
-        # [B, C, T] -> [B, T, C]. The RNN's reading of this tensor depends on
-        # ``video_lstm_batch_first``: False (released behaviour) reads it as [T, B, C], i.e.
-        # the frame axis becomes the batch axis and no recurrence happens across frames;
-        # True makes the LSTM recur along the 25 fps frame axis.
-        x_enc = x_enc.transpose(1, 2).contiguous()
-        x_rnn, _ = self.rnn(x_enc)
+        x_enc = x_enc.transpose(1, 2).contiguous()  # [B, T, C]
+        if self.video_lstm_batch_first:
+            x_rnn, _ = self.rnn(x_enc)
+        else:
+            # Match released single-item inference with one zero-state step
+            # per frame. Each (example, frame) is an independent LSTM item.
+            batch, frames, channels = x_enc.shape
+            x_rnn, _ = self.rnn(x_enc.reshape(1, batch * frames, channels))
+            x_rnn = x_rnn.reshape(batch, frames, channels)
         x_rnn = x_rnn.transpose(1, 2).contiguous()
 
         out = self.residual_conv(x_rnn) + residual

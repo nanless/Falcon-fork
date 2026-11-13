@@ -2,27 +2,27 @@ import pytest
 import torch
 from torch import nn
 
+from look2hear.models.Falcon import VideoBlock
 from tools.streaming.distillation import (
-    _IndependentVideoLSTM,
+    FrozenFalconTeacher,
     distillation_components,
     predict_teacher,
 )
 
 
-def test_teacher_video_lstm_matches_single_example_and_has_no_cross_batch_state():
-    torch.manual_seed(10)
-    lstm = nn.LSTM(4, 6, batch_first=False).eval()
-    inputs = torch.randn(3, 7, 4)
-    singles = torch.cat([lstm(value[None])[0] for value in inputs])
-    naive, _ = lstm(inputs)
-    assert not torch.allclose(naive[1:], singles[1:])
-    isolated = _IndependentVideoLSTM(lstm)
-    result, _ = isolated(inputs)
-    torch.testing.assert_close(result, singles)
-    changed = inputs.clone()
-    changed[0] *= 10
-    unaffected, _ = isolated(changed)
-    torch.testing.assert_close(unaffected[1:], singles[1:])
+def test_teacher_keeps_default_video_lstm_and_rejects_temporal_mode():
+    default = VideoBlock(in_chan=4, hid_chan=6, norm_type="BatchNorm1d")
+    lstm = default.rnn
+    teacher = FrozenFalconTeacher(nn.Sequential(default), nn.Identity())
+    assert default.rnn is lstm
+    assert not teacher.training
+    assert all(not parameter.requires_grad for parameter in teacher.parameters())
+
+    temporal = VideoBlock(in_chan=4, hid_chan=6, norm_type="BatchNorm1d", video_lstm_batch_first=True)
+    with pytest.raises(ValueError, match="independent single-step"):
+        FrozenFalconTeacher(nn.Sequential(temporal), nn.Identity())
+    with pytest.raises(ValueError, match="no VideoBlock"):
+        FrozenFalconTeacher(nn.Identity(), nn.Identity())
 
 
 class _FakeTeacher(nn.Module):

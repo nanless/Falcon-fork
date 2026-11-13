@@ -11,21 +11,6 @@ from look2hear.models.Falcon import VideoBlock
 from tools.streaming.evaluate_realssa import load_baseline
 
 
-class _IndependentVideoLSTM(nn.Module):
-    """Batch the length-one sequences used by released Falcon at batch size one."""
-
-    def __init__(self, lstm: nn.LSTM):
-        super().__init__()
-        if lstm.batch_first:
-            raise ValueError("expected released Falcon video LSTM layout")
-        self.lstm = lstm
-
-    def forward(self, value: Tensor):
-        batch, frames, features = value.shape
-        output, state = self.lstm(value.reshape(1, batch * frames, features))
-        return output.reshape(batch, frames, -1), state
-
-
 class FrozenFalconTeacher(nn.Module):
     def __init__(self, audio: nn.Module, visual: nn.Module):
         super().__init__()
@@ -34,8 +19,8 @@ class FrozenFalconTeacher(nn.Module):
         blocks = [layer for layer in audio.modules() if isinstance(layer, VideoBlock)]
         if not blocks:
             raise ValueError("released Falcon teacher has no VideoBlock")
-        for block in blocks:
-            block.rnn = _IndependentVideoLSTM(block.rnn)
+        if any(block.video_lstm_batch_first or block.rnn.batch_first for block in blocks):
+            raise ValueError("released Falcon teacher requires independent single-step VideoBlocks")
         self.requires_grad_(False)
         self.eval()
 

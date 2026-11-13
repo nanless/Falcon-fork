@@ -17,6 +17,7 @@ Inference-only changes; no learned layers are removed:
   PyTorch Lightning is not needed.
 - Unused imports (`ResNet1D`, a `sys.path` change) and package-level imports of training-only
   datasets, losses and metrics are removed.
+- Small and Big use an independent zero-state VideoBlock LSTM step per sample and video frame by default, preserving the released single-item semantics. The explicit temporal-recurrence configuration remains available.
 - On Apple Metal (MPS), STFT and inverse STFT run on the CPU because complex tensors are not fully
   supported there. FFT parameters, windows and output length are unchanged; everything else runs
   on the selected device.
