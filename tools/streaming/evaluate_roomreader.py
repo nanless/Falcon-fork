@@ -205,6 +205,89 @@ def fit(stems, signal):
     return gains, components, residual, int(rank)
 
 
+def array_sha256(value):
+    return hashlib.sha256(value.tobytes()).hexdigest()
+
+
+def read_clip(row, i, dataset_root, detector):
+    session, target = row["session"], row["target"]
+    if row["group"] not in ("triple", "visible_silent", "weak"):
+        raise ValueError(f"unknown group {row['group']}")
+    a, b = row["start_ms"], row["end_ms"]
+    if not isinstance(a, int) or not isinstance(b, int) or a < 0 or b <= a:
+        raise ValueError("invalid scoring interval")
+    start = max(0, a//TICK_MS*TICK_MS - CONTEXT_MS)
+    end = (b+TICK_MS-1)//TICK_MS*TICK_MS + CONTEXT_MS
+    root = dataset_root
+    audio = root/"audio"
+    mix_path = audio/"all_participants_audio"/f"{session}.wav"
+    participant_paths = sorted((audio/"individual_participants_audio"/session).glob("*.wav"))
+    names = [p.stem.split("_",2)[1] for p in participant_paths]
+    if target not in names:
+        raise ValueError(f"target reference missing for {session} {target}")
+    visual = root/"video/individual_participants/individual_participants_audio_all"/session
+    video = one(visual,f"{session}_{target}_*_all.mp4")
+    landmarks = None if detector else one(root/"features/OpenFace_Features",f"{session}_{target}_*_all.csv")
+    mixture = read_audio(mix_path,start,end)
+    stems = np.column_stack([read_audio(p,start,end) for p in participant_paths])
+    if detector:
+        mouths, present, clock = media_pipe_mouth(video, detector, start, end)
+    else:
+        mouths, present, clock = read_mouth(video, landmarks, start, end)
+    tick_start = (a-start)//TICK_MS
+    tick_end = (b-start+TICK_MS-1)//TICK_MS
+    valid = bool(present[tick_start:tick_end].all())
+    observed = row | {"id":i,"start_context_ms":start,"end_context_ms":end,
+        "mouth_valid_all_score_ticks":valid,"mouth_valid_context_fraction":float(present.mean()),
+        "mouth_clock_max_abs_ms":clock,"speaker_order":names,
+        "mouth_track_sha256": array_sha256(mouths),
+        "mixture_crop_sha256": array_sha256(mixture),
+        "asset_paths":{"mix":str(mix_path),"video":str(video),"landmarks":str(landmarks),
+                        "stems":[str(p) for p in participant_paths]}}
+    observed["stems_sha256"] = array_sha256(stems)
+    observed["present_sha256"] = array_sha256(present)
+    return observed, mixture, stems, mouths, present
+
+
+def check_clip(observed, mixture, stems, mouths, present):
+    samples = (observed["end_context_ms"] - observed["start_context_ms"]) * SAMPLES_PER_MS
+    n_ticks = samples // 640
+    if (mixture.shape != (samples,) or stems.shape != (samples, len(observed["speaker_order"]))
+            or mouths.shape != (n_ticks, 88, 88) or present.shape != (n_ticks,)
+            or mixture.dtype != np.float32 or stems.dtype != np.float32
+            or mouths.dtype != np.float32 or present.dtype != np.bool_):
+        raise ValueError(f"cached row geometry differs: {observed['id']}")
+    for key, array in (("mixture_crop_sha256", mixture), ("stems_sha256", stems),
+                       ("mouth_track_sha256", mouths), ("present_sha256", present)):
+        if array_sha256(array) != observed[key]:
+            raise ValueError(f"cached row hash differs: {observed['id']} {key}")
+
+
+def build_detector(face_model):
+    import mediapipe as mp
+
+    options = mp.tasks.vision.FaceLandmarkerOptions(
+        base_options=mp.tasks.BaseOptions(model_asset_path=str(face_model)),
+        num_faces=2, min_face_detection_confidence=.5)
+    return mp.tasks.vision.FaceLandmarker.create_from_options(options), mp.__version__
+
+
+def write_cache(args, rows, detector, mp_version):
+    cached = []
+    for i, row in enumerate(rows):
+        observed, mixture, stems, mouths, present = read_clip(row, i, args.dataset_root, detector)
+        check_clip(observed, mixture, stems, mouths, present)
+        np.savez_compressed(args.output / f"{i:03d}.npz", mixture=mixture, stems=stems,
+                            mouths=mouths, present=present)
+        cached.append(observed)
+        print(i, row["session"], row["target"], row["group"], observed["mouth_valid_all_score_ticks"],
+              flush=True)
+    with (args.output / "cache.json").open("x") as stream:
+        json.dump({"manifest_sha256": sha256(args.manifest), "code_sha256": sha256(Path(__file__)),
+                   "landmark_model_sha256": sha256(args.face_model) if args.face_model else None,
+                   "media_pipe_version": mp_version, "rows": cached}, stream, indent=2, allow_nan=False)
+
+
 def args_main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
@@ -212,11 +295,23 @@ def args_main():
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--old", type=Path)
     parser.add_argument("--arm", type=Path, action="append", default=[])
+    parser.add_argument("--experiment-arm", type=Path, action="append", default=[],
+                        help="Add a versioned rolling experiment checkpoint.")
     parser.add_argument("--face-model", type=Path,
                         help="Use one MediaPipe face landmarker for all clips instead of the released OpenFace CSV.")
-    parser.add_argument("--dataset-root", type=Path, required=True)
-    parser.add_argument("--release", type=Path, required=True)
-    return parser.parse_args()
+    parser.add_argument("--dataset-root", type=Path)
+    parser.add_argument("--release", type=Path)
+    cache_group = parser.add_mutually_exclusive_group()
+    cache_group.add_argument("--prepare-cache", action="store_true", help="Freeze input crops, mouth tracks and references without model inference.")
+    cache_group.add_argument("--input-cache", type=Path, help="Read input crops previously frozen by --prepare-cache.")
+    args = parser.parse_args()
+    if args.input_cache is None and args.dataset_root is None:
+        parser.error("--dataset-root is required when input crops are not cached")
+    if args.input_cache and args.face_model:
+        parser.error("--face-model is only used when cropping uncached input")
+    if not args.prepare_cache and args.release is None:
+        parser.error("--release is required for inference")
+    return args
 
 
 def main():
@@ -227,67 +322,63 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.allow_tf32 = False
     torch.backends.cuda.matmul.allow_tf32 = False
-    rolling = RollingFalconLiveInference(args.release, history_blocks=5, device=args.device)
-    old = PaperLiveInference(args.old, device=args.device) if args.old else None
-    arms = {path.stem: RollingFalconLiveInference(path, device=args.device) for path in args.arm}
-    if len(arms) != len(args.arm):
-        raise ValueError("arm paths must have unique file names")
-    detector = None
-    if args.face_model:
-        import mediapipe as mp
-        options = mp.tasks.vision.FaceLandmarkerOptions(
-            base_options=mp.tasks.BaseOptions(model_asset_path=str(args.face_model)),
-            num_faces=2, min_face_detection_confidence=.5)
-        detector = mp.tasks.vision.FaceLandmarker.create_from_options(options)
-    audio_model, visual_model, _ = load_baseline(args.release, args.device)
     rows = json.loads(args.manifest.read_text())["rows"]
     if not rows:
         raise ValueError("manifest contains no rows")
+    detector, mp_version = build_detector(args.face_model) if args.face_model else (None, None)
+    if args.prepare_cache:
+        try:
+            write_cache(args, rows, detector, mp_version)
+        finally:
+            if detector is not None:
+                detector.close()
+        return
+    cache = None
+    if args.input_cache is not None:
+        cache = json.loads((args.input_cache / "cache.json").read_text())
+        if cache["manifest_sha256"] != sha256(args.manifest) or len(cache["rows"]) != len(rows):
+            raise ValueError("input cache and manifest differ")
+    rolling = RollingFalconLiveInference(args.release, history_blocks=5, device=args.device)
+    old = PaperLiveInference(args.old, device=args.device) if args.old else None
+    arm_paths = args.arm + args.experiment_arm
+    arm_labels = {path.stem for path in arm_paths}
+    if len(arm_labels) != len(arm_paths) or arm_labels & {"mixture", "rolling", "old_streaming", "released_whole_window"}:
+        raise ValueError("arm paths must have unique, non-reserved file names")
+    arms = {path.stem: RollingFalconLiveInference(path, device=args.device) for path in args.arm}
+    if args.experiment_arm:
+        from tools.streaming.rolling_model_checkpoint import RollingExperimentLiveInference
+
+        arms.update({path.stem: RollingExperimentLiveInference(path, device=args.device)
+                     for path in args.experiment_arm})
+    audio_model, visual_model, _ = load_baseline(args.release, args.device)
     identity = {"manifest_sha256": sha256(args.manifest), "code_sha256": sha256(Path(__file__)),
+                "input_cache_sha256": sha256(args.input_cache / "cache.json") if cache else None,
                 "weights": {"release":sha256(args.release), "old":sha256(args.old) if args.old else None,
-                            **{p.stem:sha256(p) for p in args.arm}},
-                "landmark_model_sha256": sha256(args.face_model) if args.face_model else None,
+                            **{p.stem:sha256(p) for p in arm_paths}},
+                "landmark_model_sha256": cache["landmark_model_sha256"] if cache else (
+                    sha256(args.face_model) if args.face_model else None),
                 "torch": torch.__version__, "device": args.device,
-                "media_pipe_version": mp.__version__ if detector is not None else None,
+                "media_pipe_version": cache["media_pipe_version"] if cache else mp_version,
                 "git": subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
     with (args.output / "identity.json").open("x") as stream:
         json.dump(identity, stream, indent=2)
     with (args.output / "rows.jsonl").open("x") as stream, torch.inference_mode():
         for i, row in enumerate(rows):
-            session, target = row["session"], row["target"]
-            if row["group"] not in ("triple", "visible_silent", "weak"):
-                raise ValueError(f"unknown group {row['group']}")
-            a, b = row["start_ms"], row["end_ms"]
-            if not isinstance(a, int) or not isinstance(b, int) or a < 0 or b <= a:
-                raise ValueError("invalid scoring interval")
-            start = max(0, a//TICK_MS*TICK_MS - CONTEXT_MS)
-            end = (b+TICK_MS-1)//TICK_MS*TICK_MS + CONTEXT_MS
-            root = args.dataset_root
-            audio = root/"audio"
-            mix_path = audio/"all_participants_audio"/f"{session}.wav"
-            participant_paths = sorted((audio/"individual_participants_audio"/session).glob("*.wav"))
-            names = [p.stem.split("_",2)[1] for p in participant_paths]
-            target_index = names.index(target)
-            visual = root/"video/individual_participants/individual_participants_audio_all"/session
-            video = one(visual,f"{session}_{target}_*_all.mp4")
-            landmarks = None if detector else one(root/"features/OpenFace_Features",f"{session}_{target}_*_all.csv")
-            mixture = read_audio(mix_path,start,end)
-            stems = np.column_stack([read_audio(p,start,end) for p in participant_paths])
-            if detector:
-                mouths, present, clock = media_pipe_mouth(video, detector, start, end)
+            if cache is None:
+                observed, mixture, stems, mouths, present = read_clip(row, i, args.dataset_root, detector)
             else:
-                mouths, present, clock = read_mouth(video, landmarks, start, end)
-            score = slice((a-start)*SAMPLES_PER_MS,(b-start)*SAMPLES_PER_MS)
-            tick_start = (a-start)//TICK_MS
-            tick_end = (b-start+TICK_MS-1)//TICK_MS
-            valid = bool(present[tick_start:tick_end].all())
-            observed = row | {"id":i,"start_context_ms":start,"end_context_ms":end,
-                "mouth_valid_all_score_ticks":valid,"mouth_valid_context_fraction":float(present.mean()),
-                "mouth_clock_max_abs_ms":clock,"speaker_order":names,
-                "mouth_track_sha256": hashlib.sha256(mouths.tobytes()).hexdigest(),
-                "mixture_crop_sha256": hashlib.sha256(mixture.tobytes()).hexdigest(),
-                "asset_paths":{"mix":str(mix_path),"video":str(video),"landmarks":str(landmarks),
-                                "stems":[str(p) for p in participant_paths]}}
+                observed = cache["rows"][i]
+                if {key: observed[key] for key in row} != row:
+                    raise ValueError(f"cached row identity differs: {i}")
+                with np.load(args.input_cache / f"{i:03d}.npz", allow_pickle=False) as clip:
+                    mixture, stems, mouths, present = (clip[key] for key in ("mixture", "stems", "mouths", "present"))
+                check_clip(observed, mixture, stems, mouths, present)
+            start = observed["start_context_ms"]
+            a, b = observed["start_ms"], observed["end_ms"]
+            valid = observed["mouth_valid_all_score_ticks"]
+            session, target = observed["session"], observed["target"]
+            target_index = observed["speaker_order"].index(target)
+            score = slice((a - start) * SAMPLES_PER_MS, (b - start) * SAMPLES_PER_MS)
             if valid:
                 begin = time.perf_counter()
                 outputs = {"mixture":mixture, "rolling":streaming(rolling,mixture,mouths,present)}
