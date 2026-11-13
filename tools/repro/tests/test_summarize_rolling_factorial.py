@@ -25,3 +25,14 @@ def test_controlled_counts_both_requests_and_rejects_unmatched_rows(tmp_path):
     (tmp_path / "base_natural.json").write_text(json.dumps({"rows": {"natural": base_rows[:1]}}))
     with pytest.raises(ValueError, match="different sample IDs"):
         controlled(tmp_path, 100)
+
+
+def test_silence_factorial_uses_named_contrasts_and_retains_tail():
+    from tools.streaming.summarize_rolling_factorial import SILENCE_ARMS, SILENCE_CONTRASTS
+
+    result = paired_report([("one", (-20, -17, -24, -25)), ("two", (-3, -2, -10, -11))], 100,
+                           arms=SILENCE_ARMS, contrasts=SILENCE_CONTRASTS)
+    assert result["arm_max"]["level_off_silence_on"] == -10
+    assert result["contrasts"]["level_under_silence_off"]["delta"] == 2
+    assert result["contrasts"]["silence_under_level_on"]["delta"] == -8.5
+    assert result["contrasts"]["interaction"]["delta"] == -3

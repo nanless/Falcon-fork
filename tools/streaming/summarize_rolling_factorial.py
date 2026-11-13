@@ -19,10 +19,22 @@ CONTRASTS = {
     "data_average": (-0.5, 0.5, -0.5, 0.5),
     "interaction": (1, -1, -1, 1),
 }
+SILENCE_ARMS = ("level_off_silence_off", "level_on_silence_off",
+                "level_off_silence_on", "level_on_silence_on")
+SILENCE_CONTRASTS = {
+    "level_under_silence_off": (-1, 1, 0, 0),
+    "level_under_silence_on": (0, 0, -1, 1),
+    "silence_under_level_off": (-1, 0, 1, 0),
+    "silence_under_level_on": (0, -1, 0, 1),
+    "level_average": (-0.5, 0.5, -0.5, 0.5),
+    "silence_average": (-0.5, -0.5, 0.5, 0.5),
+    "interaction": (1, -1, -1, 1),
+}
 METRICS = ("si_sdri_db", "snr_db", "selection_margin_db", "target_preferred", "leakage_db",
            "both_polarities_correct")
 REAL_METRICS = ("target_si_sdr_db", "target_sisdri_db", "target_to_loudest_interferer_db",
-                "target_minus_loudest_other_sisdr_db", "output_to_mixture_db")
+                "target_minus_loudest_other_sisdr_db", "output_to_mixture_db",
+                "target_projection_delta_db", "target_projection_below_minus6db")
 
 
 def arm_values(rows, metric):
@@ -41,7 +53,7 @@ def indexed(rows, keys):
     return result
 
 
-def paired_report(cases, draws=2000):
+def paired_report(cases, draws=2000, *, arms=ARMS, contrasts=CONTRASTS):
     """Aggregate in original units, resampling entire mixtures or real sessions."""
     groups = defaultdict(list)
     for group, values in cases:
@@ -66,43 +78,44 @@ def paired_report(cases, draws=2000):
         return {"delta": sum(cluster_effects) / len(rows), "paired_cluster_bootstrap_95": interval}
 
     return {"rows": len(rows), "clusters": len(clusters),
-            "arm_means": dict(zip(ARMS, map(mean, zip(*rows)), strict=True)),
-            "arm_max": dict(zip(ARMS, map(max, zip(*rows)), strict=True)),
-            "contrasts": {name: effects(coeffs) for name, coeffs in CONTRASTS.items()}}
+            "arm_means": dict(zip(arms, map(mean, zip(*rows)), strict=True)),
+            "arm_max": dict(zip(arms, map(max, zip(*rows)), strict=True)),
+            "contrasts": {name: effects(coeffs) for name, coeffs in contrasts.items()}}
 
 
-def controlled(root, draws):
-    panels = {arm: json.loads((root / f"{arm}.json").read_text())["rows"] for arm in ARMS}
-    if any(set(panel) != set(panels[ARMS[0]]) for panel in panels.values()):
+def controlled(root, draws, *, arms=ARMS, contrasts=CONTRASTS):
+    panels = {arm: json.loads((root / f"{arm}.json").read_text())["rows"] for arm in arms}
+    if any(set(panel) != set(panels[arms[0]]) for panel in panels.values()):
         raise ValueError("controlled arms have different scoring groups")
     output = {}
-    for kind in panels[ARMS[0]]:
-        rows = [indexed(panels[arm][kind], ("row", "direction")) for arm in ARMS]
+    for kind in panels[arms[0]]:
+        rows = [indexed(panels[arm][kind], ("row", "direction")) for arm in arms]
         if any(set(arm) != set(rows[0]) for arm in rows):
             raise ValueError(f"{kind} has different sample IDs across arms")
         matched = [(key, [arm[key] for arm in rows]) for key in sorted(rows[0])]
-        if any(len({row.get("start_block") for row in arms}) != 1 for _, arms in matched):
+        if any(len({row.get("start_block") for row in records}) != 1 for _, records in matched):
             raise ValueError(f"{kind} has different score windows across arms")
         output[kind] = {}
         for metric in METRICS:
-            cases = [(key[0], values) for key, arms in matched if (values := arm_values(arms, metric)) is not None]
+            cases = [(key[0], values) for key, records in matched if (values := arm_values(records, metric)) is not None]
             if cases:
                 if len(cases) != len(matched):
                     raise ValueError(f"{kind}/{metric} differs in coverage")
-                output[kind][metric] = paired_report(cases, draws)
+                output[kind][metric] = paired_report(cases, draws, arms=arms, contrasts=contrasts)
         by_pair = defaultdict(list)
-        for (row, direction), arms in matched:
-            if direction is not None and (flags := arm_values(arms, "target_preferred")) is not None:
+        for (row, direction), records in matched:
+            if direction is not None and (flags := arm_values(records, "target_preferred")) is not None:
                 by_pair[row].append(flags)
         if by_pair:
             if any(len(directions) != 2 for directions in by_pair.values()):
                 raise ValueError(f"{kind} has an incomplete two-direction pair")
             output[kind]["both_directions_correct"] = paired_report(
-                [(row, [all(values) for values in zip(*directions)]) for row, directions in by_pair.items()], draws)
+                [(row, [all(values) for values in zip(*directions)]) for row, directions in by_pair.items()], draws,
+                arms=arms, contrasts=contrasts)
     return output
 
 
-def real(path, draws):
+def real(path, draws, *, arms=ARMS, contrasts=CONTRASTS, metrics=REAL_METRICS):
     with path.open() as stream:
         rows = [json.loads(line) for line in stream]
     indexed(rows, ("group", "session", "id"))
@@ -111,24 +124,25 @@ def real(path, draws):
         selected = [row for row in rows if row["group"] == group]
         scored = [row for row in selected if row.get("metrics")]
         result = {"attempted": len(selected), "scored": len(scored), "metrics": {}}
-        for metric in REAL_METRICS:
+        for metric in metrics:
             cases = [(row["session"], values) for row in scored
-                     if (values := arm_values([row["metrics"][arm] for arm in ARMS], metric)) is not None]
+                     if (values := arm_values([row["metrics"][arm] for arm in arms], metric)) is not None]
             if cases:
                 if len(cases) != len(scored):
                     raise ValueError(f"{group}/{metric} differs in coverage")
-                result["metrics"][metric] = paired_report(cases, draws)
+                result["metrics"][metric] = paired_report(cases, draws, arms=arms, contrasts=contrasts)
                 if metric in ("target_to_loudest_interferer_db", "target_minus_loudest_other_sisdr_db"):
                     result["metrics"]["target_preferred"] = paired_report(
-                        [(session, [v > 0 for v in values]) for session, values in cases], draws)
+                        [(session, [v > 0 for v in values]) for session, values in cases], draws,
+                        arms=arms, contrasts=contrasts)
         output[group] = result
     return output
 
 
-def misp(path, draws):
+def misp(path, draws, *, arms=ARMS, contrasts=CONTRASTS):
     with path.open() as stream:
         models = json.load(stream)["models"]
-    panels = [indexed(models[arm]["rows"], ("group", "start_ms", "target")) for arm in ARMS]
+    panels = [indexed(models[arm]["rows"], ("group", "start_ms", "target")) for arm in arms]
     if any(set(panel) != set(panels[0]) for panel in panels):
         raise ValueError("MISP arms have different scored sample IDs")
     result = {}
@@ -143,7 +157,7 @@ def misp(path, draws):
             if cases:
                 if (metric == "output_to_mix_db" or group == "triple") and len(cases) != len(keys):
                     raise ValueError(f"MISP {group}/{metric} differs in coverage")
-                result[group][metric] = paired_report(cases, draws)
+                result[group][metric] = paired_report(cases, draws, arms=arms, contrasts=contrasts)
     return result
 
 
@@ -153,17 +167,22 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--roomreader", type=Path)
     parser.add_argument("--easycom", type=Path)
+    parser.add_argument("--reopen", type=Path)
     parser.add_argument("--misp", type=Path)
+    parser.add_argument("--design", choices=("structure-data", "level-silence"), default="structure-data")
     parser.add_argument("--bootstrap", type=int, default=2000)
     args = parser.parse_args()
     if args.bootstrap < 100:
         parser.error("--bootstrap must be at least 100")
-    result = {"controlled": controlled(args.controlled_dir, args.bootstrap)}
-    for name, path in (("roomreader", args.roomreader), ("easycom", args.easycom)):
+    design = ({"arms": SILENCE_ARMS, "contrasts": SILENCE_CONTRASTS}
+              if args.design == "level-silence" else {})
+    result = {"controlled": controlled(args.controlled_dir, args.bootstrap, **design)}
+    for name, path in (("roomreader", args.roomreader), ("easycom", args.easycom),
+                       ("reopen", args.reopen)):
         if path:
-            result[name] = real(path, args.bootstrap)
+            result[name] = real(path, args.bootstrap, **design)
     if args.misp:
-        result["misp"] = misp(args.misp, args.bootstrap)
+        result["misp"] = misp(args.misp, args.bootstrap, **design)
     with args.output.open("x") as stream:
         json.dump(result, stream, indent=2, allow_nan=False)
 
