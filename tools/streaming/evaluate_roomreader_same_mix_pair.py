@@ -116,9 +116,15 @@ def prepare(args):
     detector, version = room.build_detector(args.face_model)
     selected = []
     decisions = []
+    excluded_sessions = {}
     try:
         for session in args.sessions:
-            clips = candidates(args.source, session)
+            try:
+                clips = candidates(args.source, session)
+            except (ValueError, OSError, sf.LibsndfileError) as exc:
+                excluded_sessions[session] = str(exc)
+                print(session, "session_assets_unavailable", str(exc), flush=True)
+                continue
             counts = dict.fromkeys(GROUPS, 0)
             for row in clips:
                 group = row["group"]
@@ -145,9 +151,10 @@ def prepare(args):
     if not selected:
         raise ValueError("no native pairs satisfied the frozen selection rules")
     write_json(args.output / "manifest.json", {
-        "rows": selected, "candidate_decisions": decisions,
+        "rows": selected, "candidate_decisions": decisions, "excluded_sessions": excluded_sessions,
         "annotation_sha256": {session: sha(args.source / "annotations/elan_sessions" / f"{session}.eaf")
-                               for session in args.sessions},
+                               for session in args.sessions
+                               if (args.source / "annotations/elan_sessions" / f"{session}.eaf").is_file()},
         "face_model_sha256": room.sha256(args.face_model), "mediapipe_version": version,
         "code_sha256": room.sha256(Path(__file__)), "source": str(args.source),
     })
