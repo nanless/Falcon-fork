@@ -8,6 +8,7 @@ import subprocess
 
 import cv2
 import numpy as np
+import soundfile as sf
 import torch
 
 from tools.streaming import evaluate_roomreader as room
@@ -28,7 +29,8 @@ def candidates(root, session):
     path = root / "audio/individual_participants_audio" / session
     audio = {name: room.one(path, f"{session}_{name}_*.wav") for name in names}
     mix_path = root / "audio/all_participants_audio" / f"{session}.wav"
-    speech = np.stack([people[name][0] for name in names])
+    max_ticks = min(sf.info(path).frames for path in [mix_path, *audio.values()]) // 1280
+    speech = np.stack([people[name][0][:max_ticks] for name in names])
     encoded = (speech * (2 ** np.arange(len(names))[:, None])).sum(0)
     results = []
     for mask in sorted(set(encoded)):
@@ -37,10 +39,14 @@ def candidates(root, session):
         if len(students) < 2:
             continue
         for start, end in sorted(ranges(encoded == mask), key=lambda x: (x[0] - x[1], x[0]))[:30]:
-            if end - start < (4 if len(active) >= 3 else 8) or start < 16:
+            if end - start < (4 if len(active) >= 3 else 8) or start < 16 or end + 16 > max_ticks:
                 continue
-            mixture = wav(mix_path, start, end)
-            power = {name: float(np.mean(wav(audio[name], start, end) ** 2)) for name in active}
+            try:
+                mixture = wav(mix_path, start, end)
+                power = {name: float(np.mean(wav(audio[name], start, end) ** 2)) for name in active}
+            except sf.LibsndfileError as exc:
+                print(session, start, end, "unreadable audio", str(exc), flush=True)
+                continue
             strong, weak = sorted(students, key=lambda name: (-power[name], name))[:2]
             weak_db = room.db_ratio(power[weak], power[strong])
             if room.db_ratio(np.mean(mixture**2), 1) < -47:
@@ -123,7 +129,7 @@ def prepare(args):
                     continue
                 try:
                     failure, result = freeze_candidate(row, len(selected), args.source, detector)
-                except (ValueError, RuntimeError) as exc:
+                except (ValueError, RuntimeError, sf.LibsndfileError) as exc:
                     failure, result = f"asset_error: {exc}", None
                 decisions.append(row | {"rejection": failure})
                 if result is None:
@@ -254,10 +260,10 @@ def evaluate(args):
     rows = json.loads(manifest.read_text())["rows"]
     if not rows:
         raise ValueError("input cache contains no paired rows")
-    paths = {"released": args.release}
-    paths.update({path.stem: path for path in args.arm})
-    if len(paths) != len(args.arm) + 1 or "mixture" in paths:
+    paths = {path.stem: path for path in args.arm}
+    if len(paths) != len(args.arm) or paths.keys() & {"mixture", "released"}:
         raise ValueError("arm checkpoint names must be distinct and not reserved")
+    paths = {"released": args.release} | paths
     args.output.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(2)
     torch.backends.cudnn.deterministic = True
