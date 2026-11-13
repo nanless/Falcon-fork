@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 
@@ -19,6 +21,7 @@ def test_swap_has_to_change_reference_preference_and_beat_all_active_sources():
     third_wrong = measure(stems[:, 2] + .5 * stems[:, 0], "weak")
     assert weak["target_preferred"] and strong["target_preferred"]
     assert weak["fit_target_preferred"] and strong["fit_target_preferred"]
+    assert json.loads(json.dumps(weak, allow_nan=False)) == weak
     assert not louder_wrong["target_preferred"] and not third_wrong["target_preferred"]
     assert third_wrong["preferred_active_reference"] == "other"
     assert weak["target_projection_delta_db"] == pytest.approx(0, abs=1e-8)

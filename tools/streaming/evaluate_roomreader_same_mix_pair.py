@@ -191,7 +191,7 @@ def score_request(output, mixture, stems, names, active, target):
             "target_sisdri_db": scores[target] - room.si_sdr(mixture, stems[:, target_idx]),
             "per_active_reference_si_sdr_db": scores, "si_sdr_margin_db": margin,
             "target_preferred": margin > 0, "fit_target_margin_db": fit_margin,
-            "fit_target_preferred": fit_margin > 0 and gain[target_idx] * native_gain[target_idx] > 0,
+            "fit_target_preferred": bool(fit_margin > 0 and gain[target_idx] * native_gain[target_idx] > 0),
             "fit_residual_db": fit_residual,
             "target_projection_delta_db": room.db_ratio(powers[target_idx], native_powers[target_idx]),
             "output_to_mixture_db": room.db_ratio(np.mean(output**2), np.mean(mixture**2))}
