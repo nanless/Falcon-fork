@@ -341,6 +341,14 @@ def measure_reopen(observed, outputs, stems, target_index):
         yield row | {"metrics": results, "native_fit_residual_db": native_residual_db}
 
 
+def export_reopen_waveforms(directory, observed, outputs, target):
+    """Save native-level aligned audio for offline review on the source host."""
+    clip = directory / f"{observed['id']:03d}"
+    clip.mkdir()
+    for label, wave in {"target_reference": target, **outputs}.items():
+        sf.write(clip / f"{label}.wav", wave, 16000, subtype="FLOAT")
+
+
 def args_main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
@@ -354,12 +362,16 @@ def args_main():
                         help="Use one MediaPipe face landmarker for all clips instead of the released OpenFace CSV.")
     parser.add_argument("--dataset-root", type=Path)
     parser.add_argument("--release", type=Path)
+    parser.add_argument("--export-reopen-waveforms", action="store_true",
+                        help="Write aligned reopening WAVs to the local result directory for listening.")
     cache_group = parser.add_mutually_exclusive_group()
     cache_group.add_argument("--prepare-cache", action="store_true", help="Freeze input crops, mouth tracks and references without model inference.")
     cache_group.add_argument("--input-cache", type=Path, help="Read input crops previously frozen by --prepare-cache.")
     args = parser.parse_args()
     if args.input_cache is None and args.dataset_root is None:
         parser.error("--dataset-root is required when input crops are not cached")
+    if args.prepare_cache and args.export_reopen_waveforms:
+        parser.error("--export-reopen-waveforms needs inference")
     if args.input_cache and args.face_model:
         parser.error("--face-model is only used when cropping uncached input")
     if not args.prepare_cache and args.release is None:
@@ -378,6 +390,10 @@ def main():
     rows = json.loads(args.manifest.read_text())["rows"]
     if not rows:
         raise ValueError("manifest contains no rows")
+    if args.export_reopen_waveforms:
+        if any(row["group"] != "reopen" for row in rows):
+            raise ValueError("waveform export requires a reopening-only manifest")
+        (args.output / "waveforms").mkdir(mode=0o700)
     detector, mp_version = build_detector(args.face_model) if args.face_model else (None, None)
     if args.prepare_cache:
         try:
@@ -395,7 +411,8 @@ def main():
     old = PaperLiveInference(args.old, device=args.device) if args.old else None
     arm_paths = args.arm + args.experiment_arm
     arm_labels = {path.stem for path in arm_paths}
-    if len(arm_labels) != len(arm_paths) or arm_labels & {"mixture", "rolling", "old_streaming", "released_whole_window"}:
+    reserved = {"mixture", "rolling", "old_streaming", "released_whole_window", "target_reference"}
+    if len(arm_labels) != len(arm_paths) or arm_labels & reserved:
         raise ValueError("arm paths must have unique, non-reserved file names")
     arms = {path.stem: RollingFalconLiveInference(path, device=args.device) for path in args.arm}
     if args.experiment_arm:
@@ -447,6 +464,8 @@ def main():
                 v = torch.from_numpy(mouths)[None,None].to(args.device)
                 outputs["released_whole_window"] = audio_model(m,visual_model(v))[0,0].cpu().numpy()
                 if row["group"] == "reopen":
+                    if args.export_reopen_waveforms:
+                        export_reopen_waveforms(args.output / "waveforms", observed, outputs, stems[:, target_index])
                     for part in measure_reopen(observed, outputs, stems, target_index):
                         print(json.dumps(part, allow_nan=False), file=stream, flush=True)
                     print(i, session, target, a, b, row["group"], "scored", flush=True)
