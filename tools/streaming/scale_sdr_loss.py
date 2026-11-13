@@ -13,13 +13,13 @@ import torch
 from torch.nn import functional as F
 
 
-def _log_energy(wave: torch.Tensor, *, mean: bool) -> torch.Tensor:
+def _log_energy(wave: torch.Tensor, *, mean: bool, counts=None) -> torch.Tensor:
     """Log sum or mean square without squaring unscaled float32 extremes."""
     scale = wave.abs().amax(dim=1).clamp_min(1e-20)
     normalized = wave / scale[:, None]
     power = normalized.square().sum(dim=1)
     if mean:
-        power = power / wave.shape[1]
+        power = power / (wave.shape[1] if counts is None else counts)
     return 2.0 * scale.log() + power.clamp_min(1e-30).log()
 
 
@@ -31,6 +31,7 @@ def scale_sdr_loss(
     eps: float = 1e-8,
     silence_rms_threshold: float = 0.0,
     silence_weight: float = 1.0,
+    valid_samples: torch.Tensor | None = None,
 ):
     """Return per-example losses and masks, differentiable in output.
 
@@ -49,15 +50,30 @@ def scale_sdr_loss(
     if not math.isfinite(silence_weight) or silence_weight < 0:
         raise ValueError("silence_weight must be nonnegative and finite")
     output, target, mixture = output.float(), target.float(), mixture.float()
+    valid = None
+    if valid_samples is not None:
+        if (valid_samples.shape != (output.shape[0],) or valid_samples.dtype != torch.long
+                or valid_samples.device != output.device):
+            raise ValueError("valid_samples must be a long [batch] tensor on the waveform device")
+        if not bool(((valid_samples >= 1) & (valid_samples <= output.shape[1])).all()):
+            raise ValueError("valid_samples is outside the waveform")
+        valid = torch.arange(output.shape[1], device=output.device)[None, :] < valid_samples[:, None]
+        output, target, mixture = (x.masked_fill(~valid, 0) for x in (output, target, mixture))
     with torch.no_grad():
-        centered = target - target.mean(dim=1, keepdim=True)
-        constant = target.amax(dim=1) == target.amin(dim=1)
+        if valid is None:
+            constant = target.amax(dim=1) == target.amin(dim=1)
+        else:
+            constant = target.masked_fill(~valid, -torch.inf).amax(dim=1) == target.masked_fill(~valid, torch.inf).amin(dim=1)
         degenerate = constant
         silent = target.abs().amax(dim=1) == 0
         if silence_rms_threshold:
             threshold_log = 2.0 * math.log(silence_rms_threshold)
-            degenerate = degenerate | (_log_energy(centered, mean=True) <= threshold_log)
-            silent = silent | (_log_energy(target, mean=True) <= threshold_log)
+            counts = target.shape[1] if valid_samples is None else valid_samples[:, None]
+            centered = target - target.sum(dim=1, keepdim=True) / counts
+            if valid is not None:
+                centered = centered.masked_fill(~valid, 0)
+            degenerate = degenerate | (_log_energy(centered, mean=True, counts=valid_samples) <= threshold_log)
+            silent = silent | (_log_energy(target, mean=True, counts=valid_samples) <= threshold_log)
         speech = ~degenerate
     values = output.new_zeros(output.shape[0])
     log_eps = math.log(eps)
@@ -74,8 +90,9 @@ def scale_sdr_loss(
         values = values.index_copy(0, speech.nonzero(as_tuple=True)[0], losses)
     if degenerate.any():
         t = target[degenerate]
-        error_log = _log_energy(output[degenerate] - t, mean=True)
-        mix_log = _log_energy(mixture[degenerate], mean=True)
+        counts = valid_samples[degenerate] if valid_samples is not None else None
+        error_log = _log_energy(output[degenerate] - t, mean=True, counts=counts)
+        mix_log = _log_energy(mixture[degenerate], mean=True, counts=counts)
         floor = mix_log.new_full(mix_log.shape, math.log(1e-8))
         denominator_log = torch.maximum(mix_log, floor)
         losses = db * F.softplus(error_log - denominator_log) * silence_weight

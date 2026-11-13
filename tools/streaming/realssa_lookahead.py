@@ -25,6 +25,10 @@ class RealSSALookaheadDataset(RealSSATarDataset):
     and normalized video are padded with zeros at the real source boundary.
     All real video frames use one shared spatial crop and flip.
     """
+    def __init__(self, *args, return_valid_samples=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.return_valid_samples = return_valid_samples
+
     def __getitem__(self, index):
         record = self.samples[index]
         sample_id = record["id"]
@@ -81,4 +85,6 @@ class RealSSALookaheadDataset(RealSSATarDataset):
             gray = gray[:, 4:92, 4:92]
         video = torch.zeros((INPUT_FRAMES, 88, 88), dtype=torch.float32)
         video[:count] = (gray.float() / 255.0 - .421) / .165
+        if self.return_valid_samples:
+            return mix, target, video, target_count * SAMPLES_PER_FRAME
         return mix, target, video
