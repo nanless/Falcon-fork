@@ -21,9 +21,11 @@ class RealSSALookaheadDataset(RealSSATarDataset):
     """Return (2.12s mixture, 2s target, 53 frames), channel zero.
 
     Crop selection is the same as RealSSATarDataset's 2-second crop, not a
-    mandatory 2.12s crop: real context is retained when present. Missing audio
-    and normalized video are padded with zeros at the real source boundary.
-    All real video frames use one shared spatial crop and flip.
+    mandatory 2.12s crop. Keep context up to the shortest of the mixture,
+    target, and mouth video, rounded down to complete 40 ms frames. The
+    returned tensors are zero-padded. With return_valid_samples, the fourth
+    element is the count of real target samples before padding. All real video
+    frames use one shared spatial crop and flip.
     """
     def __init__(self, *args, return_valid_samples=False, **kwargs):
         super().__init__(*args, **kwargs)

@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import random
 import time
@@ -34,6 +35,7 @@ from tools.streaming.robust_schedule import RobustWarmupPlateau, global_gradient
 from tools.streaming.realssa_lookahead import RealSSALookaheadDataset
 from tools.streaming.scale_sdr_loss import scale_sdr_loss
 from tools.streaming import stability_metrics
+from tools.streaming.training_config import UniqueKeyLoader
 from tools.streaming.exclude_realssa import (
     IndexedSamples, batch_exclusions, load_exclusions, replace_excluded_inputs,
     require_retained_global, training_mean,
@@ -93,6 +95,62 @@ def training_loss(output, target, mix, valid_samples=None):
     return scale_sdr_loss(output, target, mix, valid_samples=valid_samples)
 
 
+def load_training_config(path):
+    """Load a mapping while rejecting duplicate keys at every level."""
+    try:
+        with open(path, encoding="utf-8") as stream:
+            config = yaml.load(stream, Loader=UniqueKeyLoader)
+    except (yaml.YAMLError, ValueError) as exc:
+        raise ValueError(f"invalid training configuration {path}: {exc}") from exc
+    if not isinstance(config, dict):
+        raise ValueError("training configuration must be a YAML mapping")
+    return config
+
+
+def validate_training_config(config):
+    """Reject invalid config types and numeric values before initializing DDP."""
+    required = {"train_index", "valid_index", "visual_weights", "experiment_root", "batch_size",
+                "validation_batch_size", "workers", "lr", "warmup_steps", "weight_decay", "epochs",
+                "lr_patience", "early_stop_patience", "min_delta", "seed", "width", "rnn_hidden",
+                "heads", "history_frames", "checkpoint_chunks", "precision",
+                "grad_norm_limit", "max_consecutive_bad_steps", "validation_severe_delta",
+                "mask_limit", "activation_batch_chunk"}
+    if set(config) != required:
+        raise ValueError("config must have exactly the documented keys")
+    strings = ("train_index", "valid_index", "visual_weights", "experiment_root", "precision")
+    integers = ("batch_size", "validation_batch_size", "workers", "warmup_steps", "epochs",
+                "lr_patience", "early_stop_patience", "seed", "width", "rnn_hidden", "heads",
+                "history_frames", "max_consecutive_bad_steps", "activation_batch_chunk")
+    numbers = ("lr", "weight_decay", "min_delta", "grad_norm_limit", "validation_severe_delta", "mask_limit")
+    for key in strings:
+        if not isinstance(config[key], str) or not config[key].strip():
+            raise ValueError(f"config {key} must be a nonempty string")
+    for key in integers:
+        if type(config[key]) is not int:
+            raise ValueError(f"config {key} must be an integer")
+    for key in numbers:
+        if type(config[key]) not in (int, float) or not math.isfinite(config[key]):
+            raise ValueError(f"config {key} must be a finite number")
+    if type(config["checkpoint_chunks"]) is not bool:
+        raise ValueError("config checkpoint_chunks must be a boolean")
+    if config["precision"] not in ("bf16", "fp32"):
+        raise ValueError("precision must be bf16 or fp32")
+    positive_ints = ("batch_size", "validation_batch_size", "epochs", "early_stop_patience",
+                     "width", "rnn_hidden", "heads", "max_consecutive_bad_steps", "activation_batch_chunk")
+    nonnegative_ints = ("workers", "warmup_steps", "lr_patience", "history_frames")
+    if any(config[k] < 1 for k in positive_ints) or any(config[k] < 0 for k in nonnegative_ints):
+        raise ValueError("invalid integer configuration range")
+    # rank 1 seeds numpy with seed + 1; numpy requires values below 2**32.
+    if not 0 <= config["seed"] < 2**32 - 1:
+        raise ValueError("seed must allow both rank seeds in [0, 2**32)")
+    if config["width"] % config["heads"]:
+        raise ValueError("width must be divisible by heads")
+    if (config["lr"] <= 0 or config["weight_decay"] < 0 or config["min_delta"] < 0
+            or config["grad_norm_limit"] <= 0 or config["validation_severe_delta"] <= 0
+            or config["mask_limit"] <= 0):
+        raise ValueError("invalid optimizer or numeric configuration range")
+
+
 def all_finite(value, device):
     ok = torch.tensor(int(torch.isfinite(value).all().item()), device=device)
     dist.all_reduce(ok, op=dist.ReduceOp.MIN)
@@ -137,27 +195,13 @@ def main():
             or args.diagnostic_lr is None or not 0 < args.diagnostic_lr < float("inf")
             or args.diagnostic_attempts is None or not 1 <= args.diagnostic_attempts <= 8):
         parser.error("diagnostic needs checkpoint and SHA, finite positive LR, 1–8 attempts, exclusion manifest and validation limit")
-    with open(args.config, encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-    required = {"train_index", "valid_index", "visual_weights", "experiment_root", "batch_size",
-                "validation_batch_size", "workers", "lr", "warmup_steps", "weight_decay", "epochs",
-                "lr_patience", "early_stop_patience", "min_delta", "seed", "width", "rnn_hidden",
-                "heads", "history_frames", "checkpoint_chunks", "precision",
-                "grad_norm_limit", "max_consecutive_bad_steps", "validation_severe_delta",
-                "mask_limit", "activation_batch_chunk"}
-    if not isinstance(config, dict) or set(config) != required:
-        parser.error("config must have exactly the documented keys")
-    if config["precision"] not in ("bf16", "fp32"):
-        parser.error("precision must be bf16 or fp32")
+    config = load_training_config(args.config)
     if args.batch_size is not None:
         config["batch_size"] = args.batch_size
-    if min(config["batch_size"], config["validation_batch_size"], config["epochs"], config["early_stop_patience"]) < 1:
-        parser.error("batch sizes, epochs and early-stop patience must be positive")
-    if (config["lr"] <= 0 or config["warmup_steps"] < 0 or config["workers"] < 0
-            or config["grad_norm_limit"] <= 0 or config["max_consecutive_bad_steps"] < 1
-            or config["validation_severe_delta"] <= 0 or config["mask_limit"] <= 0
-            or config["activation_batch_chunk"] < 1):
-        parser.error("invalid optimizer or worker configuration")
+    try:
+        validate_training_config(config)
+    except ValueError as exc:
+        parser.error(str(exc))
     rank = int(os.environ["RANK"])
     local_rank = int(os.environ["LOCAL_RANK"])
     world = int(os.environ["WORLD_SIZE"])
@@ -229,6 +273,7 @@ def main():
                     "window_code_sha256": sha256(Path(__file__).with_name("lookahead_training.py")),
                     "data_code_sha256": sha256(Path(__file__).with_name("realssa_lookahead.py")),
                     "schedule_code_sha256": sha256(Path(__file__).with_name("robust_schedule.py")),
+                    "config_loader_sha256": sha256(Path(__file__).with_name("training_config.py")),
                     "loss_code_sha256": sha256(Path(__file__).with_name("scale_sdr_loss.py")),
                     "metrics_code_sha256": sha256(Path(__file__).with_name("stability_metrics.py")),
                     "legacy_data_code_sha256": sha256(Path(__file__).with_name("realssa_tar.py")),
@@ -276,13 +321,18 @@ def main():
             # remaining historical config fields must still be identical.
             historical_identity = dict(saved["identity"])
             historical_identity.pop("trainer_sha256")
-            # Explicit migration from the two known pre-fix implementations.
+            # These historical files predate the valid-prefix behavior or
+            # differ only in their descriptions of EOF padding.
             previous = {
-                "data_code_sha256": "a1aa92647f67de2583ab240388e52bbbfc8e79a31aba32e1b5ea2e70fd1124b1",
-                "loss_code_sha256": "16519c78d9c4411d2b53e546101f96cf8b03989e1c875b409867de7c85993e99",
+                "data_code_sha256": {
+                    "a1aa92647f67de2583ab240388e52bbbfc8e79a31aba32e1b5ea2e70fd1124b1",
+                    "fc9d221eb35c90f674c4acd4ca026356ecb210cbfe949e698b1e295c31fcc73e",
+                },
+                "window_code_sha256": {"85c6f399db4040f6ac8940e5c127fec255f67be38bb40647a02c0db6d3dacaf4"},
+                "loss_code_sha256": {"16519c78d9c4411d2b53e546101f96cf8b03989e1c875b409867de7c85993e99"},
             }
-            for key, digest in previous.items():
-                if historical_identity.get(key) == digest:
+            for key, digests in previous.items():
+                if historical_identity.get(key) in digests:
                     historical_identity[key] = identity[key]
             if (saved["partial"] or saved["config"] != config or saved["world_size"] != world or
                     any(identity.get(k) != v for k,v in historical_identity.items())):

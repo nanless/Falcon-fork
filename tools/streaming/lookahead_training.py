@@ -6,9 +6,10 @@ five video frames. Past context lives exclusively in the model state: a step
 must advance that state by the three *current* frames, never by its two preview
 frames. The step implementation owns this contract and must be tested itself.
 
-Zero padding is used only beyond the end of an utterance. This includes the
-last incomplete output chunk and missing future context. It is not a prediction
-of the unseen future. A stream must flush using the same padding convention.
+Inputs are zero-padded beyond their tensor boundaries. The RealSSA loader
+first pads at the shortest complete 40 ms boundary shared by audio and video.
+Training masks target loss after each example's real sample count. Live
+end-of-stream flushing follows the session's documented padding convention.
 """
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator
