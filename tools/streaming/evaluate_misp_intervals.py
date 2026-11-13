@@ -50,10 +50,16 @@ def evaluate(label,path,device,manifest,mode):
                 raise ValueError("released Falcon did not return a single aligned target")
             return result[0,0].cpu().numpy()
     else:
-        stream=(PaperLiveInference(path,device=device) if mode=="paper"
-                else RollingFalconLiveInference(path,device=device))
+        if mode == "experiment":
+            from tools.streaming.rolling_model_checkpoint import RollingExperimentLiveInference
+
+            stream = RollingExperimentLiveInference(path, device=device)
+        elif mode == "paper":
+            stream = PaperLiveInference(path, device=device)
+        else:
+            stream = RollingFalconLiveInference(path, device=device)
         def predict(audio,mouth,valid):
-            return live(stream,audio,mouth,valid,mode=="rolling")
+            return live(stream,audio,mouth,valid,mode!="paper")
     rows=[]
     for entry in manifest["rows"]:
         sample=Path(entry["path"])
@@ -112,7 +118,7 @@ def main():
     manifest=json.loads(args.manifest.read_text())
     models={}
     for label,mode,path in args.model:
-        if mode not in ("full","paper","rolling") or label in models:
+        if mode not in ("full","paper","rolling","experiment") or label in models:
             raise ValueError(f"invalid model descriptor: {label} {mode}")
         models[label]=evaluate(label,Path(path),args.device,manifest,mode)
         print(label,models[label]["summary"],flush=True)

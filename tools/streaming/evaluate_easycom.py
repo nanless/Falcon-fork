@@ -19,7 +19,7 @@ LANDMARKS = (61,146,91,181,84,17,314,405,321,375,291,409,270,269,267,0,37,39,40,
 
 
 def sha(path):
-    with path.open("rb") as handle:
+    with Path(path).open("rb") as handle:
         return hashlib.file_digest(handle,"sha256").hexdigest()
 
 
@@ -112,8 +112,9 @@ def main():
     ap.add_argument("--dataset-root", type=Path, required=True, help="EasyCom Main directory")
     ap.add_argument("--face-model", type=Path, required=True)
     ap.add_argument("--released", type=Path, required=True)
-    ap.add_argument("--warm", type=Path, required=True)
-    ap.add_argument("--scratch", type=Path, required=True)
+    ap.add_argument("--warm", type=Path)
+    ap.add_argument("--scratch", type=Path)
+    ap.add_argument("--experiment-arm", action="append", nargs=2, metavar=("LABEL", "CHECKPOINT"), default=[])
     ap.add_argument("--per-group", type=int, default=5)
     args=ap.parse_args()
     args.output.mkdir(exist_ok=False)
@@ -123,9 +124,22 @@ def main():
     cv2.setNumThreads(1)
     if args.per_group < 1:
         ap.error("--per-group must be positive")
-    weights = {"published": args.released, "warm96": args.warm, "scratch96": args.scratch}
-    streams = {name:RollingFalconLiveInference(path,device=args.device,threads=2)
-               for name,path in weights.items()}
+    if bool(args.warm) != bool(args.scratch):
+        ap.error("--warm and --scratch must be supplied together")
+    weights = {"published": args.released}
+    if args.warm:
+        weights.update(warm96=args.warm, scratch96=args.scratch)
+    experiment_arms = {label: Path(path) for label, path in args.experiment_arm}
+    if set(weights) & set(experiment_arms) or len(experiment_arms) != len(args.experiment_arm):
+        ap.error("duplicate model labels")
+    streams = {name: RollingFalconLiveInference(path, device=args.device, threads=2)
+               for name, path in weights.items()}
+    if experiment_arms:
+        from tools.streaming.rolling_model_checkpoint import RollingExperimentLiveInference
+
+        streams.update({name: RollingExperimentLiveInference(path, device=args.device)
+                        for name, path in experiment_arms.items()})
+        weights.update(experiment_arms)
     windows=json.loads(args.candidate_windows.read_text())
     opts=mp.tasks.vision.FaceLandmarkerOptions(base_options=mp.tasks.BaseOptions(model_asset_path=str(args.face_model)),
             num_faces=1,min_face_detection_confidence=.55)
