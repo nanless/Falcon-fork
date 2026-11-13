@@ -211,7 +211,7 @@ def array_sha256(value):
 
 def read_clip(row, i, dataset_root, detector):
     session, target = row["session"], row["target"]
-    if row["group"] not in ("triple", "visible_silent", "weak"):
+    if row["group"] not in ("triple", "visible_silent", "weak", "reopen"):
         raise ValueError(f"unknown group {row['group']}")
     a, b = row["start_ms"], row["end_ms"]
     if not isinstance(a, int) or not isinstance(b, int) or a < 0 or b <= a:
@@ -286,6 +286,59 @@ def write_cache(args, rows, detector, mp_version):
         json.dump({"manifest_sha256": sha256(args.manifest), "code_sha256": sha256(Path(__file__)),
                    "landmark_model_sha256": sha256(args.face_model) if args.face_model else None,
                    "media_pipe_version": mp_version, "rows": cached}, stream, indent=2, allow_nan=False)
+
+
+
+def reopen_windows(observed):
+    onset = observed["onset_ms"]
+    if observed["start_ms"] != onset - 240 or observed["end_ms"] != onset + 240:
+        raise ValueError("reopen case must have 240 ms around the acoustic onset")
+    context = observed["start_context_ms"]
+    return [(group, start, stop, slice((start - context) * SAMPLES_PER_MS,
+                                      (stop - context) * SAMPLES_PER_MS))
+            for group, start, stop in (("reopen_pre_silent", onset - 240, onset - 40),
+                                       ("reopen_120", onset, onset + 120),
+                                       ("reopen_240", onset, onset + 240))]
+
+
+def measure_reopen(observed, outputs, stems, target_index):
+    mixture = outputs["mixture"]
+    for group, start, stop, score in reopen_windows(observed):
+        row = observed | {"group": group, "start_ms": start, "end_ms": stop}
+        if not observed["mouth_valid_all_score_ticks"]:
+            yield row
+            continue
+        x = mixture[score]
+        reference = stems[score, target_index]
+        gains, powers, residual, rank = fit(stems[score], x)
+        native_target_power = powers[target_index]
+        native_target_gain = gains[target_index]
+        native_residual_db = db_ratio(residual, np.var(x))
+        if group != "reopen_pre_silent" and (native_target_power < 1e-6
+                or native_target_gain <= 0 or native_residual_db > -10 or rank != stems.shape[1]):
+            yield row | {"score_failure": "native target component not independently identifiable",
+                         "native_fit_residual_db": native_residual_db}
+            continue
+        baseline = si_sdr(x, reference) if group != "reopen_pre_silent" else None
+        results = {}
+        for name, wave in outputs.items():
+            y = wave[score]
+            if y.shape != x.shape or not np.isfinite(y).all():
+                raise ValueError("invalid reopen output")
+            metrics = {"output_to_mixture_db": db_ratio(np.mean(y**2), np.mean(x**2))}
+            if group != "reopen_pre_silent":
+                gains_y, powers_y, residual_y, _ = fit(stems[score], y)
+                projection_db = db_ratio(powers_y[target_index], native_target_power)
+                others = np.delete(powers_y, target_index)
+                target_sisdr = si_sdr(y, reference)
+                metrics.update(target_si_sdr_db=target_sisdr, target_sisdri_db=target_sisdr - baseline,
+                               target_to_loudest_interferer_db=db_ratio(powers_y[target_index], others.max()),
+                               target_projection_delta_db=projection_db,
+                               target_projection_below_minus6db=projection_db < -6,
+                               target_projection_sign_reversed=bool(gains_y[target_index] * native_target_gain < 0),
+                               reference_fit_residual_to_output_db=db_ratio(residual_y, np.var(y)))
+            results[name] = metrics
+        yield row | {"metrics": results, "native_fit_residual_db": native_residual_db}
 
 
 def args_main():
@@ -379,6 +432,11 @@ def main():
             session, target = observed["session"], observed["target"]
             target_index = observed["speaker_order"].index(target)
             score = slice((a - start) * SAMPLES_PER_MS, (b - start) * SAMPLES_PER_MS)
+            if not valid and row["group"] == "reopen":
+                for part in measure_reopen(observed, {"mixture": mixture}, stems, target_index):
+                    print(json.dumps(part, allow_nan=False), file=stream, flush=True)
+                print(i, session, target, a, b, row["group"], "missing score mouth", flush=True)
+                continue
             if valid:
                 begin = time.perf_counter()
                 outputs = {"mixture":mixture, "rolling":streaming(rolling,mixture,mouths,present)}
@@ -388,6 +446,11 @@ def main():
                 m = torch.from_numpy(mixture)[None].to(args.device)
                 v = torch.from_numpy(mouths)[None,None].to(args.device)
                 outputs["released_whole_window"] = audio_model(m,visual_model(v))[0,0].cpu().numpy()
+                if row["group"] == "reopen":
+                    for part in measure_reopen(observed, outputs, stems, target_index):
+                        print(json.dumps(part, allow_nan=False), file=stream, flush=True)
+                    print(i, session, target, a, b, row["group"], "scored", flush=True)
+                    continue
                 x = mixture[score]
                 reference = stems[score,target_index]
                 measured = {}
@@ -431,18 +494,25 @@ def summarize_group(group, subset):
     metrics = {}
     for model in scored[0]["metrics"] if scored else ():
         records = [row["metrics"][model] for row in scored]
-        primary = "output_to_mixture_db" if group == "visible_silent" else "target_si_sdr_db"
+        silence = group in ("visible_silent", "reopen_pre_silent")
+        primary = "output_to_mixture_db" if silence else "target_si_sdr_db"
         values = [record[primary] for record in records]
         result = {f"{primary}_mean": statistics.mean(values),
                   f"{primary}_median": statistics.median(values),
                   f"{primary}_minimum": min(values), f"{primary}_maximum": max(values)}
-        if group != "visible_silent":
+        if not silence:
             result["target_preferred"] = sum(record["target_to_loudest_interferer_db"] > 0 for record in records)
             result["better_than_mixture"] = sum(
                 record[primary] > row["metrics"]["mixture"][primary]
                 for record, row in zip(records, scored, strict=True))
         else:
             result["more_than_minus_10_db_mixture"] = sum(value > -10 for value in values)
+        if group in ("reopen_120", "reopen_240"):
+            for name in ("target_sisdri_db", "target_projection_delta_db"):
+                result[name + "_mean"] = statistics.mean(record[name] for record in records)
+                result[name + "_median"] = statistics.median(record[name] for record in records)
+            for name in ("target_projection_below_minus6db", "target_projection_sign_reversed"):
+                result[name] = sum(record[name] for record in records)
         metrics[model] = result
     return {"attempted":len(subset), "scored":len(scored), "duration_ms":duration_ms, "metrics":metrics}
 
