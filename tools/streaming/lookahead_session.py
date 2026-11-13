@@ -5,6 +5,8 @@ consecutive ticks, but commits only the first three and returns its state at
 that boundary. A stream ending mid-tick may supply a short final audio tick.
 
 The processor must treat its input state as read-only and return a new state.
+With accept_missing_video, None contributes a zero frame and the processor
+also receives a list of presence flags for the five input ticks.
 Once push has accepted a tick, an execution error leaves that tick queued;
 call retry_ready() rather than pushing the same sequence again. If finish()
 fails, call finish() again; previously produced tail blocks are held until
@@ -20,10 +22,12 @@ LOOKAHEAD_TICKS = 2
 
 
 class LookaheadSession:
-    def __init__(self, processor):
+    def __init__(self, processor, *, accept_missing_video=False):
         self.processor = processor
+        self.accept_missing_video = accept_missing_video
         self.audio = []
         self.video = []
+        self.video_present = []
         self.valid = []
         self.state = None
         self.closed = False
@@ -41,9 +45,13 @@ class LookaheadSession:
         if type(sequence) is not int or sequence != self.next_sequence:
             raise ValueError("sequence must be the next consecutive 40 ms tick")
         audio = np.asarray(audio, dtype=np.float32)
-        video = np.asarray(video)
+        video_present = video is not None
+        video = (np.zeros((88, 88), dtype=np.float32)
+                 if self.accept_missing_video and not video_present else np.asarray(video))
         if audio.ndim != 1 or not 0 < audio.size <= TICK_SAMPLES:
             raise ValueError("each audio tick must contain 1 to 640 samples")
+        if not video_present and not self.accept_missing_video:
+            raise ValueError("each video tick must be an 88x88 mouth frame")
         if not np.isfinite(audio).all() or not np.isfinite(video).all():
             raise ValueError("audio and video must contain finite values")
         if video.shape != (88, 88):
@@ -52,6 +60,7 @@ class LookaheadSession:
         self.short_seen = count < TICK_SAMPLES
         self.audio.append(np.pad(audio, (0, TICK_SAMPLES - count)))
         self.video.append(video.copy())
+        self.video_present.append(video_present)
         self.valid.append(count)
         self.next_sequence += 1
         return self._ready()
@@ -62,7 +71,11 @@ class LookaheadSession:
             sound = np.concatenate(self.audio[:BLOCK_TICKS + LOOKAHEAD_TICKS])
             frames = np.stack(self.video[:BLOCK_TICKS + LOOKAHEAD_TICKS])
             try:
-                result, new_state = self.processor(sound, frames, self.state)
+                if self.accept_missing_video:
+                    present = self.video_present[:BLOCK_TICKS + LOOKAHEAD_TICKS]
+                    result, new_state = self.processor(sound, frames, self.state, present)
+                else:
+                    result, new_state = self.processor(sound, frames, self.state)
                 result = np.asarray(result)
                 if result.shape != (BLOCK_TICKS * TICK_SAMPLES,):
                     raise ValueError("processor must return exactly 1920 samples")
@@ -76,6 +89,7 @@ class LookaheadSession:
             self.state = new_state
             del self.audio[:BLOCK_TICKS]
             del self.video[:BLOCK_TICKS]
+            del self.video_present[:BLOCK_TICKS]
             del self.valid[:BLOCK_TICKS]
         return outputs
 
@@ -103,6 +117,7 @@ class LookaheadSession:
             while len(self.audio) < BLOCK_TICKS + LOOKAHEAD_TICKS:
                 self.audio.append(np.zeros(TICK_SAMPLES, dtype=np.float32))
                 self.video.append(padding_frame.copy())
+                self.video_present.append(False)
                 self.valid.append(0)
             self._finish_outputs.extend(self._ready())
         self.closed = True
